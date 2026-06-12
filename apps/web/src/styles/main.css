@@ -10,6 +10,33 @@
   --soft-shadow: 0 10px 28px rgba(25, 66, 43, 0.08);
 }
 
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+}
+
+#nprogress .peg {
+  position: absolute;
+  right: 0;
+  display: block;
+  width: 100px;
+  height: 100%;
+  box-shadow:
+    0 0 10px var(--green),
+    0 0 5px var(--green);
+  opacity: 1;
+  transform: rotate(3deg) translate(0, -4px);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -99,11 +126,19 @@ p {
 
 .nav {
   display: grid;
-  gap: 6px;
+  gap: 10px;
+}
+
+.nav-section {
+  display: grid;
+  gap: 4px;
 }
 
 .nav-group {
-  margin: 14px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 2px;
   color: #7e8c83;
   font-size: 11px;
   font-weight: 850;
@@ -118,6 +153,14 @@ p {
   border: 1px solid transparent;
   border-radius: 8px;
   color: #3f5749;
+}
+
+.nav-item.sub {
+  min-height: 38px;
+  margin-left: 32px;
+  padding: 0 12px;
+  color: #587064;
+  font-size: 14px;
 }
 
 .nav-item.router-link-active,

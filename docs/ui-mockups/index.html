@@ -19,43 +19,47 @@
         </div>
 
         <nav class="nav">
-          <div class="nav-group">总览</div>
+          <div class="nav-group">天下纵览</div>
           <button class="nav-item active" data-view="dashboard">
             <span class="nav-icon">⌂</span>
-            数据看板
-          </button>
-          <button class="nav-item" data-view="world">
-            <span class="nav-icon">◎</span>
             世界概览
           </button>
+          <button class="nav-item" data-view="best">
+            <span class="nav-icon">✦</span>
+            紫禁之巅
+          </button>
 
-          <div class="nav-group">资料库</div>
-          <button class="nav-item" data-view="players">
-            <span class="nav-icon">◉</span>
-            球员列表
-          </button>
-          <button class="nav-item sub" data-view="detail">
-            <span class="nav-icon">◇</span>
-            球员详情
-          </button>
+          <div class="nav-group">国家圣殿</div>
           <button class="nav-item" data-view="countries">
             <span class="nav-icon">⚑</span>
-            国家列表
+            国家概览
           </button>
           <button class="nav-item sub" data-view="country-detail">
             <span class="nav-icon">◇</span>
             国家详情
           </button>
+
+          <div class="nav-group">豪门殿堂</div>
           <button class="nav-item" data-view="clubs">
             <span class="nav-icon">▣</span>
-            俱乐部列表
+            豪门概览
           </button>
           <button class="nav-item sub" data-view="club-detail">
             <span class="nav-icon">◇</span>
-            俱乐部详情
+            豪门详情
           </button>
 
-          <div class="nav-group">规则与运营</div>
+          <div class="nav-group">巨星殿堂</div>
+          <button class="nav-item" data-view="players">
+            <span class="nav-icon">◉</span>
+            巨星概览
+          </button>
+          <button class="nav-item sub" data-view="detail">
+            <span class="nav-icon">◇</span>
+            巨星详情
+          </button>
+
+          <div class="nav-group">天机阁</div>
           <button class="nav-item" data-view="honors">
             <span class="nav-icon">★</span>
             荣誉规则
@@ -63,10 +67,6 @@
           <button class="nav-item sub" data-view="honor-detail">
             <span class="nav-icon">≋</span>
             计算明细
-          </button>
-          <button class="nav-item" data-view="best">
-            <span class="nav-icon">✦</span>
-            最佳阵容
           </button>
           <button class="nav-item" data-view="import">
             <span class="nav-icon">⇪</span>
@@ -101,10 +101,10 @@
         <header class="topbar">
           <div>
             <div class="eyebrow">WORLD FOOTBALL ARCHIVE</div>
-            <h1 id="page-title">数据看板</h1>
+            <h1 id="page-title">世界概览</h1>
           </div>
           <div class="topbar-actions">
-            <div class="search-box">搜索球员 / 国家 / 俱乐部</div>
+            <div class="search-box">搜索巨星 / 国家 / 豪门</div>
             <button class="icon-button">⌕</button>
             <button class="primary-button">导入数据</button>
           </div>
@@ -250,7 +250,7 @@
 
           <div class="table-panel">
             <div class="panel-header">
-              <h3>球员资料库</h3>
+              <h3>巨星概览</h3>
               <div class="table-tools">
                 <button class="ghost-button">列配置</button>
                 <button class="primary-button small">新增球员</button>
@@ -590,7 +590,7 @@
 
           <div class="table-panel">
             <div class="panel-header">
-              <h3>俱乐部汇总</h3>
+              <h3>豪门概览</h3>
               <button class="ghost-button">按荣誉分排序</button>
             </div>
             <table>
@@ -718,7 +718,7 @@
         <section class="view" id="best">
           <div class="best-layout">
             <div class="formation-board">
-              <div class="formation-title">历史最佳阵容 · 4-3-3</div>
+              <div class="formation-title">紫禁之巅 · 4-3-3</div>
               <div class="field">
                 <span class="slot s1">ST<br />贝利</span>
                 <span class="slot s2">AML</span>
@@ -826,17 +826,17 @@
 
     <script>
       const titles = {
-        dashboard: '数据看板',
+        dashboard: '世界概览',
         world: '世界概览',
-        players: '球员列表',
-        detail: '球员详情',
-        countries: '国家列表',
+        players: '巨星概览',
+        detail: '巨星详情',
+        countries: '国家概览',
         'country-detail': '国家详情',
-        clubs: '俱乐部列表',
-        'club-detail': '俱乐部详情',
+        clubs: '豪门概览',
+        'club-detail': '豪门详情',
         honors: '荣誉规则',
         'honor-detail': '计算明细',
-        best: '最佳阵容',
+        best: '紫禁之巅',
         import: '数据导入',
         'import-detail': '导入任务',
         config: '基础配置',

@@ -1,9 +1,9 @@
 <template>
   <section class="panel">
     <div class="panel-header">
-      <h2>最佳阵容</h2>
+      <h2>国家详情</h2>
       <span class="status-pill">占位页面</span>
     </div>
-    <p>后续接入阵型视图、位置候选和最佳球员排序。</p>
+    <p>后续接入国家基础信息、代表巨星、位置结构和历史排名。</p>
   </section>
 </template>

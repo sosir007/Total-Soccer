@@ -1,0 +1,14 @@
+import { createI18n } from 'vue-i18n';
+
+export const i18n = createI18n({
+  legacy: false,
+  locale: 'zh-CN',
+  fallbackLocale: 'zh-CN',
+  messages: {
+    'zh-CN': {
+      app: {
+        name: '天下足球'
+      }
+    }
+  }
+});
