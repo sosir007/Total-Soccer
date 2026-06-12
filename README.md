@@ -55,3 +55,21 @@ pnpm type-check
 pnpm lint
 pnpm build
 ```
+
+## 提交规范
+
+项目使用 Husky、lint-staged、Commitlint 和 cz-git 管理提交质量。
+
+```bash
+pnpm commit
+```
+
+提交信息格式：
+
+```bash
+chore: 搭建项目工程基础
+feat: 新增球员列表页面
+fix: 修复数据导入状态判断
+```
+
+提交类型建议使用规范类型；描述可以使用中文或英文。后续由 Codex 协助提交时，默认优先使用中文描述。

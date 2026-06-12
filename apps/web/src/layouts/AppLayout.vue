@@ -33,12 +33,7 @@ const pageTitle = computed(() => String(route.meta.title ?? '数据看板'));
 
       <nav class="nav">
         <div class="nav-group">主导航</div>
-        <RouterLink
-          v-for="item in navItems"
-          :key="item.path"
-          class="nav-item"
-          :to="item.path"
-        >
+        <RouterLink v-for="item in navItems" :key="item.path" class="nav-item" :to="item.path">
           <span class="nav-icon">{{ item.icon }}</span>
           {{ item.label }}
         </RouterLink>

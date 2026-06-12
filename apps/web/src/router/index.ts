@@ -15,9 +15,19 @@ export const routes: RouteRecordRaw[] = [
     component: AppLayout,
     redirect: '/dashboard',
     children: [
-      { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { title: '数据看板' } },
+      {
+        path: 'dashboard',
+        name: 'dashboard',
+        component: DashboardView,
+        meta: { title: '数据看板' }
+      },
       { path: 'players', name: 'players', component: PlayersView, meta: { title: '球员资料库' } },
-      { path: 'countries', name: 'countries', component: CountriesView, meta: { title: '国家资料库' } },
+      {
+        path: 'countries',
+        name: 'countries',
+        component: CountriesView,
+        meta: { title: '国家资料库' }
+      },
       { path: 'clubs', name: 'clubs', component: ClubsView, meta: { title: '俱乐部资料库' } },
       { path: 'honors', name: 'honors', component: HonorsView, meta: { title: '荣誉规则' } },
       {
