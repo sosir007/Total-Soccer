@@ -23,6 +23,8 @@ pnpm install
 pnpm dev
 pnpm dev:web
 pnpm dev:api
+pnpm type-check
+pnpm lint
 pnpm build
 ```
 
@@ -30,3 +32,26 @@ pnpm build
 
 - 前端 Web: `http://localhost:9248`
 - 后端 API: `http://localhost:9249`
+
+## 后端基础接口
+
+- `GET http://localhost:9249/health`: 健康检查
+- `POST http://localhost:9249/import-preview`: 数据导入预览占位接口
+
+## 数据库
+
+项目使用 PostgreSQL + Prisma。Prisma schema 位于 `apps/api/prisma/schema.prisma`。
+
+```bash
+pnpm --filter @total-soccer/api prisma:generate
+```
+
+## 提交前检查
+
+提交前建议执行：
+
+```bash
+pnpm type-check
+pnpm lint
+pnpm build
+```

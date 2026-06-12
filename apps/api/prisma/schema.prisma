@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id           String        @id @default(cuid())
+  uid          String        @unique
+  chineseName  String
+  englishName  String?
+  primaryRole  String?
+  ca           Int?
+  pa           Int?
+  countryId    String?
+  clubId       String?
+  country      Country?      @relation(fields: [countryId], references: [id])
+  club         Club?         @relation(fields: [clubId], references: [id])
+  honors       PlayerHonor[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Country {
+  id        String         @id @default(cuid())
+  uid       String         @unique
+  name      String
+  federation String?
+  players   Player[]
+  honors    CountryHonor[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model Club {
+  id        String      @id @default(cuid())
+  uid       String      @unique
+  name      String
+  country   String?
+  federation String?
+  players   Player[]
+  honors    ClubHonor[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model HonorRule {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  category    String
+  championScore Float?
+  runnerUpScore Float?
+  thirdPlaceScore Float?
+  coefficient Float   @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PlayerHonor {
+  id       String @id @default(cuid())
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id])
+  name     String
+  score    Float  @default(0)
+  season   String?
+}
+
+model CountryHonor {
+  id        String  @id @default(cuid())
+  countryId String
+  country   Country @relation(fields: [countryId], references: [id])
+  name      String
+  score     Float   @default(0)
+  season    String?
+}
+
+model ClubHonor {
+  id     String @id @default(cuid())
+  clubId String
+  club   Club   @relation(fields: [clubId], references: [id])
+  name   String
+  score  Float  @default(0)
+  season String?
+}
