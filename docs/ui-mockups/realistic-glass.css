@@ -1,0 +1,1115 @@
+:root {
+  --bg: #07140f;
+  --ink: #f4f7ee;
+  --muted: rgba(229, 238, 222, 0.68);
+  --line: rgba(255, 255, 255, 0.14);
+  --deep: #07140f;
+  --deep-2: #0b2318;
+  --green: #42c472;
+  --green-2: #88e0a5;
+  --gold: #d4a64e;
+  --gold-2: #ffe19a;
+  --white: rgba(255, 255, 255, 0.82);
+  --red: #e66b5f;
+  --blue: #62a9e8;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+  --glass-dark: rgba(9, 21, 15, 0.66);
+  --glass-mid: rgba(18, 42, 30, 0.58);
+  --glass-light: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.18);
+}
+
+html {
+  background: #06110d;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 240, 176, 0.28), transparent 24%),
+    radial-gradient(ellipse at 83% 4%, rgba(206, 238, 255, 0.26), transparent 23%),
+    radial-gradient(ellipse at 48% -4%, rgba(255, 255, 255, 0.18), transparent 18%),
+    linear-gradient(180deg, rgba(4, 10, 8, 0.05) 0%, rgba(4, 10, 8, 0.8) 58%, #07140f 100%),
+    repeating-linear-gradient(90deg, rgba(44, 132, 76, 0.12) 0 92px, rgba(16, 72, 42, 0.2) 92px 184px),
+    linear-gradient(135deg, #0a1e16 0%, #113b28 43%, #08130f 100%);
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -2;
+  pointer-events: none;
+}
+
+body::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 49.85%, rgba(255, 255, 255, 0.12) 50%, transparent 50.15%),
+    radial-gradient(circle at 50% 52%, transparent 0 112px, rgba(255, 255, 255, 0.08) 113px 114px, transparent 115px),
+    linear-gradient(180deg, transparent 0 14%, rgba(255, 255, 255, 0.1) 14.1% 14.25%, transparent 14.35% 85%, rgba(255, 255, 255, 0.08) 85.15% 85.3%, transparent 85.45%);
+  opacity: 0.22;
+}
+
+body::after {
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.22), transparent 20% 100%),
+    linear-gradient(250deg, rgba(255, 244, 194, 0.18), transparent 19% 100%),
+    radial-gradient(ellipse at 50% 108%, rgba(46, 169, 88, 0.22), transparent 46%);
+  mix-blend-mode: screen;
+  opacity: 0.72;
+}
+
+.workspace {
+  position: relative;
+}
+
+.workspace::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
+    radial-gradient(ellipse at 74% 16%, rgba(255, 222, 139, 0.12), transparent 30%),
+    radial-gradient(ellipse at 18% 34%, rgba(87, 189, 255, 0.08), transparent 28%);
+}
+
+.sidebar,
+.topbar,
+.metric-card,
+.panel,
+.table-panel,
+.upload-panel,
+.player-profile,
+.summary-metrics div,
+.filter-chip,
+.status-pill,
+.search-box,
+.icon-button,
+.ghost-button,
+.rule-tabs button,
+.formula-card,
+.formation-board,
+.hero-panel,
+.stadium-hero,
+.detail-cover,
+.calculation-hero,
+.summary-card,
+.club-hero {
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(4, 13, 9, 0.74), rgba(6, 22, 14, 0.92)),
+    radial-gradient(circle at 18% 4%, rgba(255, 226, 145, 0.18), transparent 28%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 7px);
+  box-shadow: 22px 0 70px rgba(0, 0, 0, 0.34);
+}
+
+.sidebar::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+}
+
+.sidebar::after {
+  border-color: rgba(255, 225, 154, 0.2);
+  box-shadow: 0 0 80px rgba(255, 225, 154, 0.12);
+}
+
+.brand-mark {
+  border-color: rgba(255, 225, 154, 0.62);
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.42), transparent 24%),
+    linear-gradient(145deg, rgba(255, 225, 154, 0.18), rgba(255, 255, 255, 0.04));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.nav-item {
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.nav-item.active,
+.nav-item:hover {
+  border-color: rgba(255, 225, 154, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.06));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.sidebar-card {
+  border-color: rgba(255, 225, 154, 0.22);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: -28px -32px 24px;
+  padding: 24px 32px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(180deg, rgba(5, 16, 11, 0.72), rgba(5, 16, 11, 0.38));
+}
+
+.eyebrow {
+  color: rgba(255, 225, 154, 0.86);
+}
+
+h1 {
+  color: #fffaf0;
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.46);
+}
+
+.search-box,
+.icon-button,
+.ghost-button,
+.filter-chip,
+.status-pill,
+.rule-tabs button {
+  color: rgba(244, 247, 238, 0.76);
+  border-color: rgba(255, 255, 255, 0.15);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.06));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.search-box {
+  color: rgba(244, 247, 238, 0.58);
+}
+
+.primary-button,
+.filter-chip.active,
+.rule-tabs button.active {
+  color: #07140f;
+  background:
+    linear-gradient(135deg, rgba(255, 231, 166, 0.98), rgba(73, 211, 122, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 16px 34px rgba(58, 199, 103, 0.24);
+}
+
+.hero-panel,
+.stadium-hero,
+.detail-cover,
+.calculation-hero,
+.summary-card,
+.club-hero,
+.player-profile,
+.formation-board {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(ellipse at 82% 0%, rgba(255, 247, 212, 0.28), transparent 25%),
+    radial-gradient(ellipse at 12% 0%, rgba(160, 220, 255, 0.18), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 74px),
+    linear-gradient(135deg, rgba(10, 36, 24, 0.88), rgba(15, 92, 52, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 26px 80px rgba(0, 0, 0, 0.38);
+}
+
+.hero-panel::before,
+.stadium-hero::before,
+.detail-cover::before,
+.calculation-hero::before,
+.summary-card::before,
+.club-hero::before,
+.player-profile::before,
+.formation-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.18), transparent 22% 76%, rgba(255, 255, 255, 0.1)),
+    radial-gradient(ellipse at 50% 110%, rgba(52, 165, 84, 0.34), transparent 45%);
+}
+
+.hero-content,
+.pitch-card,
+.profile-top,
+.profile-meta,
+.score-orbit,
+.stat-list,
+.detail-cover > *,
+.calculation-hero > *,
+.summary-card > *,
+.club-hero > *,
+.formation-title,
+.field {
+  position: relative;
+  z-index: 1;
+}
+
+.tag,
+.profile-meta span,
+.trophy-strip div {
+  border-color: rgba(255, 225, 154, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.pitch-card,
+.field {
+  border-color: rgba(255, 255, 255, 0.36);
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.5) 50%, transparent 50.2%),
+    radial-gradient(circle at 50% 50%, transparent 0 49px, rgba(255, 255, 255, 0.28) 50px 51px, transparent 52px),
+    repeating-linear-gradient(90deg, rgba(68, 164, 88, 0.3) 0 48px, rgba(33, 111, 61, 0.34) 48px 96px),
+    linear-gradient(180deg, rgba(36, 123, 66, 0.82), rgba(14, 76, 42, 0.86));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 32px 80px rgba(255, 255, 255, 0.06),
+    0 18px 44px rgba(0, 0, 0, 0.32);
+}
+
+.pitch-line.center {
+  border-color: rgba(255, 255, 255, 0.48);
+}
+
+.player-token,
+.slot {
+  color: #09150f;
+  border-color: rgba(255, 255, 255, 0.76);
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.58), transparent 25%),
+    linear-gradient(145deg, #fff0b6, #d2a34c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 12px 26px rgba(0, 0, 0, 0.34);
+}
+
+.metric-card,
+.panel,
+.table-panel,
+.upload-panel,
+.summary-metrics div {
+  color: rgba(245, 248, 241, 0.94);
+  border-color: var(--glass-border);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.055)),
+    rgba(7, 18, 13, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 22px 60px rgba(0, 0, 0, 0.28);
+}
+
+.metric-card:hover,
+.panel:hover,
+.table-panel:hover {
+  border-color: rgba(255, 225, 154, 0.28);
+}
+
+.metric-card span,
+.metric-card em,
+.panel p,
+.summary-metrics span,
+.person em,
+.timeline em,
+.legend-grid,
+.filter-chip,
+.status-pill,
+th,
+.todo-list span,
+.heatmap b,
+.era-bars span,
+.era-bars em,
+.honor-cards span,
+.trophy-matrix span,
+.task-state p,
+.error-list span,
+.role-list span,
+.mapping-grid em,
+.upload-panel p {
+  color: rgba(229, 238, 222, 0.64);
+}
+
+.metric-card strong,
+.summary-metrics strong,
+.stat-list strong,
+.task-state strong,
+.mapping-grid b,
+.bar-item b,
+.medal-stack em {
+  color: #fff8e9;
+}
+
+.metric-card.gold strong,
+.rank-list b,
+.rank-list em,
+.todo-list em,
+.trophy-matrix b,
+.formula-card strong,
+.summary-card h2,
+.trophy-strip b,
+.formation-title,
+.mapping-grid span,
+.tag,
+.profile-number,
+.score-orbit strong {
+  color: var(--gold-2);
+}
+
+.rank-list div,
+.todo-list div,
+.stat-list div,
+.steps div,
+.honor-cards div,
+.trophy-matrix div,
+.task-state,
+.error-list div,
+.role-list div,
+.formula-card,
+.type-list div,
+.mapping-grid div {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.045));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.role-list div.active {
+  background:
+    linear-gradient(135deg, rgba(255, 225, 154, 0.22), rgba(57, 190, 103, 0.36));
+  border-color: rgba(255, 225, 154, 0.3);
+}
+
+.steps b {
+  color: rgba(244, 247, 238, 0.78);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.steps .done b,
+.steps .current b {
+  color: #07140f;
+  background: linear-gradient(135deg, #ffe19a, #4bd67d);
+}
+
+.steps .current {
+  border-color: rgba(255, 225, 154, 0.32);
+  background: rgba(255, 225, 154, 0.1);
+}
+
+th {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+th,
+td {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+tbody tr {
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.avatar {
+  color: #07140f;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.6), transparent 24%),
+    linear-gradient(145deg, #7ee59d, #18844c);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.avatar.blue {
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.55), transparent 24%),
+    linear-gradient(145deg, #91caff, #2a73b9);
+}
+
+.avatar.red {
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.55), transparent 24%),
+    linear-gradient(145deg, #ff9b90, #c94238);
+}
+
+.avatar.gold-bg {
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.6), transparent 24%),
+    linear-gradient(145deg, #fff0b6, #c18b2b);
+}
+
+.position,
+.tag-cloud span {
+  color: #07140f;
+  background: linear-gradient(135deg, rgba(255, 225, 154, 0.9), rgba(83, 211, 125, 0.88));
+}
+
+.bar-item i,
+.mini-bars b,
+.era-bars b,
+.medal-stack b {
+  background:
+    linear-gradient(180deg, #fff0b6, #40c774 70%, #187445);
+  box-shadow: 0 0 28px rgba(83, 211, 125, 0.18);
+}
+
+.donut {
+  background: conic-gradient(#40c774 0 18%, #ffe19a 18% 54%, #62a9e8 54% 85%, #e66b5f 85% 100%);
+  box-shadow:
+    inset 0 0 0 34px rgba(7, 20, 15, 0.82),
+    0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.radar-ring {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.radar-shape {
+  border-color: rgba(255, 225, 154, 0.76);
+  background: rgba(71, 203, 118, 0.24);
+  box-shadow: 0 0 34px rgba(71, 203, 118, 0.18);
+}
+
+.heat {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.h0 { background: rgba(255, 255, 255, 0.05); color: rgba(229, 238, 222, 0.58); }
+.h1 { background: rgba(75, 201, 123, 0.14); color: #99eab2; }
+.h2 { background: rgba(75, 201, 123, 0.2); color: #b4f0c4; }
+.h3 { background: rgba(75, 201, 123, 0.3); color: #d6fadc; }
+.h4 { background: rgba(75, 201, 123, 0.42); color: #fff8e9; }
+.h5 { background: rgba(75, 201, 123, 0.52); color: #fff8e9; }
+.h6 { background: rgba(255, 225, 154, 0.42); color: #fff8e9; }
+.h7 { background: linear-gradient(135deg, rgba(255, 225, 154, 0.78), rgba(75, 201, 123, 0.68)); color: #07140f; }
+
+.profile-number,
+.score-orbit div,
+.crest-card,
+.crest-mini {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -18px 28px rgba(0, 0, 0, 0.22),
+    0 16px 36px rgba(0, 0, 0, 0.38);
+}
+
+.score-orbit div {
+  border-color: rgba(255, 225, 154, 0.22);
+  border-top-color: rgba(255, 225, 154, 0.96);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crest-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(255, 225, 154, 0.45);
+  border-radius: 30px 30px 42px 42px;
+  color: #fff8e9;
+  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.44);
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.44), transparent 23%),
+    linear-gradient(145deg, rgba(255, 225, 154, 0.28), rgba(36, 150, 78, 0.18)),
+    rgba(255, 255, 255, 0.08);
+}
+
+.crest-card::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px 22px 34px 34px;
+}
+
+.crest-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.22), transparent 36% 100%);
+}
+
+.club-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 760;
+}
+
+.crest-mini {
+  position: relative;
+  display: inline-grid;
+  width: 30px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 10px 10px 14px 14px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.42);
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.5), transparent 24%),
+    linear-gradient(145deg, #4350a8, #f6e6b4);
+}
+
+.crest-mini::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 7px 7px 10px 10px;
+}
+
+.crest-mini.rma {
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.56), transparent 24%),
+    linear-gradient(145deg, #f8f6ef 0 34%, #d3ab4c 35% 63%, #3d4aa9 64%);
+}
+
+.crest-mini.barca {
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.42), transparent 24%),
+    linear-gradient(90deg, #8e1735 0 50%, #263a91 50%);
+}
+
+.crest-mini.inter {
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.38), transparent 24%),
+    linear-gradient(90deg, #0a0d13 0 50%, #1468bf 50%);
+}
+
+.crest-mini.juve {
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.5), transparent 24%),
+    linear-gradient(90deg, #101010 0 33%, #f2f2ee 33% 66%, #101010 66%);
+}
+
+.upload-icon {
+  color: #07140f;
+  background: linear-gradient(145deg, #fff0b6, #4bd67d);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.floodlights i {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 225, 154, 0.24), transparent);
+  filter: blur(0.4px);
+}
+
+.lg-green { background: #40c774; }
+.lg-gold { background: #ffe19a; }
+.lg-blue { background: #62a9e8; }
+.lg-red { background: #e66b5f; }
+
+@media (max-width: 980px) {
+  .topbar {
+    position: static;
+    margin: -28px -32px 24px;
+  }
+
+  .sidebar::before {
+    inset: 12px;
+  }
+}
+
+/* Comfort daylight tuning: brighter glass, softer stadium atmosphere. */
+:root {
+  --bg: #edf4e9;
+  --ink: #132b20;
+  --muted: rgba(52, 74, 59, 0.68);
+  --line: rgba(36, 91, 61, 0.14);
+  --deep: #0d3324;
+  --deep-2: #164631;
+  --green: #1f8c52;
+  --green-2: #58bc78;
+  --gold: #c79333;
+  --gold-2: #f5cf78;
+  --white: rgba(255, 255, 255, 0.86);
+  --shadow: 0 22px 60px rgba(22, 68, 43, 0.14);
+  --glass-border: rgba(255, 255, 255, 0.72);
+}
+
+html {
+  background: #eaf3e7;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 16% 0%, rgba(255, 237, 178, 0.76), transparent 28%),
+    radial-gradient(ellipse at 86% 2%, rgba(205, 239, 255, 0.72), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(236, 246, 232, 0.74) 42%, rgba(215, 235, 207, 0.92) 100%),
+    repeating-linear-gradient(90deg, rgba(55, 145, 82, 0.08) 0 92px, rgba(136, 190, 118, 0.12) 92px 184px),
+    linear-gradient(135deg, #f4f8ef 0%, #dcebd7 48%, #eef6ec 100%);
+}
+
+body::before {
+  background:
+    linear-gradient(90deg, transparent 49.85%, rgba(29, 92, 58, 0.1) 50%, transparent 50.15%),
+    radial-gradient(circle at 50% 52%, transparent 0 112px, rgba(29, 92, 58, 0.08) 113px 114px, transparent 115px),
+    linear-gradient(180deg, transparent 0 14%, rgba(29, 92, 58, 0.08) 14.1% 14.25%, transparent 14.35% 85%, rgba(29, 92, 58, 0.08) 85.15% 85.3%, transparent 85.45%);
+  opacity: 0.2;
+}
+
+body::after {
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.58), transparent 24% 100%),
+    linear-gradient(250deg, rgba(255, 227, 152, 0.36), transparent 22% 100%),
+    radial-gradient(ellipse at 50% 108%, rgba(87, 170, 93, 0.18), transparent 48%);
+  opacity: 0.85;
+}
+
+.workspace::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 34%),
+    radial-gradient(ellipse at 74% 16%, rgba(255, 212, 118, 0.24), transparent 30%),
+    radial-gradient(ellipse at 18% 34%, rgba(130, 207, 255, 0.16), transparent 28%);
+}
+
+.sidebar {
+  color: rgba(255, 255, 248, 0.94);
+  border-right-color: rgba(255, 255, 255, 0.38);
+  background:
+    linear-gradient(180deg, rgba(17, 72, 49, 0.78), rgba(12, 48, 34, 0.86)),
+    radial-gradient(circle at 22% 2%, rgba(255, 224, 139, 0.28), transparent 30%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 7px);
+  box-shadow: 18px 0 56px rgba(25, 77, 48, 0.18);
+}
+
+.sidebar::before {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.nav-item.active,
+.nav-item:hover {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.1));
+}
+
+.topbar {
+  border-bottom-color: rgba(29, 92, 58, 0.1);
+  background: linear-gradient(180deg, rgba(247, 252, 243, 0.78), rgba(247, 252, 243, 0.48));
+}
+
+.eyebrow {
+  color: #247749;
+}
+
+h1 {
+  color: #12271d;
+  text-shadow: 0 12px 28px rgba(48, 102, 67, 0.14);
+}
+
+.search-box,
+.icon-button,
+.ghost-button,
+.filter-chip,
+.status-pill,
+.rule-tabs button {
+  color: rgba(31, 61, 43, 0.72);
+  border-color: rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.42));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 12px 30px rgba(36, 91, 61, 0.08);
+}
+
+.search-box {
+  color: rgba(31, 61, 43, 0.52);
+}
+
+.primary-button,
+.filter-chip.active,
+.rule-tabs button.active {
+  color: #0f2c1e;
+  background:
+    linear-gradient(135deg, rgba(255, 226, 143, 0.98), rgba(91, 206, 124, 0.95));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 16px 34px rgba(45, 144, 83, 0.2);
+}
+
+.hero-panel,
+.stadium-hero,
+.detail-cover,
+.calculation-hero,
+.summary-card,
+.club-hero,
+.player-profile,
+.formation-board {
+  border-color: rgba(255, 255, 255, 0.56);
+  background:
+    radial-gradient(ellipse at 82% 0%, rgba(255, 239, 187, 0.42), transparent 28%),
+    radial-gradient(ellipse at 12% 0%, rgba(197, 235, 255, 0.32), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 74px),
+    linear-gradient(135deg, rgba(30, 98, 63, 0.84), rgba(53, 151, 84, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    0 26px 70px rgba(34, 95, 55, 0.2);
+}
+
+.hero-panel::before,
+.stadium-hero::before,
+.detail-cover::before,
+.calculation-hero::before,
+.summary-card::before,
+.club-hero::before,
+.player-profile::before,
+.formation-board::before {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.26), transparent 24% 78%, rgba(255, 255, 255, 0.13)),
+    radial-gradient(ellipse at 50% 110%, rgba(84, 177, 91, 0.28), transparent 45%);
+}
+
+.hero-content p,
+.stadium-hero p,
+.detail-cover p,
+.calculation-hero p,
+.summary-card span,
+.summary-card p,
+.club-hero p,
+.profile-top p,
+.profile-meta {
+  color: rgba(255, 255, 248, 0.78);
+}
+
+.metric-card,
+.panel,
+.table-panel,
+.upload-panel,
+.summary-metrics div {
+  color: #173324;
+  border-color: rgba(255, 255, 255, 0.76);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.5)),
+    rgba(241, 248, 236, 0.56);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 22px 52px rgba(38, 90, 56, 0.13);
+}
+
+.metric-card:hover,
+.panel:hover,
+.table-panel:hover {
+  border-color: rgba(255, 220, 132, 0.86);
+}
+
+.metric-card span,
+.metric-card em,
+.panel p,
+.summary-metrics span,
+.person em,
+.timeline em,
+.legend-grid,
+.filter-chip,
+.status-pill,
+th,
+.todo-list span,
+.heatmap b,
+.era-bars span,
+.era-bars em,
+.honor-cards span,
+.trophy-matrix span,
+.task-state p,
+.error-list span,
+.role-list span,
+.mapping-grid em,
+.upload-panel p,
+.radar-label {
+  color: rgba(52, 74, 59, 0.68);
+}
+
+.metric-card strong,
+.summary-metrics strong,
+.stat-list strong,
+.task-state strong,
+.mapping-grid b,
+.bar-item b,
+.medal-stack em,
+td,
+.panel-header h3,
+.person b {
+  color: #143023;
+}
+
+.metric-card.gold strong,
+.rank-list b,
+.rank-list em,
+.todo-list em,
+.trophy-matrix b,
+.formula-card strong,
+.summary-card h2,
+.trophy-strip b,
+.formation-title,
+.mapping-grid span,
+.tag,
+.profile-number,
+.score-orbit strong {
+  color: #d0942f;
+}
+
+.summary-card h2,
+.trophy-strip b,
+.formation-title,
+.profile-number,
+.score-orbit strong {
+  color: #ffe29a;
+}
+
+.rank-list div,
+.todo-list div,
+.stat-list div,
+.steps div,
+.honor-cards div,
+.trophy-matrix div,
+.task-state,
+.error-list div,
+.role-list div,
+.formula-card,
+.type-list div,
+.mapping-grid div {
+  border-color: rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.34));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+th {
+  color: rgba(47, 69, 55, 0.72);
+  background: rgba(29, 92, 58, 0.08);
+}
+
+th,
+td {
+  border-bottom-color: rgba(29, 92, 58, 0.12);
+}
+
+tbody tr:hover {
+  background: rgba(45, 145, 83, 0.07);
+}
+
+.pitch-card,
+.field {
+  border-color: rgba(255, 255, 255, 0.56);
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.56) 50%, transparent 50.2%),
+    radial-gradient(circle at 50% 50%, transparent 0 49px, rgba(255, 255, 255, 0.34) 50px 51px, transparent 52px),
+    repeating-linear-gradient(90deg, rgba(94, 180, 96, 0.44) 0 48px, rgba(49, 142, 77, 0.42) 48px 96px),
+    linear-gradient(180deg, rgba(74, 159, 84, 0.82), rgba(36, 123, 66, 0.84));
+}
+
+.donut {
+  box-shadow:
+    inset 0 0 0 34px rgba(255, 255, 255, 0.78),
+    0 16px 34px rgba(38, 90, 56, 0.14);
+}
+
+.radar-ring {
+  border-color: rgba(30, 86, 56, 0.16);
+}
+
+.role-list div.active {
+  color: #0f2c1e;
+  background:
+    linear-gradient(135deg, rgba(255, 225, 154, 0.66), rgba(91, 206, 124, 0.42));
+  border-color: rgba(225, 176, 78, 0.38);
+}
+
+.role-list div.active span {
+  color: rgba(31, 61, 43, 0.66);
+}
+
+.h0 { background: rgba(29, 92, 58, 0.05); color: rgba(52, 74, 59, 0.55); }
+.h1 { background: rgba(75, 201, 123, 0.16); color: #207a49; }
+.h2 { background: rgba(75, 201, 123, 0.22); color: #1d7144; }
+.h3 { background: rgba(75, 201, 123, 0.32); color: #155c38; }
+.h4 { background: rgba(75, 201, 123, 0.44); color: #103f2b; }
+.h5 { background: rgba(75, 201, 123, 0.56); color: #0f3527; }
+.h6 { background: rgba(255, 207, 120, 0.58); color: #573c12; }
+.h7 { background: linear-gradient(135deg, rgba(255, 225, 154, 0.88), rgba(75, 201, 123, 0.72)); color: #0f2c1e; }
+
+.crest-card {
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.62), transparent 23%),
+    linear-gradient(145deg, rgba(255, 225, 154, 0.42), rgba(76, 175, 99, 0.2)),
+    rgba(255, 255, 255, 0.16);
+}
+
+.tag {
+  color: #1d5f3d;
+  border-color: rgba(255, 255, 255, 0.78);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(255, 242, 194, 0.46));
+}
+
+.hero-panel .tag,
+.stadium-hero .tag,
+.detail-cover .tag,
+.calculation-hero .tag,
+.club-hero .tag {
+  color: #fff4ce;
+  border-color: rgba(255, 244, 204, 0.42);
+  background: rgba(16, 72, 45, 0.22);
+}
+
+/* Balanced stadium tuning: less glare than daylight, softer than night mode. */
+:root {
+  --bg: #dfeadc;
+  --ink: #173024;
+  --muted: rgba(58, 78, 63, 0.7);
+  --line: rgba(34, 83, 56, 0.16);
+  --green: #217a4c;
+  --green-2: #62b979;
+  --gold: #be8c30;
+  --gold-2: #e9c96f;
+  --shadow: 0 22px 54px rgba(20, 61, 39, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.56);
+}
+
+html {
+  background: #dce8d8;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 224, 154, 0.42), transparent 28%),
+    radial-gradient(ellipse at 84% 2%, rgba(183, 222, 226, 0.44), transparent 31%),
+    linear-gradient(180deg, rgba(244, 248, 235, 0.64) 0%, rgba(219, 234, 213, 0.8) 44%, rgba(189, 216, 184, 0.92) 100%),
+    repeating-linear-gradient(90deg, rgba(39, 121, 71, 0.1) 0 92px, rgba(96, 157, 89, 0.13) 92px 184px),
+    linear-gradient(135deg, #e9f0df 0%, #cddfc8 52%, #e4eee0 100%);
+}
+
+body::before {
+  opacity: 0.16;
+}
+
+body::after {
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.34), transparent 25% 100%),
+    linear-gradient(250deg, rgba(245, 199, 113, 0.22), transparent 22% 100%),
+    radial-gradient(ellipse at 50% 108%, rgba(67, 142, 78, 0.2), transparent 48%);
+  opacity: 0.72;
+}
+
+.workspace::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 34%),
+    radial-gradient(ellipse at 74% 16%, rgba(224, 177, 83, 0.16), transparent 30%),
+    radial-gradient(ellipse at 18% 34%, rgba(108, 181, 198, 0.12), transparent 28%);
+}
+
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(23, 79, 54, 0.86), rgba(14, 53, 38, 0.9)),
+    radial-gradient(circle at 22% 2%, rgba(242, 204, 121, 0.2), transparent 30%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 7px);
+  box-shadow: 18px 0 52px rgba(22, 68, 43, 0.2);
+}
+
+.topbar {
+  background: linear-gradient(180deg, rgba(228, 239, 222, 0.82), rgba(228, 239, 222, 0.58));
+}
+
+.hero-panel,
+.stadium-hero,
+.detail-cover,
+.calculation-hero,
+.summary-card,
+.club-hero,
+.player-profile,
+.formation-board {
+  border-color: rgba(255, 255, 255, 0.46);
+  background:
+    radial-gradient(ellipse at 82% 0%, rgba(245, 210, 137, 0.3), transparent 28%),
+    radial-gradient(ellipse at 12% 0%, rgba(169, 214, 218, 0.24), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 74px),
+    linear-gradient(135deg, rgba(31, 91, 61, 0.86), rgba(72, 150, 83, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 24px 60px rgba(30, 86, 51, 0.2);
+}
+
+.metric-card,
+.panel,
+.table-panel,
+.upload-panel,
+.summary-metrics div {
+  color: #173024;
+  border-color: rgba(255, 255, 255, 0.58);
+  background:
+    linear-gradient(155deg, rgba(245, 250, 239, 0.74), rgba(227, 239, 220, 0.54)),
+    rgba(214, 232, 207, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 20px 46px rgba(38, 90, 56, 0.14);
+}
+
+.search-box,
+.icon-button,
+.ghost-button,
+.filter-chip,
+.status-pill,
+.rule-tabs button {
+  border-color: rgba(255, 255, 255, 0.62);
+  background:
+    linear-gradient(145deg, rgba(246, 250, 240, 0.72), rgba(226, 239, 220, 0.46));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 10px 24px rgba(36, 91, 61, 0.08);
+}
+
+.rank-list div,
+.todo-list div,
+.stat-list div,
+.steps div,
+.honor-cards div,
+.trophy-matrix div,
+.task-state,
+.error-list div,
+.role-list div,
+.formula-card,
+.type-list div,
+.mapping-grid div {
+  border-color: rgba(255, 255, 255, 0.52);
+  background:
+    linear-gradient(145deg, rgba(243, 249, 238, 0.62), rgba(223, 237, 216, 0.38));
+}
+
+th {
+  background: rgba(35, 103, 65, 0.09);
+}
+
+tbody tr:hover {
+  background: rgba(45, 132, 76, 0.08);
+}
+
+.pitch-card,
+.field {
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.48) 50%, transparent 50.2%),
+    radial-gradient(circle at 50% 50%, transparent 0 49px, rgba(255, 255, 255, 0.28) 50px 51px, transparent 52px),
+    repeating-linear-gradient(90deg, rgba(83, 164, 89, 0.4) 0 48px, rgba(45, 130, 75, 0.4) 48px 96px),
+    linear-gradient(180deg, rgba(65, 145, 79, 0.82), rgba(34, 111, 65, 0.84));
+}

@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>天下足球 UI Mockups</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./white-stadium.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">天</div>
+          <div>
+            <div class="brand-name">天下足球</div>
+            <div class="brand-subtitle">Total Soccer DB</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <div class="nav-group">总览</div>
+          <button class="nav-item active" data-view="dashboard">
+            <span class="nav-icon">⌂</span>
+            数据看板
+          </button>
+          <button class="nav-item" data-view="world">
+            <span class="nav-icon">◎</span>
+            世界概览
+          </button>
+
+          <div class="nav-group">资料库</div>
+          <button class="nav-item" data-view="players">
+            <span class="nav-icon">◉</span>
+            球员列表
+          </button>
+          <button class="nav-item sub" data-view="detail">
+            <span class="nav-icon">◇</span>
+            球员详情
+          </button>
+          <button class="nav-item" data-view="countries">
+            <span class="nav-icon">⚑</span>
+            国家列表
+          </button>
+          <button class="nav-item sub" data-view="country-detail">
+            <span class="nav-icon">◇</span>
+            国家详情
+          </button>
+          <button class="nav-item" data-view="clubs">
+            <span class="nav-icon">▣</span>
+            俱乐部列表
+          </button>
+          <button class="nav-item sub" data-view="club-detail">
+            <span class="nav-icon">◇</span>
+            俱乐部详情
+          </button>
+
+          <div class="nav-group">规则与运营</div>
+          <button class="nav-item" data-view="honors">
+            <span class="nav-icon">★</span>
+            荣誉规则
+          </button>
+          <button class="nav-item sub" data-view="honor-detail">
+            <span class="nav-icon">≋</span>
+            计算明细
+          </button>
+          <button class="nav-item" data-view="best">
+            <span class="nav-icon">✦</span>
+            最佳阵容
+          </button>
+          <button class="nav-item" data-view="import">
+            <span class="nav-icon">⇪</span>
+            数据导入
+          </button>
+          <button class="nav-item sub" data-view="import-detail">
+            <span class="nav-icon">☑</span>
+            导入任务
+          </button>
+          <button class="nav-item" data-view="config">
+            <span class="nav-icon">⚙</span>
+            基础配置
+          </button>
+          <button class="nav-item" data-view="remarks">
+            <span class="nav-icon">☷</span>
+            备注管理
+          </button>
+          <button class="nav-item" data-view="permissions">
+            <span class="nav-icon">♙</span>
+            权限管理
+          </button>
+        </nav>
+
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">当前数据版本</div>
+          <div class="sidebar-card-main">紫禁之巅</div>
+          <div class="sidebar-card-meta">2026-06-12 05:40</div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">WORLD FOOTBALL ARCHIVE</div>
+            <h1 id="page-title">数据看板</h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="search-box">搜索球员 / 国家 / 俱乐部</div>
+            <button class="icon-button">⌕</button>
+            <button class="primary-button">导入数据</button>
+          </div>
+        </header>
+
+        <section class="view active" id="dashboard">
+          <div class="hero-panel">
+            <div class="hero-content">
+              <div class="tag">2026 数据快照</div>
+              <h2>足球历史资料、荣誉与能力评分中枢</h2>
+              <p>聚合球员 PA、国家队荣誉、俱乐部冠军、位置分布和最佳阵容候选。</p>
+            </div>
+            <div class="pitch-card">
+              <div class="pitch-line center"></div>
+              <div class="pitch-dot"></div>
+              <div class="player-token token-a">ST</div>
+              <div class="player-token token-b">AMC</div>
+              <div class="player-token token-c">MC</div>
+              <div class="player-token token-d">GK</div>
+            </div>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span>球员总数</span>
+              <strong>810</strong>
+              <em>覆盖 10 个主位置</em>
+            </div>
+            <div class="metric-card gold">
+              <span>国家样本</span>
+              <strong>201</strong>
+              <em>六大足联维度</em>
+            </div>
+            <div class="metric-card">
+              <span>俱乐部样本</span>
+              <strong>401</strong>
+              <em>含历史豪门排行</em>
+            </div>
+            <div class="metric-card">
+              <span>荣誉规则</span>
+              <strong>208</strong>
+              <em>支持规则化重算</em>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="panel wide">
+              <div class="panel-header">
+                <h3>PA 区间分布</h3>
+                <button class="ghost-button">查看明细</button>
+              </div>
+              <div class="bar-chart">
+                <div class="bar-item"><span>190</span><i style="height: 18%"></i><b>3</b></div>
+                <div class="bar-item"><span>180</span><i style="height: 38%"></i><b>9</b></div>
+                <div class="bar-item"><span>170</span><i style="height: 78%"></i><b>24</b></div>
+                <div class="bar-item"><span>160</span><i style="height: 62%"></i><b>19</b></div>
+                <div class="bar-item"><span>150</span><i style="height: 92%"></i><b>28</b></div>
+                <div class="bar-item"><span>140</span><i style="height: 28%"></i><b>5</b></div>
+                <div class="bar-item"><span>130</span><i style="height: 16%"></i><b>1</b></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>足联荣誉雷达</h3>
+              </div>
+              <div class="radar">
+                <div class="radar-ring ring-1"></div>
+                <div class="radar-ring ring-2"></div>
+                <div class="radar-ring ring-3"></div>
+                <div class="radar-shape"></div>
+                <span class="radar-label label-a">UEFA</span>
+                <span class="radar-label label-b">CONMEBOL</span>
+                <span class="radar-label label-c">AFC</span>
+                <span class="radar-label label-d">CAF</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>国家荣誉榜</h3>
+              </div>
+              <div class="rank-list">
+                <div><b>01</b><span>巴西</span><em>291.3</em></div>
+                <div><b>02</b><span>意大利</span><em>268.8</em></div>
+                <div><b>03</b><span>阿根廷</span><em>254.0</em></div>
+                <div><b>04</b><span>德国</span><em>249.6</em></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid lower">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>俱乐部荣誉榜</h3>
+              </div>
+              <div class="rank-list compact">
+                <div><b>01</b><span>皇家马德里</span><em>312.4</em></div>
+                <div><b>02</b><span>巴塞罗那</span><em>284.1</em></div>
+                <div><b>03</b><span>尤文图斯</span><em>251.7</em></div>
+                <div><b>04</b><span>拜仁慕尼黑</span><em>246.8</em></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>位置结构</h3>
+              </div>
+              <div class="donut-wrap">
+                <div class="donut"></div>
+                <div class="legend-grid">
+                  <span><i class="lg-green"></i> 前锋 18%</span>
+                  <span><i class="lg-gold"></i> 中场 36%</span>
+                  <span><i class="lg-blue"></i> 后卫 31%</span>
+                  <span><i class="lg-red"></i> 门将 15%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel wide-panel">
+              <div class="panel-header">
+                <h3>待处理事项</h3>
+                <span class="status-pill">5 条</span>
+              </div>
+              <div class="todo-list">
+                <div><b>舒梅切尔评分更改</b><span>142 -> ?</span><em>待评估</em></div>
+                <div><b>米利唐评分待定</b><span>158 -> ?</span><em>需确认</em></div>
+                <div><b>弗兰克·里贝里</b><span>173 ？待定</span><em>参考榜单</em></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="players">
+          <div class="filter-strip">
+            <div class="filter-chip active">全部球员</div>
+            <div class="filter-chip">南美足联</div>
+            <div class="filter-chip">欧足联</div>
+            <div class="filter-chip">PA 170+</div>
+            <div class="filter-chip">退役传奇</div>
+            <button class="ghost-button">重置</button>
+          </div>
+
+          <div class="table-panel">
+            <div class="panel-header">
+              <h3>球员资料库</h3>
+              <div class="table-tools">
+                <button class="ghost-button">列配置</button>
+                <button class="primary-button small">新增球员</button>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>球员</th>
+                  <th>国籍</th>
+                  <th>位置</th>
+                  <th>PA</th>
+                  <th>类型</th>
+                  <th>球队数</th>
+                  <th>荣誉分</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>01</td>
+                  <td><div class="person"><span class="avatar">贝</span><div><b>贝利（Pelé）</b><em>Édson Arantes do Nascimento</em></div></div></td>
+                  <td>巴西</td>
+                  <td><span class="position">ST</span></td>
+                  <td><strong>197</strong></td>
+                  <td>退役传奇</td>
+                  <td>2</td>
+                  <td>96.5</td>
+                </tr>
+                <tr>
+                  <td>02</td>
+                  <td><div class="person"><span class="avatar blue">马</span><div><b>迭戈·马拉多纳</b><em>Diego Maradona</em></div></div></td>
+                  <td>阿根廷</td>
+                  <td><span class="position">AMC</span></td>
+                  <td><strong>196</strong></td>
+                  <td>退役传奇</td>
+                  <td>5</td>
+                  <td>94.8</td>
+                </tr>
+                <tr>
+                  <td>03</td>
+                  <td><div class="person"><span class="avatar red">杰</span><div><b>史蒂文·杰拉德</b><em>Steven Gerrard</em></div></div></td>
+                  <td>英格兰</td>
+                  <td><span class="position">MC</span></td>
+                  <td><strong>183</strong></td>
+                  <td>退役传奇</td>
+                  <td>2</td>
+                  <td>72.1</td>
+                </tr>
+                <tr>
+                  <td>04</td>
+                  <td><div class="person"><span class="avatar gold-bg">布</span><div><b>安德烈亚斯·布雷默</b><em>Andreas Brehme</em></div></div></td>
+                  <td>德国</td>
+                  <td><span class="position">DL</span></td>
+                  <td><strong>182</strong></td>
+                  <td>退役传奇</td>
+                  <td>5</td>
+                  <td>68.4</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="world">
+          <div class="stadium-hero">
+            <div>
+              <span class="tag">GLOBAL OVERVIEW</span>
+              <h2>世界足球数据总览</h2>
+              <p>按足联、位置、年代和能力区间聚合样本，快速定位世界足球历史分布。</p>
+            </div>
+            <div class="floodlights">
+              <i></i><i></i><i></i>
+            </div>
+          </div>
+          <div class="dashboard-grid lower">
+            <div class="panel wide-panel">
+              <div class="panel-header"><h3>足联 / PA 热力分布</h3><button class="ghost-button">切换年代</button></div>
+              <div class="heatmap">
+                <div></div><b>190</b><b>180</b><b>170</b><b>160</b><b>150</b>
+                <b>UEFA</b><span class="heat h2">1</span><span class="heat h5">8</span><span class="heat h6">14</span><span class="heat h6">14</span><span class="heat h7">17</span>
+                <b>CONMEBOL</b><span class="heat h4">2</span><span class="heat h2">1</span><span class="heat h5">8</span><span class="heat h3">3</span><span class="heat h4">5</span>
+                <b>AFC</b><span class="heat h0">0</span><span class="heat h0">0</span><span class="heat h0">0</span><span class="heat h0">0</span><span class="heat h1">1</span>
+                <b>CAF</b><span class="heat h0">0</span><span class="heat h0">0</span><span class="heat h1">1</span><span class="heat h2">2</span><span class="heat h2">2</span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>年代分布</h3></div>
+              <div class="era-bars">
+                <div><span>1940s</span><b style="width: 44%"></b><em>12</em></div>
+                <div><span>1960s</span><b style="width: 62%"></b><em>19</em></div>
+                <div><span>1980s</span><b style="width: 76%"></b><em>31</em></div>
+                <div><span>2000s</span><b style="width: 52%"></b><em>17</em></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="detail">
+          <div class="detail-layout">
+            <div class="player-profile">
+              <div class="profile-top">
+                <div class="profile-number">10</div>
+                <div>
+                  <h2>贝利（Pelé）</h2>
+                  <p>Édson Arantes do Nascimento</p>
+                </div>
+              </div>
+              <div class="profile-meta">
+                <span>巴西</span>
+                <span>ST / AMC</span>
+                <span>退役传奇</span>
+              </div>
+              <div class="score-orbit">
+                <div>
+                  <span>PA</span>
+                  <strong>197</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>能力与身体</h3>
+              </div>
+              <div class="stat-list">
+                <div><span>身高</span><strong>173cm</strong></div>
+                <div><span>体重</span><strong>73kg</strong></div>
+                <div><span>惯用脚</span><strong>16 / 20</strong></div>
+                <div><span>球队数</span><strong>2</strong></div>
+              </div>
+            </div>
+
+            <div class="panel wide">
+              <div class="panel-header">
+                <h3>荣誉计算明细</h3>
+                <button class="ghost-button">查看规则</button>
+              </div>
+              <div class="timeline">
+                <div><span></span><b>世界杯荣誉</b><em>基础分 32 × 冠军权重</em><strong>64.0</strong></div>
+                <div><span></span><b>洲际荣誉</b><em>南美系数 × 赛事权重</em><strong>18.5</strong></div>
+                <div><span></span><b>俱乐部荣誉</b><em>国内联赛与洲际赛事</em><strong>14.0</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="country-detail">
+          <div class="detail-cover country-cover">
+            <div>
+              <span class="tag">COUNTRY DETAIL</span>
+              <h2>巴西国家队</h2>
+              <p>南美足联 · UID 1651 · 荣誉分 291.3</p>
+            </div>
+            <div class="crest-card">BRA</div>
+          </div>
+          <div class="detail-sections">
+            <div class="panel">
+              <div class="panel-header"><h3>PA 分布</h3></div>
+              <div class="mini-bars">
+                <div><span>190</span><b style="height: 40%"></b><em>1</em></div>
+                <div><span>180</span><b style="height: 40%"></b><em>1</em></div>
+                <div><span>170</span><b style="height: 88%"></b><em>4</em></div>
+                <div><span>160</span><b style="height: 8%"></b><em>0</em></div>
+                <div><span>150</span><b style="height: 40%"></b><em>1</em></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>国家荣誉明细</h3></div>
+              <div class="honor-cards">
+                <div><span>世界杯</span><strong>5 冠 / 2 亚 / 2 季</strong></div>
+                <div><span>洲际赛</span><strong>9 冠 / 12 亚</strong></div>
+                <div><span>奥运会</span><strong>2 金 / 3 银 / 2 铜</strong></div>
+              </div>
+            </div>
+            <div class="table-panel wide-panel">
+              <div class="panel-header"><h3>代表球员</h3><button class="ghost-button">查看全部</button></div>
+              <table><thead><tr><th>球员</th><th>位置</th><th>PA</th><th>类型</th></tr></thead><tbody>
+                <tr><td>贝利</td><td>ST</td><td>197</td><td>退役传奇</td></tr>
+                <tr><td>贾尔马·桑托斯</td><td>DR</td><td>180</td><td>退役传奇</td></tr>
+                <tr><td>济科</td><td>AMC</td><td>178</td><td>退役巨星</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="import">
+          <div class="import-layout">
+            <div class="upload-panel">
+              <div class="upload-icon">⇪</div>
+              <h2>导入 lakesheet / Excel / CSV</h2>
+              <p>上传《紫禁之巅.lakesheet》，系统会自动识别 12 个工作表并生成校验报告。</p>
+              <button class="primary-button">选择文件</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>导入流程</h3>
+              </div>
+              <div class="steps">
+                <div class="done"><b>1</b><span>上传文件</span></div>
+                <div class="done"><b>2</b><span>解析工作表</span></div>
+                <div class="current"><b>3</b><span>校验字段</span></div>
+                <div><b>4</b><span>确认导入</span></div>
+                <div><b>5</b><span>刷新统计</span></div>
+              </div>
+            </div>
+
+            <div class="table-panel wide">
+              <div class="panel-header">
+                <h3>解析预览</h3>
+                <span class="status-pill">发现 12 个工作表</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>工作表</th>
+                    <th>行数</th>
+                    <th>字段状态</th>
+                    <th>错误</th>
+                    <th>目标模块</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>球员总表</td><td>243</td><td><span class="ok">通过</span></td><td>0</td><td>Player</td></tr>
+                  <tr><td>国家汇总</td><td>201</td><td><span class="ok">通过</span></td><td>0</td><td>Country</td></tr>
+                  <tr><td>俱乐部荣誉</td><td>400</td><td><span class="warn">需确认</span></td><td>3</td><td>ClubHonor</td></tr>
+                  <tr><td>备注</td><td>200</td><td><span class="ok">通过</span></td><td>0</td><td>Remark</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="import-detail">
+          <div class="import-layout">
+            <div class="panel">
+              <div class="panel-header"><h3>导入任务 #IMP-001</h3></div>
+              <div class="task-state">
+                <span class="ok">校验中</span>
+                <strong>12 / 12 工作表已识别</strong>
+                <p>当前正在校验 UID、日期、公式结果和链接字段。</p>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>错误摘要</h3></div>
+              <div class="error-list">
+                <div><b>俱乐部荣誉</b><span>第 18 行：赛事系数缺失</span></div>
+                <div><b>球员总表</b><span>第 44 行：生日格式待确认</span></div>
+                <div><b>备注</b><span>链接文本为空，已保留 URL</span></div>
+              </div>
+            </div>
+            <div class="table-panel wide">
+              <div class="panel-header"><h3>工作表处理进度</h3><button class="ghost-button">下载错误报告</button></div>
+              <table><thead><tr><th>工作表</th><th>行数</th><th>目标表</th><th>状态</th><th>错误</th></tr></thead><tbody>
+                <tr><td>base</td><td>52</td><td>configs</td><td><span class="ok">通过</span></td><td>0</td></tr>
+                <tr><td>球员总表</td><td>243</td><td>players</td><td><span class="warn">需确认</span></td><td>1</td></tr>
+                <tr><td>俱乐部荣誉</td><td>400</td><td>club_honors</td><td><span class="warn">需确认</span></td><td>1</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="countries">
+          <div class="split-summary">
+            <div class="summary-card brazil">
+              <span>国家队荣誉榜首</span>
+              <h2>巴西</h2>
+              <p>世界杯 5 冠，南美足联样本中拥有最高历史荣誉分。</p>
+            </div>
+            <div class="summary-metrics">
+              <div><span>国家样本</span><strong>201</strong></div>
+              <div><span>最高 PA 档</span><strong>190+</strong></div>
+              <div><span>冠军统计</span><strong>47</strong></div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid country-grid">
+            <div class="table-panel wide-panel">
+              <div class="panel-header">
+                <h3>国家汇总</h3>
+                <div class="table-tools">
+                  <button class="ghost-button">足联筛选</button>
+                  <button class="ghost-button">导出</button>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>国家</th>
+                    <th>足联</th>
+                    <th>190</th>
+                    <th>180</th>
+                    <th>170</th>
+                    <th>球员数</th>
+                    <th>平均 PA</th>
+                    <th>荣誉分</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>01</td><td>巴西</td><td>南美足联</td><td>1</td><td>1</td><td>4</td><td>7</td><td>157.7</td><td><strong>291.3</strong></td></tr>
+                  <tr><td>02</td><td>意大利</td><td>欧足联</td><td>1</td><td>1</td><td>4</td><td>8</td><td>162.4</td><td><strong>268.8</strong></td></tr>
+                  <tr><td>03</td><td>英格兰</td><td>欧足联</td><td>0</td><td>3</td><td>1</td><td>7</td><td>154.1</td><td><strong>221.0</strong></td></tr>
+                  <tr><td>04</td><td>阿根廷</td><td>南美足联</td><td>1</td><td>0</td><td>2</td><td>4</td><td>168.2</td><td><strong>254.0</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>世界杯奖牌结构</h3>
+              </div>
+              <div class="medal-stack">
+                <div><span>冠军</span><b style="width: 86%"></b><em>5</em></div>
+                <div><span>亚军</span><b style="width: 42%"></b><em>2</em></div>
+                <div><span>季军</span><b style="width: 42%"></b><em>2</em></div>
+                <div><span>殿军</span><b style="width: 42%"></b><em>2</em></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="clubs">
+          <div class="club-hero">
+            <div>
+              <span class="tag">CLUB ARCHIVE</span>
+              <h2>俱乐部历史荣誉与球员能力分布</h2>
+              <p>对比豪门俱乐部的 PA 档位、位置结构、洲际冠军和国内赛事系数。</p>
+            </div>
+            <div class="trophy-strip">
+              <div><b>15</b><span>欧冠</span></div>
+              <div><b>6</b><span>洲际其他</span></div>
+              <div><b>5</b><span>世俱杯</span></div>
+            </div>
+          </div>
+
+          <div class="table-panel">
+            <div class="panel-header">
+              <h3>俱乐部汇总</h3>
+              <button class="ghost-button">按荣誉分排序</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>俱乐部</th>
+                  <th>国家</th>
+                  <th>足联</th>
+                  <th>190</th>
+                  <th>180</th>
+                  <th>170</th>
+                  <th>冠军数</th>
+                  <th>荣誉分</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <tr><td>01</td><td><div class="club-name"><span class="crest-mini rma">R</span>皇家马德里</div></td><td>西班牙</td><td>欧足联</td><td>0</td><td>1</td><td>4</td><td>28</td><td><strong>312.4</strong></td></tr>
+                  <tr><td>02</td><td><div class="club-name"><span class="crest-mini barca">B</span>巴塞罗那</div></td><td>西班牙</td><td>欧足联</td><td>1</td><td>1</td><td>2</td><td>22</td><td><strong>284.1</strong></td></tr>
+                  <tr><td>03</td><td><div class="club-name"><span class="crest-mini inter">I</span>国际米兰</div></td><td>意大利</td><td>欧足联</td><td>0</td><td>2</td><td>3</td><td>17</td><td><strong>262.6</strong></td></tr>
+                  <tr><td>04</td><td><div class="club-name"><span class="crest-mini juve">J</span>尤文图斯</div></td><td>意大利</td><td>欧足联</td><td>0</td><td>1</td><td>5</td><td>18</td><td><strong>251.7</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="club-detail">
+          <div class="detail-cover club-cover">
+            <div>
+              <span class="tag">CLUB DETAIL</span>
+              <h2>皇家马德里</h2>
+              <p>西班牙 · 欧足联 · UID 1736 · 荣誉分 312.4</p>
+            </div>
+            <div class="crest-card">RMA</div>
+          </div>
+          <div class="detail-sections">
+            <div class="panel">
+              <div class="panel-header"><h3>洲际荣誉</h3></div>
+              <div class="trophy-matrix">
+                <div><b>15</b><span>欧冠</span></div>
+                <div><b>3</b><span>欧冠亚军</span></div>
+                <div><b>5</b><span>世俱杯</span></div>
+                <div><b>6</b><span>洲际其他</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>球员位置结构</h3></div>
+              <div class="donut-wrap compact-donut">
+                <div class="donut"></div>
+                <div class="legend-grid">
+                  <span><i class="lg-green"></i> 前锋 24%</span>
+                  <span><i class="lg-gold"></i> 中场 29%</span>
+                  <span><i class="lg-blue"></i> 后卫 33%</span>
+                  <span><i class="lg-red"></i> 门将 14%</span>
+                </div>
+              </div>
+            </div>
+            <div class="table-panel wide-panel">
+              <div class="panel-header"><h3>代表球员</h3><button class="ghost-button">按 PA 排序</button></div>
+              <table><thead><tr><th>球员</th><th>国籍</th><th>位置</th><th>PA</th><th>荣誉分</th></tr></thead><tbody>
+                <tr><td>迪斯蒂法诺</td><td>阿根廷 / 西班牙</td><td>ST</td><td>190</td><td>88.0</td></tr>
+                <tr><td>齐达内</td><td>法国</td><td>AMC</td><td>185</td><td>81.2</td></tr>
+                <tr><td>劳尔</td><td>西班牙</td><td>ST</td><td>176</td><td>72.4</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="honors">
+          <div class="rules-layout">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>荣誉规则分组</h3>
+              </div>
+              <div class="rule-tabs">
+                <button class="active">国家</button>
+                <button>俱乐部</button>
+                <button>球员</button>
+              </div>
+              <div class="formula-card">
+                <span>计算公式</span>
+                <strong>基础分 × 名次权重 × 地区系数 × 次数 + 附加分</strong>
+              </div>
+            </div>
+
+            <div class="table-panel wide-panel">
+              <div class="panel-header">
+                <h3>荣誉规则配置</h3>
+                <button class="primary-button small">新增规则</button>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>类别</th><th>层级</th><th>荣誉名称</th><th>基础分</th><th>适用足联</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>国家</td><td>国际</td><td>世界杯 / 奥运会</td><td>32 / 10</td><td>全部</td><td><span class="ok">启用</span></td></tr>
+                  <tr><td>国家</td><td>洲际</td><td>欧洲杯 / 美洲杯 / 亚洲杯</td><td>16</td><td>六大足联</td><td><span class="ok">启用</span></td></tr>
+                  <tr><td>俱乐部</td><td>洲际 1 级</td><td>欧冠 / 解放者杯</td><td>16</td><td>按赛事</td><td><span class="ok">启用</span></td></tr>
+                  <tr><td>球员</td><td>个人奖</td><td>国际奖 / 洲际奖 / 国奖</td><td>+6 / +4 / 2</td><td>按对象</td><td><span class="warn">待校准</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="honor-detail">
+          <div class="calculation-hero">
+            <div>
+              <span class="tag">CALCULATION RUN</span>
+              <h2>荣誉分重算批次 #20260612</h2>
+              <p>规则版本 v1.0 · 覆盖国家、俱乐部、球员三类对象 · 成功 1412 条</p>
+            </div>
+            <button class="primary-button">重新计算</button>
+          </div>
+          <div class="table-panel">
+            <div class="panel-header"><h3>计算明细</h3><button class="ghost-button">导出报告</button></div>
+            <table><thead><tr><th>对象</th><th>规则</th><th>基础分</th><th>权重</th><th>系数</th><th>次数</th><th>得分</th></tr></thead><tbody>
+              <tr><td>巴西</td><td>世界杯冠军</td><td>32</td><td>1.0</td><td>1.0</td><td>5</td><td><strong>160</strong></td></tr>
+              <tr><td>皇家马德里</td><td>洲际 1 级冠军</td><td>16</td><td>1.0</td><td>1.0</td><td>15</td><td><strong>240</strong></td></tr>
+              <tr><td>贝利</td><td>世界杯荣誉</td><td>32</td><td>1.0</td><td>1.0</td><td>2</td><td><strong>64</strong></td></tr>
+            </tbody></table>
+          </div>
+        </section>
+
+        <section class="view" id="best">
+          <div class="best-layout">
+            <div class="formation-board">
+              <div class="formation-title">历史最佳阵容 · 4-3-3</div>
+              <div class="field">
+                <span class="slot s1">ST<br />贝利</span>
+                <span class="slot s2">AML</span>
+                <span class="slot s3">AMR</span>
+                <span class="slot s4">MC<br />杰拉德</span>
+                <span class="slot s5">DMC</span>
+                <span class="slot s6">MC</span>
+                <span class="slot s7">DL</span>
+                <span class="slot s8">DC</span>
+                <span class="slot s9">DC</span>
+                <span class="slot s10">DR</span>
+                <span class="slot s11">GK</span>
+              </div>
+            </div>
+
+            <div class="table-panel">
+              <div class="panel-header">
+                <h3>位置候选</h3>
+                <button class="ghost-button">编辑排序</button>
+              </div>
+              <table>
+                <thead><tr><th>位置</th><th>第一候选</th><th>PA</th><th>国籍</th></tr></thead>
+                <tbody>
+                  <tr><td>ST</td><td>贝利</td><td>197</td><td>巴西</td></tr>
+                  <tr><td>AMC</td><td>马拉多纳</td><td>196</td><td>阿根廷</td></tr>
+                  <tr><td>MC</td><td>杰拉德</td><td>183</td><td>英格兰</td></tr>
+                  <tr><td>GK</td><td>范德萨</td><td>180</td><td>荷兰</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="config">
+          <div class="config-grid">
+            <div class="panel">
+              <div class="panel-header"><h3>位置配置</h3></div>
+              <div class="tag-cloud">
+                <span>ST</span><span>AML</span><span>AMC</span><span>AMR</span><span>MC</span><span>DMC</span><span>DL</span><span>DC</span><span>DR</span><span>GK</span>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>球员类型</h3></div>
+              <div class="type-list">
+                <div><b>传奇</b><span>200+</span></div>
+                <div><b>退役球员</b><span>196</span></div>
+                <div><b>巨星</b><span>190</span></div>
+                <div><b>未来之星</b><span>170+</span></div>
+              </div>
+            </div>
+            <div class="panel wide-panel">
+              <div class="panel-header"><h3>潜力与身价映射</h3></div>
+              <div class="mapping-grid">
+                <div><span>-10</span><b>170-200</b><em>潜力顶级</em></div>
+                <div><span>-95</span><b>160-190</b><em>巨星候选</em></div>
+                <div><span>20000+</span><b>PA 200</b><em>最高身价档</em></div>
+                <div><span>15000</span><b>PA 180</b><em>传奇档</em></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="remarks">
+          <div class="table-panel">
+            <div class="panel-header">
+              <h3>备注与修订事项</h3>
+              <button class="primary-button small">新增备注</button>
+            </div>
+            <table>
+              <thead><tr><th>序号</th><th>内容</th><th>关联对象</th><th>参考</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>玄冥二老</td><td>球员组合</td><td>-</td><td><span class="warn">待处理</span></td></tr>
+                <tr><td>2</td><td>舒梅切尔评分更改 142 -> ?</td><td>球员</td><td>内部评分</td><td><span class="warn">待评估</span></td></tr>
+                <tr><td>3</td><td>米利唐评分要改吗 158 -> ?</td><td>球员</td><td>当前表格</td><td><span class="warn">需确认</span></td></tr>
+                <tr><td>4</td><td>442 评选 100</td><td>参考链接</td><td>懂球帝</td><td><span class="ok">已收录</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="permissions">
+          <div class="rules-layout">
+            <div class="panel">
+              <div class="panel-header"><h3>角色</h3></div>
+              <div class="role-list">
+                <div class="active"><b>管理员</b><span>全部权限</span></div>
+                <div><b>编辑者</b><span>可编辑与导入</span></div>
+                <div><b>登录用户</b><span>完整查看</span></div>
+                <div><b>游客</b><span>公开查看</span></div>
+              </div>
+            </div>
+            <div class="table-panel wide-panel">
+              <div class="panel-header"><h3>权限矩阵</h3><button class="ghost-button">保存修改</button></div>
+              <table><thead><tr><th>权限点</th><th>管理员</th><th>编辑者</th><th>登录用户</th><th>游客</th></tr></thead><tbody>
+                <tr><td>查看球员资料</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                <tr><td>编辑基础资料</td><td>✓</td><td>✓</td><td>-</td><td>-</td></tr>
+                <tr><td>执行数据导入</td><td>✓</td><td>✓</td><td>-</td><td>-</td></tr>
+                <tr><td>管理用户角色</td><td>✓</td><td>-</td><td>-</td><td>-</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const titles = {
+        dashboard: '数据看板',
+        world: '世界概览',
+        players: '球员列表',
+        detail: '球员详情',
+        countries: '国家列表',
+        'country-detail': '国家详情',
+        clubs: '俱乐部列表',
+        'club-detail': '俱乐部详情',
+        honors: '荣誉规则',
+        'honor-detail': '计算明细',
+        best: '最佳阵容',
+        import: '数据导入',
+        'import-detail': '导入任务',
+        config: '基础配置',
+        remarks: '备注管理',
+        permissions: '权限管理',
+      };
+
+      document.querySelectorAll('.nav-item').forEach((button) => {
+        button.addEventListener('click', () => {
+          const view = button.dataset.view;
+          document.querySelectorAll('.nav-item').forEach((item) => item.classList.remove('active'));
+          document.querySelectorAll('.view').forEach((item) => item.classList.remove('active'));
+          button.classList.add('active');
+          document.getElementById(view).classList.add('active');
+          document.getElementById('page-title').textContent = titles[view];
+        });
+      });
+    </script>
+  </body>
+</html>

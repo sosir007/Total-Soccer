@@ -1,0 +1,22 @@
+{
+  "name": "total-soccer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A football data platform for players, clubs, nations, honors, ratings, and historical statistics.",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:web": "pnpm --filter @total-soccer/web dev",
+    "dev:api": "pnpm --filter @total-soccer/api dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "type-check": "pnpm -r type-check"
+  },
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2"
+  }
+}
