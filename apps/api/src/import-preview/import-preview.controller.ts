@@ -1,19 +1,45 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ImportPreviewService } from './import-preview.service.js';
+import type { ImportSourceType, UploadedImportFile } from './import-preview.types.js';
 
-interface ImportPreviewRequest {
-  fileName?: string;
-  sourceType?: 'lakesheet' | 'excel' | 'csv';
+interface ImportPreviewBody {
+  sourceType?: ImportSourceType;
 }
 
+@ApiTags('import')
 @Controller('import-preview')
 export class ImportPreviewController {
+  constructor(private readonly importPreviewService: ImportPreviewService) {}
+
   @Post()
-  preview(@Body() body: ImportPreviewRequest) {
-    return {
-      fileName: body.fileName ?? null,
-      sourceType: body.sourceType ?? 'lakesheet',
-      status: 'pending',
-      message: '导入预览接口已预留，后续接入文件解析与校验。'
-    };
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 20 * 1024 * 1024
+      }
+    })
+  )
+  @ApiOperation({ summary: '生成数据导入预览' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary'
+        },
+        sourceType: {
+          type: 'string',
+          enum: ['lakesheet', 'excel', 'csv']
+        }
+      }
+    }
+  })
+  preview(@UploadedFile() file: UploadedImportFile, @Body() body: ImportPreviewBody) {
+    return this.importPreviewService.preview(file, body.sourceType);
   }
 }

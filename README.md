@@ -63,7 +63,7 @@ pnpm build
 
 - `GET http://localhost:9249/health`: 健康检查
 - `GET http://localhost:9249/docs`: Swagger/OpenAPI 文档
-- `POST http://localhost:9249/import-preview`: 数据导入预览占位接口
+- `POST http://localhost:9249/import-preview`: 文件上传导入预览接口
 
 ## 数据库
 

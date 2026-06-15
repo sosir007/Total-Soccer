@@ -10,7 +10,7 @@ const port = Number(process.env.PORT ?? 9249);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: ['http://localhost:9248'],
+    origin: ['http://localhost:9248', 'http://127.0.0.1:9248'],
     credentials: true
   });
   app.useGlobalFilters(new HttpExceptionFilter());
