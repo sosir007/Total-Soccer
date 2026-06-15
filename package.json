@@ -16,6 +16,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "pnpm -r type-check",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "prisma:migrate": "pnpm --filter @total-soccer/api prisma:migrate",
+    "prisma:studio": "pnpm --filter @total-soccer/api prisma:studio",
     "prepare": "husky",
     "commit": "cz"
   },

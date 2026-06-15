@@ -27,11 +27,18 @@
 
 ## 常用命令
 
+启动前后端应用：
+
 ```bash
 pnpm install
 pnpm dev
 pnpm dev:web
 pnpm dev:api
+```
+
+质量检查：
+
+```bash
 pnpm type-check
 pnpm lint
 pnpm build
@@ -55,14 +62,32 @@ pnpm build
 ## 后端基础接口
 
 - `GET http://localhost:9249/health`: 健康检查
+- `GET http://localhost:9249/docs`: Swagger/OpenAPI 文档
 - `POST http://localhost:9249/import-preview`: 数据导入预览占位接口
 
 ## 数据库
 
 项目使用 PostgreSQL + Prisma。Prisma schema 位于 `apps/api/prisma/schema.prisma`。
 
+项目不强制依赖 Docker。只要 `apps/api/.env` 中的 `DATABASE_URL` 指向可用 PostgreSQL，就可以直接使用本机 PostgreSQL 或云数据库：
+
 ```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/total_soccer?schema=public"
+```
+
+初始化数据库：
+
+```bash
+pnpm prisma:migrate
 pnpm --filter @total-soccer/api prisma:generate
+pnpm prisma:studio
+```
+
+如果本机没有安装 PostgreSQL，也可以使用 Docker Compose 作为可选方案：
+
+```bash
+pnpm db:up
+pnpm db:down
 ```
 
 ## 提交前检查
