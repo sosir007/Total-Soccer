@@ -8,52 +8,128 @@ datasource db {
 }
 
 model Player {
-  id          String        @id @default(cuid())
-  uid         String        @unique
-  chineseName String
-  englishName String?
-  primaryRole String?
-  ca          Int?
-  pa          Int?
-  countryId   String?
-  clubId      String?
-  country     Country?      @relation(fields: [countryId], references: [id])
-  club        Club?         @relation(fields: [clubId], references: [id])
-  honors      PlayerHonor[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                 String         @id @default(cuid())
+  importKey          String         @unique
+  uid                String
+  chineseName        String
+  englishName        String?
+  birthDate          DateTime?
+  deathDate          DateTime?
+  age                Int?
+  primaryRole        String?
+  positions          String?
+  ca                 Int?
+  pa                 Int?
+  height             Int?
+  weight             Int?
+  shirtNumber        String?
+  skinTone           String?
+  hairColor          String?
+  hairColorId        String?
+  ethnicity          String?
+  ethnicityId        String?
+  foot               String?
+  preferredFootId    String?
+  playerType         String?
+  playerTypeId       String?
+  confederation      String?
+  confederationId    String?
+  countryUid         String?
+  representedCountry String?
+  nationality        String?
+  birthCityUid       String?
+  birthCity          String?
+  primaryClub        String?
+  clubUid            String?
+  initialClub        String?
+  clubs              String?
+  marketValue        Float?
+  retired            Boolean?
+  deceased           Boolean?
+  databaseSource     String?
+  staffRoles         String?
+  achievement        String?
+  remark             String?
+  countryId          String?
+  clubId             String?
+  country            Country?       @relation(fields: [countryId], references: [id])
+  club               Club?          @relation(fields: [clubId], references: [id])
+  confederationRef   Confederation? @relation(fields: [confederationId], references: [id])
+  hairColorRef       HairColor?     @relation(fields: [hairColorId], references: [id])
+  ethnicityRef       Ethnicity?     @relation(fields: [ethnicityId], references: [id])
+  preferredFootRef   PreferredFoot? @relation(fields: [preferredFootId], references: [id])
+  playerTypeRef      PlayerType?    @relation(fields: [playerTypeId], references: [id])
+  honors             PlayerHonor[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   @@index([countryId])
   @@index([clubId])
+  @@index([confederationId])
+  @@index([hairColorId])
+  @@index([ethnicityId])
+  @@index([preferredFootId])
+  @@index([playerTypeId])
+  @@index([countryUid])
+  @@index([clubUid])
   @@index([pa])
 }
 
 model Country {
-  id         String         @id @default(cuid())
-  uid        String         @unique
-  name       String
-  federation String?
-  players    Player[]
-  honors     CountryHonor[]
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id                 String         @id @default(cuid())
+  importKey          String         @unique
+  uid                String
+  name               String
+  federation         String?
+  federationId       String?
+  playerCount        Int?
+  totalPa            Int?
+  averagePa          Float?
+  medalCount         Int?
+  championCount      Int?
+  majorChampionCount Int?
+  honorScore         Float?
+  averageHonorScore  Float?
+  players            Player[]
+  clubs              Club[]
+  federationRef      Confederation? @relation(fields: [federationId], references: [id])
+  honors             CountryHonor[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   @@index([federation])
+  @@index([federationId])
 }
 
 model Club {
-  id         String      @id @default(cuid())
-  uid        String      @unique
-  name       String
-  country    String?
-  federation String?
-  players    Player[]
-  honors     ClubHonor[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id            String         @id @default(cuid())
+  importKey     String         @unique
+  uid           String
+  name          String
+  exists        Boolean        @default(true)
+  countryUid    String?
+  countryId     String?
+  country       String?
+  federation    String?
+  federationId  String?
+  playerCount   Int?
+  totalPa       Int?
+  averagePa     Float?
+  trophyCount   Int?
+  championCount Int?
+  honorScore    Float?
+  countryRef    Country?       @relation(fields: [countryId], references: [id])
+  federationRef Confederation? @relation(fields: [federationId], references: [id])
+  players       Player[]
+  honors        ClubHonor[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
+  @@index([countryId])
+  @@index([countryUid])
   @@index([country])
   @@index([federation])
+  @@index([federationId])
 }
 
 model HonorRule {
@@ -115,44 +191,85 @@ model PlayerType {
   description String?
   enabled     Boolean  @default(true)
   sortOrder   Int      @default(0)
+  players     Player[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Confederation {
+  id        String    @id @default(cuid())
+  uid       String    @unique
+  name      String
+  code      String?
+  sortOrder Int       @default(0)
+  countries Country[]
+  clubs     Club[]
+  players   Player[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model PotentialRange {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String?
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Ethnicity {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  players     Player[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HairColor {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  players     Player[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PreferredFoot {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  players     Player[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model ImportTask {
-  id             String        @id @default(cuid())
+  id             String    @id @default(cuid())
   fileName       String
   fileType       String
-  sourceType     String        @default("lakesheet")
-  status         String        @default("pending")
-  totalRows      Int           @default(0)
-  successRows    Int           @default(0)
-  failedRows     Int           @default(0)
+  sourceType     String    @default("lakesheet")
+  status         String    @default("pending")
+  totalRows      Int       @default(0)
+  successRows    Int       @default(0)
+  failedRows     Int       @default(0)
   errorReportUrl String?
   createdBy      String?
+  previewData    Json?
   startedAt      DateTime?
   finishedAt     DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  errors         ImportError[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([status])
   @@index([sourceType])
   @@index([createdAt])
-}
-
-model ImportError {
-  id        String     @id @default(cuid())
-  taskId    String
-  task      ImportTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  sheetName String?
-  rowNumber Int?
-  fieldName String?
-  code      String
-  message   String
-  rawValue  String?
-  createdAt DateTime   @default(now())
-
-  @@index([taskId])
-  @@index([code])
 }

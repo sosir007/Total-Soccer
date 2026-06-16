@@ -28,6 +28,10 @@ export interface ParsedSheet {
   rows: unknown[][];
 }
 
+export interface StoredImportPreviewData {
+  sheets: ParsedSheet[];
+}
+
 export interface ImportPreviewResult {
   task: {
     id: string;
@@ -45,5 +49,28 @@ export interface ImportPreviewResult {
     errorCount: number;
   };
   sheets: ImportPreviewSheet[];
+  errors: ImportPreviewError[];
+}
+
+export interface ImportConfirmResult {
+  task: {
+    id: string;
+    status: string;
+    successRows: number;
+    failedRows: number;
+  };
+  imported: {
+    countries: number;
+    clubs: number;
+    players: number;
+    positions: number;
+    playerTypes: number;
+    confederations: number;
+    potentialRanges: number;
+    ethnicities: number;
+    hairColors: number;
+    preferredFeet: number;
+  };
+  skipped: number;
   errors: ImportPreviewError[];
 }

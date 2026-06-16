@@ -37,6 +37,29 @@ export interface ImportPreviewResult {
   errors: ImportPreviewError[];
 }
 
+export interface ImportConfirmResult {
+  task: {
+    id: string;
+    status: string;
+    successRows: number;
+    failedRows: number;
+  };
+  imported: {
+    countries: number;
+    clubs: number;
+    players: number;
+    positions: number;
+    playerTypes: number;
+    confederations: number;
+    potentialRanges: number;
+    ethnicities: number;
+    hairColors: number;
+    preferredFeet: number;
+  };
+  skipped: number;
+  errors: ImportPreviewError[];
+}
+
 export async function createImportPreview(file: File) {
   const formData = new FormData();
   formData.append('file', file);
@@ -49,6 +72,14 @@ export async function createImportPreview(file: File) {
         'Content-Type': 'multipart/form-data'
       }
     }
+  );
+
+  return response.data.data;
+}
+
+export async function confirmImportPreview(taskId: string) {
+  const response = await apiClient.post<ApiResponse<ImportConfirmResult>>(
+    `/import-preview/${taskId}/confirm`
   );
 
   return response.data.data;

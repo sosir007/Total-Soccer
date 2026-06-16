@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ImportPreviewService } from './import-preview.service.js';
@@ -41,5 +41,11 @@ export class ImportPreviewController {
   })
   preview(@UploadedFile() file: UploadedImportFile, @Body() body: ImportPreviewBody) {
     return this.importPreviewService.preview(file, body.sourceType);
+  }
+
+  @Post(':taskId/confirm')
+  @ApiOperation({ summary: '确认导入预览数据到正式业务表' })
+  confirm(@Param('taskId') taskId: string) {
+    return this.importPreviewService.confirm(taskId);
   }
 }

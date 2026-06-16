@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue';
 import { ElMessage, type UploadFile, type UploadFiles } from 'element-plus';
 import {
+  confirmImportPreview,
   createImportPreview,
+  type ImportConfirmResult,
   type ImportPreviewError,
   type ImportPreviewResult,
   type ImportPreviewSheet
@@ -11,7 +13,9 @@ import {
 const acceptedTypes = '.lakesheet,.xlsx,.xls,.csv';
 const selectedFile = ref<File | null>(null);
 const loading = ref(false);
+const importing = ref(false);
 const preview = ref<ImportPreviewResult | null>(null);
+const importResult = ref<ImportConfirmResult | null>(null);
 const errorMessage = ref('');
 const activeSheetName = ref('');
 
@@ -25,10 +29,12 @@ const activeSheet = computed<ImportPreviewSheet | null>(() => {
 
 const topErrors = computed<ImportPreviewError[]>(() => preview.value?.errors.slice(0, 12) ?? []);
 const canSubmit = computed(() => Boolean(selectedFile.value) && !loading.value);
+const canConfirm = computed(() => Boolean(preview.value) && !loading.value && !importing.value);
 
 function handleFileChange(uploadFile: UploadFile) {
   selectedFile.value = uploadFile.raw ?? null;
   preview.value = null;
+  importResult.value = null;
   errorMessage.value = '';
   activeSheetName.value = '';
 }
@@ -36,6 +42,7 @@ function handleFileChange(uploadFile: UploadFile) {
 function handleFileRemove() {
   selectedFile.value = null;
   preview.value = null;
+  importResult.value = null;
   errorMessage.value = '';
   activeSheetName.value = '';
 }
@@ -57,6 +64,7 @@ async function submitPreview() {
   try {
     const result = await createImportPreview(selectedFile.value);
     preview.value = result;
+    importResult.value = null;
     activeSheetName.value = result.sheets[0]?.name ?? '';
     ElMessage.success(
       result.summary.errorCount > 0 ? '预览完成，请检查错误项。' : '预览完成，未发现错误。'
@@ -66,6 +74,31 @@ async function submitPreview() {
     ElMessage.error(errorMessage.value);
   } finally {
     loading.value = false;
+  }
+}
+
+async function submitConfirm() {
+  if (!preview.value) {
+    ElMessage.warning('请先生成导入预览。');
+    return;
+  }
+
+  importing.value = true;
+  errorMessage.value = '';
+
+  try {
+    const result = await confirmImportPreview(preview.value.task.id);
+    importResult.value = result;
+    preview.value.task.status = result.task.status;
+    preview.value.task.failedRows = result.task.failedRows;
+    ElMessage.success(
+      result.skipped > 0 ? '导入完成，部分数据已跳过。' : '确认导入完成，正式表已更新。'
+    );
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '确认导入失败。';
+    ElMessage.error(errorMessage.value);
+  } finally {
+    importing.value = false;
   }
 }
 </script>
@@ -95,7 +128,7 @@ async function submitPreview() {
         <div class="upload-drop">
           <div class="upload-icon">⇪</div>
           <div class="upload-title">选择 lakesheet / Excel / CSV 文件</div>
-          <div class="upload-meta">第一版只生成预览，不会写入球员、国家、俱乐部正式表。</div>
+          <div class="upload-meta">先生成预览，确认后会写入球员、国家、俱乐部正式表。</div>
         </div>
       </el-upload>
 
@@ -103,10 +136,33 @@ async function submitPreview() {
         <div class="selected-file">
           {{ selectedFile ? selectedFile.name : '尚未选择文件' }}
         </div>
-        <el-button type="primary" :loading="loading" :disabled="!canSubmit" @click="submitPreview">
-          生成预览
-        </el-button>
+        <div class="action-buttons">
+          <el-button
+            type="primary"
+            :loading="loading"
+            :disabled="!canSubmit || importing"
+            @click="submitPreview"
+          >
+            生成预览
+          </el-button>
+          <el-button
+            type="success"
+            :loading="importing"
+            :disabled="!canConfirm"
+            @click="submitConfirm"
+          >
+            确认导入
+          </el-button>
+        </div>
       </div>
+
+      <el-alert
+        v-if="preview"
+        type="warning"
+        title="确认导入会写入正式数据表；重复确认会按 UID 更新，不会重复新增。"
+        show-icon
+        :closable="false"
+      />
 
       <el-alert
         v-if="errorMessage"
@@ -117,7 +173,7 @@ async function submitPreview() {
       />
     </div>
 
-    <div v-if="loading" class="panel">
+    <div v-if="loading || importing" class="panel">
       <el-skeleton :rows="6" animated />
     </div>
 
@@ -147,6 +203,46 @@ async function submitPreview() {
           <span>错误项</span>
           <strong>{{ preview.summary.errorCount }}</strong>
           <em>{{ preview.summary.errorCount > 0 ? '需要处理' : '未发现' }}</em>
+        </div>
+      </div>
+
+      <div v-if="importResult" class="panel">
+        <div class="panel-header">
+          <div>
+            <h3>正式入库结果</h3>
+            <p>已按 UID 写入或更新基础实体，复杂荣誉和评分会在后续阶段导入。</p>
+          </div>
+          <span class="status-pill">{{ importResult.task.status }}</span>
+        </div>
+        <div class="metric-grid compact">
+          <div class="metric-card">
+            <span>国家圣殿</span>
+            <strong>{{ importResult.imported.countries }}</strong>
+            <em>国家</em>
+          </div>
+          <div class="metric-card">
+            <span>豪门殿堂</span>
+            <strong>{{ importResult.imported.clubs }}</strong>
+            <em>俱乐部</em>
+          </div>
+          <div class="metric-card gold">
+            <span>巨星殿堂</span>
+            <strong>{{ importResult.imported.players }}</strong>
+            <em>球员</em>
+          </div>
+          <div class="metric-card">
+            <span>基础配置</span>
+            <strong>{{
+              importResult.imported.positions +
+              importResult.imported.playerTypes +
+              importResult.imported.confederations +
+              importResult.imported.potentialRanges +
+              importResult.imported.ethnicities +
+              importResult.imported.hairColors +
+              importResult.imported.preferredFeet
+            }}</strong>
+            <em>位置 / 类型 / 字典</em>
+          </div>
         </div>
       </div>
 
