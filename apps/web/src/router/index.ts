@@ -97,6 +97,12 @@ export const routes: RouteRecordRaw[] = [
         component: StarDetailView,
         meta: { title: '巨星详情' }
       },
+      {
+        path: 'stars/detail/:id',
+        name: 'stars-detail-id',
+        component: StarDetailView,
+        meta: { title: '巨星详情' }
+      },
       { path: 'tianji', redirect: '/tianji/honor-rules' },
       {
         path: 'tianji/honor-rules',

@@ -5,11 +5,22 @@ import { AppConfigModule } from './config/app-config.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
 import { ImportPreviewModule } from './import-preview/import-preview.module.js';
+import { PlayersModule } from './players/players.module.js';
+import { CountriesModule } from './countries/countries.module.js';
+import { ClubsModule } from './clubs/clubs.module.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, HealthModule, ImportPreviewModule],
+  imports: [
+    AppConfigModule,
+    DatabaseModule,
+    HealthModule,
+    ImportPreviewModule,
+    PlayersModule,
+    CountriesModule,
+    ClubsModule
+  ],
   providers: [
     {
       provide: APP_INTERCEPTOR,
