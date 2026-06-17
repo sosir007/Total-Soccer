@@ -425,6 +425,83 @@ h1 {
   color: #b17b24;
 }
 
+.dashboard-grid,
+.rank-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.chart-box {
+  width: 100%;
+  height: 290px;
+}
+
+.chart-box.tall {
+  height: 340px;
+}
+
+.rank-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rank-item {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid #eef3ed;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.rank-item strong {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 13px;
+  background: linear-gradient(145deg, var(--green), #56a873);
+}
+
+.rank-item div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rank-item span,
+.rank-item em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-item span {
+  font-weight: 850;
+}
+
+.rank-item em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.mini-empty {
+  display: grid;
+  min-height: 120px;
+  place-items: center;
+  color: var(--muted);
+  border: 1px dashed #dce8dc;
+  border-radius: 8px;
+  background: #fff;
+}
+
 .panel {
   padding: 20px;
 }
@@ -683,7 +760,9 @@ h1 {
   .hero-panel,
   .detail-grid,
   .filter-grid,
-  .metric-grid {
+  .metric-grid,
+  .dashboard-grid,
+  .rank-grid {
     grid-template-columns: 1fr;
   }
 
