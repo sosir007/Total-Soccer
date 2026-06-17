@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CountriesService } from './countries.service.js';
-import type { CountryListQuery } from './countries.types.js';
+import type { CountryHonorListQuery, CountryListQuery } from './countries.types.js';
 
 @ApiTags('countries')
 @Controller('countries')
@@ -12,6 +12,12 @@ export class CountriesController {
   @ApiOperation({ summary: '获取国家列表' })
   findAll(@Query() query: CountryListQuery) {
     return this.countriesService.findAll(query);
+  }
+
+  @Get('honors')
+  @ApiOperation({ summary: '获取国家队荣誉列表' })
+  findHonors(@Query() query: CountryHonorListQuery) {
+    return this.countriesService.findHonors(query);
   }
 
   @Get(':id')

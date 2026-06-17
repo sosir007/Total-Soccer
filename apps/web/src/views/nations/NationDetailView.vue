@@ -4,6 +4,12 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchCountryDetail, type CountryDetail, type NamedRef } from '@/services/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
+import {
+  formatHonorEdition,
+  formatPlacement,
+  getStandingName,
+  placementOptions
+} from '@/utils/honor';
 
 const route = useRoute();
 const router = useRouter();
@@ -197,6 +203,51 @@ onMounted(() => {
             </div>
           </dl>
         </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>荣誉明细</h3>
+          <span class="status-pill">{{ country.honorRecords?.length ?? 0 }} 条最近记录</span>
+        </div>
+
+        <div v-if="!country.honorRecords?.length" class="mini-empty">暂无赛事荣誉记录</div>
+
+        <el-table v-else :data="country.honorRecords" border>
+          <el-table-column label="赛事" min-width="150" fixed>
+            <template #default="{ row }">
+              <a
+                class="external-text-link"
+                :href="buildExternalUrl(row.competition.externalUrl, row.competition.name)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ row.competition.name }}
+              </a>
+            </template>
+          </el-table-column>
+          <el-table-column label="届次 / 赛季" min-width="150">
+            <template #default="{ row }">{{ formatHonorEdition(row) }}</template>
+          </el-table-column>
+          <el-table-column label="年份" width="90">
+            <template #default="{ row }">{{ row.edition.year || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="名次" width="90">
+            <template #default="{ row }">
+              <el-tag :type="row.placement === 'CHAMPION' ? 'warning' : 'success'">
+                {{ formatPlacement(row.placement) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column
+            v-for="placement in placementOptions"
+            :key="placement.value"
+            :label="placement.label"
+            min-width="120"
+          >
+            <template #default="{ row }">{{ getStandingName(row, placement.value) }}</template>
+          </el-table-column>
+        </el-table>
       </div>
     </template>
   </section>

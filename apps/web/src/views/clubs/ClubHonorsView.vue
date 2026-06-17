@@ -1,9 +1,261 @@
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import {
+  fetchClubHonors,
+  fetchClubs,
+  type ClubListItem,
+  type HonorRecord
+} from '@/services/catalog';
+import {
+  fetchCompetitions,
+  type CompetitionListItem,
+  type CompetitionStandingPlacement
+} from '@/services/competitions';
+import { buildExternalUrl } from '@/utils/external-link';
+import {
+  formatHonorEdition,
+  formatHonorSubject,
+  formatPlacement,
+  getStandingName,
+  placementOptions
+} from '@/utils/honor';
+
+const loading = ref(false);
+const sourceLoading = ref(false);
+const errorMessage = ref('');
+const records = ref<HonorRecord[]>([]);
+const clubs = ref<ClubListItem[]>([]);
+const competitions = ref<CompetitionListItem[]>([]);
+const total = ref(0);
+const filters = reactive({
+  page: 1,
+  pageSize: 20,
+  keyword: '',
+  competitionId: '',
+  placement: '' as '' | CompetitionStandingPlacement,
+  year: undefined as number | undefined,
+  clubId: ''
+});
+
+const hasRows = computed(() => records.value.length > 0);
+
+async function loadSources() {
+  sourceLoading.value = true;
+
+  try {
+    const [clubResult, competitionResult] = await Promise.all([
+      fetchClubs({ page: 1, pageSize: 100, sortBy: 'name', sortOrder: 'asc' }),
+      fetchCompetitions({ page: 1, pageSize: 100, targetType: 'CLUB' })
+    ]);
+    clubs.value = clubResult.items;
+    competitions.value = competitionResult.items;
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '豪门荣誉筛选项加载失败。');
+  } finally {
+    sourceLoading.value = false;
+  }
+}
+
+async function loadHonors() {
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    const result = await fetchClubHonors({
+      page: filters.page,
+      pageSize: filters.pageSize,
+      keyword: filters.keyword || undefined,
+      competitionId: filters.competitionId || undefined,
+      placement: filters.placement || undefined,
+      year: filters.year,
+      clubId: filters.clubId || undefined
+    });
+    records.value = result.items;
+    total.value = result.total;
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '豪门荣誉加载失败。';
+    ElMessage.error(errorMessage.value);
+  } finally {
+    loading.value = false;
+  }
+}
+
+function submitFilters() {
+  filters.page = 1;
+  void loadHonors();
+}
+
+function resetFilters() {
+  filters.page = 1;
+  filters.keyword = '';
+  filters.competitionId = '';
+  filters.placement = '';
+  filters.year = undefined;
+  filters.clubId = '';
+  void loadHonors();
+}
+
+function competitionUrl(record: HonorRecord) {
+  return buildExternalUrl(record.competition.externalUrl, record.competition.name);
+}
+
+watch(
+  () => [filters.page, filters.pageSize],
+  () => {
+    void loadHonors();
+  }
+);
+
+onMounted(async () => {
+  await loadSources();
+  await loadHonors();
+});
+</script>
+
 <template>
-  <section class="panel">
-    <div class="panel-header">
-      <h2>豪门荣誉</h2>
-      <span class="status-pill">占位页面</span>
+  <section class="page-stack">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>豪门荣誉</h2>
+          <p>查看俱乐部赛事历届最终名次，统计来源为赛事管理录入结果。</p>
+        </div>
+        <span class="status-pill">真实数据</span>
+      </div>
+
+      <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="filters.keyword"
+            clearable
+            placeholder="俱乐部 / 赛事 / 届次 / 主办地"
+            @keyup.enter="submitFilters"
+          />
+        </el-form-item>
+        <el-form-item label="赛事">
+          <el-select
+            v-model="filters.competitionId"
+            :loading="sourceLoading"
+            clearable
+            filterable
+            placeholder="全部赛事"
+          >
+            <el-option
+              v-for="competition in competitions"
+              :key="competition.id"
+              :label="competition.name"
+              :value="competition.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="俱乐部">
+          <el-select
+            v-model="filters.clubId"
+            :loading="sourceLoading"
+            clearable
+            filterable
+            placeholder="全部俱乐部"
+          >
+            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
+          </el-select>
+        </el-form-item>
+        <div class="filter-actions">
+          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
+          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+        </div>
+        <el-form-item label="名次">
+          <el-select v-model="filters.placement" clearable placeholder="全部名次">
+            <el-option
+              v-for="placement in placementOptions"
+              :key="placement.value"
+              :label="placement.label"
+              :value="placement.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="年份">
+          <el-input-number v-model="filters.year" :min="1800" :max="2200" placeholder="全部年份" />
+        </el-form-item>
+      </el-form>
     </div>
-    <p>后续接入欧冠、洲际赛事、世俱杯和国内赛事荣誉明细。</p>
+
+    <div v-if="errorMessage" class="panel">
+      <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>荣誉明细</h3>
+        <span class="status-pill">{{ total }} 条记录</span>
+      </div>
+
+      <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
+
+      <div v-else-if="!hasRows" class="empty-panel">
+        <h3>暂无豪门荣誉</h3>
+        <p>可以先到天机阁创建俱乐部赛事，并录入冠亚季殿。</p>
+      </div>
+
+      <template v-else>
+        <el-table :data="records" border>
+          <el-table-column label="赛事" min-width="160" fixed>
+            <template #default="{ row }">
+              <div class="player-name-cell">
+                <a
+                  class="external-text-link"
+                  :href="competitionUrl(row)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ row.competition.name }}
+                </a>
+                <span>{{
+                  row.competition.category || row.competition.level || row.competition.code
+                }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="届次 / 赛季" min-width="150">
+            <template #default="{ row }">{{ formatHonorEdition(row) }}</template>
+          </el-table-column>
+          <el-table-column label="年份" width="90">
+            <template #default="{ row }">{{ row.edition.year || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="俱乐部" min-width="130">
+            <template #default="{ row }">{{ formatHonorSubject(row.club) }}</template>
+          </el-table-column>
+          <el-table-column label="名次" width="90">
+            <template #default="{ row }">
+              <el-tag :type="row.placement === 'CHAMPION' ? 'warning' : 'success'">
+                {{ formatPlacement(row.placement) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="冠军" min-width="120">
+            <template #default="{ row }">{{ getStandingName(row, 'CHAMPION') }}</template>
+          </el-table-column>
+          <el-table-column label="亚军" min-width="120">
+            <template #default="{ row }">{{ getStandingName(row, 'RUNNER_UP') }}</template>
+          </el-table-column>
+          <el-table-column label="季军" min-width="120">
+            <template #default="{ row }">{{ getStandingName(row, 'THIRD_PLACE') }}</template>
+          </el-table-column>
+          <el-table-column label="殿军" min-width="120">
+            <template #default="{ row }">{{ getStandingName(row, 'FOURTH_PLACE') }}</template>
+          </el-table-column>
+        </el-table>
+
+        <div class="table-footer">
+          <el-pagination
+            v-model:current-page="filters.page"
+            v-model:page-size="filters.pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next"
+            :total="total"
+          />
+        </div>
+      </template>
+    </div>
   </section>
 </template>

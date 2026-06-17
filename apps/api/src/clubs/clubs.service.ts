@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import { CompetitionStandingPlacement, CompetitionTargetType, type Prisma } from '@prisma/client';
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
-import { resolvePagination } from '../common/pagination.js';
+import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { ClubListQuery } from './clubs.types.js';
+import type { ClubHonorListQuery, ClubListQuery } from './clubs.types.js';
 
 const CLUB_INCLUDE = {
   countryRef: {
@@ -28,6 +28,56 @@ const CLUB_INCLUDE = {
     }
   }
 } satisfies Prisma.ClubInclude;
+
+const CLUB_HONOR_INCLUDE = {
+  club: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true,
+      exists: true
+    }
+  },
+  edition: {
+    include: {
+      competition: {
+        include: {
+          confederation: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              code: true
+            }
+          },
+          country: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true
+            }
+          }
+        }
+      },
+      standings: {
+        orderBy: { placement: 'asc' },
+        include: {
+          club: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true,
+              exists: true
+            }
+          }
+        }
+      }
+    }
+  }
+} satisfies Prisma.CompetitionStandingInclude;
 
 @Injectable()
 export class ClubsService {
@@ -74,7 +124,36 @@ export class ClubsService {
 
     const [computedClub] = await this.attachComputedStats([club]);
 
-    return computedClub;
+    return {
+      ...computedClub,
+      honorRecords: await this.getClubHonorRecords(id, 10)
+    };
+  }
+
+  async findHonors(query: ClubHonorListQuery) {
+    const pagination = resolvePagination(query);
+    const where = this.buildHonorWhere(query);
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.competitionStanding.findMany({
+        where,
+        include: CLUB_HONOR_INCLUDE,
+        orderBy: [
+          { edition: { year: 'desc' } },
+          { edition: { name: 'desc' } },
+          { placement: 'asc' }
+        ],
+        skip: pagination.skip,
+        take: pagination.take
+      }),
+      this.prisma.competitionStanding.count({ where })
+    ]);
+
+    return {
+      items: items.map((item) => this.mapHonorRecord(item)),
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total
+    };
   }
 
   private buildWhere(query: ClubListQuery): Prisma.ClubWhereInput {
@@ -146,5 +225,102 @@ export class ClubsService {
         fourthPlaceCount: standings.fourthPlaceCount
       };
     });
+  }
+
+  private async getClubHonorRecords(clubId: string, take: number) {
+    const items = await this.prisma.competitionStanding.findMany({
+      where: {
+        clubId,
+        edition: {
+          competition: {
+            targetType: CompetitionTargetType.CLUB
+          }
+        }
+      },
+      include: CLUB_HONOR_INCLUDE,
+      orderBy: [{ edition: { year: 'desc' } }, { edition: { name: 'desc' } }, { placement: 'asc' }],
+      take
+    });
+
+    return items.map((item) => this.mapHonorRecord(item));
+  }
+
+  private buildHonorWhere(query: ClubHonorListQuery): Prisma.CompetitionStandingWhereInput {
+    const keyword = query.keyword?.trim();
+    const year = toInteger(query.year, Number.NaN);
+
+    return {
+      clubId: query.clubId || { not: null },
+      ...(this.isPlacement(query.placement) ? { placement: query.placement } : {}),
+      edition: {
+        ...(query.competitionId ? { competitionId: query.competitionId } : {}),
+        ...(Number.isFinite(year) ? { year } : {}),
+        competition: {
+          targetType: CompetitionTargetType.CLUB
+        }
+      },
+      ...(keyword
+        ? {
+            OR: [
+              { club: { name: { contains: keyword, mode: 'insensitive' } } },
+              { club: { uid: { contains: keyword, mode: 'insensitive' } } },
+              { remark: { contains: keyword, mode: 'insensitive' } },
+              { edition: { name: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { season: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { host: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { competition: { name: { contains: keyword, mode: 'insensitive' } } } },
+              { edition: { competition: { code: { contains: keyword, mode: 'insensitive' } } } },
+              {
+                edition: { competition: { category: { contains: keyword, mode: 'insensitive' } } }
+              },
+              { edition: { competition: { level: { contains: keyword, mode: 'insensitive' } } } }
+            ]
+          }
+        : {})
+    };
+  }
+
+  private mapHonorRecord(
+    item: Prisma.CompetitionStandingGetPayload<{ include: typeof CLUB_HONOR_INCLUDE }>
+  ) {
+    return {
+      id: item.id,
+      placement: item.placement,
+      remark: item.remark,
+      club: item.club,
+      competition: item.edition.competition,
+      edition: {
+        id: item.edition.id,
+        name: item.edition.name,
+        season: item.edition.season,
+        year: item.edition.year,
+        host: item.edition.host,
+        remark: item.edition.remark
+      },
+      standings: this.mapClubStandingSummary(item.edition.standings)
+    };
+  }
+
+  private mapClubStandingSummary(
+    standings: Array<
+      Prisma.CompetitionStandingGetPayload<{
+        include: {
+          club: {
+            select: { id: true; uid: true; name: true; externalUrl: true; exists: true };
+          };
+        };
+      }>
+    >
+  ) {
+    return Object.fromEntries(
+      standings.map((standing) => [standing.placement, standing.club])
+    ) as Record<CompetitionStandingPlacement, (typeof standings)[number]['club']>;
+  }
+
+  private isPlacement(value: string | undefined): value is CompetitionStandingPlacement {
+    return (
+      value !== undefined &&
+      Object.values(CompetitionStandingPlacement).includes(value as CompetitionStandingPlacement)
+    );
   }
 }

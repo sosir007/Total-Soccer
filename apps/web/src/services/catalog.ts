@@ -1,4 +1,5 @@
 import { apiClient, type ApiResponse } from './api';
+import type { CompetitionStandingPlacement } from './competitions';
 
 export interface PaginationResult<T> {
   items: T[];
@@ -13,6 +14,39 @@ export interface NamedRef {
   code?: string | null;
   name: string;
   externalUrl?: string | null;
+}
+
+export interface HonorEditionRef {
+  id: string;
+  name: string;
+  season?: string | null;
+  year?: number | null;
+  host?: string | null;
+  remark?: string | null;
+}
+
+export interface HonorCompetitionRef {
+  id: string;
+  code: string;
+  name: string;
+  externalUrl?: string | null;
+  targetType: 'COUNTRY' | 'CLUB';
+  scopeType: 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
+  category?: string | null;
+  level?: string | null;
+  confederation?: NamedRef | null;
+  country?: NamedRef | null;
+}
+
+export interface HonorRecord {
+  id: string;
+  placement: CompetitionStandingPlacement;
+  remark?: string | null;
+  country?: NamedRef | null;
+  club?: (NamedRef & { exists?: boolean }) | null;
+  competition: HonorCompetitionRef;
+  edition: HonorEditionRef;
+  standings: Partial<Record<CompetitionStandingPlacement, NamedRef | null>>;
 }
 
 export interface PlayerListItem {
@@ -86,7 +120,9 @@ export interface CountryListItem {
   };
 }
 
-export type CountryDetail = CountryListItem;
+export type CountryDetail = CountryListItem & {
+  honorRecords?: HonorRecord[];
+};
 
 export interface ClubListItem {
   id: string;
@@ -112,7 +148,9 @@ export interface ClubListItem {
   };
 }
 
-export type ClubDetail = ClubListItem;
+export type ClubDetail = ClubListItem & {
+  honorRecords?: HonorRecord[];
+};
 
 export interface PlayerListParams {
   page?: number;
@@ -138,6 +176,16 @@ export interface CountryListParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface CountryHonorListParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  competitionId?: string;
+  placement?: CompetitionStandingPlacement;
+  year?: number;
+  countryId?: string;
+}
+
 export interface ClubListParams {
   page?: number;
   pageSize?: number;
@@ -146,6 +194,16 @@ export interface ClubListParams {
   countryId?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+}
+
+export interface ClubHonorListParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  competitionId?: string;
+  placement?: CompetitionStandingPlacement;
+  year?: number;
+  clubId?: string;
 }
 
 export async function fetchPlayers(params: PlayerListParams) {
@@ -179,6 +237,17 @@ export async function fetchCountryDetail(id: string) {
   return response.data.data;
 }
 
+export async function fetchCountryHonors(params: CountryHonorListParams) {
+  const response = await apiClient.get<ApiResponse<PaginationResult<HonorRecord>>>(
+    '/countries/honors',
+    {
+      params
+    }
+  );
+
+  return response.data.data;
+}
+
 export async function fetchClubs(params: ClubListParams) {
   const response = await apiClient.get<ApiResponse<PaginationResult<ClubListItem>>>('/clubs', {
     params
@@ -189,6 +258,17 @@ export async function fetchClubs(params: ClubListParams) {
 
 export async function fetchClubDetail(id: string) {
   const response = await apiClient.get<ApiResponse<ClubDetail>>(`/clubs/${id}`);
+
+  return response.data.data;
+}
+
+export async function fetchClubHonors(params: ClubHonorListParams) {
+  const response = await apiClient.get<ApiResponse<PaginationResult<HonorRecord>>>(
+    '/clubs/honors',
+    {
+      params
+    }
+  );
 
   return response.data.data;
 }

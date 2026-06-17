@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import { CompetitionStandingPlacement, CompetitionTargetType, type Prisma } from '@prisma/client';
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
-import { resolvePagination } from '../common/pagination.js';
+import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { CountryListQuery } from './countries.types.js';
+import type { CountryHonorListQuery, CountryListQuery } from './countries.types.js';
 
 const COUNTRY_INCLUDE = {
   federationRef: {
@@ -21,6 +21,54 @@ const COUNTRY_INCLUDE = {
     }
   }
 } satisfies Prisma.CountryInclude;
+
+const COUNTRY_HONOR_INCLUDE = {
+  country: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  },
+  edition: {
+    include: {
+      competition: {
+        include: {
+          confederation: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              code: true
+            }
+          },
+          country: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true
+            }
+          }
+        }
+      },
+      standings: {
+        orderBy: { placement: 'asc' },
+        include: {
+          country: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true
+            }
+          }
+        }
+      }
+    }
+  }
+} satisfies Prisma.CompetitionStandingInclude;
 
 @Injectable()
 export class CountriesService {
@@ -64,7 +112,36 @@ export class CountriesService {
 
     const [computedCountry] = await this.attachComputedStats([country]);
 
-    return computedCountry;
+    return {
+      ...computedCountry,
+      honorRecords: await this.getCountryHonorRecords(id, 10)
+    };
+  }
+
+  async findHonors(query: CountryHonorListQuery) {
+    const pagination = resolvePagination(query);
+    const where = this.buildHonorWhere(query);
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.competitionStanding.findMany({
+        where,
+        include: COUNTRY_HONOR_INCLUDE,
+        orderBy: [
+          { edition: { year: 'desc' } },
+          { edition: { name: 'desc' } },
+          { placement: 'asc' }
+        ],
+        skip: pagination.skip,
+        take: pagination.take
+      }),
+      this.prisma.competitionStanding.count({ where })
+    ]);
+
+    return {
+      items: items.map((item) => this.mapHonorRecord(item)),
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total
+    };
   }
 
   private buildWhere(query: CountryListQuery): Prisma.CountryWhereInput {
@@ -133,5 +210,98 @@ export class CountriesService {
         majorChampionCount: standings.majorChampionCount
       };
     });
+  }
+
+  private async getCountryHonorRecords(countryId: string, take: number) {
+    const items = await this.prisma.competitionStanding.findMany({
+      where: {
+        countryId,
+        edition: {
+          competition: {
+            targetType: CompetitionTargetType.COUNTRY
+          }
+        }
+      },
+      include: COUNTRY_HONOR_INCLUDE,
+      orderBy: [{ edition: { year: 'desc' } }, { edition: { name: 'desc' } }, { placement: 'asc' }],
+      take
+    });
+
+    return items.map((item) => this.mapHonorRecord(item));
+  }
+
+  private buildHonorWhere(query: CountryHonorListQuery): Prisma.CompetitionStandingWhereInput {
+    const keyword = query.keyword?.trim();
+    const year = toInteger(query.year, Number.NaN);
+
+    return {
+      countryId: query.countryId || { not: null },
+      ...(this.isPlacement(query.placement) ? { placement: query.placement } : {}),
+      edition: {
+        ...(query.competitionId ? { competitionId: query.competitionId } : {}),
+        ...(Number.isFinite(year) ? { year } : {}),
+        competition: {
+          targetType: CompetitionTargetType.COUNTRY
+        }
+      },
+      ...(keyword
+        ? {
+            OR: [
+              { country: { name: { contains: keyword, mode: 'insensitive' } } },
+              { country: { uid: { contains: keyword, mode: 'insensitive' } } },
+              { remark: { contains: keyword, mode: 'insensitive' } },
+              { edition: { name: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { season: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { host: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { competition: { name: { contains: keyword, mode: 'insensitive' } } } },
+              { edition: { competition: { code: { contains: keyword, mode: 'insensitive' } } } },
+              {
+                edition: { competition: { category: { contains: keyword, mode: 'insensitive' } } }
+              },
+              { edition: { competition: { level: { contains: keyword, mode: 'insensitive' } } } }
+            ]
+          }
+        : {})
+    };
+  }
+
+  private mapHonorRecord(
+    item: Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>
+  ) {
+    return {
+      id: item.id,
+      placement: item.placement,
+      remark: item.remark,
+      country: item.country,
+      competition: item.edition.competition,
+      edition: {
+        id: item.edition.id,
+        name: item.edition.name,
+        season: item.edition.season,
+        year: item.edition.year,
+        host: item.edition.host,
+        remark: item.edition.remark
+      },
+      standings: this.mapCountryStandingSummary(item.edition.standings)
+    };
+  }
+
+  private mapCountryStandingSummary(
+    standings: Array<
+      Prisma.CompetitionStandingGetPayload<{
+        include: { country: { select: { id: true; uid: true; name: true; externalUrl: true } } };
+      }>
+    >
+  ) {
+    return Object.fromEntries(
+      standings.map((standing) => [standing.placement, standing.country])
+    ) as Record<CompetitionStandingPlacement, (typeof standings)[number]['country']>;
+  }
+
+  private isPlacement(value: string | undefined): value is CompetitionStandingPlacement {
+    return (
+      value !== undefined &&
+      Object.values(CompetitionStandingPlacement).includes(value as CompetitionStandingPlacement)
+    );
   }
 }
