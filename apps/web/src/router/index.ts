@@ -59,6 +59,12 @@ export const routes: RouteRecordRaw[] = [
         component: NationDetailView,
         meta: { title: '国家详情' }
       },
+      {
+        path: 'nations/detail/:id',
+        name: 'nations-detail-id',
+        component: NationDetailView,
+        meta: { title: '国家详情' }
+      },
       { path: 'clubs', redirect: '/clubs/overview' },
       {
         path: 'clubs/overview',
@@ -75,6 +81,12 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'clubs/detail',
         name: 'clubs-detail',
+        component: ClubDetailView,
+        meta: { title: '豪门详情' }
+      },
+      {
+        path: 'clubs/detail/:id',
+        name: 'clubs-detail-id',
         component: ClubDetailView,
         meta: { title: '豪门详情' }
       },

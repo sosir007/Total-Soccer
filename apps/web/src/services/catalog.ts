@@ -68,9 +68,41 @@ export interface CountryListItem {
   playerCount?: number | null;
   totalPa?: number | null;
   averagePa?: number | null;
+  medalCount?: number | null;
+  championCount?: number | null;
+  majorChampionCount?: number | null;
   honorScore?: number | null;
+  averageHonorScore?: number | null;
   federationRef?: NamedRef | null;
+  _count?: {
+    players: number;
+    clubs: number;
+  };
 }
+
+export type CountryDetail = CountryListItem;
+
+export interface ClubListItem {
+  id: string;
+  uid: string;
+  name: string;
+  exists: boolean;
+  country?: string | null;
+  federation?: string | null;
+  playerCount?: number | null;
+  totalPa?: number | null;
+  averagePa?: number | null;
+  trophyCount?: number | null;
+  championCount?: number | null;
+  honorScore?: number | null;
+  countryRef?: NamedRef | null;
+  federationRef?: NamedRef | null;
+  _count?: {
+    players: number;
+  };
+}
+
+export type ClubDetail = ClubListItem;
 
 export interface PlayerListParams {
   page?: number;
@@ -92,6 +124,18 @@ export interface CountryListParams {
   pageSize?: number;
   keyword?: string;
   confederationId?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface ClubListParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  confederationId?: string;
+  countryId?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export async function fetchPlayers(params: PlayerListParams) {
@@ -115,6 +159,26 @@ export async function fetchCountries(params: CountryListParams) {
       params
     }
   );
+
+  return response.data.data;
+}
+
+export async function fetchCountryDetail(id: string) {
+  const response = await apiClient.get<ApiResponse<CountryDetail>>(`/countries/${id}`);
+
+  return response.data.data;
+}
+
+export async function fetchClubs(params: ClubListParams) {
+  const response = await apiClient.get<ApiResponse<PaginationResult<ClubListItem>>>('/clubs', {
+    params
+  });
+
+  return response.data.data;
+}
+
+export async function fetchClubDetail(id: string) {
+  const response = await apiClient.get<ApiResponse<ClubDetail>>(`/clubs/${id}`);
 
   return response.data.data;
 }
