@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { CountryListQuery } from './countries.types.js';
@@ -23,7 +24,10 @@ const COUNTRY_INCLUDE = {
 
 @Injectable()
 export class CountriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly catalogStats: CatalogStatsService
+  ) {}
 
   async findAll(query: CountryListQuery) {
     const pagination = resolvePagination(query);
@@ -41,7 +45,7 @@ export class CountriesService {
     ]);
 
     return {
-      items,
+      items: await this.attachComputedStats(items),
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -58,7 +62,9 @@ export class CountriesService {
       throw new NotFoundException('国家不存在。');
     }
 
-    return country;
+    const [computedCountry] = await this.attachComputedStats([country]);
+
+    return computedCountry;
   }
 
   private buildWhere(query: CountryListQuery): Prisma.CountryWhereInput {
@@ -96,5 +102,36 @@ export class CountriesService {
     }
 
     return [{ [sortBy]: sortOrder }, { name: 'asc' }];
+  }
+
+  private async attachComputedStats<T extends { id: string }>(items: T[]) {
+    if (!items.length) {
+      return items;
+    }
+
+    const ids = items.map((item) => item.id);
+    const [participationStats, standingStats] = await Promise.all([
+      this.catalogStats.getCountryParticipationStats(ids),
+      this.catalogStats.getCountryStandingStats(ids)
+    ]);
+
+    return items.map((item) => {
+      const participation =
+        participationStats.get(item.id) ?? this.catalogStats.getEmptyParticipationStats();
+      const standings = standingStats.get(item.id) ?? this.catalogStats.getEmptyStandingStats();
+
+      return {
+        ...item,
+        playerCount: participation.playerCount,
+        totalPa: participation.totalPa,
+        averagePa: participation.averagePa,
+        championCount: standings.championCount,
+        runnerUpCount: standings.runnerUpCount,
+        thirdPlaceCount: standings.thirdPlaceCount,
+        fourthPlaceCount: standings.fourthPlaceCount,
+        medalCount: standings.medalCount,
+        majorChampionCount: standings.majorChampionCount
+      };
+    });
   }
 }

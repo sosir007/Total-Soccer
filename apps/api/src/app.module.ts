@@ -8,6 +8,7 @@ import { ImportPreviewModule } from './import-preview/import-preview.module.js';
 import { PlayersModule } from './players/players.module.js';
 import { CountriesModule } from './countries/countries.module.js';
 import { ClubsModule } from './clubs/clubs.module.js';
+import { CompetitionsModule } from './competitions/competitions.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
@@ -21,6 +22,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     PlayersModule,
     CountriesModule,
     ClubsModule,
+    CompetitionsModule,
     DashboardModule
   ],
   providers: [

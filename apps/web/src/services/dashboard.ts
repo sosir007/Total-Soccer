@@ -25,6 +25,9 @@ export interface DashboardRankItem {
   name: string;
   honorScore?: number | null;
   championCount?: number | null;
+  runnerUpCount?: number | null;
+  thirdPlaceCount?: number | null;
+  fourthPlaceCount?: number | null;
   medalCount?: number | null;
   trophyCount?: number | null;
   countryRef?: NamedRef | null;

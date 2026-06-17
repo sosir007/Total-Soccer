@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { ClubListQuery } from './clubs.types.js';
@@ -29,7 +30,10 @@ const CLUB_INCLUDE = {
 
 @Injectable()
 export class ClubsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly catalogStats: CatalogStatsService
+  ) {}
 
   async findAll(query: ClubListQuery) {
     const pagination = resolvePagination(query);
@@ -47,7 +51,7 @@ export class ClubsService {
     ]);
 
     return {
-      items,
+      items: await this.attachComputedStats(items),
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -67,7 +71,9 @@ export class ClubsService {
       throw new NotFoundException('俱乐部不存在。');
     }
 
-    return club;
+    const [computedClub] = await this.attachComputedStats([club]);
+
+    return computedClub;
   }
 
   private buildWhere(query: ClubListQuery): Prisma.ClubWhereInput {
@@ -109,5 +115,35 @@ export class ClubsService {
     }
 
     return [{ [sortBy]: sortOrder }, { name: 'asc' }];
+  }
+
+  private async attachComputedStats<T extends { id: string }>(items: T[]) {
+    if (!items.length) {
+      return items;
+    }
+
+    const ids = items.map((item) => item.id);
+    const [participationStats, standingStats] = await Promise.all([
+      this.catalogStats.getClubParticipationStats(ids),
+      this.catalogStats.getClubStandingStats(ids)
+    ]);
+
+    return items.map((item) => {
+      const participation =
+        participationStats.get(item.id) ?? this.catalogStats.getEmptyParticipationStats();
+      const standings = standingStats.get(item.id) ?? this.catalogStats.getEmptyStandingStats();
+
+      return {
+        ...item,
+        playerCount: participation.playerCount,
+        totalPa: participation.totalPa,
+        averagePa: participation.averagePa,
+        trophyCount: standings.trophyCount,
+        championCount: standings.championCount,
+        runnerUpCount: standings.runnerUpCount,
+        thirdPlaceCount: standings.thirdPlaceCount,
+        fourthPlaceCount: standings.fourthPlaceCount
+      };
+    });
   }
 }

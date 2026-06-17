@@ -70,6 +70,9 @@ export interface CountryListItem {
   averagePa?: number | null;
   medalCount?: number | null;
   championCount?: number | null;
+  runnerUpCount?: number | null;
+  thirdPlaceCount?: number | null;
+  fourthPlaceCount?: number | null;
   majorChampionCount?: number | null;
   honorScore?: number | null;
   averageHonorScore?: number | null;
@@ -94,6 +97,9 @@ export interface ClubListItem {
   averagePa?: number | null;
   trophyCount?: number | null;
   championCount?: number | null;
+  runnerUpCount?: number | null;
+  thirdPlaceCount?: number | null;
+  fourthPlaceCount?: number | null;
   honorScore?: number | null;
   countryRef?: NamedRef | null;
   federationRef?: NamedRef | null;

@@ -7,6 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum CompetitionTargetType {
+  COUNTRY
+  CLUB
+}
+
+enum CompetitionScopeType {
+  GLOBAL
+  CONFEDERATION
+  COUNTRY
+  CUSTOM
+}
+
+enum CompetitionStandingPlacement {
+  CHAMPION
+  RUNNER_UP
+  THIRD_PLACE
+  FOURTH_PLACE
+}
+
 model Player {
   id                 String         @id @default(cuid())
   importKey          String         @unique
@@ -94,6 +113,8 @@ model Country {
   clubs              Club[]
   federationRef      Confederation? @relation(fields: [federationId], references: [id])
   honors             CountryHonor[]
+  scopedCompetitions Competition[]  @relation("CompetitionScopeCountry")
+  competitionResults CompetitionStanding[]
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
@@ -122,6 +143,7 @@ model Club {
   federationRef Confederation? @relation(fields: [federationId], references: [id])
   players       Player[]
   honors        ClubHonor[]
+  competitionResults CompetitionStanding[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -205,8 +227,71 @@ model Confederation {
   countries Country[]
   clubs     Club[]
   players   Player[]
+  scopedCompetitions Competition[] @relation("CompetitionScopeConfederation")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Competition {
+  id              String                @id @default(cuid())
+  code            String                @unique
+  name            String
+  targetType      CompetitionTargetType
+  scopeType       CompetitionScopeType  @default(GLOBAL)
+  category        String?
+  level           String?
+  confederationId String?
+  countryId       String?
+  enabled         Boolean               @default(true)
+  sortOrder       Int                   @default(0)
+  confederation   Confederation?        @relation("CompetitionScopeConfederation", fields: [confederationId], references: [id])
+  country         Country?              @relation("CompetitionScopeCountry", fields: [countryId], references: [id])
+  editions        CompetitionEdition[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([targetType])
+  @@index([scopeType])
+  @@index([confederationId])
+  @@index([countryId])
+  @@index([enabled])
+}
+
+model CompetitionEdition {
+  id            String                @id @default(cuid())
+  competitionId String
+  name          String
+  season        String?
+  year          Int?
+  host          String?
+  remark        String?
+  competition   Competition           @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  standings     CompetitionStanding[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@unique([competitionId, name])
+  @@index([competitionId])
+  @@index([year])
+}
+
+model CompetitionStanding {
+  id        String                       @id @default(cuid())
+  editionId String
+  placement CompetitionStandingPlacement
+  countryId String?
+  clubId    String?
+  remark    String?
+  edition   CompetitionEdition           @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  country   Country?                     @relation(fields: [countryId], references: [id])
+  club      Club?                        @relation(fields: [clubId], references: [id])
+  createdAt DateTime                     @default(now())
+  updatedAt DateTime                     @updatedAt
+
+  @@unique([editionId, placement])
+  @@index([countryId])
+  @@index([clubId])
+  @@index([placement])
 }
 
 model PotentialRange {

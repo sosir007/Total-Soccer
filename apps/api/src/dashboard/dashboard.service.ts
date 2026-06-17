@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 
 const PA_BUCKETS = [
@@ -13,7 +14,10 @@ const PA_BUCKETS = [
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly catalogStats: CatalogStatsService
+  ) {}
 
   async overview() {
     const [
@@ -115,6 +119,11 @@ export class DashboardService {
       })
     ]);
 
+    const [topCountryStandingStats, topClubStandingStats] = await Promise.all([
+      this.catalogStats.getCountryStandingStats(topCountries.map((country) => country.id)),
+      this.catalogStats.getClubStandingStats(topClubs.map((club) => club.id))
+    ]);
+
     return {
       summary: {
         playerCount,
@@ -134,8 +143,32 @@ export class DashboardService {
       playerTypeDistribution: this.buildNamedDistribution(
         players.map((player) => player.playerTypeRef)
       ),
-      topCountries,
-      topClubs
+      topCountries: topCountries.map((country) => {
+        const standings =
+          topCountryStandingStats.get(country.id) ?? this.catalogStats.getEmptyStandingStats();
+
+        return {
+          ...country,
+          championCount: standings.championCount,
+          medalCount: standings.medalCount,
+          runnerUpCount: standings.runnerUpCount,
+          thirdPlaceCount: standings.thirdPlaceCount,
+          fourthPlaceCount: standings.fourthPlaceCount
+        };
+      }),
+      topClubs: topClubs.map((club) => {
+        const standings =
+          topClubStandingStats.get(club.id) ?? this.catalogStats.getEmptyStandingStats();
+
+        return {
+          ...club,
+          trophyCount: standings.trophyCount,
+          championCount: standings.championCount,
+          runnerUpCount: standings.runnerUpCount,
+          thirdPlaceCount: standings.thirdPlaceCount,
+          fourthPlaceCount: standings.fourthPlaceCount
+        };
+      })
     };
   }
 
