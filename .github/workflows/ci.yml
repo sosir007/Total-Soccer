@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm --filter @total-soccer/api prisma:generate
+
       - name: Type check
         run: pnpm type-check
 
