@@ -9,7 +9,8 @@ const PLAYER_LIST_INCLUDE = {
     select: {
       id: true,
       uid: true,
-      name: true
+      name: true,
+      externalUrl: true
     }
   },
   club: {
@@ -17,6 +18,7 @@ const PLAYER_LIST_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      externalUrl: true,
       exists: true
     }
   },

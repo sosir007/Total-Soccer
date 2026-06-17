@@ -28,7 +28,8 @@ const COMPETITION_INCLUDE = {
     select: {
       id: true,
       uid: true,
-      name: true
+      name: true,
+      externalUrl: true
     }
   },
   _count: {
@@ -50,14 +51,16 @@ const COMPETITION_DETAIL_INCLUDE = {
             select: {
               id: true,
               uid: true,
-              name: true
+              name: true,
+              externalUrl: true
             }
           },
           club: {
             select: {
               id: true,
               uid: true,
-              name: true
+              name: true,
+              externalUrl: true
             }
           }
         }
@@ -213,6 +216,7 @@ export class CompetitionsService {
       scopeType,
       category: this.toNullableString(body.category),
       level: this.toNullableString(body.level),
+      externalUrl: this.toNullableString(body.externalUrl),
       confederationId:
         scopeType === CompetitionScopeType.CONFEDERATION ? body.confederationId : null,
       countryId: scopeType === CompetitionScopeType.COUNTRY ? body.countryId : null,

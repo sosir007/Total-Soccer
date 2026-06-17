@@ -717,6 +717,24 @@ h1 {
   margin-top: 14px;
 }
 
+.external-title-link {
+  display: inline-block;
+  color: inherit;
+}
+
+.external-title-link:hover h2 {
+  color: var(--green);
+}
+
+.external-text-link {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.external-text-link:hover {
+  text-decoration: underline;
+}
+
 .detail-actions {
   display: flex;
   gap: 10px;
@@ -755,6 +773,51 @@ h1 {
   line-height: 1.6;
 }
 
+.competition-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.competition-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 14px;
+}
+
+.competition-form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+
+.standing-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.standing-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.standing-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.7fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid #eef3ed;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.competition-result-strip {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
 @media (max-width: 980px) {
   .app-shell,
   .hero-panel,
@@ -762,7 +825,10 @@ h1 {
   .filter-grid,
   .metric-grid,
   .dashboard-grid,
-  .rank-grid {
+  .rank-grid,
+  .competition-layout,
+  .competition-form-grid,
+  .standing-row {
     grid-template-columns: 1fr;
   }
 

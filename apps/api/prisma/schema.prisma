@@ -59,6 +59,7 @@ model Player {
   birthCityUid       String?
   birthCity          String?
   primaryClub        String?
+  externalUrl        String?
   clubUid            String?
   initialClub        String?
   clubs              String?
@@ -95,10 +96,11 @@ model Player {
 }
 
 model Country {
-  id                 String         @id @default(cuid())
-  importKey          String         @unique
+  id                 String                @id @default(cuid())
+  importKey          String                @unique
   uid                String
   name               String
+  externalUrl        String?
   federation         String?
   federationId       String?
   playerCount        Int?
@@ -111,41 +113,42 @@ model Country {
   averageHonorScore  Float?
   players            Player[]
   clubs              Club[]
-  federationRef      Confederation? @relation(fields: [federationId], references: [id])
+  federationRef      Confederation?        @relation(fields: [federationId], references: [id])
   honors             CountryHonor[]
-  scopedCompetitions Competition[]  @relation("CompetitionScopeCountry")
+  scopedCompetitions Competition[]         @relation("CompetitionScopeCountry")
   competitionResults CompetitionStanding[]
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
 
   @@index([federation])
   @@index([federationId])
 }
 
 model Club {
-  id            String         @id @default(cuid())
-  importKey     String         @unique
-  uid           String
-  name          String
-  exists        Boolean        @default(true)
-  countryUid    String?
-  countryId     String?
-  country       String?
-  federation    String?
-  federationId  String?
-  playerCount   Int?
-  totalPa       Int?
-  averagePa     Float?
-  trophyCount   Int?
-  championCount Int?
-  honorScore    Float?
-  countryRef    Country?       @relation(fields: [countryId], references: [id])
-  federationRef Confederation? @relation(fields: [federationId], references: [id])
-  players       Player[]
-  honors        ClubHonor[]
+  id                 String                @id @default(cuid())
+  importKey          String                @unique
+  uid                String
+  name               String
+  externalUrl        String?
+  exists             Boolean               @default(true)
+  countryUid         String?
+  countryId          String?
+  country            String?
+  federation         String?
+  federationId       String?
+  playerCount        Int?
+  totalPa            Int?
+  averagePa          Float?
+  trophyCount        Int?
+  championCount      Int?
+  honorScore         Float?
+  countryRef         Country?              @relation(fields: [countryId], references: [id])
+  federationRef      Confederation?        @relation(fields: [federationId], references: [id])
+  players            Player[]
+  honors             ClubHonor[]
   competitionResults CompetitionStanding[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
 
   @@index([countryId])
   @@index([countryUid])
@@ -219,23 +222,24 @@ model PlayerType {
 }
 
 model Confederation {
-  id        String    @id @default(cuid())
-  uid       String    @unique
-  name      String
-  code      String?
-  sortOrder Int       @default(0)
-  countries Country[]
-  clubs     Club[]
-  players   Player[]
+  id                 String        @id @default(cuid())
+  uid                String        @unique
+  name               String
+  code               String?
+  sortOrder          Int           @default(0)
+  countries          Country[]
+  clubs              Club[]
+  players            Player[]
   scopedCompetitions Competition[] @relation("CompetitionScopeConfederation")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 }
 
 model Competition {
   id              String                @id @default(cuid())
   code            String                @unique
   name            String
+  externalUrl     String?
   targetType      CompetitionTargetType
   scopeType       CompetitionScopeType  @default(GLOBAL)
   category        String?

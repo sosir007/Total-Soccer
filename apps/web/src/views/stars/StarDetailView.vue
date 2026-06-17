@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchPlayerDetail, type NamedRef, type PlayerDetail } from '@/services/catalog';
+import { buildExternalUrl } from '@/utils/external-link';
 
 const route = useRoute();
 const router = useRouter();
@@ -55,6 +56,13 @@ function formatBoolean(value?: boolean | null) {
   return '-';
 }
 
+function playerExternalUrl() {
+  const fallbackName =
+    player.value?.chineseName || player.value?.englishName || player.value?.uid || '球员';
+
+  return buildExternalUrl(player.value?.externalUrl, fallbackName);
+}
+
 function backToList() {
   void router.push({
     name: 'stars-overview'
@@ -94,7 +102,14 @@ onMounted(() => {
       <div class="panel player-detail-hero">
         <div>
           <div class="detail-kicker">{{ formatRef(player.confederationRef) }}</div>
-          <h2>{{ player.chineseName }}</h2>
+          <a
+            class="external-title-link"
+            :href="playerExternalUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <h2>{{ player.chineseName }}</h2>
+          </a>
           <p>{{ player.englishName || player.uid }}</p>
           <div class="detail-tags">
             <el-tag type="success">PA {{ formatText(player.pa) }}</el-tag>
@@ -138,6 +153,19 @@ onMounted(() => {
             <div>
               <dt>数据库</dt>
               <dd>{{ formatText(player.databaseSource) }}</dd>
+            </div>
+            <div>
+              <dt>外部链接</dt>
+              <dd>
+                <a
+                  class="external-text-link"
+                  :href="playerExternalUrl()"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ player.externalUrl || 'Google 搜索' }}
+                </a>
+              </dd>
             </div>
           </dl>
         </div>

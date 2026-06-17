@@ -10,7 +10,8 @@ const CLUB_INCLUDE = {
     select: {
       id: true,
       uid: true,
-      name: true
+      name: true,
+      externalUrl: true
     }
   },
   federationRef: {

@@ -47,6 +47,7 @@ const navItems = [
     icon: '⚙',
     children: [
       { path: '/tianji/honor-rules', label: '荣誉规则' },
+      { path: '/tianji/competitions', label: '赛事管理' },
       { path: '/tianji/import', label: '数据导入' },
       { path: '/tianji/base', label: '基础配置' },
       { path: '/tianji/remarks', label: '备注管理' },

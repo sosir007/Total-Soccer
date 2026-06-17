@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchClubDetail, type ClubDetail, type NamedRef } from '@/services/catalog';
+import { buildExternalUrl } from '@/utils/external-link';
 
 const route = useRoute();
 const router = useRouter();
@@ -55,6 +56,10 @@ function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
 
+function clubExternalUrl() {
+  return buildExternalUrl(club.value?.externalUrl, club.value?.name || '俱乐部');
+}
+
 watch(clubId, () => {
   void loadClub();
 });
@@ -88,7 +93,14 @@ onMounted(() => {
       <div class="panel player-detail-hero">
         <div>
           <div class="detail-kicker">{{ formatRef(club.federationRef) }}</div>
-          <h2>{{ club.name }}</h2>
+          <a
+            class="external-title-link"
+            :href="clubExternalUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <h2>{{ club.name }}</h2>
+          </a>
           <p>UID {{ club.uid }}</p>
           <div class="detail-tags">
             <el-tag type="success">球员 {{ formatNumber(club.playerCount) }}</el-tag>
@@ -144,6 +156,19 @@ onMounted(() => {
             <div>
               <dt>荣誉分</dt>
               <dd>{{ formatNumber(club.honorScore, 2) }}</dd>
+            </div>
+            <div>
+              <dt>外部链接</dt>
+              <dd>
+                <a
+                  class="external-text-link"
+                  :href="clubExternalUrl()"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ club.externalUrl || 'Google 搜索' }}
+                </a>
+              </dd>
             </div>
           </dl>
         </div>

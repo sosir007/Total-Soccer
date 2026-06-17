@@ -12,6 +12,7 @@ export interface NamedRef {
   uid?: string;
   code?: string | null;
   name: string;
+  externalUrl?: string | null;
 }
 
 export interface PlayerListItem {
@@ -19,6 +20,7 @@ export interface PlayerListItem {
   uid: string;
   chineseName: string;
   englishName?: string | null;
+  externalUrl?: string | null;
   primaryRole?: string | null;
   positions?: string | null;
   ca?: number | null;
@@ -64,6 +66,7 @@ export interface CountryListItem {
   id: string;
   uid: string;
   name: string;
+  externalUrl?: string | null;
   federation?: string | null;
   playerCount?: number | null;
   totalPa?: number | null;
@@ -89,6 +92,7 @@ export interface ClubListItem {
   id: string;
   uid: string;
   name: string;
+  externalUrl?: string | null;
   exists: boolean;
   country?: string | null;
   federation?: string | null;

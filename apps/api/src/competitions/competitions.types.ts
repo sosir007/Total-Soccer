@@ -18,6 +18,7 @@ export interface CompetitionListQuery {
 export interface CreateCompetitionBody {
   code?: string;
   name?: string;
+  externalUrl?: string;
   targetType?: CompetitionTargetType;
   scopeType?: CompetitionScopeType;
   category?: string;

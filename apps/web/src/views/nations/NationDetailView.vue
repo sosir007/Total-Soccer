@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchCountryDetail, type CountryDetail, type NamedRef } from '@/services/catalog';
+import { buildExternalUrl } from '@/utils/external-link';
 
 const route = useRoute();
 const router = useRouter();
@@ -55,6 +56,10 @@ function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
 
+function countryExternalUrl() {
+  return buildExternalUrl(country.value?.externalUrl, country.value?.name || '国家队');
+}
+
 watch(countryId, () => {
   void loadCountry();
 });
@@ -88,7 +93,14 @@ onMounted(() => {
       <div class="panel player-detail-hero">
         <div>
           <div class="detail-kicker">{{ formatRef(country.federationRef) }}</div>
-          <h2>{{ country.name }}</h2>
+          <a
+            class="external-title-link"
+            :href="countryExternalUrl()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <h2>{{ country.name }}</h2>
+          </a>
           <p>UID {{ country.uid }}</p>
           <div class="detail-tags">
             <el-tag type="success">球员 {{ formatNumber(country.playerCount) }}</el-tag>
@@ -144,6 +156,19 @@ onMounted(() => {
             <div>
               <dt>原始足联</dt>
               <dd>{{ formatText(country.federation) }}</dd>
+            </div>
+            <div>
+              <dt>外部链接</dt>
+              <dd>
+                <a
+                  class="external-text-link"
+                  :href="countryExternalUrl()"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ country.externalUrl || 'Google 搜索' }}
+                </a>
+              </dd>
             </div>
           </dl>
         </div>
