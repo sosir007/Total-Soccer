@@ -86,6 +86,7 @@ p {
   display: flex;
   flex-direction: column;
   padding: 24px;
+  overflow: hidden;
   border-right: 1px solid rgba(36, 90, 60, 0.12);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 251, 246, 0.9)),
@@ -94,10 +95,11 @@ p {
 }
 
 .brand {
+  flex: 0 0 auto;
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .brand-mark {
@@ -126,7 +128,24 @@ p {
 
 .nav {
   display: grid;
+  flex: 1 1 auto;
   gap: 10px;
+  min-height: 0;
+  padding-right: 6px;
+  margin-right: -6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 139, 85, 0.24) transparent;
+}
+
+.nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(31, 139, 85, 0.24);
 }
 
 .nav-section {
@@ -180,7 +199,8 @@ p {
 }
 
 .sidebar-card {
-  margin-top: auto;
+  flex: 0 0 auto;
+  margin-top: 16px;
   padding: 16px;
   border: 1px solid rgba(31, 139, 85, 0.12);
   border-radius: 8px;
@@ -269,6 +289,7 @@ h1 {
 .page-stack {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .hero-panel {
@@ -395,6 +416,7 @@ h1 {
 
 .metric-card,
 .panel {
+  min-width: 0;
   border: 1px solid #e1eae0;
   border-radius: 10px;
   color: #10251b;
@@ -1008,6 +1030,11 @@ h1 {
   .sidebar {
     position: static;
     height: auto;
+    overflow: visible;
+  }
+
+  .nav {
+    overflow: visible;
   }
 
   .topbar {

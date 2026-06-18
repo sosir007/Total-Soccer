@@ -11,6 +11,7 @@ import { ClubsModule } from './clubs/clubs.module.js';
 import { CompetitionsModule } from './competitions/competitions.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { SummitModule } from './summit/summit.module.js';
+import { BaseConfigModule } from './base-config/base-config.module.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
 
@@ -25,7 +26,8 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     ClubsModule,
     CompetitionsModule,
     DashboardModule,
-    SummitModule
+    SummitModule,
+    BaseConfigModule
   ],
   providers: [
     {

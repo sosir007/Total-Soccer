@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { useAppStore } from '@/stores/app';
 
 const appStore = useAppStore();
 const route = useRoute();
+const navRef = ref<HTMLElement | null>(null);
 
 const navItems = [
   {
@@ -57,6 +58,22 @@ const navItems = [
 ];
 
 const pageTitle = computed(() => String(route.meta.title ?? '世界概览'));
+
+function scrollActiveNavIntoView() {
+  void nextTick(() => {
+    const activeItem = navRef.value?.querySelector('.nav-item.router-link-active');
+
+    if (activeItem instanceof HTMLElement) {
+      activeItem.scrollIntoView({
+        block: 'nearest'
+      });
+    }
+  });
+}
+
+watch(() => route.fullPath, scrollActiveNavIntoView);
+
+onMounted(scrollActiveNavIntoView);
 </script>
 
 <template>
@@ -70,7 +87,7 @@ const pageTitle = computed(() => String(route.meta.title ?? '世界概览'));
         </div>
       </div>
 
-      <nav class="nav">
+      <nav ref="navRef" class="nav">
         <div v-for="group in navItems" :key="group.label" class="nav-section">
           <div class="nav-group">
             <span class="nav-icon">{{ group.icon }}</span>
