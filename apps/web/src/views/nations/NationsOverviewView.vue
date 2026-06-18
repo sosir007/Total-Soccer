@@ -3,12 +3,12 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchCountries, type CountryListItem, type NamedRef } from '@/services/catalog';
+import { ConfederationSelect } from '@/components/selects';
 
 const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const countries = ref<CountryListItem[]>([]);
-const filterSource = ref<CountryListItem[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
@@ -17,30 +17,7 @@ const filters = reactive({
   confederationId: ''
 });
 
-const confederations = computed<NamedRef[]>(() => {
-  const refs = new Map<string, NamedRef>();
-
-  for (const country of filterSource.value) {
-    if (country.federationRef) {
-      refs.set(country.federationRef.id, country.federationRef);
-    }
-  }
-
-  return [...refs.values()].sort((current, next) =>
-    current.name.localeCompare(next.name, 'zh-Hans-CN')
-  );
-});
 const hasRows = computed(() => countries.value.length > 0);
-
-async function loadFilterOptions() {
-  const result = await fetchCountries({
-    page: 1,
-    pageSize: 200,
-    sortBy: 'name',
-    sortOrder: 'asc'
-  });
-  filterSource.value = result.items;
-}
 
 async function loadCountries() {
   loading.value = true;
@@ -108,9 +85,8 @@ watch(
   }
 );
 
-onMounted(async () => {
-  await loadFilterOptions();
-  await loadCountries();
+onMounted(() => {
+  void loadCountries();
 });
 </script>
 
@@ -139,14 +115,7 @@ onMounted(async () => {
           />
         </el-form-item>
         <el-form-item label="足联">
-          <el-select v-model="filters.confederationId" clearable placeholder="全部足联">
-            <el-option
-              v-for="confederation in confederations"
-              :key="confederation.id"
-              :label="confederation.name"
-              :value="confederation.id"
-            />
-          </el-select>
+          <ConfederationSelect v-model="filters.confederationId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>

@@ -1,0 +1,9 @@
+export { default as ClubSelect } from './ClubSelect.vue';
+export { default as CompetitionSelect } from './CompetitionSelect.vue';
+export { default as ConfederationSelect } from './ConfederationSelect.vue';
+export { default as CountrySelect } from './CountrySelect.vue';
+export { default as EthnicitySelect } from './EthnicitySelect.vue';
+export { default as HairColorSelect } from './HairColorSelect.vue';
+export { default as PlayerTypeSelect } from './PlayerTypeSelect.vue';
+export { default as PositionSelect } from './PositionSelect.vue';
+export { default as PreferredFootSelect } from './PreferredFootSelect.vue';

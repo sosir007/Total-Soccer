@@ -6,6 +6,28 @@
   --green: #1f8b55;
   --gold: #c89436;
   --white: #ffffff;
+  --confed-afc: #d89a18;
+  --confed-afc-bg: #fff7e3;
+  --confed-uefa: #2563eb;
+  --confed-uefa-bg: #eef4ff;
+  --confed-conmebol: #16a34a;
+  --confed-conmebol-bg: #ecfdf3;
+  --confed-caf: #dc6b19;
+  --confed-caf-bg: #fff3e8;
+  --confed-concacaf: #0891b2;
+  --confed-concacaf-bg: #eafbff;
+  --confed-ofc: #7c3aed;
+  --confed-ofc-bg: #f4eeff;
+  --confed-default: #1f8b55;
+  --position-forward: #dc6b19;
+  --position-forward-bg: #fff3e8;
+  --position-midfield: #16a34a;
+  --position-midfield-bg: #ecfdf3;
+  --position-backfield: #2563eb;
+  --position-backfield-bg: #eef4ff;
+  --position-goalkeeper: #7c3aed;
+  --position-goalkeeper-bg: #f4eeff;
+  --position-default: #1f8b55;
   --shadow: 0 20px 52px rgba(27, 67, 45, 0.1);
   --soft-shadow: 0 10px 28px rgba(25, 66, 43, 0.08);
 }
@@ -674,25 +696,74 @@ h1 {
 
 .filter-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 1fr) minmax(140px, 0.8fr) minmax(
-      260px,
-      1.2fr
-    );
-  gap: 12px 16px;
-  align-items: end;
+  grid-template-columns: repeat(auto-fill, 340px);
+  gap: 24px 72px;
+  align-items: center;
+  justify-content: start;
+}
+
+.filter-grid .el-form-item {
+  display: flex;
+  align-items: center;
+  width: auto;
+  margin-bottom: 0;
+}
+
+.filter-grid .el-form-item__label {
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 10px 0 0;
+  margin: 0;
+  color: #5c6460;
+  line-height: 38px;
+}
+
+.filter-grid .el-form-item__content {
+  flex: 0 0 240px;
+  width: 240px;
+  min-width: 0;
+}
+
+.filter-grid .el-form-item__content > .el-input,
+.filter-grid .el-form-item__content > .el-select,
+.filter-grid .el-form-item__content > .common-select {
+  width: 240px;
 }
 
 .range-fields {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 104px 16px 104px;
   gap: 8px;
   align-items: center;
+  width: 240px;
+}
+
+.range-fields .el-input-number {
+  width: 100%;
+}
+
+.range-fields .el-input-number .el-input {
+  width: 100%;
+}
+
+.range-fields .el-input-number .el-input__wrapper {
+  padding: 0 10px;
+}
+
+.range-fields .el-input-number .el-input__inner {
+  text-align: center;
+}
+
+.range-fields span {
+  color: #5c6460;
+  text-align: center;
 }
 
 .filter-actions {
   display: flex;
   gap: 10px;
   align-items: center;
+  min-height: 38px;
 }
 
 .player-name-cell {

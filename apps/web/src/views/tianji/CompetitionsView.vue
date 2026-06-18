@@ -2,13 +2,6 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import {
-  fetchClubs,
-  fetchCountries,
-  type ClubListItem,
-  type CountryListItem,
-  type NamedRef
-} from '@/services/catalog';
-import {
   createCompetition,
   createCompetitionEdition,
   fetchCompetitionDetail,
@@ -21,6 +14,7 @@ import {
   type CompetitionStandingPlacement,
   type CompetitionTargetType
 } from '@/services/competitions';
+import { ClubSelect, ConfederationSelect, CountrySelect } from '@/components/selects';
 import { buildExternalUrl } from '@/utils/external-link';
 
 const targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }> = [
@@ -50,7 +44,6 @@ const scopeTypeLabels = Object.fromEntries(
 ) as Record<CompetitionScopeType, string>;
 
 const loading = ref(false);
-const sourceLoading = ref(false);
 const creating = ref(false);
 const detailLoading = ref(false);
 const editionSaving = ref(false);
@@ -59,8 +52,6 @@ const errorMessage = ref('');
 const competitions = ref<CompetitionListItem[]>([]);
 const selectedCompetition = ref<CompetitionDetail | null>(null);
 const selectedEditionId = ref('');
-const countries = ref<CountryListItem[]>([]);
-const clubs = ref<ClubListItem[]>([]);
 const total = ref(0);
 
 const filters = reactive({
@@ -105,73 +96,6 @@ const selectedEdition = computed(
     selectedCompetition.value?.editions.find((edition) => edition.id === selectedEditionId.value) ??
     null
 );
-const confederations = computed<NamedRef[]>(() => {
-  const refs = new Map<string, NamedRef>();
-
-  for (const country of countries.value) {
-    if (country.federationRef) {
-      refs.set(country.federationRef.id, country.federationRef);
-    }
-  }
-
-  return [...refs.values()].sort((current, next) =>
-    current.name.localeCompare(next.name, 'zh-Hans-CN')
-  );
-});
-
-async function loadSources() {
-  sourceLoading.value = true;
-
-  try {
-    const [countryItems, clubItems] = await Promise.all([fetchAllCountries(), fetchAllClubs()]);
-    countries.value = countryItems;
-    clubs.value = clubItems;
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '赛事基础选项加载失败。');
-  } finally {
-    sourceLoading.value = false;
-  }
-}
-
-async function fetchAllCountries() {
-  const items: CountryListItem[] = [];
-  let page = 1;
-  let totalItems = 0;
-
-  do {
-    const result = await fetchCountries({
-      page,
-      pageSize: 100,
-      sortBy: 'name',
-      sortOrder: 'asc'
-    });
-    items.push(...result.items);
-    totalItems = result.total;
-    page += 1;
-  } while (items.length < totalItems);
-
-  return items;
-}
-
-async function fetchAllClubs() {
-  const items: ClubListItem[] = [];
-  let page = 1;
-  let totalItems = 0;
-
-  do {
-    const result = await fetchClubs({
-      page,
-      pageSize: 100,
-      sortBy: 'name',
-      sortOrder: 'asc'
-    });
-    items.push(...result.items);
-    totalItems = result.total;
-    page += 1;
-  } while (items.length < totalItems);
-
-  return items;
-}
 
 async function loadCompetitions() {
   loading.value = true;
@@ -442,9 +366,8 @@ watch(selectedEditionId, () => {
   populateStandingForm();
 });
 
-onMounted(async () => {
-  await loadSources();
-  await loadCompetitions();
+onMounted(() => {
+  void loadCompetitions();
 });
 </script>
 
@@ -600,34 +523,18 @@ onMounted(async () => {
               </el-select>
             </el-form-item>
             <el-form-item v-if="competitionForm.scopeType === 'CONFEDERATION'" label="足联">
-              <el-select
+              <ConfederationSelect
                 v-model="competitionForm.confederationId"
-                :loading="sourceLoading"
-                filterable
                 placeholder="选择足联"
-              >
-                <el-option
-                  v-for="confederation in confederations"
-                  :key="confederation.id"
-                  :label="confederation.name"
-                  :value="confederation.id"
-                />
-              </el-select>
+                :clearable="false"
+              />
             </el-form-item>
             <el-form-item v-if="competitionForm.scopeType === 'COUNTRY'" label="国家">
-              <el-select
+              <CountrySelect
                 v-model="competitionForm.countryId"
-                :loading="sourceLoading"
-                filterable
                 placeholder="选择国家"
-              >
-                <el-option
-                  v-for="country in countries"
-                  :key="country.id"
-                  :label="country.name"
-                  :value="country.id"
-                />
-              </el-select>
+                :clearable="false"
+              />
             </el-form-item>
             <el-form-item label="分类">
               <el-input v-model="competitionForm.category" placeholder="世界杯 / 国内联赛" />
@@ -785,36 +692,16 @@ onMounted(async () => {
                 <div class="standing-grid">
                   <div v-for="placement in placements" :key="placement.value" class="standing-row">
                     <el-form-item :label="placement.label">
-                      <el-select
+                      <CountrySelect
                         v-if="selectedCompetition.targetType === 'COUNTRY'"
                         v-model="standingForm[placement.value].countryId"
-                        clearable
-                        filterable
-                        :loading="sourceLoading"
                         placeholder="选择国家队"
-                      >
-                        <el-option
-                          v-for="country in countries"
-                          :key="country.id"
-                          :label="country.name"
-                          :value="country.id"
-                        />
-                      </el-select>
-                      <el-select
+                      />
+                      <ClubSelect
                         v-else
                         v-model="standingForm[placement.value].clubId"
-                        clearable
-                        filterable
-                        :loading="sourceLoading"
                         placeholder="选择俱乐部"
-                      >
-                        <el-option
-                          v-for="club in clubs"
-                          :key="club.id"
-                          :label="club.name"
-                          :value="club.id"
-                        />
-                      </el-select>
+                      />
                     </el-form-item>
                     <el-form-item label="备注">
                       <el-input v-model="standingForm[placement.value].remark" placeholder="可选" />

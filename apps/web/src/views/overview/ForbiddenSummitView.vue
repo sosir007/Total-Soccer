@@ -2,40 +2,34 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import {
-  fetchClubs,
-  fetchCountries,
-  type ClubListItem,
-  type CountryListItem,
-  type NamedRef,
-  type PlayerListItem
-} from '@/services/catalog';
-import { fetchWorldOverview } from '@/services/dashboard';
+import { type NamedRef, type PlayerListItem } from '@/services/catalog';
 import {
   fetchSummitCandidates,
   fetchSummitLineup,
   type SummitGroup,
   type SummitLineup
 } from '@/services/summit';
+import {
+  ClubSelect,
+  ConfederationSelect,
+  CountrySelect,
+  PlayerTypeSelect
+} from '@/components/selects';
 
 const router = useRouter();
 const loading = ref(false);
-const sourceLoading = ref(false);
 const candidatesLoading = ref(false);
 const errorMessage = ref('');
 const lineup = ref<SummitLineup | null>(null);
 const candidates = ref<PlayerListItem[]>([]);
-const countries = ref<CountryListItem[]>([]);
-const clubs = ref<ClubListItem[]>([]);
-const playerTypes = ref<NamedRef[]>([]);
 const candidateTotal = ref(0);
 const filters = reactive({
   confederationId: '',
   countryId: '',
   clubId: '',
   playerTypeId: '',
-  minPa: undefined as number | undefined,
-  maxPa: undefined as number | undefined,
+  minPa: 0,
+  maxPa: 200,
   group: '前锋' as SummitGroup,
   page: 1,
   pageSize: 10
@@ -44,19 +38,6 @@ const filters = reactive({
 const hasStarters = computed(() =>
   (lineup.value?.starters ?? []).some((starter) => starter.player)
 );
-const confederations = computed<NamedRef[]>(() => {
-  const refs = new Map<string, NamedRef>();
-
-  for (const country of countries.value) {
-    if (country.federationRef) {
-      refs.set(country.federationRef.id, country.federationRef);
-    }
-  }
-
-  return [...refs.values()].sort((current, next) =>
-    current.name.localeCompare(next.name, 'zh-Hans-CN')
-  );
-});
 
 const starterRows = computed(() => ({
   forwards: ['LW', 'ST', 'RW'].map(findStarter),
@@ -64,32 +45,6 @@ const starterRows = computed(() => ({
   defenders: ['LB', 'CB1', 'CB2', 'RB'].map(findStarter),
   keeper: ['GK'].map(findStarter)
 }));
-
-async function loadSources() {
-  sourceLoading.value = true;
-
-  try {
-    const [countryResult, clubResult, overview] = await Promise.all([
-      fetchCountries({ page: 1, pageSize: 100, sortBy: 'name', sortOrder: 'asc' }),
-      fetchClubs({ page: 1, pageSize: 100, sortBy: 'name', sortOrder: 'asc' }),
-      fetchWorldOverview()
-    ]);
-    countries.value = countryResult.items;
-    clubs.value = clubResult.items;
-    playerTypes.value = overview.playerTypeDistribution
-      .filter((item) => item.id)
-      .map((item) => ({
-        id: item.id as string,
-        uid: item.uid ?? undefined,
-        code: item.code,
-        name: item.name
-      }));
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '紫禁之巅筛选项加载失败。');
-  } finally {
-    sourceLoading.value = false;
-  }
-}
 
 async function loadLineup() {
   loading.value = true;
@@ -146,8 +101,8 @@ function resetFilters() {
   filters.countryId = '';
   filters.clubId = '';
   filters.playerTypeId = '';
-  filters.minPa = undefined;
-  filters.maxPa = undefined;
+  filters.minPa = 0;
+  filters.maxPa = 200;
   filters.group = '前锋';
   filters.page = 1;
   void loadLineup();
@@ -186,9 +141,8 @@ watch(
   }
 );
 
-onMounted(async () => {
-  await loadSources();
-  await Promise.all([loadLineup(), loadCandidates()]);
+onMounted(() => {
+  void Promise.all([loadLineup(), loadCandidates()]);
 });
 </script>
 
@@ -217,69 +171,36 @@ onMounted(async () => {
 
       <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
         <el-form-item label="足联">
-          <el-select
-            v-model="filters.confederationId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部足联"
-          >
-            <el-option
-              v-for="confederation in confederations"
-              :key="confederation.id"
-              :label="confederation.name"
-              :value="confederation.id"
-            />
-          </el-select>
+          <ConfederationSelect v-model="filters.confederationId" />
         </el-form-item>
         <el-form-item label="国家">
-          <el-select
-            v-model="filters.countryId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部国家"
-          >
-            <el-option
-              v-for="country in countries"
-              :key="country.id"
-              :label="country.name"
-              :value="country.id"
-            />
-          </el-select>
+          <CountrySelect v-model="filters.countryId" />
         </el-form-item>
         <el-form-item label="豪门">
-          <el-select
-            v-model="filters.clubId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部豪门"
-          >
-            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
-          </el-select>
+          <ClubSelect v-model="filters.clubId" placeholder="全部豪门" />
         </el-form-item>
         <el-form-item label="球员类型">
-          <el-select
-            v-model="filters.playerTypeId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部类型"
-          >
-            <el-option
-              v-for="playerType in playerTypes"
-              :key="playerType.id"
-              :label="playerType.name"
-              :value="playerType.id"
-            />
-          </el-select>
+          <PlayerTypeSelect v-model="filters.playerTypeId" />
         </el-form-item>
         <el-form-item label="PA 区间">
           <div class="range-fields">
-            <el-input-number v-model="filters.minPa" :min="0" :max="250" placeholder="最低" />
+            <el-input-number
+              v-model="filters.minPa"
+              :controls="false"
+              :min="0"
+              :max="250"
+              placeholder="最低"
+              @keyup.enter="submitFilters"
+            />
             <span>-</span>
-            <el-input-number v-model="filters.maxPa" :min="0" :max="250" placeholder="最高" />
+            <el-input-number
+              v-model="filters.maxPa"
+              :controls="false"
+              :min="0"
+              :max="250"
+              placeholder="最高"
+              @keyup.enter="submitFilters"
+            />
           </div>
         </el-form-item>
         <div class="filter-actions">

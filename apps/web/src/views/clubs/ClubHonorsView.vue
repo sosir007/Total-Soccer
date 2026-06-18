@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import {
-  fetchClubHonors,
-  fetchClubs,
-  type ClubListItem,
-  type HonorRecord
-} from '@/services/catalog';
-import {
-  fetchCompetitions,
-  type CompetitionListItem,
-  type CompetitionStandingPlacement
-} from '@/services/competitions';
+import { fetchClubHonors, type HonorRecord } from '@/services/catalog';
+import { type CompetitionStandingPlacement } from '@/services/competitions';
+import { ClubSelect, CompetitionSelect } from '@/components/selects';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
@@ -22,11 +14,8 @@ import {
 } from '@/utils/honor';
 
 const loading = ref(false);
-const sourceLoading = ref(false);
 const errorMessage = ref('');
 const records = ref<HonorRecord[]>([]);
-const clubs = ref<ClubListItem[]>([]);
-const competitions = ref<CompetitionListItem[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
@@ -39,23 +28,6 @@ const filters = reactive({
 });
 
 const hasRows = computed(() => records.value.length > 0);
-
-async function loadSources() {
-  sourceLoading.value = true;
-
-  try {
-    const [clubResult, competitionResult] = await Promise.all([
-      fetchClubs({ page: 1, pageSize: 100, sortBy: 'name', sortOrder: 'asc' }),
-      fetchCompetitions({ page: 1, pageSize: 100, targetType: 'CLUB' })
-    ]);
-    clubs.value = clubResult.items;
-    competitions.value = competitionResult.items;
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '豪门荣誉筛选项加载失败。');
-  } finally {
-    sourceLoading.value = false;
-  }
-}
 
 async function loadHonors() {
   loading.value = true;
@@ -107,9 +79,8 @@ watch(
   }
 );
 
-onMounted(async () => {
-  await loadSources();
-  await loadHonors();
+onMounted(() => {
+  void loadHonors();
 });
 </script>
 
@@ -134,31 +105,10 @@ onMounted(async () => {
           />
         </el-form-item>
         <el-form-item label="赛事">
-          <el-select
-            v-model="filters.competitionId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部赛事"
-          >
-            <el-option
-              v-for="competition in competitions"
-              :key="competition.id"
-              :label="competition.name"
-              :value="competition.id"
-            />
-          </el-select>
+          <CompetitionSelect v-model="filters.competitionId" target-type="CLUB" />
         </el-form-item>
         <el-form-item label="俱乐部">
-          <el-select
-            v-model="filters.clubId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部俱乐部"
-          >
-            <el-option v-for="club in clubs" :key="club.id" :label="club.name" :value="club.id" />
-          </el-select>
+          <ClubSelect v-model="filters.clubId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>

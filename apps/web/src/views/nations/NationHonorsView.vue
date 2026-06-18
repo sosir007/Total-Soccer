@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import {
-  fetchCountries,
-  fetchCountryHonors,
-  type CountryListItem,
-  type HonorRecord
-} from '@/services/catalog';
-import {
-  fetchCompetitions,
-  type CompetitionListItem,
-  type CompetitionStandingPlacement
-} from '@/services/competitions';
+import { fetchCountryHonors, type HonorRecord } from '@/services/catalog';
+import { type CompetitionStandingPlacement } from '@/services/competitions';
+import { CompetitionSelect, CountrySelect } from '@/components/selects';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
@@ -22,11 +14,8 @@ import {
 } from '@/utils/honor';
 
 const loading = ref(false);
-const sourceLoading = ref(false);
 const errorMessage = ref('');
 const records = ref<HonorRecord[]>([]);
-const countries = ref<CountryListItem[]>([]);
-const competitions = ref<CompetitionListItem[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
@@ -39,23 +28,6 @@ const filters = reactive({
 });
 
 const hasRows = computed(() => records.value.length > 0);
-
-async function loadSources() {
-  sourceLoading.value = true;
-
-  try {
-    const [countryResult, competitionResult] = await Promise.all([
-      fetchCountries({ page: 1, pageSize: 100, sortBy: 'name', sortOrder: 'asc' }),
-      fetchCompetitions({ page: 1, pageSize: 100, targetType: 'COUNTRY' })
-    ]);
-    countries.value = countryResult.items;
-    competitions.value = competitionResult.items;
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '国家荣誉筛选项加载失败。');
-  } finally {
-    sourceLoading.value = false;
-  }
-}
 
 async function loadHonors() {
   loading.value = true;
@@ -107,9 +79,8 @@ watch(
   }
 );
 
-onMounted(async () => {
-  await loadSources();
-  await loadHonors();
+onMounted(() => {
+  void loadHonors();
 });
 </script>
 
@@ -134,36 +105,10 @@ onMounted(async () => {
           />
         </el-form-item>
         <el-form-item label="赛事">
-          <el-select
-            v-model="filters.competitionId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部赛事"
-          >
-            <el-option
-              v-for="competition in competitions"
-              :key="competition.id"
-              :label="competition.name"
-              :value="competition.id"
-            />
-          </el-select>
+          <CompetitionSelect v-model="filters.competitionId" target-type="COUNTRY" />
         </el-form-item>
         <el-form-item label="国家">
-          <el-select
-            v-model="filters.countryId"
-            :loading="sourceLoading"
-            clearable
-            filterable
-            placeholder="全部国家"
-          >
-            <el-option
-              v-for="country in countries"
-              :key="country.id"
-              :label="country.name"
-              :value="country.id"
-            />
-          </el-select>
+          <CountrySelect v-model="filters.countryId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>

@@ -9,6 +9,7 @@ import {
   type BaseConfigPayload,
   type BaseConfigType
 } from '@/services/base-config';
+import { useOptionStore } from '@/stores/options';
 
 interface ConfigTab {
   type: BaseConfigType;
@@ -78,6 +79,7 @@ const configTabs: ConfigTab[] = [
 ];
 
 const activeType = ref<BaseConfigType>('confederations');
+const optionStore = useOptionStore();
 const loading = ref(false);
 const submitting = ref(false);
 const dialogVisible = ref(false);
@@ -220,6 +222,7 @@ async function saveConfig() {
     }
 
     dialogVisible.value = false;
+    optionStore.invalidate(activeType.value);
     await loadConfigs();
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '保存基础配置失败。');
@@ -442,10 +445,6 @@ onMounted(() => {
 
 .base-config-filter {
   grid-template-columns: minmax(280px, 560px) auto;
-}
-
-.base-config-filter :deep(.el-form-item) {
-  margin-bottom: 0;
 }
 
 .base-config-table {

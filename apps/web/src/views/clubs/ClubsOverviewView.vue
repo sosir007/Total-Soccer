@@ -2,19 +2,13 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import {
-  fetchClubs,
-  fetchCountries,
-  type ClubListItem,
-  type CountryListItem,
-  type NamedRef
-} from '@/services/catalog';
+import { fetchClubs, type ClubListItem, type NamedRef } from '@/services/catalog';
+import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const clubs = ref<ClubListItem[]>([]);
-const countries = ref<CountryListItem[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
@@ -24,30 +18,7 @@ const filters = reactive({
   countryId: ''
 });
 
-const confederations = computed<NamedRef[]>(() => {
-  const refs = new Map<string, NamedRef>();
-
-  for (const country of countries.value) {
-    if (country.federationRef) {
-      refs.set(country.federationRef.id, country.federationRef);
-    }
-  }
-
-  return [...refs.values()].sort((current, next) =>
-    current.name.localeCompare(next.name, 'zh-Hans-CN')
-  );
-});
 const hasRows = computed(() => clubs.value.length > 0);
-
-async function loadFilterOptions() {
-  const result = await fetchCountries({
-    page: 1,
-    pageSize: 200,
-    sortBy: 'name',
-    sortOrder: 'asc'
-  });
-  countries.value = result.items;
-}
 
 async function loadClubs() {
   loading.value = true;
@@ -117,9 +88,8 @@ watch(
   }
 );
 
-onMounted(async () => {
-  await loadFilterOptions();
-  await loadClubs();
+onMounted(() => {
+  void loadClubs();
 });
 </script>
 
@@ -144,24 +114,10 @@ onMounted(async () => {
           />
         </el-form-item>
         <el-form-item label="足联">
-          <el-select v-model="filters.confederationId" clearable placeholder="全部足联">
-            <el-option
-              v-for="confederation in confederations"
-              :key="confederation.id"
-              :label="confederation.name"
-              :value="confederation.id"
-            />
-          </el-select>
+          <ConfederationSelect v-model="filters.confederationId" />
         </el-form-item>
         <el-form-item label="国家">
-          <el-select v-model="filters.countryId" clearable filterable placeholder="全部国家">
-            <el-option
-              v-for="country in countries"
-              :key="country.id"
-              :label="country.name"
-              :value="country.id"
-            />
-          </el-select>
+          <CountrySelect v-model="filters.countryId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>

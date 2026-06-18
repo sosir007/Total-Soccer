@@ -2,53 +2,32 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { fetchPlayers, type NamedRef, type PlayerListItem } from '@/services/catalog';
 import {
-  fetchCountries,
-  fetchPlayers,
-  type CountryListItem,
-  type NamedRef,
-  type PlayerListItem
-} from '@/services/catalog';
+  ClubSelect,
+  ConfederationSelect,
+  CountrySelect,
+  PositionSelect
+} from '@/components/selects';
 
 const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const players = ref<PlayerListItem[]>([]);
 const total = ref(0);
-const countries = ref<CountryListItem[]>([]);
 const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
   confederationId: '',
+  countryId: '',
+  clubId: '',
   position: '',
-  minPa: undefined as number | undefined,
-  maxPa: undefined as number | undefined
-});
-
-const confederations = computed<NamedRef[]>(() => {
-  const refs = new Map<string, NamedRef>();
-
-  for (const country of countries.value) {
-    if (country.federationRef) {
-      refs.set(country.federationRef.id, country.federationRef);
-    }
-  }
-
-  return [...refs.values()].sort((current, next) =>
-    current.name.localeCompare(next.name, 'zh-Hans-CN')
-  );
+  minPa: 0,
+  maxPa: 200
 });
 
 const hasRows = computed(() => players.value.length > 0);
-
-async function loadFilterOptions() {
-  const result = await fetchCountries({
-    page: 1,
-    pageSize: 200
-  });
-  countries.value = result.items;
-}
 
 async function loadPlayers() {
   loading.value = true;
@@ -60,6 +39,8 @@ async function loadPlayers() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       confederationId: filters.confederationId || undefined,
+      countryId: filters.countryId || undefined,
+      clubId: filters.clubId || undefined,
       position: filters.position || undefined,
       minPa: filters.minPa,
       maxPa: filters.maxPa,
@@ -80,9 +61,11 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.confederationId = '';
+  filters.countryId = '';
+  filters.clubId = '';
   filters.position = '';
-  filters.minPa = undefined;
-  filters.maxPa = undefined;
+  filters.minPa = 0;
+  filters.maxPa = 200;
   void loadPlayers();
 }
 
@@ -111,9 +94,8 @@ watch(
   }
 );
 
-onMounted(async () => {
-  await loadFilterOptions();
-  await loadPlayers();
+onMounted(() => {
+  void loadPlayers();
 });
 </script>
 
@@ -138,28 +120,36 @@ onMounted(async () => {
           />
         </el-form-item>
         <el-form-item label="足联">
-          <el-select v-model="filters.confederationId" clearable placeholder="全部足联">
-            <el-option
-              v-for="confederation in confederations"
-              :key="confederation.id"
-              :label="confederation.name"
-              :value="confederation.id"
-            />
-          </el-select>
+          <ConfederationSelect v-model="filters.confederationId" />
+        </el-form-item>
+        <el-form-item label="国家">
+          <CountrySelect v-model="filters.countryId" />
+        </el-form-item>
+        <el-form-item label="俱乐部">
+          <ClubSelect v-model="filters.clubId" />
         </el-form-item>
         <el-form-item label="位置">
-          <el-input
-            v-model="filters.position"
-            clearable
-            placeholder="ST / MC / GK"
-            @keyup.enter="submitFilters"
-          />
+          <PositionSelect v-model="filters.position" placeholder="全部位置" />
         </el-form-item>
         <el-form-item label="PA 区间">
           <div class="range-fields">
-            <el-input-number v-model="filters.minPa" :min="0" :max="250" placeholder="最低" />
+            <el-input-number
+              v-model="filters.minPa"
+              :controls="false"
+              :min="0"
+              :max="250"
+              placeholder="最低"
+              @keyup.enter="submitFilters"
+            />
             <span>-</span>
-            <el-input-number v-model="filters.maxPa" :min="0" :max="250" placeholder="最高" />
+            <el-input-number
+              v-model="filters.maxPa"
+              :controls="false"
+              :min="0"
+              :max="250"
+              placeholder="最高"
+              @keyup.enter="submitFilters"
+            />
           </div>
         </el-form-item>
         <div class="filter-actions">
