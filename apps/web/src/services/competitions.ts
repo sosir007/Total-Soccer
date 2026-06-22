@@ -29,6 +29,7 @@ export interface CompetitionListItem {
   scopeType: CompetitionScopeType;
   category?: string | null;
   level?: string | null;
+  description?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
   enabled: boolean;
@@ -72,6 +73,7 @@ export interface CreateCompetitionPayload {
   scopeType: CompetitionScopeType;
   category?: string;
   level?: string;
+  description?: string;
   confederationId?: string;
   countryId?: string;
   enabled?: boolean;
@@ -112,6 +114,15 @@ export async function createCompetition(payload: CreateCompetitionPayload) {
   return response.data.data;
 }
 
+export async function updateCompetition(id: string, payload: CreateCompetitionPayload) {
+  const response = await apiClient.put<ApiResponse<CompetitionListItem>>(
+    `/competitions/${id}`,
+    payload
+  );
+
+  return response.data.data;
+}
+
 export async function fetchCompetitionDetail(id: string) {
   const response = await apiClient.get<ApiResponse<CompetitionDetail>>(`/competitions/${id}`);
 
@@ -124,6 +135,18 @@ export async function createCompetitionEdition(
 ) {
   const response = await apiClient.post<ApiResponse<CompetitionEdition>>(
     `/competitions/${competitionId}/editions`,
+    payload
+  );
+
+  return response.data.data;
+}
+
+export async function updateCompetitionEdition(
+  id: string,
+  payload: CreateCompetitionEditionPayload
+) {
+  const response = await apiClient.put<ApiResponse<CompetitionEdition>>(
+    `/competition-editions/${id}`,
     payload
   );
 

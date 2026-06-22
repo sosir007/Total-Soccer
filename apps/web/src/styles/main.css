@@ -938,6 +938,10 @@ h1 {
   justify-content: flex-end;
 }
 
+.form-wide {
+  grid-column: 1 / -1;
+}
+
 .standing-editor {
   display: grid;
   gap: 14px;

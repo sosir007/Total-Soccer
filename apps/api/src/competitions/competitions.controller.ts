@@ -6,6 +6,7 @@ import type {
   CreateCompetitionBody,
   CreateCompetitionEditionBody,
   SaveCompetitionStandingsBody,
+  UpdateCompetitionBody,
   UpdateCompetitionEditionBody
 } from './competitions.types.js';
 
@@ -30,6 +31,12 @@ export class CompetitionsController {
   @ApiOperation({ summary: '获取赛事详情' })
   findOne(@Param('id') id: string) {
     return this.competitionsService.findOne(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: '编辑赛事' })
+  update(@Param('id') id: string, @Body() body: UpdateCompetitionBody) {
+    return this.competitionsService.update(id, body);
   }
 
   @Post(':id/editions')

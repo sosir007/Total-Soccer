@@ -23,11 +23,14 @@ export interface CreateCompetitionBody {
   scopeType?: CompetitionScopeType;
   category?: string;
   level?: string;
+  description?: string;
   confederationId?: string;
   countryId?: string;
   enabled?: boolean;
   sortOrder?: number;
 }
+
+export type UpdateCompetitionBody = CreateCompetitionBody;
 
 export interface CreateCompetitionEditionBody {
   name?: string;

@@ -12,6 +12,7 @@ import type {
   CreateCompetitionBody,
   CreateCompetitionEditionBody,
   SaveCompetitionStandingsBody,
+  UpdateCompetitionBody,
   UpdateCompetitionEditionBody
 } from './competitions.types.js';
 
@@ -83,7 +84,8 @@ export class CompetitionsService {
               { code: { contains: keyword, mode: 'insensitive' } },
               { name: { contains: keyword, mode: 'insensitive' } },
               { category: { contains: keyword, mode: 'insensitive' } },
-              { level: { contains: keyword, mode: 'insensitive' } }
+              { level: { contains: keyword, mode: 'insensitive' } },
+              { description: { contains: keyword, mode: 'insensitive' } }
             ]
           }
         : {}),
@@ -129,6 +131,17 @@ export class CompetitionsService {
     const data = await this.buildCompetitionData(body);
 
     return this.prisma.competition.create({
+      data,
+      include: COMPETITION_INCLUDE
+    });
+  }
+
+  async update(id: string, body: UpdateCompetitionBody) {
+    await this.assertCompetitionExists(id);
+    const data = await this.buildCompetitionData(body);
+
+    return this.prisma.competition.update({
+      where: { id },
       data,
       include: COMPETITION_INCLUDE
     });
@@ -216,6 +229,7 @@ export class CompetitionsService {
       scopeType,
       category: this.toNullableString(body.category),
       level: this.toNullableString(body.level),
+      description: this.toNullableString(body.description),
       externalUrl: this.toNullableString(body.externalUrl),
       confederationId:
         scopeType === CompetitionScopeType.CONFEDERATION ? body.confederationId : null,

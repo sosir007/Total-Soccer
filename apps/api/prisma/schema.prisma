@@ -199,16 +199,27 @@ model Club {
 }
 
 model HonorRule {
-  id              String   @id @default(cuid())
-  code            String   @unique
+  id              String                       @id @default(cuid())
+  code            String                       @unique
   name            String
-  category        String
+  targetType      CompetitionTargetType        @default(COUNTRY)
+  category        String?
+  placement       CompetitionStandingPlacement @default(CHAMPION)
+  baseScore       Float                        @default(0)
   championScore   Float?
   runnerUpScore   Float?
   thirdPlaceScore Float?
-  coefficient     Float    @default(1)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  coefficient     Float                        @default(1)
+  enabled         Boolean                      @default(true)
+  sortOrder       Int                          @default(0)
+  remark          String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  @@index([targetType])
+  @@index([category])
+  @@index([placement])
+  @@index([enabled])
 }
 
 model PlayerHonor {
@@ -285,6 +296,7 @@ model Competition {
   scopeType       CompetitionScopeType  @default(GLOBAL)
   category        String?
   level           String?
+  description     String?
   confederationId String?
   countryId       String?
   enabled         Boolean               @default(true)
