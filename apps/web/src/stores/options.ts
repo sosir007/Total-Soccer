@@ -34,7 +34,8 @@ type OptionType =
   | 'playerTypes'
   | 'hairColors'
   | 'preferredFeet'
-  | 'ethnicities';
+  | 'ethnicities'
+  | 'cities';
 
 const BASE_CONFIG_TYPE_MAP = {
   confederations: 'confederations',
@@ -42,7 +43,8 @@ const BASE_CONFIG_TYPE_MAP = {
   playerTypes: 'player-types',
   hairColors: 'hair-colors',
   preferredFeet: 'preferred-feet',
-  ethnicities: 'ethnicities'
+  ethnicities: 'ethnicities',
+  cities: 'cities'
 } satisfies Partial<Record<OptionType, BaseConfigType>>;
 
 export const useOptionStore = defineStore('options', () => {
@@ -55,6 +57,7 @@ export const useOptionStore = defineStore('options', () => {
   const hairColors = ref<BaseConfigItem[]>([]);
   const preferredFeet = ref<BaseConfigItem[]>([]);
   const ethnicities = ref<BaseConfigItem[]>([]);
+  const cities = ref<BaseConfigItem[]>([]);
   const loading = ref<Record<OptionType, boolean>>({
     countries: false,
     clubs: false,
@@ -64,7 +67,8 @@ export const useOptionStore = defineStore('options', () => {
     playerTypes: false,
     hairColors: false,
     preferredFeet: false,
-    ethnicities: false
+    ethnicities: false,
+    cities: false
   });
   const loaded = ref<Record<OptionType, boolean>>({
     countries: false,
@@ -75,7 +79,8 @@ export const useOptionStore = defineStore('options', () => {
     playerTypes: false,
     hairColors: false,
     preferredFeet: false,
-    ethnicities: false
+    ethnicities: false,
+    cities: false
   });
   const pending: Partial<Record<OptionType, Promise<void>>> = {};
 
@@ -100,6 +105,7 @@ export const useOptionStore = defineStore('options', () => {
   const ethnicityOptions = computed(() =>
     ethnicities.value.map((item) => baseConfigToOption(item))
   );
+  const cityOptions = computed(() => cities.value.map((item) => cityToOption(item)));
 
   async function ensureCountries() {
     await ensure('countries', async () => {
@@ -113,6 +119,7 @@ export const useOptionStore = defineStore('options', () => {
   async function ensureClubs() {
     await ensure('clubs', async () => {
       clubs.value = await fetchAll(fetchClubs, {
+        includeHidden: true,
         sortBy: 'name',
         sortOrder: 'asc' as const
       });
@@ -149,6 +156,10 @@ export const useOptionStore = defineStore('options', () => {
     await ensureBaseConfig('ethnicities', ethnicities);
   }
 
+  async function ensureCities() {
+    await ensureBaseConfig('cities', cities);
+  }
+
   function invalidate(type: OptionType | BaseConfigType) {
     const optionType = normalizeType(type);
     loaded.value[optionType] = false;
@@ -171,7 +182,8 @@ export const useOptionStore = defineStore('options', () => {
       playerTypes: ensurePlayerTypes,
       hairColors: ensureHairColors,
       preferredFeet: ensurePreferredFeet,
-      ethnicities: ensureEthnicities
+      ethnicities: ensureEthnicities,
+      cities: ensureCities
     };
 
     await ensureMap[type]();
@@ -219,6 +231,7 @@ export const useOptionStore = defineStore('options', () => {
     hairColors,
     preferredFeet,
     ethnicities,
+    cities,
     loading,
     countryOptions,
     clubOptions,
@@ -229,6 +242,7 @@ export const useOptionStore = defineStore('options', () => {
     hairColorOptions,
     preferredFootOptions,
     ethnicityOptions,
+    cityOptions,
     ensureCountries,
     ensureClubs,
     ensureCompetitions,
@@ -238,6 +252,7 @@ export const useOptionStore = defineStore('options', () => {
     ensureHairColors,
     ensurePreferredFeet,
     ensureEthnicities,
+    ensureCities,
     invalidate,
     refresh
   };
@@ -317,6 +332,20 @@ function baseConfigToOption(item: BaseConfigItem, value = item.id): SelectOption
     description: item.description,
     group: item.group,
     meta: [formatUid(item.uid), item.code, item.group, item.description].filter(Boolean) as string[]
+  };
+}
+
+function cityToOption(item: BaseConfigItem): SelectOption {
+  const countryName = item.country?.name;
+
+  return {
+    id: item.id,
+    value: item.id,
+    label: item.name || item.uid || item.id,
+    uid: item.uid,
+    description: countryName,
+    meta: [formatUid(item.uid), countryName].filter(Boolean) as string[],
+    chipLabel: countryName
   };
 }
 
@@ -483,7 +512,8 @@ function normalizeType(type: OptionType | BaseConfigType): OptionType {
     hairColors: 'hairColors',
     'preferred-feet': 'preferredFeet',
     preferredFeet: 'preferredFeet',
-    ethnicities: 'ethnicities'
+    ethnicities: 'ethnicities',
+    cities: 'cities'
   };
 
   return map[type];

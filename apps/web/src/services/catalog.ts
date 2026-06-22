@@ -54,6 +54,8 @@ export interface PlayerListItem {
   uid: string;
   chineseName: string;
   englishName?: string | null;
+  birthDate?: number | string | null;
+  deathDate?: number | string | null;
   externalUrl?: string | null;
   primaryRole?: string | null;
   positions?: string | null;
@@ -62,17 +64,47 @@ export interface PlayerListItem {
   age?: number | null;
   height?: number | null;
   weight?: number | null;
+  shirtNumber?: string | null;
+  skinTone?: string | null;
+  hairColor?: string | null;
+  ethnicity?: string | null;
+  foot?: string | null;
+  playerType?: string | null;
+  confederation?: string | null;
+  countryUid?: string | null;
+  nationality?: string | null;
+  representedCountry?: string | null;
+  birthCityUid?: string | null;
+  birthCity?: string | null;
+  birthCountryId?: string | null;
+  birthCityId?: string | null;
+  clubUid?: string | null;
+  primaryClub?: string | null;
+  initialClub?: string | null;
+  clubs?: string | null;
+  marketValue?: number | null;
   retired?: boolean | null;
   deceased?: boolean | null;
+  databaseSource?: string | null;
+  staffRoles?: string | null;
+  achievement?: string | null;
+  remark?: string | null;
   country?: NamedRef | null;
+  birthCountry?: NamedRef | null;
+  birthCityRef?: (NamedRef & { country?: NamedRef | null }) | null;
+  nationalities?: Array<{
+    country: NamedRef;
+  }>;
   club?: (NamedRef & { exists: boolean }) | null;
   confederationRef?: NamedRef | null;
   playerTypeRef?: NamedRef | null;
+  ethnicityRef?: NamedRef | null;
+  preferredFootRef?: NamedRef | null;
 }
 
 export interface PlayerDetail extends PlayerListItem {
-  birthDate?: string | null;
-  deathDate?: string | null;
+  birthDate?: number | string | null;
+  deathDate?: number | string | null;
   shirtNumber?: string | null;
   skinTone?: string | null;
   hairColor?: string | null;
@@ -91,9 +123,7 @@ export interface PlayerDetail extends PlayerListItem {
   staffRoles?: string | null;
   achievement?: string | null;
   remark?: string | null;
-  ethnicityRef?: NamedRef | null;
   hairColorRef?: NamedRef | null;
-  preferredFootRef?: NamedRef | null;
 }
 
 export interface CountryListItem {
@@ -101,6 +131,7 @@ export interface CountryListItem {
   uid: string;
   name: string;
   externalUrl?: string | null;
+  remark?: string | null;
   federation?: string | null;
   playerCount?: number | null;
   totalPa?: number | null;
@@ -129,6 +160,7 @@ export interface ClubListItem {
   uid: string;
   name: string;
   externalUrl?: string | null;
+  remark?: string | null;
   exists: boolean;
   country?: string | null;
   federation?: string | null;
@@ -192,6 +224,7 @@ export interface ClubListParams {
   keyword?: string;
   confederationId?: string;
   countryId?: string;
+  includeHidden?: boolean;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -206,6 +239,65 @@ export interface ClubHonorListParams {
   clubId?: string;
 }
 
+export interface CountryPayload {
+  uid: string;
+  name: string;
+  confederationId?: string;
+  externalUrl?: string;
+  remark?: string;
+}
+
+export interface ClubPayload {
+  uid: string;
+  name: string;
+  countryId?: string;
+  confederationId?: string;
+  exists: boolean;
+  externalUrl?: string;
+  remark?: string;
+}
+
+export interface PlayerPayload {
+  uid: string;
+  chineseName: string;
+  englishName?: string;
+  birthDate?: string | number;
+  deathDate?: string | number;
+  countryId?: string;
+  nationalityIds?: string[];
+  birthCountryId?: string;
+  birthCityId?: string;
+  clubId?: string;
+  confederationId?: string;
+  primaryRole?: string;
+  position?: string;
+  positions?: string;
+  clubHistoryIds?: string[];
+  playerTypeId?: string;
+  ethnicityId?: string;
+  hairColorId?: string;
+  preferredFootId?: string;
+  foot?: string;
+  pa?: number | null;
+  ca?: number | null;
+  height?: number | null;
+  weight?: number | null;
+  shirtNumber?: string;
+  skinTone?: string;
+  birthCityUid?: string;
+  birthCity?: string;
+  initialClub?: string;
+  clubs?: string;
+  marketValue?: number | null;
+  retired?: boolean | null;
+  deceased?: boolean | null;
+  databaseSource?: string;
+  staffRoles?: string;
+  achievement?: string;
+  externalUrl?: string;
+  remark?: string;
+}
+
 export async function fetchPlayers(params: PlayerListParams) {
   const response = await apiClient.get<ApiResponse<PaginationResult<PlayerListItem>>>('/players', {
     params
@@ -216,6 +308,18 @@ export async function fetchPlayers(params: PlayerListParams) {
 
 export async function fetchPlayerDetail(id: string) {
   const response = await apiClient.get<ApiResponse<PlayerDetail>>(`/players/${id}`);
+
+  return response.data.data;
+}
+
+export async function createPlayer(payload: PlayerPayload) {
+  const response = await apiClient.post<ApiResponse<PlayerDetail>>('/players', payload);
+
+  return response.data.data;
+}
+
+export async function updatePlayer(id: string, payload: PlayerPayload) {
+  const response = await apiClient.put<ApiResponse<PlayerDetail>>(`/players/${id}`, payload);
 
   return response.data.data;
 }
@@ -233,6 +337,18 @@ export async function fetchCountries(params: CountryListParams) {
 
 export async function fetchCountryDetail(id: string) {
   const response = await apiClient.get<ApiResponse<CountryDetail>>(`/countries/${id}`);
+
+  return response.data.data;
+}
+
+export async function createCountry(payload: CountryPayload) {
+  const response = await apiClient.post<ApiResponse<CountryDetail>>('/countries', payload);
+
+  return response.data.data;
+}
+
+export async function updateCountry(id: string, payload: CountryPayload) {
+  const response = await apiClient.put<ApiResponse<CountryDetail>>(`/countries/${id}`, payload);
 
   return response.data.data;
 }
@@ -258,6 +374,18 @@ export async function fetchClubs(params: ClubListParams) {
 
 export async function fetchClubDetail(id: string) {
   const response = await apiClient.get<ApiResponse<ClubDetail>>(`/clubs/${id}`);
+
+  return response.data.data;
+}
+
+export async function createClub(payload: ClubPayload) {
+  const response = await apiClient.post<ApiResponse<ClubDetail>>('/clubs', payload);
+
+  return response.data.data;
+}
+
+export async function updateClub(id: string, payload: ClubPayload) {
+  const response = await apiClient.put<ApiResponse<ClubDetail>>(`/clubs/${id}`, payload);
 
   return response.data.data;
 }

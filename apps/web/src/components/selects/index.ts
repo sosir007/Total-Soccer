@@ -1,4 +1,5 @@
 export { default as ClubSelect } from './ClubSelect.vue';
+export { default as CitySelect } from './CitySelect.vue';
 export { default as CompetitionSelect } from './CompetitionSelect.vue';
 export { default as ConfederationSelect } from './ConfederationSelect.vue';
 export { default as CountrySelect } from './CountrySelect.vue';

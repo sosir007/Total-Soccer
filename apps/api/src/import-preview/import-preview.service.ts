@@ -1338,7 +1338,11 @@ export class ImportPreviewService {
     return null;
   }
 
-  private toNullableDate(value: unknown): Date | null {
+  private toNullableDate(value: unknown): number | null {
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value.getTime();
+    }
+
     const text = this.toCellString(value);
 
     if (!text || text === '-') {
@@ -1347,7 +1351,7 @@ export class ImportPreviewService {
 
     if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(text)) {
       const date = new Date(text.replace(/\//g, '-'));
-      return Number.isNaN(date.getTime()) ? null : date;
+      return Number.isNaN(date.getTime()) ? null : date.getTime();
     }
 
     const numberValue = Number(text);
@@ -1357,18 +1361,18 @@ export class ImportPreviewService {
 
     if (numberValue > 10_000_000_000) {
       const date = new Date(numberValue);
-      return Number.isNaN(date.getTime()) ? null : date;
+      return Number.isNaN(date.getTime()) ? null : date.getTime();
     }
 
     if (numberValue > 10_000_000) {
       const date = new Date(numberValue * 1000);
-      return Number.isNaN(date.getTime()) ? null : date;
+      return Number.isNaN(date.getTime()) ? null : date.getTime();
     }
 
     if (numberValue > 20_000) {
       const excelEpoch = Date.UTC(1899, 11, 30);
       const date = new Date(excelEpoch + numberValue * 24 * 60 * 60 * 1000);
-      return Number.isNaN(date.getTime()) ? null : date;
+      return Number.isNaN(date.getTime()) ? null : date.getTime();
     }
 
     return null;
@@ -1438,6 +1442,11 @@ export class ImportPreviewService {
 
     if (valueRecord.class === 'formula') {
       return valueRecord.value ?? '';
+    }
+
+    if (cell.t === 2 && typeof value === 'number') {
+      const date = new Date(Date.UTC(1899, 11, 30) + value * 1000);
+      return Number.isNaN(date.getTime()) ? value : date.getTime();
     }
 
     return value;

@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClubsService } from './clubs.service.js';
-import type { ClubHonorListQuery, ClubListQuery } from './clubs.types.js';
+import type { ClubHonorListQuery, ClubListQuery, ClubPayload } from './clubs.types.js';
 
 @ApiTags('clubs')
 @Controller('clubs')
@@ -14,6 +14,12 @@ export class ClubsController {
     return this.clubsService.findAll(query);
   }
 
+  @Post()
+  @ApiOperation({ summary: '新增俱乐部' })
+  create(@Body() body: ClubPayload) {
+    return this.clubsService.create(body);
+  }
+
   @Get('honors')
   @ApiOperation({ summary: '获取俱乐部荣誉列表' })
   findHonors(@Query() query: ClubHonorListQuery) {
@@ -24,5 +30,11 @@ export class ClubsController {
   @ApiOperation({ summary: '获取俱乐部详情' })
   findOne(@Param('id') id: string) {
     return this.clubsService.findOne(id);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: '编辑俱乐部' })
+  update(@Param('id') id: string, @Body() body: ClubPayload) {
+    return this.clubsService.update(id, body);
   }
 }

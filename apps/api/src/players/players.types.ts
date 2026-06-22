@@ -12,3 +12,44 @@ export interface PlayerListQuery {
   sortBy?: string;
   sortOrder?: string;
 }
+
+export interface PlayerPayload {
+  uid?: string;
+  chineseName?: string;
+  englishName?: string;
+  birthDate?: string;
+  deathDate?: string;
+  countryId?: string;
+  nationalityIds?: string[];
+  birthCountryId?: string;
+  birthCityId?: string;
+  clubId?: string;
+  confederationId?: string;
+  primaryRole?: string;
+  position?: string;
+  positions?: string;
+  clubHistoryIds?: string[];
+  playerTypeId?: string;
+  ethnicityId?: string;
+  hairColorId?: string;
+  preferredFootId?: string;
+  foot?: string;
+  pa?: number | string | null;
+  ca?: number | string | null;
+  height?: number | string | null;
+  weight?: number | string | null;
+  shirtNumber?: string;
+  skinTone?: string;
+  birthCityUid?: string;
+  birthCity?: string;
+  initialClub?: string;
+  clubs?: string;
+  marketValue?: number | string | null;
+  retired?: boolean | string | null;
+  deceased?: boolean | string | null;
+  databaseSource?: string;
+  staffRoles?: string;
+  achievement?: string;
+  externalUrl?: string;
+  remark?: string;
+}

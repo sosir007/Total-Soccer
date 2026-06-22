@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -11,7 +12,8 @@ const SUPPORTED_TYPES = new Set<BaseConfigType>([
   'potential-ranges',
   'ethnicities',
   'hair-colors',
-  'preferred-feet'
+  'preferred-feet',
+  'cities'
 ]);
 
 @Injectable()
@@ -139,6 +141,38 @@ export class BaseConfigService {
 
         return { items, page: pagination.page, pageSize: pagination.pageSize, total };
       }
+      case 'cities': {
+        const where: Prisma.CityWhereInput = keyword
+          ? {
+              OR: [
+                { uid: { contains: keyword, mode: 'insensitive' } },
+                { name: { contains: keyword, mode: 'insensitive' } },
+                { description: { contains: keyword, mode: 'insensitive' } },
+                { country: { name: { contains: keyword, mode: 'insensitive' } } }
+              ]
+            }
+          : {};
+        const [items, total] = await this.prisma.$transaction([
+          this.prisma.city.findMany({
+            where,
+            include: {
+              country: {
+                select: {
+                  id: true,
+                  uid: true,
+                  name: true
+                }
+              }
+            },
+            orderBy: [{ sortOrder: 'asc' }, { uid: 'asc' }, { name: 'asc' }],
+            skip: pagination.skip,
+            take: pagination.take
+          }),
+          this.prisma.city.count({ where })
+        ]);
+
+        return { items, page: pagination.page, pageSize: pagination.pageSize, total };
+      }
     }
   }
 
@@ -174,6 +208,19 @@ export class BaseConfigService {
         case 'preferred-feet':
           return await this.prisma.preferredFoot.create({
             data: this.buildCommonData(body)
+          });
+        case 'cities':
+          return await this.prisma.city.create({
+            data: await this.buildCityCreateData(body),
+            include: {
+              country: {
+                select: {
+                  id: true,
+                  uid: true,
+                  name: true
+                }
+              }
+            }
           });
       }
     } catch (error) {
@@ -220,6 +267,20 @@ export class BaseConfigService {
           return await this.prisma.preferredFoot.update({
             where: { id },
             data: this.buildCommonData(body)
+          });
+        case 'cities':
+          return await this.prisma.city.update({
+            where: { id },
+            data: await this.buildCityUpdateData(body),
+            include: {
+              country: {
+                select: {
+                  id: true,
+                  uid: true,
+                  name: true
+                }
+              }
+            }
           });
       }
     } catch (error) {
@@ -290,6 +351,64 @@ export class BaseConfigService {
       description: this.cleanOptionalString(body.description),
       sortOrder: this.toSortOrder(body.sortOrder)
     };
+  }
+
+  private async buildCityCreateData(
+    body: BaseConfigBody
+  ): Promise<Prisma.CityUncheckedCreateInput> {
+    const uid = this.requireString(body.uid, '城市 UID 不能为空，未知可填 -。');
+    const name = this.requireString(body.name, '城市名称不能为空。');
+    await this.assertCountry(body.countryId);
+
+    return {
+      importKey: this.createCityImportKey(uid, name, body.countryId),
+      uid,
+      name,
+      countryId: this.cleanOptionalString(body.countryId),
+      description: this.cleanOptionalString(body.description),
+      sortOrder: this.toSortOrder(body.sortOrder)
+    };
+  }
+
+  private async buildCityUpdateData(
+    body: BaseConfigBody
+  ): Promise<Prisma.CityUncheckedUpdateInput> {
+    const uid = this.requireString(body.uid, '城市 UID 不能为空，未知可填 -。');
+    const name = this.requireString(body.name, '城市名称不能为空。');
+    await this.assertCountry(body.countryId);
+
+    return {
+      uid,
+      name,
+      countryId: this.cleanOptionalString(body.countryId),
+      description: this.cleanOptionalString(body.description),
+      sortOrder: this.toSortOrder(body.sortOrder)
+    };
+  }
+
+  private async assertCountry(countryId?: string) {
+    const cleaned = this.cleanOptionalString(countryId);
+
+    if (!cleaned) {
+      return;
+    }
+
+    const country = await this.prisma.country.findUnique({
+      where: { id: cleaned },
+      select: { id: true }
+    });
+
+    if (!country) {
+      throw new BadRequestException('管理国家不存在。');
+    }
+  }
+
+  private createCityImportKey(uid: string, name: string, countryId?: string) {
+    if (uid === '-') {
+      return `manual:city:${countryId ?? 'none'}:${name}:${randomUUID()}`;
+    }
+
+    return `manual:city:${countryId ?? 'none'}:${uid}:${name}`;
   }
 
   private assertType(type: BaseConfigType) {

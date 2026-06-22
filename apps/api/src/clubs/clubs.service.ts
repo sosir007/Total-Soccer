@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { CompetitionStandingPlacement, CompetitionTargetType, type Prisma } from '@prisma/client';
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { ClubHonorListQuery, ClubListQuery } from './clubs.types.js';
+import type { ClubHonorListQuery, ClubListQuery, ClubPayload } from './clubs.types.js';
 
 const CLUB_INCLUDE = {
   countryRef: {
@@ -110,10 +111,9 @@ export class ClubsService {
   }
 
   async findOne(id: string) {
-    const club = await this.prisma.club.findFirst({
+    const club = await this.prisma.club.findUnique({
       where: {
-        id,
-        exists: true
+        id
       },
       include: CLUB_INCLUDE
     });
@@ -128,6 +128,40 @@ export class ClubsService {
       ...computedClub,
       honorRecords: await this.getClubHonorRecords(id, 10)
     };
+  }
+
+  async create(body: ClubPayload) {
+    const data = await this.buildClubData(body);
+    await this.assertUniqueUid(data.uid);
+    const club = await this.prisma.club.create({
+      data: {
+        ...data,
+        importKey: this.createManualImportKey('club', data.uid)
+      },
+      select: { id: true }
+    });
+
+    return this.findOne(club.id);
+  }
+
+  async update(id: string, body: ClubPayload) {
+    const existing = await this.prisma.club.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      throw new NotFoundException('俱乐部不存在。');
+    }
+
+    const data = await this.buildClubData(body);
+    await this.assertUniqueUid(data.uid, id);
+    await this.prisma.club.update({
+      where: { id },
+      data
+    });
+
+    return this.findOne(id);
   }
 
   async findHonors(query: ClubHonorListQuery) {
@@ -160,7 +194,7 @@ export class ClubsService {
     const keyword = query.keyword?.trim();
 
     return {
-      exists: true,
+      ...(query.includeHidden === 'true' ? {} : { exists: true }),
       ...(keyword
         ? {
             OR: [
@@ -174,6 +208,116 @@ export class ClubsService {
       ...(query.confederationId ? { federationId: query.confederationId } : {}),
       ...(query.countryId ? { countryId: query.countryId } : {})
     };
+  }
+
+  private async buildClubData(
+    body: ClubPayload
+  ): Promise<
+    Pick<
+      Prisma.ClubUncheckedCreateInput,
+      | 'uid'
+      | 'name'
+      | 'externalUrl'
+      | 'remark'
+      | 'exists'
+      | 'country'
+      | 'countryId'
+      | 'countryUid'
+      | 'federation'
+      | 'federationId'
+    >
+  > {
+    const uid = this.requiredText(body.uid, 'UID');
+    const name = this.requiredText(body.name, '俱乐部名称');
+    const country = await this.findCountry(body.countryId);
+    const confederation = await this.findConfederation(body.confederationId);
+
+    return {
+      uid,
+      name,
+      externalUrl: this.optionalText(body.externalUrl),
+      remark: this.optionalText(body.remark),
+      exists: body.exists ?? true,
+      country: country?.name ?? null,
+      countryId: country?.id ?? null,
+      countryUid: country?.uid ?? null,
+      federation: confederation?.name ?? country?.federation ?? null,
+      federationId: confederation?.id ?? country?.federationId ?? null
+    };
+  }
+
+  private async findCountry(id?: string) {
+    const cleanId = this.optionalText(id);
+
+    if (!cleanId) {
+      return null;
+    }
+
+    const country = await this.prisma.country.findUnique({
+      where: { id: cleanId },
+      select: { id: true, uid: true, name: true, federation: true, federationId: true }
+    });
+
+    if (!country) {
+      throw new BadRequestException('国家不存在。');
+    }
+
+    return country;
+  }
+
+  private async findConfederation(id?: string) {
+    const cleanId = this.optionalText(id);
+
+    if (!cleanId) {
+      return null;
+    }
+
+    const confederation = await this.prisma.confederation.findUnique({
+      where: { id: cleanId },
+      select: { id: true, name: true }
+    });
+
+    if (!confederation) {
+      throw new BadRequestException('足联不存在。');
+    }
+
+    return confederation;
+  }
+
+  private async assertUniqueUid(uid: string, id?: string) {
+    if (uid === '-') {
+      return;
+    }
+
+    const duplicate = await this.prisma.club.findFirst({
+      where: {
+        uid,
+        ...(id ? { id: { not: id } } : {})
+      },
+      select: { id: true }
+    });
+
+    if (duplicate) {
+      throw new BadRequestException('俱乐部 UID 已存在。');
+    }
+  }
+
+  private requiredText(value: unknown, label: string) {
+    const text = this.optionalText(value);
+
+    if (!text) {
+      throw new BadRequestException(`${label}不能为空。`);
+    }
+
+    return text;
+  }
+
+  private optionalText(value: unknown) {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }
+
+  private createManualImportKey(entity: string, uid: string) {
+    return uid === '-' ? `manual:${entity}:${randomUUID()}` : `manual:${entity}:${uid}`;
   }
 
   private buildOrderBy(query: ClubListQuery): Prisma.ClubOrderByWithRelationInput[] {

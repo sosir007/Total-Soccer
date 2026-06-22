@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchClubDetail, type ClubDetail, type NamedRef } from '@/services/catalog';
+import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
@@ -16,6 +17,7 @@ const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const club = ref<ClubDetail | null>(null);
+const clubDialogVisible = ref(false);
 const clubId = computed(() => String(route.params.id ?? ''));
 
 async function loadClub() {
@@ -66,6 +68,15 @@ function clubExternalUrl() {
   return buildExternalUrl(club.value?.externalUrl, club.value?.name || '俱乐部');
 }
 
+function openEditDialog() {
+  clubDialogVisible.value = true;
+}
+
+function handleClubSaved(savedClub: ClubDetail) {
+  club.value = savedClub;
+  void loadClub();
+}
+
 watch(clubId, () => {
   void loadClub();
 });
@@ -114,7 +125,10 @@ onMounted(() => {
             <el-tag type="warning">荣誉分 {{ formatNumber(club.honorScore, 2) }}</el-tag>
           </div>
         </div>
-        <el-button @click="backToList">返回列表</el-button>
+        <div class="panel-actions">
+          <el-button type="primary" @click="openEditDialog">编辑</el-button>
+          <el-button @click="backToList">返回列表</el-button>
+        </div>
       </div>
 
       <div class="metric-grid">
@@ -175,6 +189,10 @@ onMounted(() => {
                   {{ club.externalUrl || 'Google 搜索' }}
                 </a>
               </dd>
+            </div>
+            <div>
+              <dt>备注</dt>
+              <dd>{{ formatText(club.remark) }}</dd>
             </div>
           </dl>
         </div>
@@ -249,6 +267,8 @@ onMounted(() => {
           </el-table-column>
         </el-table>
       </div>
+
+      <ClubFormDialog v-model="clubDialogVisible" :club="club" @saved="handleClubSaved" />
     </template>
   </section>
 </template>

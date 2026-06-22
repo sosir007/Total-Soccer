@@ -4,7 +4,7 @@ import type { SelectOption } from '@/stores/options';
 
 const confederationPattern =
   /亚足联|亚洲|欧足联|欧洲|南美|非足联|非洲|中北美|北中美|加勒比|大洋足联|大洋洲|AFC|UEFA|CONMEBOL|CAF|CONCACAF|OFC/i;
-const model = defineModel<string>({ default: '' });
+const model = defineModel<string | string[]>({ default: '' });
 const props = withDefaults(
   defineProps<{
     options: SelectOption[];
@@ -13,13 +13,15 @@ const props = withDefaults(
     clearable?: boolean;
     disabled?: boolean;
     filterable?: boolean;
+    multiple?: boolean;
   }>(),
   {
     loading: false,
     placeholder: '请选择',
     clearable: true,
     disabled: false,
-    filterable: true
+    filterable: true,
+    multiple: false
   }
 );
 
@@ -48,6 +50,10 @@ const visibleOptions = computed(() => {
 
 function handleFilter(value: string) {
   keyword.value = value;
+}
+
+function isSelected(value: string) {
+  return Array.isArray(model.value) ? model.value.includes(value) : model.value === value;
 }
 
 function optionMeta(option: SelectOption) {
@@ -129,6 +135,9 @@ function isConfederation(value?: string | null) {
     :disabled="disabled"
     :filterable="filterable"
     :filter-method="filterable ? handleFilter : undefined"
+    :multiple="multiple"
+    collapse-tags
+    collapse-tags-tooltip
     popper-class="common-select-popper"
   >
     <el-option
@@ -139,7 +148,7 @@ function isConfederation(value?: string | null) {
     >
       <div
         class="select-option"
-        :class="{ 'is-selected': model === option.value }"
+        :class="{ 'is-selected': isSelected(option.value) }"
         :style="{ '--option-accent-color': optionAccentVar(option) }"
       >
         <div class="select-option-main">

@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
-import { fetchPlayers, type NamedRef, type PlayerListItem } from '@/services/catalog';
+import {
+  fetchPlayerDetail,
+  fetchPlayers,
+  type NamedRef,
+  type PlayerDetail,
+  type PlayerListItem
+} from '@/services/catalog';
+import PlayerFormDialog from '@/components/catalog/PlayerFormDialog.vue';
 import {
   ClubSelect,
   ConfederationSelect,
@@ -15,6 +23,8 @@ const loading = ref(false);
 const errorMessage = ref('');
 const players = ref<PlayerListItem[]>([]);
 const total = ref(0);
+const playerDialogVisible = ref(false);
+const editingPlayer = ref<PlayerDetail | null>(null);
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -69,6 +79,24 @@ function resetFilters() {
   void loadPlayers();
 }
 
+function openCreateDialog() {
+  editingPlayer.value = null;
+  playerDialogVisible.value = true;
+}
+
+function handlePlayerSaved() {
+  void loadPlayers();
+}
+
+async function openEditDialog(player: PlayerListItem) {
+  try {
+    editingPlayer.value = await fetchPlayerDetail(player.id);
+    playerDialogVisible.value = true;
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '球员详情加载失败。');
+  }
+}
+
 function submitFilters() {
   filters.page = 1;
   void loadPlayers();
@@ -83,8 +111,119 @@ function openDetail(player: PlayerListItem) {
   });
 }
 
+function openCountryDetail(country?: NamedRef | null) {
+  if (!country?.id) {
+    return;
+  }
+
+  void router.push({
+    name: 'nations-detail-id',
+    params: {
+      id: country.id
+    }
+  });
+}
+
+function openClubDetail(club?: NamedRef | null) {
+  if (!club?.id) {
+    return;
+  }
+
+  void router.push({
+    name: 'clubs-detail-id',
+    params: {
+      id: club.id
+    }
+  });
+}
+
+function rowIndex(index: number) {
+  return (filters.page - 1) * filters.pageSize + index + 1;
+}
+
 function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
+}
+
+function formatDate(value?: string | number | null) {
+  return value ? dayjs(value).format('YYYY-MM-DD') : '-';
+}
+
+function formatAge(player: PlayerListItem) {
+  if (player.deceased || player.deathDate) {
+    return '-';
+  }
+
+  if (!player.birthDate) {
+    return formatText(player.age);
+  }
+
+  const birthDate = dayjs(player.birthDate);
+
+  if (!birthDate.isValid()) {
+    return formatText(player.age);
+  }
+
+  if (birthDate.isAfter(dayjs(), 'day')) {
+    return formatText(player.age);
+  }
+
+  return dayjs().diff(birthDate, 'year');
+}
+
+function formatNationality(player: PlayerListItem) {
+  const names = player.nationalities?.map((item) => item.country.name).filter(Boolean);
+
+  return names?.length ? names.join('、') : formatText(player.nationality);
+}
+
+function formatBirthCity(player: PlayerListItem) {
+  const city = player.birthCityRef?.name ?? player.birthCity;
+  const country = player.birthCityRef?.country?.name ?? player.birthCountry?.name;
+
+  if (!city) {
+    return '-';
+  }
+
+  return country ? `${city}（${country}）` : city;
+}
+
+function formatBirthCityUid(player: PlayerListItem) {
+  return player.birthCityRef?.uid ?? player.birthCityUid ?? '-';
+}
+
+function formatFoot(player: PlayerListItem) {
+  return formatText(player.foot || player.preferredFootRef?.name);
+}
+
+function formatEthnicity(player: PlayerListItem) {
+  return formatText(player.ethnicityRef?.name || player.ethnicity);
+}
+
+function formatBoolean(value?: boolean | null) {
+  if (value === true) {
+    return '是';
+  }
+
+  if (value === false) {
+    return '否';
+  }
+
+  return '-';
+}
+
+function formatText(value?: string | number | null) {
+  return value === null || value === undefined || value === '' ? '-' : value;
+}
+
+function formatMarketValue(value?: number | null) {
+  if (value === null || value === undefined) {
+    return '-';
+  }
+
+  return new Intl.NumberFormat('zh-CN', {
+    maximumFractionDigits: 2
+  }).format(value);
 }
 
 watch(
@@ -107,7 +246,10 @@ onMounted(() => {
           <h2>巨星概览</h2>
           <p>按真实导入数据浏览球员资料，支持基础筛选、分页和详情查看。</p>
         </div>
-        <span class="status-pill">真实数据</span>
+        <div class="panel-actions">
+          <span class="status-pill">真实数据</span>
+          <el-button type="primary" @click="openCreateDialog">新增球员</el-button>
+        </div>
       </div>
 
       <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
@@ -177,36 +319,132 @@ onMounted(() => {
       </div>
 
       <template v-else>
-        <el-table :data="players" border @row-click="openDetail">
+        <el-table :data="players" border>
+          <el-table-column label="序号" width="76" fixed>
+            <template #default="{ $index }">{{ rowIndex($index) }}</template>
+          </el-table-column>
+          <el-table-column prop="uid" label="UID" width="110" fixed />
           <el-table-column prop="chineseName" label="球员" min-width="170" fixed>
             <template #default="{ row }">
-              <div class="player-name-cell">
+              <button
+                class="table-name-link player-name-cell"
+                type="button"
+                @click="openDetail(row)"
+              >
                 <strong>{{ row.chineseName }}</strong>
                 <span>{{ row.englishName || row.uid }}</span>
-              </div>
+              </button>
             </template>
           </el-table-column>
           <el-table-column prop="pa" label="PA" width="90" sortable />
-          <el-table-column prop="ca" label="CA" width="90" />
-          <el-table-column prop="primaryRole" label="主要位置" width="110" />
-          <el-table-column prop="positions" label="位置" min-width="150" show-overflow-tooltip />
-          <el-table-column label="国家" min-width="120">
-            <template #default="{ row }">{{ formatRef(row.country) }}</template>
+          <el-table-column prop="birthDate" label="生日" width="120" sortable>
+            <template #default="{ row }">{{ formatDate(row.birthDate) }}</template>
           </el-table-column>
-          <el-table-column label="俱乐部" min-width="150" show-overflow-tooltip>
-            <template #default="{ row }">{{ formatRef(row.club) }}</template>
+          <el-table-column label="过世" width="120">
+            <template #default="{ row }">{{ formatDate(row.deathDate) }}</template>
+          </el-table-column>
+          <el-table-column label="年龄" width="80">
+            <template #default="{ row }">{{ formatAge(row) }}</template>
+          </el-table-column>
+          <el-table-column prop="primaryRole" label="代表位置" width="110" />
+          <el-table-column prop="positions" label="位置" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="height" label="身高" width="80" sortable />
+          <el-table-column prop="weight" label="体重" width="80" sortable />
+          <el-table-column prop="shirtNumber" label="球衣" width="80" />
+          <el-table-column prop="skinTone" label="肤色" width="90" />
+          <el-table-column prop="hairColor" label="发色" width="100" show-overflow-tooltip />
+          <el-table-column label="种族" width="90" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatEthnicity(row) }}</template>
+          </el-table-column>
+          <el-table-column label="左右脚" width="100" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatFoot(row) }}</template>
           </el-table-column>
           <el-table-column label="足联" min-width="120">
             <template #default="{ row }">{{ formatRef(row.confederationRef) }}</template>
           </el-table-column>
+          <el-table-column label="代表国籍" min-width="150">
+            <template #default="{ row }">
+              <button
+                v-if="row.country"
+                class="table-name-link table-ref-card"
+                type="button"
+                @click="openCountryDetail(row.country)"
+              >
+                <strong>{{ row.country.name }}</strong>
+                <span>UID {{ row.country.uid || row.countryUid || '-' }}</span>
+              </button>
+              <div v-else class="table-ref-card">
+                <strong>{{ row.representedCountry || '-' }}</strong>
+                <span>UID {{ row.countryUid || '-' }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="国籍" min-width="160" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatNationality(row) }}</template>
+          </el-table-column>
+          <el-table-column label="出生城市" min-width="220" show-overflow-tooltip>
+            <template #default="{ row }">
+              <div class="table-ref-card">
+                <strong>{{ formatBirthCity(row) }}</strong>
+                <span>UID {{ formatBirthCityUid(row) }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="代表球队" min-width="170" show-overflow-tooltip>
+            <template #default="{ row }">
+              <button
+                v-if="row.club"
+                class="table-name-link table-ref-card"
+                type="button"
+                @click="openClubDetail(row.club)"
+              >
+                <strong>{{ row.club.name }}</strong>
+                <span>UID {{ row.club.uid || row.clubUid || '-' }}</span>
+              </button>
+              <div v-else class="table-ref-card">
+                <strong>{{ row.primaryClub || '-' }}</strong>
+                <span>UID {{ row.clubUid || '-' }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="initialClub"
+            label="初始球队"
+            min-width="150"
+            show-overflow-tooltip
+          />
+          <el-table-column prop="clubs" label="球队经历" min-width="260" show-overflow-tooltip />
           <el-table-column label="类型" min-width="120">
             <template #default="{ row }">{{ formatRef(row.playerTypeRef) }}</template>
           </el-table-column>
+          <el-table-column label="市场价值" width="120">
+            <template #default="{ row }">{{ formatMarketValue(row.marketValue) }}</template>
+          </el-table-column>
+          <el-table-column label="是否退役" width="100">
+            <template #default="{ row }">{{ formatBoolean(row.retired) }}</template>
+          </el-table-column>
+          <el-table-column label="是否去世" width="100">
+            <template #default="{ row }">{{ formatBoolean(row.deceased) }}</template>
+          </el-table-column>
+          <el-table-column prop="databaseSource" label="数据库" width="100" />
+          <el-table-column
+            prop="staffRoles"
+            label="担任过职位"
+            min-width="120"
+            show-overflow-tooltip
+          />
+          <el-table-column prop="achievement" label="成就" min-width="240" show-overflow-tooltip />
+          <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
           <el-table-column label="状态" width="120">
             <template #default="{ row }">
               <el-tag v-if="row.deceased" type="info">已故</el-tag>
               <el-tag v-else-if="row.retired" type="warning">退役</el-tag>
               <el-tag v-else type="success">现役</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="100" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" link @click.stop="openEditDialog(row)">编辑</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -222,5 +460,11 @@ onMounted(() => {
         </div>
       </template>
     </div>
+
+    <PlayerFormDialog
+      v-model="playerDialogVisible"
+      :player="editingPlayer"
+      @saved="handlePlayerSaved"
+    />
   </section>
 </template>

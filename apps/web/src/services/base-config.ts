@@ -8,7 +8,8 @@ export type BaseConfigType =
   | 'potential-ranges'
   | 'ethnicities'
   | 'hair-colors'
-  | 'preferred-feet';
+  | 'preferred-feet'
+  | 'cities';
 
 export interface BaseConfigItem {
   id: string;
@@ -19,6 +20,12 @@ export interface BaseConfigItem {
   description?: string | null;
   enabled?: boolean | null;
   sortOrder: number;
+  countryId?: string | null;
+  country?: {
+    id: string;
+    uid?: string | null;
+    name: string;
+  } | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -37,6 +44,7 @@ export interface BaseConfigPayload {
   description?: string;
   enabled?: boolean;
   sortOrder?: number;
+  countryId?: string;
 }
 
 export async function fetchBaseConfigs(type: BaseConfigType, params: BaseConfigListParams) {

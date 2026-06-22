@@ -558,6 +558,14 @@ h1 {
   margin-bottom: 14px;
 }
 
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .panel p {
   color: var(--muted);
   line-height: 1.7;
@@ -769,6 +777,51 @@ h1 {
 .player-name-cell {
   display: grid;
   gap: 3px;
+}
+
+.table-name-link {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.table-name-link strong {
+  color: var(--green);
+}
+
+.table-name-link:hover strong {
+  text-decoration: underline;
+}
+
+.table-ref-card {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.table-ref-card strong {
+  overflow: hidden;
+  color: #56605b;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-ref-card span {
+  overflow: hidden;
+  color: #6d8175;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-name-link.table-ref-card:hover strong {
+  color: var(--green);
 }
 
 .player-name-cell span {

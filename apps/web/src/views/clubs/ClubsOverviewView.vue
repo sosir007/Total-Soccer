@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchClubs, type ClubListItem, type NamedRef } from '@/services/catalog';
+import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const router = useRouter();
@@ -10,6 +11,7 @@ const loading = ref(false);
 const errorMessage = ref('');
 const clubs = ref<ClubListItem[]>([]);
 const total = ref(0);
+const clubDialogVisible = ref(false);
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -57,6 +59,14 @@ function resetFilters() {
   void loadClubs();
 }
 
+function openCreateDialog() {
+  clubDialogVisible.value = true;
+}
+
+function handleClubSaved() {
+  void loadClubs();
+}
+
 function openDetail(club: ClubListItem) {
   void router.push({
     name: 'clubs-detail-id',
@@ -64,6 +74,10 @@ function openDetail(club: ClubListItem) {
       id: club.id
     }
   });
+}
+
+function rowIndex(index: number) {
+  return (filters.page - 1) * filters.pageSize + index + 1;
 }
 
 function formatNumber(value?: number | null, digits = 0) {
@@ -101,7 +115,10 @@ onMounted(() => {
           <h2>豪门概览</h2>
           <p>浏览俱乐部基础统计、国家归属、足联归属和荣誉分表现。</p>
         </div>
-        <span class="status-pill">真实数据</span>
+        <div class="panel-actions">
+          <span class="status-pill">真实数据</span>
+          <el-button type="primary" @click="openCreateDialog">新增俱乐部</el-button>
+        </div>
       </div>
 
       <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
@@ -145,6 +162,9 @@ onMounted(() => {
 
       <template v-else>
         <el-table :data="clubs" border @row-click="openDetail">
+          <el-table-column label="序号" width="76" fixed>
+            <template #default="{ $index }">{{ rowIndex($index) }}</template>
+          </el-table-column>
           <el-table-column prop="name" label="俱乐部" min-width="170" fixed>
             <template #default="{ row }">
               <div class="player-name-cell">
@@ -182,5 +202,7 @@ onMounted(() => {
         </div>
       </template>
     </div>
+
+    <ClubFormDialog v-model="clubDialogVisible" @saved="handleClubSaved" />
   </section>
 </template>

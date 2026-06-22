@@ -5,7 +5,8 @@ export type BaseConfigType =
   | 'potential-ranges'
   | 'ethnicities'
   | 'hair-colors'
-  | 'preferred-feet';
+  | 'preferred-feet'
+  | 'cities';
 
 export interface BaseConfigQuery {
   page?: string;
@@ -21,4 +22,5 @@ export interface BaseConfigBody {
   description?: string;
   enabled?: boolean;
   sortOrder?: number;
+  countryId?: string;
 }

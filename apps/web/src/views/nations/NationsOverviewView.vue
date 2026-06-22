@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchCountries, type CountryListItem, type NamedRef } from '@/services/catalog';
+import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { ConfederationSelect } from '@/components/selects';
 
 const router = useRouter();
@@ -10,6 +11,7 @@ const loading = ref(false);
 const errorMessage = ref('');
 const countries = ref<CountryListItem[]>([]);
 const total = ref(0);
+const countryDialogVisible = ref(false);
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -54,6 +56,14 @@ function resetFilters() {
   void loadCountries();
 }
 
+function openCreateDialog() {
+  countryDialogVisible.value = true;
+}
+
+function handleCountrySaved() {
+  void loadCountries();
+}
+
 function openDetail(country: CountryListItem) {
   void router.push({
     name: 'nations-detail-id',
@@ -61,6 +71,10 @@ function openDetail(country: CountryListItem) {
       id: country.id
     }
   });
+}
+
+function rowIndex(index: number) {
+  return (filters.page - 1) * filters.pageSize + index + 1;
 }
 
 function formatNumber(value?: number | null, digits = 0) {
@@ -98,7 +112,10 @@ onMounted(() => {
           <h2>国家概览</h2>
           <p>浏览国家队基础统计、PA 汇总和荣誉分表现。</p>
         </div>
-        <span class="status-pill">真实数据</span>
+        <div class="panel-actions">
+          <span class="status-pill">真实数据</span>
+          <el-button type="primary" @click="openCreateDialog">新增国家</el-button>
+        </div>
       </div>
 
       <el-form
@@ -143,6 +160,9 @@ onMounted(() => {
 
       <template v-else>
         <el-table :data="countries" border @row-click="openDetail">
+          <el-table-column label="序号" width="76" fixed>
+            <template #default="{ $index }">{{ rowIndex($index) }}</template>
+          </el-table-column>
           <el-table-column prop="name" label="国家" min-width="140" fixed>
             <template #default="{ row }">
               <div class="player-name-cell">
@@ -177,5 +197,7 @@ onMounted(() => {
         </div>
       </template>
     </div>
+
+    <CountryFormDialog v-model="countryDialogVisible" @saved="handleCountrySaved" />
   </section>
 </template>

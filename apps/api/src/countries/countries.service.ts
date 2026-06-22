@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { CompetitionStandingPlacement, CompetitionTargetType, type Prisma } from '@prisma/client';
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { CountryHonorListQuery, CountryListQuery } from './countries.types.js';
+import type { CountryHonorListQuery, CountryListQuery, CountryPayload } from './countries.types.js';
 
 const COUNTRY_INCLUDE = {
   federationRef: {
@@ -118,6 +119,40 @@ export class CountriesService {
     };
   }
 
+  async create(body: CountryPayload) {
+    const data = await this.buildCountryData(body);
+    await this.assertUniqueUid(data.uid);
+    const country = await this.prisma.country.create({
+      data: {
+        ...data,
+        importKey: this.createManualImportKey('country', data.uid)
+      },
+      select: { id: true }
+    });
+
+    return this.findOne(country.id);
+  }
+
+  async update(id: string, body: CountryPayload) {
+    const existing = await this.prisma.country.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      throw new NotFoundException('国家不存在。');
+    }
+
+    const data = await this.buildCountryData(body);
+    await this.assertUniqueUid(data.uid, id);
+    await this.prisma.country.update({
+      where: { id },
+      data
+    });
+
+    return this.findOne(id);
+  }
+
   async findHonors(query: CountryHonorListQuery) {
     const pagination = resolvePagination(query);
     const where = this.buildHonorWhere(query);
@@ -159,6 +194,83 @@ export class CountriesService {
         : {}),
       ...(query.confederationId ? { federationId: query.confederationId } : {})
     };
+  }
+
+  private async buildCountryData(
+    body: CountryPayload
+  ): Promise<
+    Pick<
+      Prisma.CountryUncheckedCreateInput,
+      'uid' | 'name' | 'externalUrl' | 'remark' | 'federation' | 'federationId'
+    >
+  > {
+    const uid = this.requiredText(body.uid, 'UID');
+    const name = this.requiredText(body.name, '国家名称');
+    const confederation = await this.findConfederation(body.confederationId);
+
+    return {
+      uid,
+      name,
+      externalUrl: this.optionalText(body.externalUrl),
+      remark: this.optionalText(body.remark),
+      federation: confederation?.name ?? null,
+      federationId: confederation?.id ?? null
+    };
+  }
+
+  private async findConfederation(id?: string) {
+    const cleanId = this.optionalText(id);
+
+    if (!cleanId) {
+      return null;
+    }
+
+    const confederation = await this.prisma.confederation.findUnique({
+      where: { id: cleanId },
+      select: { id: true, name: true }
+    });
+
+    if (!confederation) {
+      throw new BadRequestException('足联不存在。');
+    }
+
+    return confederation;
+  }
+
+  private async assertUniqueUid(uid: string, id?: string) {
+    if (uid === '-') {
+      return;
+    }
+
+    const duplicate = await this.prisma.country.findFirst({
+      where: {
+        uid,
+        ...(id ? { id: { not: id } } : {})
+      },
+      select: { id: true }
+    });
+
+    if (duplicate) {
+      throw new BadRequestException('国家 UID 已存在。');
+    }
+  }
+
+  private requiredText(value: unknown, label: string) {
+    const text = this.optionalText(value);
+
+    if (!text) {
+      throw new BadRequestException(`${label}不能为空。`);
+    }
+
+    return text;
+  }
+
+  private optionalText(value: unknown) {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }
+
+  private createManualImportKey(entity: string, uid: string) {
+    return uid === '-' ? `manual:${entity}:${randomUUID()}` : `manual:${entity}:${uid}`;
   }
 
   private buildOrderBy(query: CountryListQuery): Prisma.CountryOrderByWithRelationInput[] {

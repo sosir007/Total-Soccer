@@ -3,12 +3,21 @@ import { onMounted } from 'vue';
 import BaseOptionSelect from './BaseOptionSelect.vue';
 import { useOptionStore } from '@/stores/options';
 
-const model = defineModel<string>({ default: '' });
-withDefaults(defineProps<{ placeholder?: string; clearable?: boolean; disabled?: boolean }>(), {
-  placeholder: '全部国家',
-  clearable: true,
-  disabled: false
-});
+const model = defineModel<string | string[]>({ default: '' });
+withDefaults(
+  defineProps<{
+    placeholder?: string;
+    clearable?: boolean;
+    disabled?: boolean;
+    multiple?: boolean;
+  }>(),
+  {
+    placeholder: '全部国家',
+    clearable: true,
+    disabled: false,
+    multiple: false
+  }
+);
 
 const optionStore = useOptionStore();
 
@@ -25,5 +34,6 @@ onMounted(() => {
     :placeholder="placeholder"
     :clearable="clearable"
     :disabled="disabled"
+    :multiple="multiple"
   />
 </template>

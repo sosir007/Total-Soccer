@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchCountryDetail, type CountryDetail, type NamedRef } from '@/services/catalog';
+import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
@@ -16,6 +17,7 @@ const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const country = ref<CountryDetail | null>(null);
+const countryDialogVisible = ref(false);
 const countryId = computed(() => String(route.params.id ?? ''));
 
 async function loadCountry() {
@@ -66,6 +68,15 @@ function countryExternalUrl() {
   return buildExternalUrl(country.value?.externalUrl, country.value?.name || '国家队');
 }
 
+function openEditDialog() {
+  countryDialogVisible.value = true;
+}
+
+function handleCountrySaved(savedCountry: CountryDetail) {
+  country.value = savedCountry;
+  void loadCountry();
+}
+
 watch(countryId, () => {
   void loadCountry();
 });
@@ -114,7 +125,10 @@ onMounted(() => {
             <el-tag type="warning">荣誉分 {{ formatNumber(country.honorScore, 2) }}</el-tag>
           </div>
         </div>
-        <el-button @click="backToList">返回列表</el-button>
+        <div class="panel-actions">
+          <el-button type="primary" @click="openEditDialog">编辑</el-button>
+          <el-button @click="backToList">返回列表</el-button>
+        </div>
       </div>
 
       <div class="metric-grid">
@@ -175,6 +189,10 @@ onMounted(() => {
                   {{ country.externalUrl || 'Google 搜索' }}
                 </a>
               </dd>
+            </div>
+            <div>
+              <dt>备注</dt>
+              <dd>{{ formatText(country.remark) }}</dd>
             </div>
           </dl>
         </div>
@@ -249,6 +267,12 @@ onMounted(() => {
           </el-table-column>
         </el-table>
       </div>
+
+      <CountryFormDialog
+        v-model="countryDialogVisible"
+        :country="country"
+        @saved="handleCountrySaved"
+      />
     </template>
   </section>
 </template>

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchPlayerDetail, type NamedRef, type PlayerDetail } from '@/services/catalog';
+import PlayerFormDialog from '@/components/catalog/PlayerFormDialog.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 
 const route = useRoute();
@@ -11,6 +12,7 @@ const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const player = ref<PlayerDetail | null>(null);
+const playerDialogVisible = ref(false);
 const playerId = computed(() => String(route.params.id ?? ''));
 
 async function loadPlayer() {
@@ -36,12 +38,51 @@ function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
 }
 
-function formatDate(value?: string | null) {
+function formatDate(value?: string | number | null) {
   return value ? dayjs(value).format('YYYY-MM-DD') : '-';
 }
 
 function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
+}
+
+function formatAge() {
+  if (player.value?.deceased || player.value?.deathDate) {
+    return '-';
+  }
+
+  if (!player.value?.birthDate) {
+    return formatText(player.value?.age);
+  }
+
+  const birthDate = dayjs(player.value.birthDate);
+
+  if (!birthDate.isValid() || birthDate.isAfter(dayjs(), 'day')) {
+    return formatText(player.value.age);
+  }
+
+  return dayjs().diff(birthDate, 'year');
+}
+
+function formatNationality() {
+  const names = player.value?.nationalities?.map((item) => item.country.name).filter(Boolean);
+
+  return names?.length ? names.join('、') : formatText(player.value?.nationality);
+}
+
+function formatBirthCity() {
+  const city = player.value?.birthCityRef?.name ?? player.value?.birthCity;
+  const country = player.value?.birthCityRef?.country?.name ?? player.value?.birthCountry?.name;
+
+  if (!city) {
+    return '-';
+  }
+
+  return country ? `${city}（${country}）` : city;
+}
+
+function formatFoot() {
+  return formatText(player.value?.foot || player.value?.preferredFootRef?.name);
 }
 
 function formatBoolean(value?: boolean | null) {
@@ -67,6 +108,15 @@ function backToList() {
   void router.push({
     name: 'stars-overview'
   });
+}
+
+function openEditDialog() {
+  playerDialogVisible.value = true;
+}
+
+function handlePlayerSaved(savedPlayer: PlayerDetail) {
+  player.value = savedPlayer;
+  void loadPlayer();
 }
 
 watch(playerId, () => {
@@ -120,7 +170,10 @@ onMounted(() => {
             <el-tag v-else type="success">现役</el-tag>
           </div>
         </div>
-        <el-button @click="backToList">返回列表</el-button>
+        <div class="panel-actions">
+          <el-button type="primary" @click="openEditDialog">编辑</el-button>
+          <el-button @click="backToList">返回列表</el-button>
+        </div>
       </div>
 
       <div class="detail-grid">
@@ -140,7 +193,7 @@ onMounted(() => {
             </div>
             <div>
               <dt>年龄</dt>
-              <dd>{{ formatText(player.age) }}</dd>
+              <dd>{{ formatAge() }}</dd>
             </div>
             <div>
               <dt>身高 / 体重</dt>
@@ -185,6 +238,10 @@ onMounted(() => {
               <dd>{{ formatText(player.representedCountry) }}</dd>
             </div>
             <div>
+              <dt>国籍</dt>
+              <dd>{{ formatNationality() }}</dd>
+            </div>
+            <div>
               <dt>俱乐部</dt>
               <dd>{{ formatRef(player.club) }}</dd>
             </div>
@@ -194,7 +251,7 @@ onMounted(() => {
             </div>
             <div>
               <dt>出生城市</dt>
-              <dd>{{ formatText(player.birthCity) }}</dd>
+              <dd>{{ formatBirthCity() }}</dd>
             </div>
             <div>
               <dt>担任过职位</dt>
@@ -210,16 +267,12 @@ onMounted(() => {
           </div>
           <dl class="detail-list">
             <div>
-              <dt>主要位置</dt>
-              <dd>{{ formatText(player.primaryRole) }}</dd>
-            </div>
-            <div>
               <dt>位置</dt>
               <dd>{{ formatText(player.positions) }}</dd>
             </div>
             <div>
-              <dt>惯用脚</dt>
-              <dd>{{ formatRef(player.preferredFootRef) }} / {{ formatText(player.foot) }}</dd>
+              <dt>左右脚</dt>
+              <dd>{{ formatFoot() }}</dd>
             </div>
             <div>
               <dt>种族</dt>
@@ -269,6 +322,8 @@ onMounted(() => {
           </dl>
         </div>
       </div>
+
+      <PlayerFormDialog v-model="playerDialogVisible" :player="player" @saved="handlePlayerSaved" />
     </template>
   </section>
 </template>

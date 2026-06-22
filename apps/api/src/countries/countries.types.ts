@@ -16,3 +16,11 @@ export interface CountryHonorListQuery {
   year?: string;
   countryId?: string;
 }
+
+export interface CountryPayload {
+  uid?: string;
+  name?: string;
+  confederationId?: string;
+  externalUrl?: string;
+  remark?: string;
+}

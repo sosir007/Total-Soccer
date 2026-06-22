@@ -32,8 +32,8 @@ model Player {
   uid                String
   chineseName        String
   englishName        String?
-  birthDate          DateTime?
-  deathDate          DateTime?
+  birthDate          Float?
+  deathDate          Float?
   age                Int?
   primaryRole        String?
   positions          String?
@@ -58,6 +58,8 @@ model Player {
   nationality        String?
   birthCityUid       String?
   birthCity          String?
+  birthCountryId     String?
+  birthCityId        String?
   primaryClub        String?
   externalUrl        String?
   clubUid            String?
@@ -73,17 +75,22 @@ model Player {
   countryId          String?
   clubId             String?
   country            Country?       @relation(fields: [countryId], references: [id])
+  birthCountry       Country?       @relation("PlayerBirthCountry", fields: [birthCountryId], references: [id])
+  birthCityRef       City?          @relation(fields: [birthCityId], references: [id])
   club               Club?          @relation(fields: [clubId], references: [id])
   confederationRef   Confederation? @relation(fields: [confederationId], references: [id])
   hairColorRef       HairColor?     @relation(fields: [hairColorId], references: [id])
   ethnicityRef       Ethnicity?     @relation(fields: [ethnicityId], references: [id])
   preferredFootRef   PreferredFoot? @relation(fields: [preferredFootId], references: [id])
   playerTypeRef      PlayerType?    @relation(fields: [playerTypeId], references: [id])
+  nationalities      PlayerNationality[]
   honors             PlayerHonor[]
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
   @@index([countryId])
+  @@index([birthCountryId])
+  @@index([birthCityId])
   @@index([clubId])
   @@index([confederationId])
   @@index([hairColorId])
@@ -101,6 +108,7 @@ model Country {
   uid                String
   name               String
   externalUrl        String?
+  remark             String?
   federation         String?
   federationId       String?
   playerCount        Int?
@@ -112,6 +120,9 @@ model Country {
   honorScore         Float?
   averageHonorScore  Float?
   players            Player[]
+  birthPlayers        Player[]              @relation("PlayerBirthCountry")
+  playerNationalities PlayerNationality[]
+  cities             City[]
   clubs              Club[]
   federationRef      Confederation?        @relation(fields: [federationId], references: [id])
   honors             CountryHonor[]
@@ -124,12 +135,42 @@ model Country {
   @@index([federationId])
 }
 
+model City {
+  id          String   @id @default(cuid())
+  importKey   String   @unique
+  uid         String
+  name        String
+  countryId   String?
+  description String?
+  sortOrder   Int      @default(0)
+  country     Country? @relation(fields: [countryId], references: [id])
+  players     Player[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([uid])
+  @@index([name])
+  @@index([countryId])
+}
+
+model PlayerNationality {
+  playerId  String
+  countryId String
+  player    Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  country   Country @relation(fields: [countryId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([playerId, countryId])
+  @@index([countryId])
+}
+
 model Club {
   id                 String                @id @default(cuid())
   importKey          String                @unique
   uid                String
   name               String
   externalUrl        String?
+  remark             String?
   exists             Boolean               @default(true)
   countryUid         String?
   countryId          String?

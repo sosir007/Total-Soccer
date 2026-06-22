@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
+import { CountrySelect } from '@/components/selects';
 import {
   createBaseConfig,
   fetchBaseConfigs,
@@ -75,6 +76,11 @@ const configTabs: ConfigTab[] = [
     type: 'preferred-feet',
     label: '惯用脚',
     description: '球员基础资料中的惯用脚字典。'
+  },
+  {
+    type: 'cities',
+    label: '城市',
+    description: '维护球员出生城市及其管理国家，用于球员资料录入和展示。'
   }
 ];
 
@@ -99,7 +105,8 @@ const form = reactive<BaseConfigPayload>({
   group: '',
   description: '',
   enabled: true,
-  sortOrder: 0
+  sortOrder: 0,
+  countryId: ''
 });
 
 const activeTab = computed(() => configTabs.find((tab) => tab.type === activeType.value)!);
@@ -108,6 +115,7 @@ const isConfederation = computed(() => activeType.value === 'confederations');
 const isPosition = computed(() => activeType.value === 'positions');
 const isPlayerType = computed(() => activeType.value === 'player-types');
 const isPotentialRange = computed(() => activeType.value === 'potential-ranges');
+const isCity = computed(() => activeType.value === 'cities');
 const showEnabled = computed(() => isPosition.value || isPlayerType.value);
 const dialogTitle = computed(() =>
   editingItem.value ? `编辑${activeTab.value.label}` : `新增${activeTab.value.label}`
@@ -152,6 +160,7 @@ function resetForm() {
   form.description = '';
   form.enabled = true;
   form.sortOrder = 0;
+  form.countryId = '';
 }
 
 function openCreateDialog() {
@@ -169,18 +178,20 @@ function openEditDialog(row: BaseConfigItem) {
   form.description = row.description ?? '';
   form.enabled = row.enabled ?? true;
   form.sortOrder = row.sortOrder ?? 0;
+  form.countryId = row.countryId ?? row.country?.id ?? '';
   dialogVisible.value = true;
 }
 
 function buildPayload(): BaseConfigPayload {
   return {
-    uid: isConfederation.value ? form.uid?.trim() : undefined,
-    code: form.code?.trim(),
+    uid: isConfederation.value || isCity.value ? form.uid?.trim() : undefined,
+    code: isCity.value ? undefined : form.code?.trim(),
     name: form.name?.trim(),
     group: isPosition.value ? form.group?.trim() : undefined,
     description: isConfederation.value ? undefined : form.description?.trim(),
     enabled: showEnabled.value ? form.enabled : undefined,
-    sortOrder: form.sortOrder ?? 0
+    sortOrder: form.sortOrder ?? 0,
+    countryId: isCity.value ? form.countryId || undefined : undefined
   };
 }
 
@@ -190,7 +201,12 @@ function validateForm() {
     return false;
   }
 
-  if (!isConfederation.value && !form.code?.trim()) {
+  if (isCity.value && !form.uid?.trim()) {
+    ElMessage.warning('请填写城市 UID，未知可填 -。');
+    return false;
+  }
+
+  if (!isConfederation.value && !isCity.value && !form.code?.trim()) {
     ElMessage.warning('请填写编码。');
     return false;
   }
@@ -318,12 +334,15 @@ onMounted(() => {
       <template v-else>
         <el-table class="base-config-table" :data="items" border>
           <el-table-column prop="sortOrder" label="排序" width="72" />
-          <el-table-column v-if="isConfederation" prop="uid" label="UID" width="78" />
-          <el-table-column prop="code" label="编码" min-width="96">
+          <el-table-column v-if="isConfederation || isCity" prop="uid" label="UID" width="96" />
+          <el-table-column v-if="!isCity" prop="code" label="编码" min-width="96">
             <template #default="{ row }">{{ row.code || '-' }}</template>
           </el-table-column>
           <el-table-column prop="name" label="名称" min-width="120">
             <template #default="{ row }">{{ row.name || '-' }}</template>
+          </el-table-column>
+          <el-table-column v-if="isCity" label="管理国家" min-width="120">
+            <template #default="{ row }">{{ row.country?.name || '-' }}</template>
           </el-table-column>
           <el-table-column v-if="isPosition" prop="group" label="位置组" width="100">
             <template #default="{ row }">{{ row.group || '-' }}</template>
@@ -365,16 +384,20 @@ onMounted(() => {
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="560px">
       <el-form label-position="top">
-        <el-form-item v-if="isConfederation" label="UID" required>
-          <el-input v-model="form.uid" placeholder="例如 1 / 2 / 3" />
+        <el-form-item v-if="isConfederation || isCity" label="UID" required>
+          <el-input v-model="form.uid" :placeholder="isCity ? '未知可填 -' : '例如 1 / 2 / 3'" />
         </el-form-item>
 
-        <el-form-item label="编码" :required="!isConfederation">
+        <el-form-item v-if="!isCity" label="编码" :required="!isConfederation">
           <el-input v-model="form.code" placeholder="例如 UEFA / ST / LEGEND" />
         </el-form-item>
 
         <el-form-item label="名称" :required="!isPotentialRange">
           <el-input v-model="form.name" placeholder="请输入名称" />
+        </el-form-item>
+
+        <el-form-item v-if="isCity" label="管理国家">
+          <CountrySelect v-model="form.countryId" placeholder="请选择管理国家" />
         </el-form-item>
 
         <el-form-item v-if="isPosition" label="位置组">
