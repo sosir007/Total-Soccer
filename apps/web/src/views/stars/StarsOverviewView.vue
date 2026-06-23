@@ -357,6 +357,9 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column prop="pa" label="PA" width="90" sortable />
+          <el-table-column prop="honorScore" label="荣誉分" width="100" sortable>
+            <template #default="{ row }">{{ formatText(row.honorScore) }}</template>
+          </el-table-column>
           <el-table-column prop="birthDate" label="生日" width="120" sortable>
             <template #default="{ row }">{{ formatDate(row.birthDate) }}</template>
           </el-table-column>

@@ -124,6 +124,9 @@ export interface PlayerListItem {
   positions?: string | null;
   ca?: number | null;
   pa?: number | null;
+  honorScore?: number | null;
+  awardCount?: number | null;
+  topAwardCount?: number | null;
   age?: number | null;
   height?: number | null;
   weight?: number | null;

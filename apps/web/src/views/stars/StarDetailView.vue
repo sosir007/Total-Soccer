@@ -245,6 +245,7 @@ onMounted(() => {
           <div class="detail-tags">
             <el-tag type="success">PA {{ formatText(player.pa) }}</el-tag>
             <el-tag>CA {{ formatText(player.ca) }}</el-tag>
+            <el-tag type="warning">荣誉分 {{ formatText(player.honorScore) }}</el-tag>
             <el-tag type="warning">{{ formatRef(player.playerTypeRef) }}</el-tag>
             <el-tag v-if="player.deceased" type="info">已故</el-tag>
             <el-tag v-else-if="player.retired" type="warning">退役</el-tag>
@@ -350,6 +351,18 @@ onMounted(() => {
             <div>
               <dt>位置</dt>
               <dd>{{ formatText(player.positions) }}</dd>
+            </div>
+            <div>
+              <dt>荣誉分</dt>
+              <dd>{{ formatText(player.honorScore) }}</dd>
+            </div>
+            <div>
+              <dt>奖项数</dt>
+              <dd>{{ formatText(player.awardCount) }}</dd>
+            </div>
+            <div>
+              <dt>顶级奖项</dt>
+              <dd>{{ formatText(player.topAwardCount) }}</dd>
             </div>
             <div>
               <dt>左右脚</dt>

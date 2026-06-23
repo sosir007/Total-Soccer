@@ -9,6 +9,15 @@ import {
   type HonorRuleItem,
   type HonorRulePayload
 } from '@/services/honor-rules';
+import {
+  createAwardRule,
+  fetchAwardRules,
+  recalculateAwardScores,
+  updateAwardRule,
+  type AwardRuleItem,
+  type AwardRulePayload
+} from '@/services/award-rules';
+import type { AwardScopeType } from '@/services/awards';
 import type { CompetitionStandingPlacement, CompetitionTargetType } from '@/services/competitions';
 
 const targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }> = [
@@ -25,13 +34,25 @@ const enabledOptions = [
   { label: '启用', value: 'true' },
   { label: '停用', value: 'false' }
 ];
+const awardScopeOptions: Array<{ label: string; value: AwardScopeType }> = [
+  { label: '世界', value: 'WORLD' },
+  { label: '洲际', value: 'CONFEDERATION' },
+  { label: '国家', value: 'COUNTRY' },
+  { label: '联赛', value: 'LEAGUE' },
+  { label: '俱乐部', value: 'CLUB' },
+  { label: '媒体', value: 'MEDIA' }
+];
 const targetTypeLabels = Object.fromEntries(
   targetTypeOptions.map((item) => [item.value, item.label])
 ) as Record<CompetitionTargetType, string>;
 const placementLabels = Object.fromEntries(
   placementOptions.map((item) => [item.value, item.label])
 ) as Record<CompetitionStandingPlacement, string>;
+const awardScopeLabels = Object.fromEntries(
+  awardScopeOptions.map((item) => [item.value, item.label])
+) as Record<AwardScopeType, string>;
 
+const activeTab = ref<'competition' | 'player-award'>('competition');
 const loading = ref(false);
 const submitting = ref(false);
 const recalculating = ref(false);
@@ -65,6 +86,41 @@ const form = reactive<HonorRulePayload>({
 
 const hasRows = computed(() => items.value.length > 0);
 const dialogTitle = computed(() => (editingItem.value ? '编辑荣誉规则' : '新增荣誉规则'));
+
+const awardLoading = ref(false);
+const awardSubmitting = ref(false);
+const awardRecalculating = ref(false);
+const awardDialogVisible = ref(false);
+const awardEditingItem = ref<AwardRuleItem | null>(null);
+const awardErrorMessage = ref('');
+const awardItems = ref<AwardRuleItem[]>([]);
+const awardTotal = ref(0);
+const lastAwardRecalculateSummary = ref('');
+const awardFilters = reactive({
+  page: 1,
+  pageSize: 20,
+  keyword: '',
+  scopeType: '' as '' | AwardScopeType,
+  enabled: ''
+});
+const awardForm = reactive<AwardRulePayload>({
+  code: '',
+  name: '',
+  scopeType: null,
+  category: '',
+  placement: '',
+  rank: null,
+  baseScore: 0,
+  coefficient: 1,
+  topAward: false,
+  enabled: true,
+  sortOrder: 0,
+  remark: ''
+});
+const hasAwardRows = computed(() => awardItems.value.length > 0);
+const awardDialogTitle = computed(() =>
+  awardEditingItem.value ? '编辑球员奖项规则' : '新增球员奖项规则'
+);
 
 async function loadRules() {
   loading.value = true;
@@ -268,6 +324,219 @@ function getPlacementLabel(value: CompetitionStandingPlacement) {
   return placementLabels[value] ?? value;
 }
 
+function getAwardScopeLabel(value?: AwardScopeType | null) {
+  return value ? (awardScopeLabels[value] ?? value) : '全部范围';
+}
+
+async function loadAwardRules() {
+  awardLoading.value = true;
+  awardErrorMessage.value = '';
+
+  try {
+    const result = await fetchAwardRules({
+      page: awardFilters.page,
+      pageSize: awardFilters.pageSize,
+      keyword: awardFilters.keyword || undefined,
+      scopeType: awardFilters.scopeType || undefined,
+      enabled: awardFilters.enabled || undefined
+    });
+    awardItems.value = result.items;
+    awardTotal.value = result.total;
+  } catch (error) {
+    awardErrorMessage.value = error instanceof Error ? error.message : '球员奖项规则加载失败。';
+    ElMessage.error(awardErrorMessage.value);
+  } finally {
+    awardLoading.value = false;
+  }
+}
+
+function submitAwardFilters() {
+  awardFilters.page = 1;
+  void loadAwardRules();
+}
+
+function resetAwardFilters() {
+  awardFilters.page = 1;
+  awardFilters.keyword = '';
+  awardFilters.scopeType = '';
+  awardFilters.enabled = '';
+  void loadAwardRules();
+}
+
+function resetAwardForm() {
+  awardForm.code = '';
+  awardForm.name = '';
+  awardForm.scopeType = null;
+  awardForm.category = '';
+  awardForm.placement = '';
+  awardForm.rank = null;
+  awardForm.baseScore = 0;
+  awardForm.coefficient = 1;
+  awardForm.topAward = false;
+  awardForm.enabled = true;
+  awardForm.sortOrder = 0;
+  awardForm.remark = '';
+}
+
+function openCreateAwardDialog() {
+  awardEditingItem.value = null;
+  resetAwardForm();
+  awardDialogVisible.value = true;
+}
+
+function openEditAwardDialog(row: AwardRuleItem) {
+  awardEditingItem.value = row;
+  awardForm.code = row.code;
+  awardForm.name = row.name;
+  awardForm.scopeType = row.scopeType ?? null;
+  awardForm.category = row.category ?? '';
+  awardForm.placement = row.placement ?? '';
+  awardForm.rank = row.rank ?? null;
+  awardForm.baseScore = row.baseScore;
+  awardForm.coefficient = row.coefficient;
+  awardForm.topAward = row.topAward;
+  awardForm.enabled = row.enabled;
+  awardForm.sortOrder = row.sortOrder;
+  awardForm.remark = row.remark ?? '';
+  awardDialogVisible.value = true;
+}
+
+function validateAwardForm() {
+  if (!awardForm.code.trim()) {
+    ElMessage.warning('请填写规则编码。');
+    return false;
+  }
+
+  if (!awardForm.name.trim()) {
+    ElMessage.warning('请填写规则名称。');
+    return false;
+  }
+
+  if (!Number.isFinite(awardForm.baseScore) || awardForm.baseScore < 0) {
+    ElMessage.warning('基础分必须是不小于 0 的数字。');
+    return false;
+  }
+
+  if (!Number.isFinite(awardForm.coefficient) || awardForm.coefficient < 0) {
+    ElMessage.warning('系数必须是不小于 0 的数字。');
+    return false;
+  }
+
+  if (
+    awardForm.rank !== null &&
+    awardForm.rank !== undefined &&
+    (!Number.isInteger(Number(awardForm.rank)) || Number(awardForm.rank) < 1)
+  ) {
+    ElMessage.warning('排名必须是大于 0 的整数。');
+    return false;
+  }
+
+  return true;
+}
+
+function buildAwardPayload(): AwardRulePayload {
+  return {
+    code: awardForm.code.trim(),
+    name: awardForm.name.trim(),
+    scopeType: awardForm.scopeType || null,
+    category: awardForm.category?.trim() || undefined,
+    placement: awardForm.placement?.trim() || undefined,
+    rank: awardForm.rank === null || awardForm.rank === undefined ? null : Number(awardForm.rank),
+    baseScore: Number(awardForm.baseScore),
+    coefficient: Number(awardForm.coefficient),
+    topAward: awardForm.topAward,
+    enabled: awardForm.enabled,
+    sortOrder: awardForm.sortOrder ?? 0,
+    remark: awardForm.remark?.trim() || undefined
+  };
+}
+
+async function saveAwardRule() {
+  if (!validateAwardForm()) {
+    return;
+  }
+
+  awardSubmitting.value = true;
+
+  try {
+    const payload = buildAwardPayload();
+
+    if (awardEditingItem.value) {
+      await updateAwardRule(awardEditingItem.value.id, payload);
+      ElMessage.success('球员奖项规则已更新。');
+    } else {
+      await createAwardRule(payload);
+      ElMessage.success('球员奖项规则已创建。');
+    }
+
+    awardDialogVisible.value = false;
+    await loadAwardRules();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '保存球员奖项规则失败。');
+  } finally {
+    awardSubmitting.value = false;
+  }
+}
+
+async function toggleAwardRule(row: AwardRuleItem) {
+  awardSubmitting.value = true;
+
+  try {
+    await updateAwardRule(row.id, {
+      code: row.code,
+      name: row.name,
+      scopeType: row.scopeType ?? null,
+      category: row.category ?? undefined,
+      placement: row.placement ?? undefined,
+      rank: row.rank ?? null,
+      baseScore: row.baseScore,
+      coefficient: row.coefficient,
+      topAward: row.topAward,
+      enabled: !row.enabled,
+      sortOrder: row.sortOrder,
+      remark: row.remark ?? undefined
+    });
+    ElMessage.success(row.enabled ? '规则已停用。' : '规则已启用。');
+    await loadAwardRules();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '切换球员奖项规则状态失败。');
+  } finally {
+    awardSubmitting.value = false;
+  }
+}
+
+async function recalculatePlayerAwardScores() {
+  try {
+    await ElMessageBox.confirm(
+      '将根据当前启用的球员奖项规则重新计算球员荣誉分，并写回巨星统计字段。是否继续？',
+      '重新计算球员荣誉分',
+      {
+        confirmButtonText: '开始重算',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+  } catch {
+    return;
+  }
+
+  awardRecalculating.value = true;
+
+  try {
+    const result = await recalculateAwardScores();
+    lastAwardRecalculateSummary.value = `已处理 ${result.playerCount} 名球员、${result.recipientCount} 条获奖记录，启用规则 ${result.enabledRuleCount} 条，计分球员 ${result.scoredPlayerCount} 名。`;
+    ElMessage.success('球员荣誉分重算完成。');
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '球员荣誉分重算失败。');
+  } finally {
+    awardRecalculating.value = false;
+  }
+}
+
+function formatAwardRuleScore(row: AwardRuleItem) {
+  return Number(row.baseScore * row.coefficient).toFixed(2);
+}
+
 watch(
   () => [filters.page, filters.pageSize],
   () => {
@@ -275,155 +544,326 @@ watch(
   }
 );
 
+watch(
+  () => [awardFilters.page, awardFilters.pageSize],
+  () => {
+    void loadAwardRules();
+  }
+);
+
 onMounted(() => {
   void loadRules();
+  void loadAwardRules();
 });
 </script>
 
 <template>
   <section class="page-stack">
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>荣誉规则</h2>
-          <p>按赛事对象、分类和名次配置评分规则，手动触发后更新国家与俱乐部荣誉分。</p>
-        </div>
-        <div class="header-actions">
-          <el-button type="warning" :loading="recalculating" @click="recalculateScores">
-            重新计算荣誉分
-          </el-button>
-          <el-button type="success" :disabled="loading" @click="openCreateDialog">
-            新增规则
-          </el-button>
-        </div>
-      </div>
-
-      <el-form
-        class="filter-grid compact-filter honor-rule-filter"
-        label-position="top"
-        @submit.prevent="submitFilters"
-      >
-        <el-form-item label="关键词">
-          <el-input
-            v-model="filters.keyword"
-            clearable
-            placeholder="编码 / 名称 / 分类 / 备注"
-            @keyup.enter="submitFilters"
-          />
-        </el-form-item>
-        <el-form-item label="对象">
-          <el-select v-model="filters.targetType" clearable placeholder="全部对象">
-            <el-option
-              v-for="option in targetTypeOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="名次">
-          <el-select v-model="filters.placement" clearable placeholder="全部名次">
-            <el-option
-              v-for="option in placementOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filters.enabled" clearable placeholder="全部状态">
-            <el-option
-              v-for="option in enabledOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
-        </div>
-      </el-form>
-
-      <el-alert
-        v-if="lastRecalculateSummary"
-        class="recalculate-alert"
-        type="success"
-        :title="lastRecalculateSummary"
-        show-icon
-        :closable="false"
-      />
-    </div>
-
-    <div v-if="errorMessage" class="panel">
-      <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <h3>规则列表</h3>
-        <span class="status-pill">{{ total }} 条</span>
-      </div>
-
-      <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
-
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无荣誉规则</h3>
-        <p>先新增赛事评分规则，再录入赛事名次并手动重算荣誉分。</p>
-      </div>
-
-      <template v-else>
-        <el-table :data="items" border>
-          <el-table-column prop="sortOrder" label="排序" width="72" />
-          <el-table-column prop="code" label="编码" min-width="120" show-overflow-tooltip />
-          <el-table-column prop="name" label="规则名称" min-width="150" show-overflow-tooltip />
-          <el-table-column label="对象" width="92">
-            <template #default="{ row }">{{ getTargetTypeLabel(row.targetType) }}</template>
-          </el-table-column>
-          <el-table-column label="赛事分类" min-width="120">
-            <template #default="{ row }">{{ row.category || '未分类' }}</template>
-          </el-table-column>
-          <el-table-column label="名次" width="84">
-            <template #default="{ row }">{{ getPlacementLabel(row.placement) }}</template>
-          </el-table-column>
-          <el-table-column prop="baseScore" label="基础分" width="92" />
-          <el-table-column prop="coefficient" label="系数" width="84" />
-          <el-table-column label="实际分" width="92">
-            <template #default="{ row }">{{ formatScore(row) }}</template>
-          </el-table-column>
-          <el-table-column label="状态" width="84">
-            <template #default="{ row }">
-              <el-tag :type="row.enabled ? 'success' : 'info'">
-                {{ row.enabled ? '启用' : '停用' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip>
-            <template #default="{ row }">{{ row.remark || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="132" fixed="right">
-            <template #default="{ row }">
-              <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
-              <el-button link :type="row.enabled ? 'warning' : 'success'" @click="toggleRule(row)">
-                {{ row.enabled ? '停用' : '启用' }}
+    <el-tabs v-model="activeTab" class="rule-tabs">
+      <el-tab-pane label="赛事荣誉规则" name="competition">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>荣誉规则</h2>
+              <p>按赛事对象、分类和名次配置评分规则，手动触发后更新国家与俱乐部荣誉分。</p>
+            </div>
+            <div class="header-actions">
+              <el-button type="warning" :loading="recalculating" @click="recalculateScores">
+                重新计算荣誉分
               </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+              <el-button type="success" :disabled="loading" @click="openCreateDialog">
+                新增规则
+              </el-button>
+            </div>
+          </div>
 
-        <div class="table-footer">
-          <el-pagination
-            v-model:current-page="filters.page"
-            v-model:page-size="filters.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next"
-            :total="total"
+          <el-form
+            class="filter-grid compact-filter honor-rule-filter"
+            label-position="top"
+            @submit.prevent="submitFilters"
+          >
+            <el-form-item label="关键词">
+              <el-input
+                v-model="filters.keyword"
+                clearable
+                placeholder="编码 / 名称 / 分类 / 备注"
+                @keyup.enter="submitFilters"
+              />
+            </el-form-item>
+            <el-form-item label="对象">
+              <el-select v-model="filters.targetType" clearable placeholder="全部对象">
+                <el-option
+                  v-for="option in targetTypeOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="名次">
+              <el-select v-model="filters.placement" clearable placeholder="全部名次">
+                <el-option
+                  v-for="option in placementOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-select v-model="filters.enabled" clearable placeholder="全部状态">
+                <el-option
+                  v-for="option in enabledOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <div class="filter-actions">
+              <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
+              <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+            </div>
+          </el-form>
+
+          <el-alert
+            v-if="lastRecalculateSummary"
+            class="recalculate-alert"
+            type="success"
+            :title="lastRecalculateSummary"
+            show-icon
+            :closable="false"
           />
         </div>
-      </template>
-    </div>
+
+        <div v-if="errorMessage" class="panel">
+          <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>规则列表</h3>
+            <span class="status-pill">{{ total }} 条</span>
+          </div>
+
+          <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
+
+          <div v-else-if="!hasRows" class="empty-panel">
+            <h3>暂无荣誉规则</h3>
+            <p>先新增赛事评分规则，再录入赛事名次并手动重算荣誉分。</p>
+          </div>
+
+          <template v-else>
+            <el-table :data="items" border>
+              <el-table-column prop="sortOrder" label="排序" width="72" />
+              <el-table-column prop="code" label="编码" min-width="120" show-overflow-tooltip />
+              <el-table-column prop="name" label="规则名称" min-width="150" show-overflow-tooltip />
+              <el-table-column label="对象" width="92">
+                <template #default="{ row }">{{ getTargetTypeLabel(row.targetType) }}</template>
+              </el-table-column>
+              <el-table-column label="赛事分类" min-width="120">
+                <template #default="{ row }">{{ row.category || '未分类' }}</template>
+              </el-table-column>
+              <el-table-column label="名次" width="84">
+                <template #default="{ row }">{{ getPlacementLabel(row.placement) }}</template>
+              </el-table-column>
+              <el-table-column prop="baseScore" label="基础分" width="92" />
+              <el-table-column prop="coefficient" label="系数" width="84" />
+              <el-table-column label="实际分" width="92">
+                <template #default="{ row }">{{ formatScore(row) }}</template>
+              </el-table-column>
+              <el-table-column label="状态" width="84">
+                <template #default="{ row }">
+                  <el-tag :type="row.enabled ? 'success' : 'info'">
+                    {{ row.enabled ? '启用' : '停用' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip>
+                <template #default="{ row }">{{ row.remark || '-' }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="132" fixed="right">
+                <template #default="{ row }">
+                  <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
+                  <el-button
+                    link
+                    :type="row.enabled ? 'warning' : 'success'"
+                    @click="toggleRule(row)"
+                  >
+                    {{ row.enabled ? '停用' : '启用' }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="table-footer">
+              <el-pagination
+                v-model:current-page="filters.page"
+                v-model:page-size="filters.pageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next"
+                :total="total"
+              />
+            </div>
+          </template>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="球员奖项规则" name="player-award">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>球员奖项规则</h2>
+              <p>按奖项范围、分类、名次文本或排名配置评分规则，手动触发后更新球员荣誉分。</p>
+            </div>
+            <div class="header-actions">
+              <el-button
+                type="warning"
+                :loading="awardRecalculating"
+                @click="recalculatePlayerAwardScores"
+              >
+                重新计算球员荣誉分
+              </el-button>
+              <el-button type="success" :disabled="awardLoading" @click="openCreateAwardDialog">
+                新增奖项规则
+              </el-button>
+            </div>
+          </div>
+
+          <el-form
+            class="filter-grid compact-filter award-rule-filter"
+            label-position="top"
+            @submit.prevent="submitAwardFilters"
+          >
+            <el-form-item label="关键词">
+              <el-input
+                v-model="awardFilters.keyword"
+                clearable
+                placeholder="编码 / 名称 / 分类 / 名次 / 备注"
+                @keyup.enter="submitAwardFilters"
+              />
+            </el-form-item>
+            <el-form-item label="奖项范围">
+              <el-select v-model="awardFilters.scopeType" clearable placeholder="全部范围">
+                <el-option
+                  v-for="option in awardScopeOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-select v-model="awardFilters.enabled" clearable placeholder="全部状态">
+                <el-option
+                  v-for="option in enabledOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <div class="filter-actions">
+              <el-button type="primary" :loading="awardLoading" @click="submitAwardFilters">
+                筛选
+              </el-button>
+              <el-button :disabled="awardLoading" @click="resetAwardFilters">重置</el-button>
+            </div>
+          </el-form>
+
+          <el-alert
+            v-if="lastAwardRecalculateSummary"
+            class="recalculate-alert"
+            type="success"
+            :title="lastAwardRecalculateSummary"
+            show-icon
+            :closable="false"
+          />
+        </div>
+
+        <div v-if="awardErrorMessage" class="panel">
+          <el-alert type="error" :title="awardErrorMessage" show-icon :closable="false" />
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>奖项规则列表</h3>
+            <span class="status-pill">{{ awardTotal }} 条</span>
+          </div>
+
+          <el-skeleton v-if="awardLoading && !hasAwardRows" :rows="8" animated />
+
+          <div v-else-if="!hasAwardRows" class="empty-panel">
+            <h3>暂无球员奖项规则</h3>
+            <p>先新增个人奖项评分规则，再录入奖项获奖人并手动重算球员荣誉分。</p>
+          </div>
+
+          <template v-else>
+            <el-table :data="awardItems" border>
+              <el-table-column prop="sortOrder" label="排序" width="72" />
+              <el-table-column prop="code" label="编码" min-width="130" show-overflow-tooltip />
+              <el-table-column prop="name" label="规则名称" min-width="160" show-overflow-tooltip />
+              <el-table-column label="范围" width="100">
+                <template #default="{ row }">{{ getAwardScopeLabel(row.scopeType) }}</template>
+              </el-table-column>
+              <el-table-column label="奖项分类" min-width="120">
+                <template #default="{ row }">{{ row.category || '全部分类' }}</template>
+              </el-table-column>
+              <el-table-column label="名次文本" min-width="110">
+                <template #default="{ row }">{{ row.placement || '不限' }}</template>
+              </el-table-column>
+              <el-table-column label="排名" width="84">
+                <template #default="{ row }">{{ row.rank ?? '不限' }}</template>
+              </el-table-column>
+              <el-table-column prop="baseScore" label="基础分" width="92" />
+              <el-table-column prop="coefficient" label="系数" width="84" />
+              <el-table-column label="实际分" width="92">
+                <template #default="{ row }">{{ formatAwardRuleScore(row) }}</template>
+              </el-table-column>
+              <el-table-column label="顶级奖" width="86">
+                <template #default="{ row }">
+                  <el-tag :type="row.topAward ? 'warning' : 'info'">
+                    {{ row.topAward ? '是' : '否' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="状态" width="84">
+                <template #default="{ row }">
+                  <el-tag :type="row.enabled ? 'success' : 'info'">
+                    {{ row.enabled ? '启用' : '停用' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip>
+                <template #default="{ row }">{{ row.remark || '-' }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="132" fixed="right">
+                <template #default="{ row }">
+                  <el-button link type="primary" @click="openEditAwardDialog(row)">编辑</el-button>
+                  <el-button
+                    link
+                    :type="row.enabled ? 'warning' : 'success'"
+                    @click="toggleAwardRule(row)"
+                  >
+                    {{ row.enabled ? '停用' : '启用' }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="table-footer">
+              <el-pagination
+                v-model:current-page="awardFilters.page"
+                v-model:page-size="awardFilters.pageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next"
+                :total="awardTotal"
+              />
+            </div>
+          </template>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="620px">
       <el-form class="honor-rule-form" label-position="top">
@@ -481,6 +921,82 @@ onMounted(() => {
       <template #footer>
         <el-button :disabled="submitting" @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="saveRule">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="awardDialogVisible" :title="awardDialogTitle" width="620px">
+      <el-form class="honor-rule-form" label-position="top">
+        <el-form-item label="规则编码" required>
+          <el-input v-model="awardForm.code" placeholder="例如 BALLON_DOR_RANK_1" />
+        </el-form-item>
+        <el-form-item label="规则名称" required>
+          <el-input v-model="awardForm.name" placeholder="例如 金球奖第一名" />
+        </el-form-item>
+        <el-form-item label="奖项范围">
+          <el-select v-model="awardForm.scopeType" clearable placeholder="不限范围">
+            <el-option
+              v-for="option in awardScopeOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="奖项分类">
+          <el-input v-model="awardForm.category" placeholder="例如 金球奖 / 世界足球先生" />
+        </el-form-item>
+        <el-form-item label="名次文本">
+          <el-input v-model="awardForm.placement" placeholder="例如 第一名 / 金奖，可留空" />
+        </el-form-item>
+        <el-form-item label="排名">
+          <el-input-number
+            v-model="awardForm.rank"
+            :min="1"
+            :max="999"
+            :controls="false"
+            placeholder="可留空"
+          />
+        </el-form-item>
+        <el-form-item label="基础分" required>
+          <el-input-number
+            v-model="awardForm.baseScore"
+            :min="0"
+            :precision="2"
+            :controls="false"
+          />
+        </el-form-item>
+        <el-form-item label="系数" required>
+          <el-input-number
+            v-model="awardForm.coefficient"
+            :min="0"
+            :precision="2"
+            :controls="false"
+          />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input-number v-model="awardForm.sortOrder" :min="0" :max="9999" :controls="false" />
+        </el-form-item>
+        <el-form-item label="顶级奖项">
+          <el-switch v-model="awardForm.topAward" active-text="是" inactive-text="否" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-switch v-model="awardForm.enabled" active-text="启用" inactive-text="停用" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="awardForm.remark"
+            type="textarea"
+            :rows="3"
+            placeholder="可填写评分口径说明"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button :disabled="awardSubmitting" @click="awardDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="awardSubmitting" @click="saveAwardRule">
+          保存
+        </el-button>
       </template>
     </el-dialog>
   </section>

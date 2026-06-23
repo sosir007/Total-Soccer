@@ -53,6 +53,9 @@ model Player {
   positions          String?
   ca                 Int?
   pa                 Int?
+  honorScore         Float?
+  awardCount         Int?
+  topAwardCount      Int?
   height             Int?
   weight             Int?
   shirtNumber        String?
@@ -116,6 +119,7 @@ model Player {
   @@index([countryUid])
   @@index([clubUid])
   @@index([pa])
+  @@index([honorScore])
 }
 
 model Country {
@@ -275,6 +279,30 @@ model HonorRule {
   @@index([targetType])
   @@index([category])
   @@index([placement])
+  @@index([enabled])
+}
+
+model AwardRule {
+  id          String          @id @default(cuid())
+  code        String          @unique
+  name        String
+  scopeType   AwardScopeType?
+  category    String?
+  placement   String?
+  rank        Int?
+  baseScore   Float           @default(0)
+  coefficient Float           @default(1)
+  topAward    Boolean         @default(false)
+  enabled     Boolean         @default(true)
+  sortOrder   Int             @default(0)
+  remark      String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([scopeType])
+  @@index([category])
+  @@index([placement])
+  @@index([rank])
   @@index([enabled])
 }
 

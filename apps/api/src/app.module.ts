@@ -14,6 +14,7 @@ import { SummitModule } from './summit/summit.module.js';
 import { BaseConfigModule } from './base-config/base-config.module.js';
 import { HonorRulesModule } from './honor-rules/honor-rules.module.js';
 import { AwardsModule } from './awards/awards.module.js';
+import { AwardRulesModule } from './award-rules/award-rules.module.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
 
@@ -31,7 +32,8 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     SummitModule,
     BaseConfigModule,
     HonorRulesModule,
-    AwardsModule
+    AwardsModule,
+    AwardRulesModule
   ],
   providers: [
     {
