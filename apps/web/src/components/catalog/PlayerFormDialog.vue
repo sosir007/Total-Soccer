@@ -6,6 +6,9 @@ import {
   createPlayer,
   updatePlayer,
   type PlayerDetail,
+  type PlayerCareer,
+  type PlayerCareerPayload,
+  type PlayerCareerType,
   type PlayerPayload
 } from '@/services/catalog';
 import {
@@ -31,6 +34,28 @@ const emit = defineEmits<{
 
 const saving = ref(false);
 const optionStore = useOptionStore();
+interface CareerForm {
+  careerType: PlayerCareerType;
+  clubId: string;
+  countryId: string;
+  startYear?: number;
+  endYear?: number;
+  startSeason: string;
+  endSeason: string;
+  appearances?: number;
+  goals?: number;
+  assists?: number;
+  cleanSheets?: number;
+  goalsConceded?: number;
+  position: string;
+  positionGroup: string;
+  showInProfile: boolean;
+  isRepresentative: boolean;
+  isLegend: boolean;
+  sortOrder: number;
+  remark: string;
+}
+
 const form = reactive({
   uid: '',
   chineseName: '',
@@ -66,7 +91,8 @@ const form = reactive({
   staffRoles: '',
   achievement: '',
   externalUrl: '',
-  remark: ''
+  remark: '',
+  careers: [] as CareerForm[]
 });
 
 watch(
@@ -113,9 +139,100 @@ watch(
     form.achievement = props.player?.achievement ?? '';
     form.externalUrl = props.player?.externalUrl ?? '';
     form.remark = props.player?.remark ?? '';
+    form.careers = (props.player?.careers ?? []).map((career, index) =>
+      careerToForm(career, index)
+    );
   },
   { immediate: true }
 );
+
+function careerToForm(career: PlayerCareer, index: number): CareerForm {
+  return {
+    careerType: career.careerType,
+    clubId: career.club?.id ?? career.clubId ?? '',
+    countryId: career.country?.id ?? career.countryId ?? '',
+    startYear: career.startYear ?? undefined,
+    endYear: career.endYear ?? undefined,
+    startSeason: career.startSeason ?? '',
+    endSeason: career.endSeason ?? '',
+    appearances: career.appearances ?? undefined,
+    goals: career.goals ?? undefined,
+    assists: career.assists ?? undefined,
+    cleanSheets: career.cleanSheets ?? undefined,
+    goalsConceded: career.goalsConceded ?? undefined,
+    position: career.position ?? '',
+    positionGroup: career.positionGroup ?? '',
+    showInProfile: career.showInProfile,
+    isRepresentative: career.isRepresentative,
+    isLegend: career.isLegend,
+    sortOrder: career.sortOrder ?? index,
+    remark: career.remark ?? ''
+  };
+}
+
+function createCareerForm(careerType: PlayerCareerType): CareerForm {
+  return {
+    careerType,
+    clubId: '',
+    countryId: careerType === 'COUNTRY' ? form.countryId : '',
+    startYear: undefined,
+    endYear: undefined,
+    startSeason: '',
+    endSeason: '',
+    appearances: undefined,
+    goals: undefined,
+    assists: undefined,
+    cleanSheets: undefined,
+    goalsConceded: undefined,
+    position: form.primaryRole,
+    positionGroup: '',
+    showInProfile: true,
+    isRepresentative: false,
+    isLegend: false,
+    sortOrder: form.careers.length,
+    remark: ''
+  };
+}
+
+function addCareer(careerType: PlayerCareerType) {
+  form.careers.push(createCareerForm(careerType));
+}
+
+function buildCareers(): PlayerCareerPayload[] {
+  return form.careers.flatMap((career, index) => {
+    if (career.careerType === 'CLUB' && !career.clubId) {
+      return [];
+    }
+
+    if (career.careerType === 'COUNTRY' && !career.countryId) {
+      return [];
+    }
+
+    return [
+      {
+        careerType: career.careerType,
+        clubId: career.careerType === 'CLUB' ? career.clubId : null,
+        countryId: career.careerType === 'COUNTRY' ? career.countryId : null,
+        startYear: career.startYear ?? null,
+        endYear: career.endYear ?? null,
+        startSeason: career.startSeason.trim() || undefined,
+        endSeason: career.endSeason.trim() || undefined,
+        appearances: career.appearances ?? null,
+        goals: career.goals ?? null,
+        assists: career.assists ?? null,
+        cleanSheets: career.cleanSheets ?? null,
+        goalsConceded: career.goalsConceded ?? null,
+        position: career.position.trim() || undefined,
+        positionGroup: career.positionGroup.trim() || undefined,
+        showInProfile: career.careerType === 'CLUB' ? career.showInProfile : true,
+        isRepresentative: career.careerType === 'CLUB' ? career.isRepresentative : false,
+        isLegend: career.careerType === 'CLUB' ? career.isLegend : false,
+        sortOrder: career.sortOrder ?? index,
+        remark: career.remark.trim() || undefined
+      }
+    ];
+  });
+}
 
 function formatFormDate(value?: string | number | null) {
   return value ? dayjs(value).format('YYYY-MM-DD') : '';
@@ -200,7 +317,8 @@ async function submit() {
       staffRoles: form.staffRoles.trim() || undefined,
       achievement: form.achievement.trim() || undefined,
       externalUrl: form.externalUrl.trim() || undefined,
-      remark: form.remark.trim() || undefined
+      remark: form.remark.trim() || undefined,
+      careers: buildCareers()
     };
     const result = props.player
       ? await updatePlayer(props.player.id, payload)
@@ -338,6 +456,98 @@ async function submit() {
       <el-form-item label="球队经历">
         <ClubSelect v-model="form.clubHistoryIds" multiple placeholder="请选择球员效力过的球队" />
       </el-form-item>
+      <div class="career-editor">
+        <div class="career-editor-header">
+          <div>
+            <strong>结构化经历</strong>
+            <span>用于球员列表代表俱乐部、球队经历，以及俱乐部/国家详情档案。</span>
+          </div>
+          <div class="career-editor-actions">
+            <el-button size="small" @click="addCareer('CLUB')">新增俱乐部经历</el-button>
+            <el-button size="small" @click="addCareer('COUNTRY')">新增国家队经历</el-button>
+          </div>
+        </div>
+
+        <div v-if="!form.careers.length" class="mini-empty">
+          暂无结构化经历，可先新增俱乐部经历或国家队经历。
+        </div>
+
+        <div v-for="(career, index) in form.careers" :key="index" class="career-card">
+          <div class="career-card-title">
+            <el-tag :type="career.careerType === 'CLUB' ? 'success' : 'warning'">
+              {{ career.careerType === 'CLUB' ? '俱乐部经历' : '国家队经历' }}
+            </el-tag>
+            <span>排序 {{ index + 1 }}</span>
+          </div>
+          <div class="career-card-grid">
+            <el-form-item label="经历类型">
+              <el-select v-model="career.careerType">
+                <el-option label="俱乐部" value="CLUB" />
+                <el-option label="国家队" value="COUNTRY" />
+              </el-select>
+            </el-form-item>
+            <el-form-item v-if="career.careerType === 'CLUB'" label="俱乐部">
+              <ClubSelect v-model="career.clubId" placeholder="请选择俱乐部" />
+            </el-form-item>
+            <el-form-item v-else label="国家队">
+              <CountrySelect v-model="career.countryId" placeholder="请选择国家队" />
+            </el-form-item>
+            <el-form-item label="开始年份">
+              <el-input-number
+                v-model="career.startYear"
+                :controls="false"
+                :min="1800"
+                :max="2200"
+              />
+            </el-form-item>
+            <el-form-item label="结束年份">
+              <el-input-number v-model="career.endYear" :controls="false" :min="1800" :max="2200" />
+            </el-form-item>
+            <el-form-item label="开始赛季">
+              <el-input v-model="career.startSeason" placeholder="例如 1994-95" />
+            </el-form-item>
+            <el-form-item label="结束赛季">
+              <el-input v-model="career.endSeason" placeholder="例如 1999-00" />
+            </el-form-item>
+            <el-form-item label="位置">
+              <PositionSelect v-model="career.position" placeholder="请选择位置" />
+            </el-form-item>
+            <el-form-item label="位置组">
+              <el-input v-model="career.positionGroup" placeholder="前场 / 中场 / 后场 / 门将" />
+            </el-form-item>
+            <el-form-item label="场次">
+              <el-input-number v-model="career.appearances" :controls="false" :min="0" />
+            </el-form-item>
+            <el-form-item label="进球">
+              <el-input-number v-model="career.goals" :controls="false" :min="0" />
+            </el-form-item>
+            <el-form-item label="助攻">
+              <el-input-number v-model="career.assists" :controls="false" :min="0" />
+            </el-form-item>
+            <el-form-item label="零封">
+              <el-input-number v-model="career.cleanSheets" :controls="false" :min="0" />
+            </el-form-item>
+            <el-form-item label="失球">
+              <el-input-number v-model="career.goalsConceded" :controls="false" :min="0" />
+            </el-form-item>
+            <el-form-item label="排序">
+              <el-input-number v-model="career.sortOrder" :controls="false" :min="0" />
+            </el-form-item>
+            <el-form-item v-if="career.careerType === 'CLUB'" label="俱乐部展示">
+              <el-switch v-model="career.showInProfile" active-text="展示" inactive-text="隐藏" />
+            </el-form-item>
+            <el-form-item v-if="career.careerType === 'CLUB'" label="代表俱乐部">
+              <el-switch v-model="career.isRepresentative" active-text="是" inactive-text="否" />
+            </el-form-item>
+            <el-form-item v-if="career.careerType === 'CLUB'" label="俱乐部名宿">
+              <el-switch v-model="career.isLegend" active-text="是" inactive-text="否" />
+            </el-form-item>
+            <el-form-item label="备注" class="career-card-wide">
+              <el-input v-model="career.remark" placeholder="补充经历说明" />
+            </el-form-item>
+          </div>
+        </div>
+      </div>
       <el-form-item label="成就">
         <el-input
           v-model="form.achievement"
@@ -377,9 +587,75 @@ async function submit() {
   width: 100%;
 }
 
+.career-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.career-editor-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fbf7;
+}
+
+.career-editor-header div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.career-editor-header span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.career-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.career-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.career-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.career-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+.career-card-wide {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 720px) {
-  .catalog-form-grid {
+  .catalog-form-grid,
+  .career-card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .career-editor-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style>

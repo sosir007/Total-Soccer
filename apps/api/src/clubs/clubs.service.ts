@@ -1,6 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { CompetitionStandingPlacement, CompetitionTargetType, type Prisma } from '@prisma/client';
+import {
+  CompetitionStandingPlacement,
+  CompetitionTargetType,
+  PlayerCareerType,
+  type Prisma
+} from '@prisma/client';
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -80,6 +85,18 @@ const CLUB_HONOR_INCLUDE = {
   }
 } satisfies Prisma.CompetitionStandingInclude;
 
+const CAREER_PLAYER_SELECT = {
+  id: true,
+  uid: true,
+  chineseName: true,
+  englishName: true,
+  birthDate: true,
+  primaryRole: true,
+  positions: true,
+  pa: true,
+  externalUrl: true
+} satisfies Prisma.PlayerSelect;
+
 @Injectable()
 export class ClubsService {
   constructor(
@@ -126,7 +143,8 @@ export class ClubsService {
 
     return {
       ...computedClub,
-      honorRecords: await this.getClubHonorRecords(id, 10)
+      honorRecords: await this.getClubHonorRecords(id, 10),
+      ...(await this.getClubCareerProfile(id))
     };
   }
 
@@ -387,6 +405,143 @@ export class ClubsService {
     });
 
     return items.map((item) => this.mapHonorRecord(item));
+  }
+
+  private async getClubCareerProfile(clubId: string) {
+    const careers = await this.prisma.playerCareer.findMany({
+      where: {
+        clubId,
+        careerType: PlayerCareerType.CLUB,
+        showInProfile: true
+      },
+      include: {
+        player: {
+          select: CAREER_PLAYER_SELECT
+        }
+      },
+      orderBy: [{ sortOrder: 'asc' }, { startYear: 'asc' }]
+    });
+
+    return {
+      careerTimeline: this.buildCareerTimeline(careers),
+      lineupByPosition: this.buildLineupByPosition(careers),
+      representativeLineupByPosition: this.buildLineupByPosition(
+        careers.filter((career) => career.isLegend)
+      )
+    };
+  }
+
+  private buildCareerTimeline(
+    careers: Array<
+      Prisma.PlayerCareerGetPayload<{
+        include: { player: { select: typeof CAREER_PLAYER_SELECT } };
+      }>
+    >
+  ) {
+    const map = new Map<string, ReturnType<typeof this.mapCareerLine>[]>();
+
+    for (const career of careers) {
+      const decade = this.getPlayerDecade(career.player.birthDate);
+      const rows = map.get(decade) ?? [];
+      rows.push(this.mapCareerLine(career));
+      map.set(decade, rows);
+    }
+
+    return [...map.entries()]
+      .sort(([a], [b]) => this.compareDecade(a, b))
+      .map(([decade, items]) => ({ decade, items }));
+  }
+
+  private buildLineupByPosition(
+    careers: Array<
+      Prisma.PlayerCareerGetPayload<{
+        include: { player: { select: typeof CAREER_PLAYER_SELECT } };
+      }>
+    >
+  ) {
+    const positionOrder = ['ST', 'AML', 'AMC', 'AMR', 'MC', 'DMC', 'DL', 'DC', 'DR', 'GK'];
+    const map = new Map<string, ReturnType<typeof this.mapCareerLine>[]>();
+
+    for (const career of careers) {
+      const position = this.resolvePosition(career);
+      const rows = map.get(position) ?? [];
+      rows.push(this.mapCareerLine(career));
+      map.set(position, rows);
+    }
+
+    return positionOrder.map((position) => ({
+      position,
+      items: map.get(position) ?? []
+    }));
+  }
+
+  private mapCareerLine(
+    career: Prisma.PlayerCareerGetPayload<{
+      include: { player: { select: typeof CAREER_PLAYER_SELECT } };
+    }>
+  ) {
+    return {
+      id: career.id,
+      player: career.player,
+      position: this.resolvePosition(career),
+      positionGroup: career.positionGroup,
+      period: this.formatCareerPeriod(career),
+      appearances: career.appearances,
+      goals: career.goals,
+      assists: career.assists,
+      cleanSheets: career.cleanSheets,
+      goalsConceded: career.goalsConceded,
+      isLegend: career.isLegend,
+      remark: career.remark
+    };
+  }
+
+  private resolvePosition(
+    career: Prisma.PlayerCareerGetPayload<{
+      include: { player: { select: typeof CAREER_PLAYER_SELECT } };
+    }>
+  ) {
+    const raw = career.position ?? career.player.primaryRole ?? career.player.positions ?? '';
+    const [position] = raw.split(/[、,，/\s]+/).filter(Boolean);
+    return position || '未分组';
+  }
+
+  private formatCareerPeriod(career: {
+    startSeason: string | null;
+    endSeason: string | null;
+    startYear: number | null;
+    endYear: number | null;
+  }) {
+    if (career.startSeason || career.endSeason) {
+      return [career.startSeason, career.endSeason].filter(Boolean).join(' - ') || null;
+    }
+
+    if (career.startYear || career.endYear) {
+      return [career.startYear, career.endYear].filter(Boolean).join(' - ');
+    }
+
+    return null;
+  }
+
+  private getPlayerDecade(value: number | null) {
+    if (!value) {
+      return '未知年代';
+    }
+
+    const year = new Date(value).getFullYear();
+
+    if (!Number.isFinite(year)) {
+      return '未知年代';
+    }
+
+    const start = Math.floor(year / 10) * 10;
+    return `${start}-${start + 9}`;
+  }
+
+  private compareDecade(a: string, b: string) {
+    if (a === '未知年代') return 1;
+    if (b === '未知年代') return -1;
+    return Number(a.slice(0, 4)) - Number(b.slice(0, 4));
   }
 
   private buildHonorWhere(query: ClubHonorListQuery): Prisma.CompetitionStandingWhereInput {

@@ -52,4 +52,27 @@ export interface PlayerPayload {
   achievement?: string;
   externalUrl?: string;
   remark?: string;
+  careers?: PlayerCareerPayload[];
+}
+
+export interface PlayerCareerPayload {
+  careerType?: 'CLUB' | 'COUNTRY';
+  clubId?: string | null;
+  countryId?: string | null;
+  startYear?: number | string | null;
+  endYear?: number | string | null;
+  startSeason?: string;
+  endSeason?: string;
+  appearances?: number | string | null;
+  goals?: number | string | null;
+  assists?: number | string | null;
+  cleanSheets?: number | string | null;
+  goalsConceded?: number | string | null;
+  position?: string;
+  positionGroup?: string;
+  showInProfile?: boolean | string | null;
+  isRepresentative?: boolean | string | null;
+  isLegend?: boolean | string | null;
+  sortOrder?: number | string | null;
+  remark?: string;
 }

@@ -26,6 +26,11 @@ enum CompetitionStandingPlacement {
   FOURTH_PLACE
 }
 
+enum PlayerCareerType {
+  CLUB
+  COUNTRY
+}
+
 model Player {
   id                 String         @id @default(cuid())
   importKey          String         @unique
@@ -84,6 +89,7 @@ model Player {
   preferredFootRef   PreferredFoot? @relation(fields: [preferredFootId], references: [id])
   playerTypeRef      PlayerType?    @relation(fields: [playerTypeId], references: [id])
   nationalities      PlayerNationality[]
+  careers            PlayerCareer[]
   honors             PlayerHonor[]
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -124,6 +130,7 @@ model Country {
   playerNationalities PlayerNationality[]
   cities             City[]
   clubs              Club[]
+  playerCareers      PlayerCareer[]
   federationRef      Confederation?        @relation(fields: [federationId], references: [id])
   honors             CountryHonor[]
   scopedCompetitions Competition[]         @relation("CompetitionScopeCountry")
@@ -186,6 +193,7 @@ model Club {
   countryRef         Country?              @relation(fields: [countryId], references: [id])
   federationRef      Confederation?        @relation(fields: [federationId], references: [id])
   players            Player[]
+  playerCareers      PlayerCareer[]
   honors             ClubHonor[]
   competitionResults CompetitionStanding[]
   createdAt          DateTime              @default(now())
@@ -196,6 +204,43 @@ model Club {
   @@index([country])
   @@index([federation])
   @@index([federationId])
+}
+
+model PlayerCareer {
+  id               String           @id @default(cuid())
+  playerId         String
+  careerType       PlayerCareerType
+  clubId           String?
+  countryId        String?
+  startYear        Int?
+  endYear          Int?
+  startSeason      String?
+  endSeason        String?
+  appearances      Int?
+  goals            Int?
+  assists          Int?
+  cleanSheets      Int?
+  goalsConceded    Int?
+  position         String?
+  positionGroup    String?
+  showInProfile    Boolean          @default(true)
+  isRepresentative Boolean          @default(false)
+  isLegend         Boolean          @default(false)
+  sortOrder        Int              @default(0)
+  remark           String?
+  player           Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  club             Club?            @relation(fields: [clubId], references: [id])
+  country          Country?         @relation(fields: [countryId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([playerId])
+  @@index([careerType])
+  @@index([clubId])
+  @@index([countryId])
+  @@index([showInProfile])
+  @@index([isRepresentative])
+  @@index([isLegend])
 }
 
 model HonorRule {

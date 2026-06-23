@@ -2,7 +2,13 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { fetchCountryDetail, type CountryDetail, type NamedRef } from '@/services/catalog';
+import {
+  fetchCountryDetail,
+  type CareerProfileLine,
+  type CountryDetail,
+  type LineupPositionGroup,
+  type NamedRef
+} from '@/services/catalog';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
@@ -70,6 +76,38 @@ function countryExternalUrl() {
 
 function openEditDialog() {
   countryDialogVisible.value = true;
+}
+
+function openPlayerDetail(id?: string | null) {
+  if (!id) {
+    return;
+  }
+
+  void router.push({
+    name: 'stars-detail-id',
+    params: { id }
+  });
+}
+
+function formatLineStats(item: CareerProfileLine) {
+  const normal = [item.appearances, item.goals, item.assists]
+    .map((value) => value ?? '-')
+    .join('/');
+  const goalkeeper = [item.cleanSheets, item.goalsConceded].some(
+    (value) => value !== null && value !== undefined
+  )
+    ? `，零封/失球 ${item.cleanSheets ?? '-'}/${item.goalsConceded ?? '-'}`
+    : '';
+
+  return `${normal}${goalkeeper}`;
+}
+
+function countLineupItems(groups?: LineupPositionGroup[]) {
+  return groups?.reduce((sum, group) => sum + group.items.length, 0) ?? 0;
+}
+
+function hasLineupItems(groups?: LineupPositionGroup[]) {
+  return countLineupItems(groups) > 0;
 }
 
 function handleCountrySaved(savedCountry: CountryDetail) {
@@ -266,6 +304,65 @@ onMounted(() => {
             <template #default="{ row }">{{ getStandingName(row, placement.value) }}</template>
           </el-table-column>
         </el-table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>国家队时间线</h3>
+          <span class="status-pill">{{ country.careerTimeline?.length ?? 0 }} 个年代</span>
+        </div>
+
+        <div v-if="!country.careerTimeline?.length" class="mini-empty">暂无结构化国家队经历</div>
+
+        <div v-else class="career-timeline">
+          <div v-for="group in country.careerTimeline" :key="group.decade" class="timeline-block">
+            <div class="timeline-decade">{{ group.decade }}</div>
+            <div class="timeline-lines">
+              <button
+                v-for="item in group.items"
+                :key="item.id"
+                class="timeline-player"
+                type="button"
+                @click="openPlayerDetail(item.player.id)"
+              >
+                <span>{{ item.position }}</span>
+                <strong>{{ item.player.chineseName }}</strong>
+                <em>PA {{ formatText(item.player.pa) }} · {{ formatText(item.period) }}</em>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>阵容</h3>
+          <span class="status-pill">{{ countLineupItems(country.lineupByPosition) }} 人</span>
+        </div>
+
+        <div v-if="!hasLineupItems(country.lineupByPosition)" class="mini-empty">
+          暂无代表国家球员
+        </div>
+
+        <div v-else class="lineup-board">
+          <div v-for="group in country.lineupByPosition" :key="group.position" class="lineup-row">
+            <div class="lineup-position">{{ group.position }}</div>
+            <div v-if="!group.items.length" class="lineup-empty">-</div>
+            <div v-else class="lineup-players">
+              <button
+                v-for="item in group.items"
+                :key="item.id"
+                class="lineup-player"
+                type="button"
+                @click="openPlayerDetail(item.player.id)"
+              >
+                <strong>{{ item.player.chineseName }}</strong>
+                <span>PA {{ formatText(item.player.pa) }}</span>
+                <em>{{ formatLineStats(item) }}</em>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <CountryFormDialog

@@ -114,6 +114,64 @@ function openEditDialog() {
   playerDialogVisible.value = true;
 }
 
+function openClubDetail(id?: string | null) {
+  if (!id) {
+    return;
+  }
+
+  void router.push({
+    name: 'clubs-detail-id',
+    params: { id }
+  });
+}
+
+function openCountryDetail(id?: string | null) {
+  if (!id) {
+    return;
+  }
+
+  void router.push({
+    name: 'nations-detail-id',
+    params: { id }
+  });
+}
+
+function formatCareerPeriod(career: {
+  startSeason?: string | null;
+  endSeason?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+}) {
+  if (career.startSeason || career.endSeason) {
+    return [career.startSeason, career.endSeason].filter(Boolean).join(' - ') || '-';
+  }
+
+  if (career.startYear || career.endYear) {
+    return [career.startYear, career.endYear].filter(Boolean).join(' - ');
+  }
+
+  return '-';
+}
+
+function formatCareerStats(career: {
+  appearances?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+  goalsConceded?: number | null;
+}) {
+  const normal = [career.appearances, career.goals, career.assists]
+    .map((item) => item ?? '-')
+    .join('/');
+  const goalkeeper = [career.cleanSheets, career.goalsConceded].some(
+    (item) => item !== null && item !== undefined
+  )
+    ? `，零封/失球 ${career.cleanSheets ?? '-'}/${career.goalsConceded ?? '-'}`
+    : '';
+
+  return `${normal}${goalkeeper}`;
+}
+
 function handlePlayerSaved(savedPlayer: PlayerDetail) {
   player.value = savedPlayer;
   void loadPlayer();
@@ -320,6 +378,80 @@ onMounted(() => {
               <dd>{{ formatText(player.remark) }}</dd>
             </div>
           </dl>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>俱乐部经历</h3>
+            <span class="status-pill">{{ player.profileClubCareers?.length ?? 0 }} 段</span>
+          </div>
+
+          <div v-if="!player.profileClubCareers?.length" class="mini-empty">
+            暂无结构化俱乐部经历
+          </div>
+
+          <el-table v-else :data="player.profileClubCareers" border>
+            <el-table-column label="俱乐部" min-width="150">
+              <template #default="{ row }">
+                <button
+                  v-if="row.club"
+                  class="table-name-link"
+                  type="button"
+                  @click="openClubDetail(row.club.id)"
+                >
+                  {{ row.club.name }}
+                </button>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="时间" min-width="120">
+              <template #default="{ row }">{{ formatCareerPeriod(row) }}</template>
+            </el-table-column>
+            <el-table-column prop="position" label="位置" width="90" />
+            <el-table-column label="场/球/助" width="120">
+              <template #default="{ row }">{{ formatCareerStats(row) }}</template>
+            </el-table-column>
+            <el-table-column label="标签" width="170">
+              <template #default="{ row }">
+                <el-tag v-if="row.isRepresentative" size="small" type="success">代表</el-tag>
+                <el-tag v-if="row.isLegend" size="small" type="warning">名宿</el-tag>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>国家队经历</h3>
+            <span class="status-pill">{{ player.countryCareers?.length ?? 0 }} 段</span>
+          </div>
+
+          <div v-if="!player.countryCareers?.length" class="mini-empty">暂无结构化国家队经历</div>
+
+          <el-table v-else :data="player.countryCareers" border>
+            <el-table-column label="国家队" min-width="150">
+              <template #default="{ row }">
+                <button
+                  v-if="row.country"
+                  class="table-name-link"
+                  type="button"
+                  @click="openCountryDetail(row.country.id)"
+                >
+                  {{ row.country.name }}
+                </button>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="时间" min-width="120">
+              <template #default="{ row }">{{ formatCareerPeriod(row) }}</template>
+            </el-table-column>
+            <el-table-column prop="position" label="位置" width="90" />
+            <el-table-column label="场/球/助" width="120">
+              <template #default="{ row }">{{ formatCareerStats(row) }}</template>
+            </el-table-column>
+          </el-table>
         </div>
       </div>
 

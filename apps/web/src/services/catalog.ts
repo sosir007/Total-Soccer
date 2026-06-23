@@ -49,6 +49,68 @@ export interface HonorRecord {
   standings: Partial<Record<CompetitionStandingPlacement, NamedRef | null>>;
 }
 
+export type PlayerCareerType = 'CLUB' | 'COUNTRY';
+
+export interface PlayerCareer {
+  id: string;
+  careerType: PlayerCareerType;
+  clubId?: string | null;
+  countryId?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  startSeason?: string | null;
+  endSeason?: string | null;
+  appearances?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+  goalsConceded?: number | null;
+  position?: string | null;
+  positionGroup?: string | null;
+  showInProfile: boolean;
+  isRepresentative: boolean;
+  isLegend: boolean;
+  sortOrder: number;
+  remark?: string | null;
+  club?: (NamedRef & { exists?: boolean }) | null;
+  country?: NamedRef | null;
+}
+
+export interface CareerProfileLine {
+  id: string;
+  player: {
+    id: string;
+    uid: string;
+    chineseName: string;
+    englishName?: string | null;
+    birthDate?: number | null;
+    primaryRole?: string | null;
+    positions?: string | null;
+    pa?: number | null;
+    externalUrl?: string | null;
+  };
+  position: string;
+  positionGroup?: string | null;
+  period?: string | null;
+  appearances?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+  goalsConceded?: number | null;
+  isLegend?: boolean | null;
+  remark?: string | null;
+}
+
+export interface CareerTimelineGroup {
+  decade: string;
+  items: CareerProfileLine[];
+}
+
+export interface LineupPositionGroup {
+  position: string;
+  items: CareerProfileLine[];
+}
+
 export interface PlayerListItem {
   id: string;
   uid: string;
@@ -100,6 +162,12 @@ export interface PlayerListItem {
   playerTypeRef?: NamedRef | null;
   ethnicityRef?: NamedRef | null;
   preferredFootRef?: NamedRef | null;
+  careers?: PlayerCareer[];
+  representativeClubCareer?: PlayerCareer | null;
+  profileClubCareers?: PlayerCareer[];
+  countryCareers?: PlayerCareer[];
+  representativeClubName?: string | null;
+  profileClubNames?: string[];
 }
 
 export interface PlayerDetail extends PlayerListItem {
@@ -153,6 +221,8 @@ export interface CountryListItem {
 
 export type CountryDetail = CountryListItem & {
   honorRecords?: HonorRecord[];
+  careerTimeline?: CareerTimelineGroup[];
+  lineupByPosition?: LineupPositionGroup[];
 };
 
 export interface ClubListItem {
@@ -182,6 +252,9 @@ export interface ClubListItem {
 
 export type ClubDetail = ClubListItem & {
   honorRecords?: HonorRecord[];
+  careerTimeline?: CareerTimelineGroup[];
+  lineupByPosition?: LineupPositionGroup[];
+  representativeLineupByPosition?: LineupPositionGroup[];
 };
 
 export interface PlayerListParams {
@@ -295,6 +368,29 @@ export interface PlayerPayload {
   staffRoles?: string;
   achievement?: string;
   externalUrl?: string;
+  remark?: string;
+  careers?: PlayerCareerPayload[];
+}
+
+export interface PlayerCareerPayload {
+  careerType: PlayerCareerType;
+  clubId?: string | null;
+  countryId?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  startSeason?: string;
+  endSeason?: string;
+  appearances?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+  goalsConceded?: number | null;
+  position?: string;
+  positionGroup?: string;
+  showInProfile?: boolean;
+  isRepresentative?: boolean;
+  isLegend?: boolean;
+  sortOrder?: number | null;
   remark?: string;
 }
 

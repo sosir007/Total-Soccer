@@ -192,6 +192,26 @@ function formatBirthCityUid(player: PlayerListItem) {
   return player.birthCityRef?.uid ?? player.birthCityUid ?? '-';
 }
 
+function getRepresentativeClub(player: PlayerListItem) {
+  return player.representativeClubCareer?.club ?? player.club;
+}
+
+function formatRepresentativeClubName(player: PlayerListItem) {
+  return player.representativeClubName ?? player.primaryClub ?? '-';
+}
+
+function formatRepresentativeClubUid(player: PlayerListItem) {
+  const club = getRepresentativeClub(player);
+
+  return club?.uid ?? player.clubUid ?? '-';
+}
+
+function formatProfileClubs(player: PlayerListItem) {
+  return player.profileClubNames?.length
+    ? player.profileClubNames.join('、')
+    : formatText(player.clubs);
+}
+
 function formatFoot(player: PlayerListItem) {
   return formatText(player.foot || player.preferredFootRef?.name);
 }
@@ -393,17 +413,17 @@ onMounted(() => {
           <el-table-column label="代表球队" min-width="170" show-overflow-tooltip>
             <template #default="{ row }">
               <button
-                v-if="row.club"
+                v-if="getRepresentativeClub(row)"
                 class="table-name-link table-ref-card"
                 type="button"
-                @click="openClubDetail(row.club)"
+                @click="openClubDetail(getRepresentativeClub(row))"
               >
-                <strong>{{ row.club.name }}</strong>
-                <span>UID {{ row.club.uid || row.clubUid || '-' }}</span>
+                <strong>{{ formatRepresentativeClubName(row) }}</strong>
+                <span>UID {{ formatRepresentativeClubUid(row) }}</span>
               </button>
               <div v-else class="table-ref-card">
-                <strong>{{ row.primaryClub || '-' }}</strong>
-                <span>UID {{ row.clubUid || '-' }}</span>
+                <strong>{{ formatRepresentativeClubName(row) }}</strong>
+                <span>UID {{ formatRepresentativeClubUid(row) }}</span>
               </div>
             </template>
           </el-table-column>
@@ -413,7 +433,9 @@ onMounted(() => {
             min-width="150"
             show-overflow-tooltip
           />
-          <el-table-column prop="clubs" label="球队经历" min-width="260" show-overflow-tooltip />
+          <el-table-column label="球队经历" min-width="260" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatProfileClubs(row) }}</template>
+          </el-table-column>
           <el-table-column label="类型" min-width="120">
             <template #default="{ row }">{{ formatRef(row.playerTypeRef) }}</template>
           </el-table-column>

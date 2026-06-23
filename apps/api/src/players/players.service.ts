@@ -1,9 +1,29 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import type { Prisma } from '@prisma/client';
+import { PlayerCareerType, type Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { resolvePagination, toNumber } from '../common/pagination.js';
-import type { PlayerListQuery, PlayerPayload } from './players.types.js';
+import type { PlayerCareerPayload, PlayerListQuery, PlayerPayload } from './players.types.js';
+
+const PLAYER_CAREER_INCLUDE = {
+  club: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true,
+      exists: true
+    }
+  },
+  country: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  }
+} satisfies Prisma.PlayerCareerInclude;
 
 const PLAYER_LIST_INCLUDE = {
   country: {
@@ -83,6 +103,10 @@ const PLAYER_LIST_INCLUDE = {
         }
       }
     }
+  },
+  careers: {
+    include: PLAYER_CAREER_INCLUDE,
+    orderBy: [{ sortOrder: 'asc' }, { startYear: 'asc' }, { startSeason: 'asc' }]
   }
 } satisfies Prisma.PlayerInclude;
 
@@ -134,7 +158,7 @@ export class PlayersService {
     ]);
 
     return {
-      items,
+      items: items.map((item) => this.attachCareerSummaries(item)),
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -151,11 +175,11 @@ export class PlayersService {
       throw new NotFoundException('球员不存在。');
     }
 
-    return player;
+    return this.attachCareerSummaries(player);
   }
 
   async create(body: PlayerPayload) {
-    const { data, nationalityIds } = await this.buildPlayerData(body);
+    const { data, nationalityIds, careers } = await this.buildPlayerData(body);
     await this.assertUniqueUid(data.uid);
     const player = await this.prisma.$transaction(async (tx) => {
       const created = await tx.player.create({
@@ -166,6 +190,9 @@ export class PlayersService {
         select: { id: true }
       });
       await this.replaceNationalities(tx, created.id, nationalityIds);
+      if (careers) {
+        await this.replaceCareers(tx, created.id, careers);
+      }
 
       return created;
     });
@@ -183,7 +210,7 @@ export class PlayersService {
       throw new NotFoundException('球员不存在。');
     }
 
-    const { data, nationalityIds } = await this.buildPlayerData(body);
+    const { data, nationalityIds, careers } = await this.buildPlayerData(body);
     await this.assertUniqueUid(data.uid, id);
     await this.prisma.$transaction(async (tx) => {
       await tx.player.update({
@@ -191,6 +218,9 @@ export class PlayersService {
         data
       });
       await this.replaceNationalities(tx, id, nationalityIds);
+      if (careers) {
+        await this.replaceCareers(tx, id, careers);
+      }
     });
 
     return this.findOne(id);
@@ -281,6 +311,7 @@ export class PlayersService {
       | 'remark'
     >;
     nationalityIds: string[];
+    careers?: Prisma.PlayerCareerUncheckedCreateWithoutPlayerInput[];
   }> {
     const uid = this.requiredText(body.uid, 'UID');
     const chineseName = this.requiredText(body.chineseName, '球员中文名');
@@ -347,8 +378,67 @@ export class PlayersService {
         externalUrl: this.optionalText(body.externalUrl),
         remark: this.optionalText(body.remark)
       },
-      nationalityIds
+      nationalityIds,
+      careers: body.careers ? await this.buildCareerData(body.careers) : undefined
     };
+  }
+
+  private async buildCareerData(
+    careers: PlayerCareerPayload[]
+  ): Promise<Prisma.PlayerCareerUncheckedCreateWithoutPlayerInput[]> {
+    const rows: Prisma.PlayerCareerUncheckedCreateWithoutPlayerInput[] = [];
+    let representativeClubCount = 0;
+
+    for (const [index, career] of careers.entries()) {
+      const careerType = this.parseCareerType(career.careerType);
+      const club =
+        careerType === PlayerCareerType.CLUB ? await this.findClub(career.clubId ?? '') : null;
+      const country =
+        careerType === PlayerCareerType.COUNTRY
+          ? await this.findCountry(career.countryId ?? '')
+          : null;
+      const showInProfile = this.optionalBoolean(career.showInProfile) ?? true;
+      const isRepresentative =
+        careerType === PlayerCareerType.CLUB
+          ? (this.optionalBoolean(career.isRepresentative) ?? false)
+          : false;
+      const isLegend =
+        careerType === PlayerCareerType.CLUB
+          ? (this.optionalBoolean(career.isLegend) ?? false)
+          : false;
+
+      if (isRepresentative) {
+        representativeClubCount += 1;
+      }
+
+      rows.push({
+        careerType,
+        clubId: club?.id ?? null,
+        countryId: country?.id ?? null,
+        startYear: this.optionalInteger(career.startYear, '开始年份', 1800, 2200),
+        endYear: this.optionalInteger(career.endYear, '结束年份', 1800, 2200),
+        startSeason: this.optionalText(career.startSeason),
+        endSeason: this.optionalText(career.endSeason),
+        appearances: this.optionalInteger(career.appearances, '场次', 0, 10000),
+        goals: this.optionalInteger(career.goals, '进球', 0, 10000),
+        assists: this.optionalInteger(career.assists, '助攻', 0, 10000),
+        cleanSheets: this.optionalInteger(career.cleanSheets, '零封', 0, 10000),
+        goalsConceded: this.optionalInteger(career.goalsConceded, '失球', 0, 10000),
+        position: this.optionalText(career.position),
+        positionGroup: this.optionalText(career.positionGroup),
+        showInProfile,
+        isRepresentative,
+        isLegend,
+        sortOrder: this.optionalInteger(career.sortOrder, '排序', 0, 9999) ?? index,
+        remark: this.optionalText(career.remark)
+      });
+    }
+
+    if (representativeClubCount > 1) {
+      throw new BadRequestException('同一球员只能设置一个代表俱乐部。');
+    }
+
+    return rows;
   }
 
   private async findCountry(id?: string) {
@@ -540,6 +630,70 @@ export class PlayersService {
       })),
       skipDuplicates: true
     });
+  }
+
+  private async replaceCareers(
+    tx: Prisma.TransactionClient,
+    playerId: string,
+    careers: Prisma.PlayerCareerUncheckedCreateWithoutPlayerInput[]
+  ) {
+    await tx.playerCareer.deleteMany({
+      where: {
+        playerId
+      }
+    });
+
+    if (careers.length === 0) {
+      return;
+    }
+
+    await tx.playerCareer.createMany({
+      data: careers.map((career) => ({
+        ...career,
+        playerId
+      }))
+    });
+  }
+
+  private attachCareerSummaries<
+    T extends {
+      careers?: Array<Prisma.PlayerCareerGetPayload<{ include: typeof PLAYER_CAREER_INCLUDE }>>;
+      primaryClub?: string | null;
+      clubs?: string | null;
+    }
+  >(player: T) {
+    const careers = player.careers ?? [];
+    const representativeClubCareer =
+      careers.find(
+        (career) => career.careerType === PlayerCareerType.CLUB && career.isRepresentative
+      ) ?? null;
+    const profileClubCareers = careers.filter(
+      (career) => career.careerType === PlayerCareerType.CLUB && career.showInProfile
+    );
+    const countryCareers = careers.filter(
+      (career) => career.careerType === PlayerCareerType.COUNTRY
+    );
+
+    return {
+      ...player,
+      representativeClubCareer,
+      profileClubCareers,
+      countryCareers,
+      representativeClubName: representativeClubCareer?.club?.name ?? player.primaryClub ?? null,
+      profileClubNames: profileClubCareers.length
+        ? profileClubCareers.flatMap((career) => (career.club?.name ? [career.club.name] : []))
+        : player.clubs
+          ? [player.clubs]
+          : []
+    };
+  }
+
+  private parseCareerType(value: PlayerCareerPayload['careerType']) {
+    if (!value || !Object.values(PlayerCareerType).includes(value)) {
+      throw new BadRequestException('经历类型不合法。');
+    }
+
+    return value;
   }
 
   private async findConfederation(id?: string) {
