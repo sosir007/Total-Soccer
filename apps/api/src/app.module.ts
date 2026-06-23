@@ -16,6 +16,8 @@ import { HonorRulesModule } from './honor-rules/honor-rules.module.js';
 import { AwardsModule } from './awards/awards.module.js';
 import { AwardRulesModule } from './award-rules/award-rules.module.js';
 import { RemarksModule } from './remarks/remarks.module.js';
+import { AuditLogsModule } from './audit-logs/audit-logs.module.js';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
 
@@ -35,9 +37,14 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     HonorRulesModule,
     AwardsModule,
     AwardRulesModule,
-    RemarksModule
+    RemarksModule,
+    AuditLogsModule
   ],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor

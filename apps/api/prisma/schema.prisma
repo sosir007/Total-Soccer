@@ -40,6 +40,15 @@ enum AwardScopeType {
   MEDIA
 }
 
+enum AuditAction {
+  CREATE
+  UPDATE
+  RECALCULATE
+  IMPORT
+  UPSERT
+  OTHER
+}
+
 model Player {
   id                 String              @id @default(cuid())
   importKey          String              @unique
@@ -120,6 +129,31 @@ model Player {
   @@index([clubUid])
   @@index([pa])
   @@index([honorScore])
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  action     AuditAction @default(OTHER)
+  module     String
+  method     String
+  path       String
+  success    Boolean
+  statusCode Int?
+  objectType String?
+  objectId   String?
+  summary    String?
+  actor      String      @default("LOCAL_USER")
+  ip         String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([action])
+  @@index([module])
+  @@index([success])
+  @@index([objectType])
+  @@index([objectId])
+  @@index([createdAt])
 }
 
 model Country {
