@@ -90,6 +90,8 @@ pnpm db:up
 pnpm db:down
 ```
 
+业务数据只保存在 PostgreSQL，不会随代码自动推送到 GitHub。备份和恢复方式见 `docs/数据库备份与恢复.md`。
+
 ## 提交前检查
 
 提交前建议执行：
