@@ -172,6 +172,29 @@ function formatCareerStats(career: {
   return `${normal}${goalkeeper}`;
 }
 
+function formatAwardEdition(honor: NonNullable<PlayerDetail['personalHonors']>[number]) {
+  return honor.edition.season || honor.edition.name || honor.edition.year || '-';
+}
+
+function formatAwardPlacement(honor: NonNullable<PlayerDetail['personalHonors']>[number]) {
+  if (honor.placement) {
+    return honor.placement;
+  }
+
+  return honor.rank ? `第 ${honor.rank} 名` : '-';
+}
+
+function awardUrl(honor: NonNullable<PlayerDetail['personalHonors']>[number]) {
+  return buildExternalUrl(honor.edition.award.externalUrl, honor.edition.award.name);
+}
+
+function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[number]) {
+  return buildExternalUrl(
+    honor.edition.externalUrl || honor.externalUrl,
+    `${honor.edition.award.name} ${formatAwardEdition(honor)}`
+  );
+}
+
 function handlePlayerSaved(savedPlayer: PlayerDetail) {
   player.value = savedPlayer;
   void loadPlayer();
@@ -453,6 +476,56 @@ onMounted(() => {
             </el-table-column>
           </el-table>
         </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>个人荣誉</h3>
+          <span class="status-pill">{{ player.personalHonors?.length ?? 0 }} 条</span>
+        </div>
+
+        <div v-if="!player.personalHonors?.length" class="mini-empty">暂无结构化个人荣誉</div>
+
+        <el-table v-else :data="player.personalHonors" border>
+          <el-table-column label="奖项" min-width="170" fixed>
+            <template #default="{ row }">
+              <div class="player-name-cell">
+                <a
+                  class="external-text-link"
+                  :href="awardUrl(row)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ row.edition.award.name }}
+                </a>
+                <span>{{ row.edition.award.category || row.edition.award.code }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="年份 / 届次" min-width="150">
+            <template #default="{ row }">
+              <a
+                class="external-text-link"
+                :href="awardEditionUrl(row)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ formatAwardEdition(row) }}
+              </a>
+            </template>
+          </el-table-column>
+          <el-table-column label="年份" width="90">
+            <template #default="{ row }">{{ row.edition.year || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="名次" width="110">
+            <template #default="{ row }">
+              <el-tag type="warning">{{ formatAwardPlacement(row) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="备注" min-width="180">
+            <template #default="{ row }">{{ formatText(row.remark) }}</template>
+          </el-table-column>
+        </el-table>
       </div>
 
       <PlayerFormDialog v-model="playerDialogVisible" :player="player" @saved="handlePlayerSaved" />

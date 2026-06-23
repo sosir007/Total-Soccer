@@ -1,4 +1,5 @@
 import { apiClient, type ApiResponse } from './api';
+import type { AwardRecipientRecord } from './awards';
 import type { CompetitionStandingPlacement } from './competitions';
 
 export interface PaginationResult<T> {
@@ -192,6 +193,7 @@ export interface PlayerDetail extends PlayerListItem {
   achievement?: string | null;
   remark?: string | null;
   hairColorRef?: NamedRef | null;
+  personalHonors?: AwardRecipientRecord[];
 }
 
 export interface CountryListItem {

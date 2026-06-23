@@ -31,9 +31,18 @@ enum PlayerCareerType {
   COUNTRY
 }
 
+enum AwardScopeType {
+  WORLD
+  CONFEDERATION
+  COUNTRY
+  LEAGUE
+  CLUB
+  MEDIA
+}
+
 model Player {
-  id                 String         @id @default(cuid())
-  importKey          String         @unique
+  id                 String              @id @default(cuid())
+  importKey          String              @unique
   uid                String
   chineseName        String
   englishName        String?
@@ -79,20 +88,21 @@ model Player {
   remark             String?
   countryId          String?
   clubId             String?
-  country            Country?       @relation(fields: [countryId], references: [id])
-  birthCountry       Country?       @relation("PlayerBirthCountry", fields: [birthCountryId], references: [id])
-  birthCityRef       City?          @relation(fields: [birthCityId], references: [id])
-  club               Club?          @relation(fields: [clubId], references: [id])
-  confederationRef   Confederation? @relation(fields: [confederationId], references: [id])
-  hairColorRef       HairColor?     @relation(fields: [hairColorId], references: [id])
-  ethnicityRef       Ethnicity?     @relation(fields: [ethnicityId], references: [id])
-  preferredFootRef   PreferredFoot? @relation(fields: [preferredFootId], references: [id])
-  playerTypeRef      PlayerType?    @relation(fields: [playerTypeId], references: [id])
+  country            Country?            @relation(fields: [countryId], references: [id])
+  birthCountry       Country?            @relation("PlayerBirthCountry", fields: [birthCountryId], references: [id])
+  birthCityRef       City?               @relation(fields: [birthCityId], references: [id])
+  club               Club?               @relation(fields: [clubId], references: [id])
+  confederationRef   Confederation?      @relation(fields: [confederationId], references: [id])
+  hairColorRef       HairColor?          @relation(fields: [hairColorId], references: [id])
+  ethnicityRef       Ethnicity?          @relation(fields: [ethnicityId], references: [id])
+  preferredFootRef   PreferredFoot?      @relation(fields: [preferredFootId], references: [id])
+  playerTypeRef      PlayerType?         @relation(fields: [playerTypeId], references: [id])
   nationalities      PlayerNationality[]
   careers            PlayerCareer[]
+  awardRecipients    AwardRecipient[]
   honors             PlayerHonor[]
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   @@index([countryId])
   @@index([birthCountryId])
@@ -109,34 +119,35 @@ model Player {
 }
 
 model Country {
-  id                 String                @id @default(cuid())
-  importKey          String                @unique
-  uid                String
-  name               String
-  externalUrl        String?
-  remark             String?
-  federation         String?
-  federationId       String?
-  playerCount        Int?
-  totalPa            Int?
-  averagePa          Float?
-  medalCount         Int?
-  championCount      Int?
-  majorChampionCount Int?
-  honorScore         Float?
-  averageHonorScore  Float?
-  players            Player[]
+  id                  String                @id @default(cuid())
+  importKey           String                @unique
+  uid                 String
+  name                String
+  externalUrl         String?
+  remark              String?
+  federation          String?
+  federationId        String?
+  playerCount         Int?
+  totalPa             Int?
+  averagePa           Float?
+  medalCount          Int?
+  championCount       Int?
+  majorChampionCount  Int?
+  honorScore          Float?
+  averageHonorScore   Float?
+  players             Player[]
   birthPlayers        Player[]              @relation("PlayerBirthCountry")
   playerNationalities PlayerNationality[]
-  cities             City[]
-  clubs              Club[]
-  playerCareers      PlayerCareer[]
-  federationRef      Confederation?        @relation(fields: [federationId], references: [id])
-  honors             CountryHonor[]
-  scopedCompetitions Competition[]         @relation("CompetitionScopeCountry")
-  competitionResults CompetitionStanding[]
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+  cities              City[]
+  clubs               Club[]
+  playerCareers       PlayerCareer[]
+  federationRef       Confederation?        @relation(fields: [federationId], references: [id])
+  honors              CountryHonor[]
+  scopedAwards        Award[]               @relation("AwardScopeCountry")
+  scopedCompetitions  Competition[]         @relation("CompetitionScopeCountry")
+  competitionResults  CompetitionStanding[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
   @@index([federation])
   @@index([federationId])
@@ -163,8 +174,8 @@ model City {
 model PlayerNationality {
   playerId  String
   countryId String
-  player    Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  country   Country @relation(fields: [countryId], references: [id])
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  country   Country  @relation(fields: [countryId], references: [id])
   createdAt DateTime @default(now())
 
   @@id([playerId, countryId])
@@ -324,6 +335,7 @@ model Confederation {
   name               String
   code               String?
   sortOrder          Int           @default(0)
+  scopedAwards       Award[]       @relation("AwardScopeConfederation")
   countries          Country[]
   clubs              Club[]
   players            Player[]
@@ -357,6 +369,69 @@ model Competition {
   @@index([confederationId])
   @@index([countryId])
   @@index([enabled])
+}
+
+model Award {
+  id              String         @id @default(cuid())
+  code            String         @unique
+  name            String
+  externalUrl     String?
+  scopeType       AwardScopeType @default(WORLD)
+  category        String?
+  level           String?
+  description     String?
+  confederationId String?
+  countryId       String?
+  enabled         Boolean        @default(true)
+  sortOrder       Int            @default(0)
+  confederation   Confederation? @relation("AwardScopeConfederation", fields: [confederationId], references: [id])
+  country         Country?       @relation("AwardScopeCountry", fields: [countryId], references: [id])
+  editions        AwardEdition[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([scopeType])
+  @@index([category])
+  @@index([confederationId])
+  @@index([countryId])
+  @@index([enabled])
+}
+
+model AwardEdition {
+  id          String           @id @default(cuid())
+  awardId     String
+  name        String
+  season      String?
+  year        Int?
+  externalUrl String?
+  remark      String?
+  award       Award            @relation(fields: [awardId], references: [id], onDelete: Cascade)
+  recipients  AwardRecipient[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([awardId, name])
+  @@index([awardId])
+  @@index([year])
+}
+
+model AwardRecipient {
+  id          String       @id @default(cuid())
+  editionId   String
+  playerId    String
+  rank        Int?
+  placement   String?
+  externalUrl String?
+  remark      String?
+  edition     AwardEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  player      Player       @relation(fields: [playerId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([editionId, playerId])
+  @@index([playerId])
+  @@index([rank])
+  @@index([placement])
 }
 
 model CompetitionEdition {

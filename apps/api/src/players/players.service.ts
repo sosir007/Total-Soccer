@@ -110,6 +110,33 @@ const PLAYER_LIST_INCLUDE = {
   }
 } satisfies Prisma.PlayerInclude;
 
+const PLAYER_AWARD_RECIPIENT_INCLUDE = {
+  edition: {
+    include: {
+      award: {
+        include: {
+          confederation: {
+            select: {
+              id: true,
+              uid: true,
+              code: true,
+              name: true
+            }
+          },
+          country: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true
+            }
+          }
+        }
+      }
+    }
+  }
+} satisfies Prisma.AwardRecipientInclude;
+
 const PLAYER_DETAIL_INCLUDE = {
   ...PLAYER_LIST_INCLUDE,
   ethnicityRef: {
@@ -135,6 +162,10 @@ const PLAYER_DETAIL_INCLUDE = {
       name: true,
       description: true
     }
+  },
+  awardRecipients: {
+    include: PLAYER_AWARD_RECIPIENT_INCLUDE,
+    orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }, { placement: 'asc' }]
   }
 } satisfies Prisma.PlayerInclude;
 
@@ -175,7 +206,7 @@ export class PlayersService {
       throw new NotFoundException('球员不存在。');
     }
 
-    return this.attachCareerSummaries(player);
+    return this.attachPersonalHonors(this.attachCareerSummaries(player));
   }
 
   async create(body: PlayerPayload) {
@@ -685,6 +716,19 @@ export class PlayersService {
         : player.clubs
           ? [player.clubs]
           : []
+    };
+  }
+
+  private attachPersonalHonors<
+    T extends {
+      awardRecipients?: Array<
+        Prisma.AwardRecipientGetPayload<{ include: typeof PLAYER_AWARD_RECIPIENT_INCLUDE }>
+      >;
+    }
+  >(player: T) {
+    return {
+      ...player,
+      personalHonors: player.awardRecipients ?? []
     };
   }
 
