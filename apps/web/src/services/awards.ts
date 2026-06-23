@@ -67,14 +67,14 @@ export interface AwardEdition {
   year?: number | null;
   externalUrl?: string | null;
   remark?: string | null;
-  recipients?: AwardRecipientRecord[];
+  recipients?: AwardEditionRecipient[];
 }
 
 export interface AwardDetail extends AwardListItem {
   editions: AwardEdition[];
 }
 
-export interface AwardRecipientRecord {
+export interface AwardEditionRecipient {
   id: string;
   editionId: string;
   playerId: string;
@@ -94,6 +94,9 @@ export interface AwardRecipientRecord {
     country?: AwardNamedRef | null;
     club?: AwardNamedRef | null;
   };
+}
+
+export interface AwardRecipientRecord extends AwardEditionRecipient {
   edition: Omit<AwardEdition, 'recipients'> & {
     award: AwardListItem;
   };

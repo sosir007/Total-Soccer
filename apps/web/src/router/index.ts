@@ -14,6 +14,7 @@ import StarHonorsView from '@/views/stars/StarHonorsView.vue';
 import StarDetailView from '@/views/stars/StarDetailView.vue';
 import HonorRulesView from '@/views/tianji/HonorRulesView.vue';
 import CompetitionsView from '@/views/tianji/CompetitionsView.vue';
+import AwardsView from '@/views/tianji/AwardsView.vue';
 import DataImportView from '@/views/tianji/DataImportView.vue';
 import BaseConfigView from '@/views/tianji/BaseConfigView.vue';
 import RemarksView from '@/views/tianji/RemarksView.vue';
@@ -128,6 +129,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'tianji-competitions',
         component: CompetitionsView,
         meta: { title: '赛事管理' }
+      },
+      {
+        path: 'tianji/awards',
+        name: 'tianji-awards',
+        component: AwardsView,
+        meta: { title: '奖项管理' }
       },
       {
         path: 'tianji/import',
