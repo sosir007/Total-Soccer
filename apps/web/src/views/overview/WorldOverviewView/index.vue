@@ -7,6 +7,7 @@ import {
   type DashboardRankItem,
   type WorldOverview
 } from '@/services/dashboard';
+import EntityLink from '@/components/EntityLink.vue';
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -298,7 +299,7 @@ onBeforeUnmount(() => {
               >
                 <strong>{{ index + 1 }}</strong>
                 <div>
-                  <span>{{ country.name }}</span>
+                  <EntityLink :id="country.id" type="country" :name="country.name" />
                   <em>{{ formatRankMeta(country, 'country') }}</em>
                 </div>
               </div>
@@ -315,7 +316,7 @@ onBeforeUnmount(() => {
               <div v-for="(club, index) in overview.topClubs" :key="club.id" class="rank-item">
                 <strong>{{ index + 1 }}</strong>
                 <div>
-                  <span>{{ club.name }}</span>
+                  <EntityLink :id="club.id" type="club" :name="club.name" />
                   <em>{{ formatRankMeta(club, 'club') }}</em>
                 </div>
               </div>

@@ -15,6 +15,8 @@ import {
   CountrySelect,
   PlayerTypeSelect
 } from '@/components/selects';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 
 const router = useRouter();
 const loading = ref(false);
@@ -320,16 +322,24 @@ onMounted(() => {
               <el-table :data="candidates" border @row-click="openPlayer">
                 <el-table-column label="球员" min-width="150" fixed>
                   <template #default="{ row }">
-                    <div class="player-name-cell">
-                      <strong>{{ row.chineseName }}</strong>
-                      <span>{{ row.englishName || row.uid }}</span>
-                    </div>
+                    <EntityNameCell
+                      :id="row.id"
+                      type="player"
+                      :title="row.chineseName"
+                      :subtitle="row.englishName || row.uid"
+                    />
                   </template>
                 </el-table-column>
                 <el-table-column prop="pa" label="PA" width="80" />
                 <el-table-column prop="ca" label="CA" width="80" />
                 <el-table-column label="国家" min-width="110">
-                  <template #default="{ row }">{{ formatRef(row.country) }}</template>
+                  <template #default="{ row }">
+                    <EntityLink
+                      :id="row.country?.id"
+                      type="country"
+                      :name="formatRef(row.country)"
+                    />
+                  </template>
                 </el-table-column>
                 <el-table-column
                   prop="positions"

@@ -27,3 +27,7 @@ export function formatHonorEdition(record: HonorRecord) {
 export function getStandingName(record: HonorRecord, placement: CompetitionStandingPlacement) {
   return record.standings[placement]?.name ?? '-';
 }
+
+export function getStandingRef(record: HonorRecord, placement: CompetitionStandingPlacement) {
+  return record.standings[placement] ?? null;
+}

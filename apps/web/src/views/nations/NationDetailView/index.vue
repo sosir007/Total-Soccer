@@ -10,12 +10,14 @@ import {
   type NamedRef
 } from '@/services/catalog';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
   formatPlacement,
-  getStandingName,
+  getStandingRef,
   placementOptions
 } from '@/utils/honor';
 
@@ -276,14 +278,14 @@ onMounted(() => {
         <el-table v-else :data="country.honorRecords" border>
           <el-table-column label="赛事" min-width="150" fixed>
             <template #default="{ row }">
-              <a
-                class="external-text-link"
-                :href="buildExternalUrl(row.competition.externalUrl, row.competition.name)"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ row.competition.name }}
-              </a>
+              <EntityNameCell
+                :id="row.competition.id"
+                type="competition"
+                :title="row.competition.name"
+                :subtitle="
+                  row.competition.category || row.competition.level || row.competition.code
+                "
+              />
             </template>
           </el-table-column>
           <el-table-column label="届次 / 赛季" min-width="150">
@@ -305,7 +307,13 @@ onMounted(() => {
             :label="placement.label"
             min-width="120"
           >
-            <template #default="{ row }">{{ getStandingName(row, placement.value) }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="getStandingRef(row, placement.value)?.id"
+                type="country"
+                :name="getStandingRef(row, placement.value)?.name"
+              />
+            </template>
           </el-table-column>
         </el-table>
       </div>

@@ -13,6 +13,7 @@ import {
   type CompetitionScopeType,
   type CompetitionTargetType
 } from '@/services/competitions';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 import { buildExternalUrl } from '@/utils/external-link';
@@ -425,13 +426,12 @@ onActivated(() => {
           </el-table-column>
           <el-table-column label="赛事" min-width="220" fixed="left">
             <template #default="{ row }">
-              <button
-                class="table-name-link player-name-cell"
-                @click="openCompetitionDetail(row.id)"
-              >
-                <strong>{{ row.name }}</strong>
-                <span>{{ row.code }}</span>
-              </button>
+              <EntityNameCell
+                :id="row.id"
+                type="competition"
+                :title="row.name"
+                :subtitle="row.code"
+              />
             </template>
           </el-table-column>
           <el-table-column label="对象" width="92">

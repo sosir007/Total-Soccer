@@ -4,12 +4,12 @@ import { ElMessage } from 'element-plus';
 import { fetchClubHonors, type HonorRecord } from '@/services/catalog';
 import { type CompetitionStandingPlacement } from '@/services/competitions';
 import { ClubSelect, CompetitionSelect } from '@/components/selects';
-import { buildExternalUrl } from '@/utils/external-link';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import {
   formatHonorEdition,
-  formatHonorSubject,
   formatPlacement,
-  getStandingName,
+  getStandingRef,
   placementOptions
 } from '@/utils/honor';
 
@@ -66,10 +66,6 @@ function resetFilters() {
   filters.year = undefined;
   filters.clubId = '';
   void loadHonors();
-}
-
-function competitionUrl(record: HonorRecord) {
-  return buildExternalUrl(record.competition.externalUrl, record.competition.name);
 }
 
 watch(
@@ -151,19 +147,14 @@ onMounted(() => {
         <el-table :data="records" border>
           <el-table-column label="赛事" min-width="160" fixed>
             <template #default="{ row }">
-              <div class="player-name-cell">
-                <a
-                  class="external-text-link"
-                  :href="competitionUrl(row)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ row.competition.name }}
-                </a>
-                <span>{{
+              <EntityNameCell
+                :id="row.competition.id"
+                type="competition"
+                :title="row.competition.name"
+                :subtitle="
                   row.competition.category || row.competition.level || row.competition.code
-                }}</span>
-              </div>
+                "
+              />
             </template>
           </el-table-column>
           <el-table-column label="届次 / 赛季" min-width="150">
@@ -173,7 +164,9 @@ onMounted(() => {
             <template #default="{ row }">{{ row.edition.year || '-' }}</template>
           </el-table-column>
           <el-table-column label="俱乐部" min-width="130">
-            <template #default="{ row }">{{ formatHonorSubject(row.club) }}</template>
+            <template #default="{ row }">
+              <EntityLink :id="row.club?.id" type="club" :name="row.club?.name" />
+            </template>
           </el-table-column>
           <el-table-column label="名次" width="90">
             <template #default="{ row }">
@@ -183,16 +176,40 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column label="冠军" min-width="120">
-            <template #default="{ row }">{{ getStandingName(row, 'CHAMPION') }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="getStandingRef(row, 'CHAMPION')?.id"
+                type="club"
+                :name="getStandingRef(row, 'CHAMPION')?.name"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="亚军" min-width="120">
-            <template #default="{ row }">{{ getStandingName(row, 'RUNNER_UP') }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="getStandingRef(row, 'RUNNER_UP')?.id"
+                type="club"
+                :name="getStandingRef(row, 'RUNNER_UP')?.name"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="季军" min-width="120">
-            <template #default="{ row }">{{ getStandingName(row, 'THIRD_PLACE') }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="getStandingRef(row, 'THIRD_PLACE')?.id"
+                type="club"
+                :name="getStandingRef(row, 'THIRD_PLACE')?.name"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="殿军" min-width="120">
-            <template #default="{ row }">{{ getStandingName(row, 'FOURTH_PLACE') }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="getStandingRef(row, 'FOURTH_PLACE')?.id"
+                type="club"
+                :name="getStandingRef(row, 'FOURTH_PLACE')?.name"
+              />
+            </template>
           </el-table-column>
         </el-table>
 

@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { deletePlayer, fetchPlayers, type NamedRef, type PlayerListItem } from '@/services/catalog';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import {
   ClubSelect,
   ConfederationSelect,
@@ -109,41 +111,6 @@ async function confirmDelete(player: PlayerListItem) {
 function submitFilters() {
   filters.page = 1;
   void loadPlayers();
-}
-
-function openDetail(player: PlayerListItem) {
-  void router.push({
-    name: 'stars-detail-id',
-    params: {
-      id: player.id
-    }
-  });
-}
-
-function openCountryDetail(country?: NamedRef | null) {
-  if (!country?.id) {
-    return;
-  }
-
-  void router.push({
-    name: 'nations-detail-id',
-    params: {
-      id: country.id
-    }
-  });
-}
-
-function openClubDetail(club?: NamedRef | null) {
-  if (!club?.id) {
-    return;
-  }
-
-  void router.push({
-    name: 'clubs-detail-id',
-    params: {
-      id: club.id
-    }
-  });
 }
 
 function rowIndex(index: number) {
@@ -362,14 +329,12 @@ onMounted(() => {
           <el-table-column prop="uid" label="UID" width="110" fixed />
           <el-table-column prop="chineseName" label="球员" min-width="170" fixed>
             <template #default="{ row }">
-              <button
-                class="table-name-link player-name-cell"
-                type="button"
-                @click="openDetail(row)"
-              >
-                <strong>{{ row.chineseName }}</strong>
-                <span>{{ row.englishName || row.uid }}</span>
-              </button>
+              <EntityNameCell
+                :id="row.id"
+                type="player"
+                :title="row.chineseName"
+                :subtitle="row.englishName || row.uid"
+              />
             </template>
           </el-table-column>
           <el-table-column prop="pa" label="PA" width="90" sortable />
@@ -403,15 +368,16 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="代表国籍" min-width="150">
             <template #default="{ row }">
-              <button
+              <EntityLink
                 v-if="row.country"
-                class="table-name-link table-ref-card"
-                type="button"
-                @click="openCountryDetail(row.country)"
+                :id="row.country.id"
+                type="country"
+                :name="row.country.name"
+                class="table-ref-card"
               >
                 <strong>{{ row.country.name }}</strong>
                 <span>UID {{ row.country.uid || row.countryUid || '-' }}</span>
-              </button>
+              </EntityLink>
               <div v-else class="table-ref-card">
                 <strong>{{ row.representedCountry || '-' }}</strong>
                 <span>UID {{ row.countryUid || '-' }}</span>
@@ -419,7 +385,18 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column label="国籍" min-width="160" show-overflow-tooltip>
-            <template #default="{ row }">{{ formatNationality(row) }}</template>
+            <template #default="{ row }">
+              <div v-if="row.nationalities?.length" class="inline-entity-list">
+                <EntityLink
+                  v-for="item in row.nationalities"
+                  :id="item.country.id"
+                  :key="item.country.id"
+                  type="country"
+                  :name="item.country.name"
+                />
+              </div>
+              <span v-else>{{ formatNationality(row) }}</span>
+            </template>
           </el-table-column>
           <el-table-column label="出生城市" min-width="220" show-overflow-tooltip>
             <template #default="{ row }">
@@ -431,15 +408,16 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="代表球队" min-width="170" show-overflow-tooltip>
             <template #default="{ row }">
-              <button
+              <EntityLink
                 v-if="getRepresentativeClub(row)"
-                class="table-name-link table-ref-card"
-                type="button"
-                @click="openClubDetail(getRepresentativeClub(row))"
+                :id="getRepresentativeClub(row)?.id"
+                type="club"
+                :name="formatRepresentativeClubName(row)"
+                class="table-ref-card"
               >
                 <strong>{{ formatRepresentativeClubName(row) }}</strong>
                 <span>UID {{ formatRepresentativeClubUid(row) }}</span>
-              </button>
+              </EntityLink>
               <div v-else class="table-ref-card">
                 <strong>{{ formatRepresentativeClubName(row) }}</strong>
                 <span>UID {{ formatRepresentativeClubUid(row) }}</span>

@@ -11,6 +11,7 @@ import {
   type NamedRef
 } from '@/services/catalog';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 
@@ -224,10 +225,12 @@ onMounted(() => {
           </el-table-column>
           <el-table-column prop="name" label="国家" min-width="140" fixed>
             <template #default="{ row }">
-              <div class="player-name-cell">
-                <strong>{{ row.name }}</strong>
-                <span>UID {{ row.uid }}</span>
-              </div>
+              <EntityNameCell
+                :id="row.id"
+                type="country"
+                :title="row.name"
+                :subtitle="`UID ${row.uid}`"
+              />
             </template>
           </el-table-column>
           <el-table-column label="足联" min-width="120">

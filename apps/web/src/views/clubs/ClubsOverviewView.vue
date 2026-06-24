@@ -11,6 +11,8 @@ import {
   type NamedRef
 } from '@/services/catalog';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 
@@ -226,14 +228,22 @@ onMounted(() => {
           </el-table-column>
           <el-table-column prop="name" label="俱乐部" min-width="170" fixed>
             <template #default="{ row }">
-              <div class="player-name-cell">
-                <strong>{{ row.name }}</strong>
-                <span>UID {{ row.uid }}</span>
-              </div>
+              <EntityNameCell
+                :id="row.id"
+                type="club"
+                :title="row.name"
+                :subtitle="`UID ${row.uid}`"
+              />
             </template>
           </el-table-column>
           <el-table-column label="国家" min-width="120">
-            <template #default="{ row }">{{ formatRef(row.countryRef) }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="row.countryRef?.id"
+                type="country"
+                :name="formatRef(row.countryRef)"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="足联" min-width="120">
             <template #default="{ row }">{{ formatRef(row.federationRef) }}</template>

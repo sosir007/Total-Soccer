@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchRemarks, type RemarkItem, type RemarkObjectType } from '@/services/remarks';
+import EntityNameCell from '@/components/EntityNameCell.vue';
+
+type RemarkEntityType = 'country' | 'club' | 'player' | 'competition' | 'award';
 
 const router = useRouter();
 const loading = ref(false);
@@ -88,6 +91,18 @@ function openTarget(row: RemarkItem) {
 
 function canOpen(row: RemarkItem) {
   return Boolean(row.routeName || row.managementRouteName);
+}
+
+function getRemarkEntityType(row: RemarkItem): RemarkEntityType | null {
+  const typeMap: Partial<Record<RemarkObjectType, RemarkEntityType>> = {
+    PLAYER: 'player',
+    COUNTRY: 'country',
+    CLUB: 'club',
+    COMPETITION: 'competition',
+    AWARD: 'award'
+  };
+
+  return typeMap[row.objectType] ?? null;
 }
 
 function formatDate(value?: string | null) {
@@ -212,8 +227,15 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="对象" min-width="220" fixed>
             <template #default="{ row }">
+              <EntityNameCell
+                v-if="getRemarkEntityType(row)"
+                :id="row.objectId"
+                :type="getRemarkEntityType(row)!"
+                :title="row.name"
+                :subtitle="row.code ? `UID / 编码 ${row.code}` : row.objectId"
+              />
               <button
-                v-if="canOpen(row)"
+                v-else-if="canOpen(row)"
                 class="table-name-link player-name-cell"
                 type="button"
                 @click="openTarget(row)"

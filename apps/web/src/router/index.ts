@@ -1,26 +1,26 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import NProgress from 'nprogress';
 import AppLayout from '@/layouts/AppLayout.vue';
-import WorldOverviewView from '@/views/overview/WorldOverviewView.vue';
-import ForbiddenSummitView from '@/views/overview/ForbiddenSummitView.vue';
+import WorldOverviewView from '@/views/overview/WorldOverviewView/index.vue';
+import ForbiddenSummitView from '@/views/overview/ForbiddenSummitView/index.vue';
 import NationsOverviewView from '@/views/nations/NationsOverviewView.vue';
 import NationHonorsView from '@/views/nations/NationHonorsView.vue';
-import NationDetailView from '@/views/nations/NationDetailView.vue';
+import NationDetailView from '@/views/nations/NationDetailView/index.vue';
 import ClubsOverviewView from '@/views/clubs/ClubsOverviewView.vue';
 import ClubHonorsView from '@/views/clubs/ClubHonorsView.vue';
-import ClubDetailView from '@/views/clubs/ClubDetailView.vue';
-import StarsOverviewView from '@/views/stars/StarsOverviewView.vue';
+import ClubDetailView from '@/views/clubs/ClubDetailView/index.vue';
+import StarsOverviewView from '@/views/stars/StarsOverviewView/index.vue';
 import StarHonorsView from '@/views/stars/StarHonorsView.vue';
-import StarDetailView from '@/views/stars/StarDetailView.vue';
+import StarDetailView from '@/views/stars/StarDetailView/index.vue';
 import StarFormView from '@/views/stars/StarFormView.vue';
-import HonorRulesView from '@/views/tianji/HonorRulesView.vue';
-import CompetitionsView from '@/views/tianji/CompetitionsView.vue';
-import CompetitionDetailView from '@/views/tianji/CompetitionDetailView.vue';
-import AwardsView from '@/views/tianji/AwardsView.vue';
-import DataImportView from '@/views/tianji/DataImportView.vue';
-import BaseConfigView from '@/views/tianji/BaseConfigView.vue';
-import RemarksView from '@/views/tianji/RemarksView.vue';
-import PermissionsView from '@/views/tianji/PermissionsView.vue';
+import HonorRulesView from '@/views/tianji/HonorRulesView/index.vue';
+import CompetitionsView from '@/views/tianji/CompetitionsView/index.vue';
+import CompetitionDetailView from '@/views/tianji/CompetitionDetailView/index.vue';
+import AwardsView from '@/views/tianji/AwardsView/index.vue';
+import DataImportView from '@/views/tianji/DataImportView/index.vue';
+import BaseConfigView from '@/views/tianji/BaseConfigView/index.vue';
+import RemarksView from '@/views/tianji/RemarksView/index.vue';
+import PermissionsView from '@/views/tianji/PermissionsView/index.vue';
 
 export const routes: RouteRecordRaw[] = [
   {

@@ -18,6 +18,7 @@ import {
   type CompetitionStandingPlacement,
   type CompetitionTargetType
 } from '@/services/competitions';
+import EntityLink from '@/components/EntityLink.vue';
 import { ClubSelect, ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
@@ -485,36 +486,36 @@ function getCompetitionCountryIds(item: CompetitionDetail) {
   return ids.length ? ids : item.countryId ? [item.countryId] : [];
 }
 
-function formatEditionStanding(
+function getEditionStanding(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
+  return edition.standings.find((item) => item.placement === placement);
+}
+
+function getStandingEntityType(
+  edition: CompetitionEdition,
+  placement: CompetitionStandingPlacement
+) {
+  const standing = getEditionStanding(edition, placement);
+
+  if (standing?.country) {
+    return 'country';
+  }
+
+  return 'club';
+}
+
+function getStandingEntityId(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
+  const standing = getEditionStanding(edition, placement);
+
+  return standing?.country?.id ?? standing?.club?.id ?? null;
+}
+
+function getStandingEntityName(
   edition: CompetitionEdition,
   placement: CompetitionStandingPlacement
 ) {
   const standing = getEditionStanding(edition, placement);
 
   return standing?.country?.name ?? standing?.club?.name ?? '-';
-}
-
-function getEditionStanding(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
-  return edition.standings.find((item) => item.placement === placement);
-}
-
-function openStandingDetail(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
-  const standing = getEditionStanding(edition, placement);
-
-  if (standing?.country?.id) {
-    void router.push({
-      name: 'nations-detail-id',
-      params: { id: standing.country.id }
-    });
-    return;
-  }
-
-  if (standing?.club?.id) {
-    void router.push({
-      name: 'clubs-detail-id',
-      params: { id: standing.club.id }
-    });
-  }
 }
 
 function hasEditionStanding(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
@@ -693,13 +694,12 @@ onMounted(() => {
             min-width="120"
           >
             <template #default="{ row }">
-              <button
+              <EntityLink
                 v-if="hasEditionStanding(row, placement.value)"
-                class="entity-link"
-                @click="openStandingDetail(row, placement.value)"
-              >
-                {{ formatEditionStanding(row, placement.value) }}
-              </button>
+                :id="getStandingEntityId(row, placement.value)"
+                :type="getStandingEntityType(row, placement.value)"
+                :name="getStandingEntityName(row, placement.value)"
+              />
               <span v-else>-</span>
             </template>
           </el-table-column>
@@ -988,20 +988,6 @@ onMounted(() => {
 
 .edition-editor-row.locked {
   opacity: 0.92;
-}
-
-.entity-link {
-  padding: 0;
-  border: 0;
-  color: var(--green);
-  font: inherit;
-  font-weight: 750;
-  background: transparent;
-  cursor: pointer;
-}
-
-.entity-link:hover {
-  text-decoration: underline;
 }
 
 @media (max-width: 1100px) {

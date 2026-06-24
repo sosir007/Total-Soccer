@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import {
   fetchAwardRecipients,
   type AwardRecipientRecord,
   type AwardScopeType
 } from '@/services/awards';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 
-const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const records = ref<AwardRecipientRecord[]>([]);
@@ -73,17 +73,6 @@ function resetFilters() {
   filters.placement = '';
   filters.year = undefined;
   void loadHonors();
-}
-
-function openPlayer(id: string) {
-  void router.push({
-    name: 'stars-detail-id',
-    params: { id }
-  });
-}
-
-function awardUrl(record: AwardRecipientRecord) {
-  return buildExternalUrl(record.edition.award.externalUrl, record.edition.award.name);
 }
 
 function editionUrl(record: AwardRecipientRecord) {
@@ -189,20 +178,14 @@ onMounted(() => {
         <el-table :data="records" border>
           <el-table-column label="奖项" min-width="170" fixed>
             <template #default="{ row }">
-              <div class="player-name-cell">
-                <a
-                  class="external-text-link"
-                  :href="awardUrl(row)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ row.edition.award.name }}
-                </a>
-                <span>
-                  {{ formatScope(row.edition.award.scopeType) }} /
-                  {{ row.edition.award.category || row.edition.award.code }}
-                </span>
-              </div>
+              <EntityNameCell
+                :id="row.edition.award.id"
+                type="award"
+                :title="row.edition.award.name"
+                :subtitle="`${formatScope(row.edition.award.scopeType)} / ${
+                  row.edition.award.category || row.edition.award.code
+                }`"
+              />
             </template>
           </el-table-column>
           <el-table-column label="年份 / 届次" min-width="140">
@@ -222,10 +205,12 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="球员" min-width="150">
             <template #default="{ row }">
-              <button class="table-name-link" type="button" @click="openPlayer(row.player.id)">
-                <strong>{{ row.player.chineseName }}</strong>
-                <span>{{ row.player.englishName || row.player.uid }}</span>
-              </button>
+              <EntityNameCell
+                :id="row.player.id"
+                type="player"
+                :title="row.player.chineseName"
+                :subtitle="row.player.englishName || row.player.uid"
+              />
             </template>
           </el-table-column>
           <el-table-column label="名次" width="110">
@@ -237,10 +222,22 @@ onMounted(() => {
             <template #default="{ row }">{{ formatText(row.player.pa) }}</template>
           </el-table-column>
           <el-table-column label="国家" min-width="120">
-            <template #default="{ row }">{{ formatText(row.player.country?.name) }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="row.player.country?.id"
+                type="country"
+                :name="formatText(row.player.country?.name)"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="俱乐部" min-width="140">
-            <template #default="{ row }">{{ formatText(row.player.club?.name) }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="row.player.club?.id"
+                type="club"
+                :name="formatText(row.player.club?.name)"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="备注" min-width="160">
             <template #default="{ row }">{{ formatText(row.remark) }}</template>

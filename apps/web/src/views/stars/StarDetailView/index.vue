@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchPlayerDetail, type NamedRef, type PlayerDetail } from '@/services/catalog';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { buildExternalUrl } from '@/utils/external-link';
 
@@ -122,28 +124,6 @@ function openEditDialog() {
   });
 }
 
-function openClubDetail(id?: string | null) {
-  if (!id) {
-    return;
-  }
-
-  void router.push({
-    name: 'clubs-detail-id',
-    params: { id }
-  });
-}
-
-function openCountryDetail(id?: string | null) {
-  if (!id) {
-    return;
-  }
-
-  void router.push({
-    name: 'nations-detail-id',
-    params: { id }
-  });
-}
-
 function formatCareerPeriod(career: {
   startSeason?: string | null;
   endSeason?: string | null;
@@ -190,10 +170,6 @@ function formatAwardPlacement(honor: NonNullable<PlayerDetail['personalHonors']>
   }
 
   return honor.rank ? `第 ${honor.rank} 名` : '-';
-}
-
-function awardUrl(honor: NonNullable<PlayerDetail['personalHonors']>[number]) {
-  return buildExternalUrl(honor.edition.award.externalUrl, honor.edition.award.name);
 }
 
 function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[number]) {
@@ -316,23 +292,56 @@ onMounted(() => {
           <dl class="detail-list">
             <div>
               <dt>国家</dt>
-              <dd>{{ formatRef(player.country) }}</dd>
+              <dd>
+                <EntityLink
+                  :id="player.country?.id"
+                  type="country"
+                  :name="formatRef(player.country)"
+                />
+              </dd>
             </div>
             <div>
               <dt>代表国籍</dt>
-              <dd>{{ formatText(player.representedCountry) }}</dd>
+              <dd>
+                <EntityLink
+                  :id="player.country?.id"
+                  type="country"
+                  :name="formatText(player.representedCountry || player.country?.name)"
+                />
+              </dd>
             </div>
             <div>
               <dt>国籍</dt>
-              <dd>{{ formatNationality() }}</dd>
+              <dd>
+                <div v-if="player.nationalities?.length" class="inline-entity-list">
+                  <EntityLink
+                    v-for="item in player.nationalities"
+                    :id="item.country.id"
+                    :key="item.country.id"
+                    type="country"
+                    :name="item.country.name"
+                  />
+                </div>
+                <span v-else>{{ formatNationality() }}</span>
+              </dd>
             </div>
             <div>
               <dt>俱乐部</dt>
-              <dd>{{ formatRef(player.club) }}</dd>
+              <dd>
+                <EntityLink :id="player.club?.id" type="club" :name="formatRef(player.club)" />
+              </dd>
             </div>
             <div>
               <dt>主要球队</dt>
-              <dd>{{ formatText(player.primaryClub) }}</dd>
+              <dd>
+                <EntityLink
+                  :id="player.representativeClubCareer?.club?.id ?? player.club?.id"
+                  type="club"
+                  :name="
+                    formatText(player.representativeClubCareer?.club?.name || player.primaryClub)
+                  "
+                />
+              </dd>
             </div>
             <div>
               <dt>出生城市</dt>
@@ -434,15 +443,7 @@ onMounted(() => {
           <el-table v-else :data="player.profileClubCareers" border>
             <el-table-column label="俱乐部" min-width="150">
               <template #default="{ row }">
-                <button
-                  v-if="row.club"
-                  class="table-name-link"
-                  type="button"
-                  @click="openClubDetail(row.club.id)"
-                >
-                  {{ row.club.name }}
-                </button>
-                <span v-else>-</span>
+                <EntityLink :id="row.club?.id" type="club" :name="row.club?.name" />
               </template>
             </el-table-column>
             <el-table-column label="时间" min-width="120">
@@ -472,15 +473,7 @@ onMounted(() => {
           <el-table v-else :data="player.countryCareers" border>
             <el-table-column label="国家队" min-width="150">
               <template #default="{ row }">
-                <button
-                  v-if="row.country"
-                  class="table-name-link"
-                  type="button"
-                  @click="openCountryDetail(row.country.id)"
-                >
-                  {{ row.country.name }}
-                </button>
-                <span v-else>-</span>
+                <EntityLink :id="row.country?.id" type="country" :name="row.country?.name" />
               </template>
             </el-table-column>
             <el-table-column label="时间" min-width="120">
@@ -505,17 +498,12 @@ onMounted(() => {
         <el-table v-else :data="player.personalHonors" border>
           <el-table-column label="奖项" min-width="170" fixed>
             <template #default="{ row }">
-              <div class="player-name-cell">
-                <a
-                  class="external-text-link"
-                  :href="awardUrl(row)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ row.edition.award.name }}
-                </a>
-                <span>{{ row.edition.award.category || row.edition.award.code }}</span>
-              </div>
+              <EntityNameCell
+                :id="row.edition.award.id"
+                type="award"
+                :title="row.edition.award.name"
+                :subtitle="row.edition.award.category || row.edition.award.code"
+              />
             </template>
           </el-table-column>
           <el-table-column label="年份 / 届次" min-width="150">

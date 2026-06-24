@@ -942,6 +942,18 @@ h1 {
   color: var(--green);
 }
 
+.inline-entity-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.award-recipient-chip {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
 .player-name-cell span {
   color: var(--muted);
   font-size: 12px;
@@ -988,6 +1000,60 @@ h1 {
 
 .external-title-link:hover h2 {
   color: var(--green);
+}
+
+.entity-link {
+  padding: 0;
+  border: 0;
+  color: var(--green);
+  font: inherit;
+  font-weight: 750;
+  text-align: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.entity-link:hover {
+  text-decoration: underline;
+}
+
+.entity-link.muted,
+.entity-link-text.muted {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.entity-link-text {
+  color: inherit;
+}
+
+.entity-name-cell {
+  display: inline-flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 100%;
+  text-align: left;
+}
+
+.entity-name-cell strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-name-cell span {
+  max-width: 100%;
+  overflow: hidden;
+  color: #6e7c73;
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .external-text-link {

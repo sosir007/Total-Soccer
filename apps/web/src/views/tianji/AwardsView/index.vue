@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import {
   createAward,
@@ -15,6 +16,8 @@ import {
   type AwardScopeType
 } from '@/services/awards';
 import { fetchPlayers, type PlayerListItem } from '@/services/catalog';
+import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { buildExternalUrl } from '@/utils/external-link';
 
@@ -38,6 +41,7 @@ const scopeTypeLabels = Object.fromEntries(
   scopeTypeOptions.map((scopeType) => [scopeType.value, scopeType.label])
 ) as Record<AwardScopeType, string>;
 
+const route = useRoute();
 const loading = ref(false);
 const creating = ref(false);
 const detailLoading = ref(false);
@@ -73,6 +77,7 @@ const editionForm = reactive({
 const hasRows = computed(() => awards.value.length > 0);
 const editionDialogTitle = computed(() => (editingEdition.value ? '编辑奖项年份' : '新增奖项年份'));
 const sortedEditions = computed(() => selectedAward.value?.editions ?? []);
+const queryAwardId = computed(() => String(route.query.awardId ?? ''));
 
 async function loadAwards() {
   loading.value = true;
@@ -88,7 +93,11 @@ async function loadAwards() {
     awards.value = result.items;
     total.value = result.total;
 
-    if (!selectedAward.value && result.items[0]) {
+    const targetAward = result.items.find((item) => item.id === queryAwardId.value);
+
+    if (targetAward) {
+      await openAward(targetAward);
+    } else if (!selectedAward.value && result.items[0]) {
       await openAward(result.items[0]);
     }
   } catch (error) {
@@ -127,6 +136,23 @@ async function openAward(award: AwardListItem) {
 
   try {
     selectedAward.value = await fetchAwardDetail(award.id);
+    populateDetailForm();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '奖项详情加载失败。');
+  } finally {
+    detailLoading.value = false;
+  }
+}
+
+async function openAwardById(id: string) {
+  if (!id || selectedAward.value?.id === id) {
+    return;
+  }
+
+  detailLoading.value = true;
+
+  try {
+    selectedAward.value = await fetchAwardDetail(id);
     populateDetailForm();
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '奖项详情加载失败。');
@@ -419,6 +445,10 @@ function formatEditionRecipients(edition: AwardEdition) {
     .join('、');
 }
 
+function formatRecipientPlacement(recipient: NonNullable<AwardEdition['recipients']>[number]) {
+  return recipient.placement || (recipient.rank ? `第 ${recipient.rank} 名` : '');
+}
+
 function awardExternalUrl() {
   return buildExternalUrl(selectedAward.value?.externalUrl, selectedAward.value?.name || '奖项');
 }
@@ -435,6 +465,10 @@ watch(
     void loadAwards();
   }
 );
+
+watch(queryAwardId, (id) => {
+  void openAwardById(id);
+});
 
 watch(
   () => awardForm.scopeType,
@@ -513,10 +547,12 @@ onMounted(() => {
             <el-table :data="awards" border highlight-current-row @row-click="openAward">
               <el-table-column label="奖项" min-width="190">
                 <template #default="{ row }">
-                  <div class="player-name-cell">
-                    <strong>{{ row.name }}</strong>
-                    <span>{{ row.code }}</span>
-                  </div>
+                  <EntityNameCell
+                    :id="row.id"
+                    type="award"
+                    :title="row.name"
+                    :subtitle="row.code"
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="范围" width="110">
@@ -734,7 +770,25 @@ onMounted(() => {
                 <template #default="{ row }">{{ row.season || '-' }}</template>
               </el-table-column>
               <el-table-column label="获奖人" min-width="240" show-overflow-tooltip>
-                <template #default="{ row }">{{ formatEditionRecipients(row) }}</template>
+                <template #default="{ row }">
+                  <div v-if="row.recipients?.length" class="inline-entity-list">
+                    <span
+                      v-for="recipient in row.recipients"
+                      :key="recipient.id"
+                      class="award-recipient-chip"
+                    >
+                      <span v-if="formatRecipientPlacement(recipient)">
+                        {{ formatRecipientPlacement(recipient) }}
+                      </span>
+                      <EntityLink
+                        :id="recipient.player.id"
+                        type="player"
+                        :name="recipient.player.chineseName"
+                      />
+                    </span>
+                  </div>
+                  <span v-else>{{ formatEditionRecipients(row) }}</span>
+                </template>
               </el-table-column>
               <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip>
                 <template #default="{ row }">{{ row.remark || '-' }}</template>
