@@ -44,6 +44,7 @@ const detailLoading = ref(false);
 const savingDetail = ref(false);
 const editionSaving = ref(false);
 const playersLoading = ref(false);
+const createDialogVisible = ref(false);
 const editionDialogVisible = ref(false);
 const errorMessage = ref('');
 const awards = ref<AwardListItem[]>([]);
@@ -146,6 +147,11 @@ function resetFilters() {
   void loadAwards();
 }
 
+function openCreateAwardDialog() {
+  Object.assign(awardForm, createEmptyAwardForm());
+  createDialogVisible.value = true;
+}
+
 async function submitAward() {
   if (!validateAwardForm(awardForm)) {
     return;
@@ -156,6 +162,7 @@ async function submitAward() {
   try {
     const created = await createAward(buildAwardPayload(awardForm));
     ElMessage.success('奖项创建成功。');
+    createDialogVisible.value = false;
     Object.assign(awardForm, createEmptyAwardForm());
     await loadAwards();
     await openAward(created);
@@ -489,7 +496,10 @@ onMounted(() => {
         <div class="panel">
           <div class="panel-header">
             <h3>奖项列表</h3>
-            <span class="status-pill">{{ total }} 项奖项</span>
+            <div class="panel-actions">
+              <span class="status-pill">{{ total }} 项奖项</span>
+              <el-button type="primary" @click="openCreateAwardDialog">新增奖项</el-button>
+            </div>
           </div>
 
           <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
@@ -532,12 +542,7 @@ onMounted(() => {
           </template>
         </div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <h3>创建奖项</h3>
-            <span class="status-pill">新增</span>
-          </div>
-
+        <el-dialog v-model="createDialogVisible" title="创建奖项" width="760px" destroy-on-close>
           <el-form class="competition-form-grid" label-position="top" @submit.prevent="submitAward">
             <el-form-item label="奖项编码">
               <el-input v-model="awardForm.code" placeholder="BALLON_DOR" />
@@ -598,7 +603,7 @@ onMounted(() => {
               </el-button>
             </div>
           </el-form>
-        </div>
+        </el-dialog>
       </div>
 
       <div class="page-stack">

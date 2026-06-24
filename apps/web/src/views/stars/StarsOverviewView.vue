@@ -2,29 +2,22 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
-import { ElMessage } from 'element-plus';
-import {
-  fetchPlayerDetail,
-  fetchPlayers,
-  type NamedRef,
-  type PlayerDetail,
-  type PlayerListItem
-} from '@/services/catalog';
-import PlayerFormDialog from '@/components/catalog/PlayerFormDialog.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { deletePlayer, fetchPlayers, type NamedRef, type PlayerListItem } from '@/services/catalog';
 import {
   ClubSelect,
   ConfederationSelect,
   CountrySelect,
   PositionSelect
 } from '@/components/selects';
+import { useAppStore } from '@/stores/app';
 
 const router = useRouter();
+const appStore = useAppStore();
 const loading = ref(false);
 const errorMessage = ref('');
 const players = ref<PlayerListItem[]>([]);
 const total = ref(0);
-const playerDialogVisible = ref(false);
-const editingPlayer = ref<PlayerDetail | null>(null);
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -80,20 +73,36 @@ function resetFilters() {
 }
 
 function openCreateDialog() {
-  editingPlayer.value = null;
-  playerDialogVisible.value = true;
+  void router.push({ name: 'stars-new' });
 }
 
-function handlePlayerSaved() {
-  void loadPlayers();
+function openEditDialog(player: PlayerListItem) {
+  void router.push({
+    name: 'stars-edit-id',
+    params: { id: player.id }
+  });
 }
 
-async function openEditDialog(player: PlayerListItem) {
+async function confirmDelete(player: PlayerListItem) {
   try {
-    editingPlayer.value = await fetchPlayerDetail(player.id);
-    playerDialogVisible.value = true;
+    await ElMessageBox.confirm(
+      `确定要删除「${player.chineseName}」吗？如果已有奖项、荣誉等关联，系统会阻止删除。`,
+      '删除球员',
+      {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    await deletePlayer(player.id);
+    ElMessage.success('球员已删除。');
+    await loadPlayers();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '球员详情加载失败。');
+    if (error === 'cancel') {
+      return;
+    }
+
+    ElMessage.error(error instanceof Error ? error.message : '球员删除失败。');
   }
 }
 
@@ -248,6 +257,13 @@ function formatMarketValue(value?: number | null) {
 
 watch(
   () => [filters.page, filters.pageSize],
+  () => {
+    void loadPlayers();
+  }
+);
+
+watch(
+  () => appStore.playerListRefreshKey,
   () => {
     void loadPlayers();
   }
@@ -467,9 +483,10 @@ onMounted(() => {
               <el-tag v-else type="success">现役</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="100" fixed="right">
+          <el-table-column label="操作" width="140" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" link @click.stop="openEditDialog(row)">编辑</el-button>
+              <el-button type="danger" link @click.stop="confirmDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -485,11 +502,5 @@ onMounted(() => {
         </div>
       </template>
     </div>
-
-    <PlayerFormDialog
-      v-model="playerDialogVisible"
-      :player="editingPlayer"
-      @saved="handlePlayerSaved"
-    />
   </section>
 </template>

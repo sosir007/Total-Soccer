@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
-import { fetchCountries, type CountryListItem, type NamedRef } from '@/services/catalog';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  deleteCountry,
+  fetchCountries,
+  fetchCountryDetail,
+  type CountryDetail,
+  type CountryListItem,
+  type NamedRef
+} from '@/services/catalog';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { ConfederationSelect } from '@/components/selects';
+import { useOptionStore } from '@/stores/options';
 
 const router = useRouter();
+const optionStore = useOptionStore();
 const loading = ref(false);
 const errorMessage = ref('');
 const countries = ref<CountryListItem[]>([]);
 const total = ref(0);
 const countryDialogVisible = ref(false);
+const editingCountry = ref<CountryDetail | null>(null);
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -57,11 +67,45 @@ function resetFilters() {
 }
 
 function openCreateDialog() {
+  editingCountry.value = null;
   countryDialogVisible.value = true;
 }
 
 function handleCountrySaved() {
   void loadCountries();
+}
+
+async function openEditDialog(country: CountryListItem) {
+  try {
+    editingCountry.value = await fetchCountryDetail(country.id);
+    countryDialogVisible.value = true;
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '国家详情加载失败。');
+  }
+}
+
+async function confirmDelete(country: CountryListItem) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除「${country.name}」吗？如果已有球员、城市、赛事或荣誉关联，系统会阻止删除。`,
+      '删除国家',
+      {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    await deleteCountry(country.id);
+    ElMessage.success('国家已删除。');
+    optionStore.invalidate('countries');
+    await loadCountries();
+  } catch (error) {
+    if (error === 'cancel') {
+      return;
+    }
+
+    ElMessage.error(error instanceof Error ? error.message : '国家删除失败。');
+  }
 }
 
 function openDetail(country: CountryListItem) {
@@ -184,6 +228,12 @@ onMounted(() => {
           <el-table-column label="荣誉分" width="120">
             <template #default="{ row }">{{ formatNumber(row.honorScore, 2) }}</template>
           </el-table-column>
+          <el-table-column label="操作" width="150" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click.stop="openEditDialog(row)">编辑</el-button>
+              <el-button link type="danger" @click.stop="confirmDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
         </el-table>
 
         <div class="table-footer">
@@ -198,6 +248,10 @@ onMounted(() => {
       </template>
     </div>
 
-    <CountryFormDialog v-model="countryDialogVisible" @saved="handleCountrySaved" />
+    <CountryFormDialog
+      v-model="countryDialogVisible"
+      :country="editingCountry"
+      @saved="handleCountrySaved"
+    />
   </section>
 </template>

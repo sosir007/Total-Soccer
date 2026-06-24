@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
-import { fetchClubs, type ClubListItem, type NamedRef } from '@/services/catalog';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  deleteClub,
+  fetchClubDetail,
+  fetchClubs,
+  type ClubDetail,
+  type ClubListItem,
+  type NamedRef
+} from '@/services/catalog';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
+import { useOptionStore } from '@/stores/options';
 
 const router = useRouter();
+const optionStore = useOptionStore();
 const loading = ref(false);
 const errorMessage = ref('');
 const clubs = ref<ClubListItem[]>([]);
 const total = ref(0);
 const clubDialogVisible = ref(false);
+const editingClub = ref<ClubDetail | null>(null);
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -60,11 +70,45 @@ function resetFilters() {
 }
 
 function openCreateDialog() {
+  editingClub.value = null;
   clubDialogVisible.value = true;
 }
 
 function handleClubSaved() {
   void loadClubs();
+}
+
+async function openEditDialog(club: ClubListItem) {
+  try {
+    editingClub.value = await fetchClubDetail(club.id);
+    clubDialogVisible.value = true;
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '俱乐部详情加载失败。');
+  }
+}
+
+async function confirmDelete(club: ClubListItem) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除「${club.name}」吗？如果已有球员、经历、赛事或荣誉关联，系统会阻止删除。`,
+      '删除俱乐部',
+      {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    await deleteClub(club.id);
+    ElMessage.success('俱乐部已删除。');
+    optionStore.invalidate('clubs');
+    await loadClubs();
+  } catch (error) {
+    if (error === 'cancel') {
+      return;
+    }
+
+    ElMessage.error(error instanceof Error ? error.message : '俱乐部删除失败。');
+  }
 }
 
 function openDetail(club: ClubListItem) {
@@ -189,6 +233,12 @@ onMounted(() => {
           <el-table-column label="荣誉分" width="120">
             <template #default="{ row }">{{ formatNumber(row.honorScore, 2) }}</template>
           </el-table-column>
+          <el-table-column label="操作" width="150" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click.stop="openEditDialog(row)">编辑</el-button>
+              <el-button link type="danger" @click.stop="confirmDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
         </el-table>
 
         <div class="table-footer">
@@ -203,6 +253,6 @@ onMounted(() => {
       </template>
     </div>
 
-    <ClubFormDialog v-model="clubDialogVisible" @saved="handleClubSaved" />
+    <ClubFormDialog v-model="clubDialogVisible" :club="editingClub" @saved="handleClubSaved" />
   </section>
 </template>

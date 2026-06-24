@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CountriesService } from './countries.service.js';
 import type { CountryHonorListQuery, CountryListQuery, CountryPayload } from './countries.types.js';
@@ -36,5 +36,11 @@ export class CountriesController {
   @ApiOperation({ summary: '编辑国家' })
   update(@Param('id') id: string, @Body() body: CountryPayload) {
     return this.countriesService.update(id, body);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除国家' })
+  remove(@Param('id') id: string) {
+    return this.countriesService.remove(id);
   }
 }

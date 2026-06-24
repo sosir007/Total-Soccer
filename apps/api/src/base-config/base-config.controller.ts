@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseConfigService } from './base-config.service.js';
 import type { BaseConfigBody, BaseConfigQuery, BaseConfigType } from './base-config.types.js';
@@ -28,5 +28,11 @@ export class BaseConfigController {
     @Body() body: BaseConfigBody
   ) {
     return this.baseConfigService.update(type, id, body);
+  }
+
+  @Delete(':type/:id')
+  @ApiOperation({ summary: '删除基础配置' })
+  remove(@Param('type') type: BaseConfigType, @Param('id') id: string) {
+    return this.baseConfigService.remove(type, id);
   }
 }

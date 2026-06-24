@@ -70,6 +70,7 @@ const creating = ref(false);
 const detailLoading = ref(false);
 const savingDetail = ref(false);
 const resultSaving = ref(false);
+const createDialogVisible = ref(false);
 const resultDialogVisible = ref(false);
 const errorMessage = ref('');
 const competitions = ref<CompetitionListItem[]>([]);
@@ -183,6 +184,11 @@ function resetFilters() {
   void loadCompetitions();
 }
 
+function openCreateCompetitionDialog() {
+  resetCompetitionForm();
+  createDialogVisible.value = true;
+}
+
 async function submitCompetition() {
   if (!validateCompetitionForm(competitionForm)) {
     return;
@@ -193,6 +199,7 @@ async function submitCompetition() {
   try {
     const created = await createCompetition(buildCompetitionPayload(competitionForm));
     ElMessage.success('赛事创建成功。');
+    createDialogVisible.value = false;
     resetCompetitionForm();
     optionStore.invalidate('competitions');
     await loadCompetitions();
@@ -550,7 +557,10 @@ onMounted(() => {
         <div class="panel">
           <div class="panel-header">
             <h3>赛事列表</h3>
-            <span class="status-pill">{{ total }} 项赛事</span>
+            <div class="panel-actions">
+              <span class="status-pill">{{ total }} 项赛事</span>
+              <el-button type="primary" @click="openCreateCompetitionDialog">新增赛事</el-button>
+            </div>
           </div>
 
           <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
@@ -598,12 +608,7 @@ onMounted(() => {
           </template>
         </div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <h3>创建赛事</h3>
-            <span class="status-pill">新增</span>
-          </div>
-
+        <el-dialog v-model="createDialogVisible" title="创建赛事" width="760px" destroy-on-close>
           <el-form
             class="competition-form-grid"
             label-position="top"
@@ -712,7 +717,7 @@ onMounted(() => {
               </el-button>
             </div>
           </el-form>
-        </div>
+        </el-dialog>
       </div>
 
       <div class="page-stack">

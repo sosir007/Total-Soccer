@@ -4,15 +4,15 @@ import { useRoute, useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchPlayerDetail, type NamedRef, type PlayerDetail } from '@/services/catalog';
-import PlayerFormDialog from '@/components/catalog/PlayerFormDialog.vue';
+import { useRouteTabsStore } from '@/stores/route-tabs';
 import { buildExternalUrl } from '@/utils/external-link';
 
 const route = useRoute();
 const router = useRouter();
+const routeTabsStore = useRouteTabsStore();
 const loading = ref(false);
 const errorMessage = ref('');
 const player = ref<PlayerDetail | null>(null);
-const playerDialogVisible = ref(false);
 const playerId = computed(() => String(route.params.id ?? ''));
 
 async function loadPlayer() {
@@ -26,6 +26,7 @@ async function loadPlayer() {
 
   try {
     player.value = await fetchPlayerDetail(playerId.value);
+    routeTabsStore.setTitle(route.fullPath, player.value.chineseName);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '巨星详情加载失败。';
     ElMessage.error(errorMessage.value);
@@ -111,7 +112,14 @@ function backToList() {
 }
 
 function openEditDialog() {
-  playerDialogVisible.value = true;
+  if (!playerId.value) {
+    return;
+  }
+
+  void router.push({
+    name: 'stars-edit-id',
+    params: { id: playerId.value }
+  });
 }
 
 function openClubDetail(id?: string | null) {
@@ -193,11 +201,6 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
     honor.edition.externalUrl || honor.externalUrl,
     `${honor.edition.award.name} ${formatAwardEdition(honor)}`
   );
-}
-
-function handlePlayerSaved(savedPlayer: PlayerDetail) {
-  player.value = savedPlayer;
-  void loadPlayer();
 }
 
 watch(playerId, () => {
@@ -540,8 +543,6 @@ onMounted(() => {
           </el-table-column>
         </el-table>
       </div>
-
-      <PlayerFormDialog v-model="playerDialogVisible" :player="player" @saved="handlePlayerSaved" />
     </template>
   </section>
 </template>

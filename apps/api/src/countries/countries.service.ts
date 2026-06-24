@@ -4,7 +4,7 @@ import {
   CompetitionStandingPlacement,
   CompetitionTargetType,
   PlayerCareerType,
-  type Prisma
+  Prisma
 } from '@prisma/client';
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
@@ -193,6 +193,18 @@ export class CountriesService {
     });
 
     return this.findOne(id);
+  }
+
+  async remove(id: string) {
+    try {
+      await this.prisma.country.delete({
+        where: { id }
+      });
+
+      return { id };
+    } catch (error) {
+      this.handleDeleteError(error, '国家');
+    }
   }
 
   async findHonors(query: CountryHonorListQuery) {
@@ -615,5 +627,19 @@ export class CountriesService {
       value !== undefined &&
       Object.values(CompetitionStandingPlacement).includes(value as CompetitionStandingPlacement)
     );
+  }
+
+  private handleDeleteError(error: unknown, label: string): never {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`${label}不存在。`);
+      }
+
+      if (error.code === 'P2003') {
+        throw new BadRequestException(`${label}存在关联数据，不能直接删除。`);
+      }
+    }
+
+    throw error;
   }
 }

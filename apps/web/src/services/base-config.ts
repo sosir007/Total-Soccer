@@ -79,3 +79,11 @@ export async function updateBaseConfig(
 
   return response.data.data;
 }
+
+export async function deleteBaseConfig(type: BaseConfigType, id: string) {
+  const response = await apiClient.delete<ApiResponse<{ id: string }>>(
+    `/base-config/${type}/${id}`
+  );
+
+  return response.data.data;
+}

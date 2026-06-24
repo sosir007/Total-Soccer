@@ -288,6 +288,43 @@ export class BaseConfigService {
     }
   }
 
+  async remove(type: BaseConfigType, id: string) {
+    this.assertType(type);
+
+    try {
+      switch (type) {
+        case 'confederations':
+          await this.prisma.confederation.delete({ where: { id } });
+          break;
+        case 'positions':
+          await this.prisma.position.delete({ where: { id } });
+          break;
+        case 'player-types':
+          await this.prisma.playerType.delete({ where: { id } });
+          break;
+        case 'potential-ranges':
+          await this.prisma.potentialRange.delete({ where: { id } });
+          break;
+        case 'ethnicities':
+          await this.prisma.ethnicity.delete({ where: { id } });
+          break;
+        case 'hair-colors':
+          await this.prisma.hairColor.delete({ where: { id } });
+          break;
+        case 'preferred-feet':
+          await this.prisma.preferredFoot.delete({ where: { id } });
+          break;
+        case 'cities':
+          await this.prisma.city.delete({ where: { id } });
+          break;
+      }
+
+      return { id };
+    } catch (error) {
+      this.handlePrismaError(error);
+    }
+  }
+
   private buildNamedWhere<T>(keyword: string | undefined): T {
     return (
       keyword
@@ -451,6 +488,10 @@ export class BaseConfigService {
 
       if (error.code === 'P2025') {
         throw new NotFoundException('基础配置不存在。');
+      }
+
+      if (error.code === 'P2003') {
+        throw new BadRequestException('该基础配置存在关联数据，不能直接删除。');
       }
     }
 

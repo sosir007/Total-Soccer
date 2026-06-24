@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { CountrySelect } from '@/components/selects';
 import {
   createBaseConfig,
+  deleteBaseConfig,
   fetchBaseConfigs,
   updateBaseConfig,
   type BaseConfigItem,
@@ -247,6 +248,32 @@ async function saveConfig() {
   }
 }
 
+async function confirmDelete(row: BaseConfigItem) {
+  const label = row.name || row.code || row.uid || row.id;
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除「${label}」吗？如果已有球员或其他资料引用，系统会阻止删除。`,
+      `删除${activeTab.value.label}`,
+      {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    await deleteBaseConfig(activeType.value, row.id);
+    ElMessage.success('基础配置已删除。');
+    optionStore.invalidate(activeType.value);
+    await loadConfigs();
+  } catch (error) {
+    if (error === 'cancel') {
+      return;
+    }
+
+    ElMessage.error(error instanceof Error ? error.message : '删除基础配置失败。');
+  }
+}
+
 watch(activeType, () => {
   filters.keyword = '';
   filters.page = 1;
@@ -363,9 +390,10 @@ onMounted(() => {
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="84">
+          <el-table-column label="操作" width="140">
             <template #default="{ row }">
               <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
+              <el-button link type="danger" @click="confirmDelete(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>

@@ -12,6 +12,7 @@ import ClubDetailView from '@/views/clubs/ClubDetailView.vue';
 import StarsOverviewView from '@/views/stars/StarsOverviewView.vue';
 import StarHonorsView from '@/views/stars/StarHonorsView.vue';
 import StarDetailView from '@/views/stars/StarDetailView.vue';
+import StarFormView from '@/views/stars/StarFormView.vue';
 import HonorRulesView from '@/views/tianji/HonorRulesView.vue';
 import CompetitionsView from '@/views/tianji/CompetitionsView.vue';
 import AwardsView from '@/views/tianji/AwardsView.vue';
@@ -116,6 +117,18 @@ export const routes: RouteRecordRaw[] = [
         name: 'stars-detail-id',
         component: StarDetailView,
         meta: { title: '巨星详情' }
+      },
+      {
+        path: 'stars/new',
+        name: 'stars-new',
+        component: StarFormView,
+        meta: { title: '新增球员' }
+      },
+      {
+        path: 'stars/edit/:id',
+        name: 'stars-edit-id',
+        component: StarFormView,
+        meta: { title: '编辑球员' }
       },
       { path: 'tianji', redirect: '/tianji/honor-rules' },
       {

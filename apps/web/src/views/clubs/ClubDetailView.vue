@@ -10,6 +10,7 @@ import {
   type NamedRef
 } from '@/services/catalog';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
+import { useRouteTabsStore } from '@/stores/route-tabs';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
@@ -20,6 +21,7 @@ import {
 
 const route = useRoute();
 const router = useRouter();
+const routeTabsStore = useRouteTabsStore();
 const loading = ref(false);
 const errorMessage = ref('');
 const club = ref<ClubDetail | null>(null);
@@ -37,6 +39,7 @@ async function loadClub() {
 
   try {
     club.value = await fetchClubDetail(clubId.value);
+    routeTabsStore.setTitle(route.fullPath, club.value.name);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '豪门详情加载失败。';
     ElMessage.error(errorMessage.value);
@@ -112,6 +115,7 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
 
 function handleClubSaved(savedClub: ClubDetail) {
   club.value = savedClub;
+  routeTabsStore.setTitle(route.fullPath, savedClub.name);
   void loadClub();
 }
 

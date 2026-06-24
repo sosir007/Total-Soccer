@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { PlayerCareerType, type Prisma } from '@prisma/client';
+import { PlayerCareerType, Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { resolvePagination, toNumber } from '../common/pagination.js';
 import type { PlayerCareerPayload, PlayerListQuery, PlayerPayload } from './players.types.js';
@@ -255,6 +255,18 @@ export class PlayersService {
     });
 
     return this.findOne(id);
+  }
+
+  async remove(id: string) {
+    try {
+      await this.prisma.player.delete({
+        where: { id }
+      });
+
+      return { id };
+    } catch (error) {
+      this.handleDeleteError(error, '球员');
+    }
   }
 
   private buildWhere(query: PlayerListQuery): Prisma.PlayerWhereInput {
@@ -945,6 +957,20 @@ export class PlayersService {
 
   private createManualImportKey(entity: string, uid: string) {
     return uid === '-' ? `manual:${entity}:${randomUUID()}` : `manual:${entity}:${uid}`;
+  }
+
+  private handleDeleteError(error: unknown, label: string): never {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`${label}不存在。`);
+      }
+
+      if (error.code === 'P2003') {
+        throw new BadRequestException(`${label}存在关联数据，不能直接删除。`);
+      }
+    }
+
+    throw error;
   }
 
   private buildOrderBy(query: PlayerListQuery): Prisma.PlayerOrderByWithRelationInput[] {

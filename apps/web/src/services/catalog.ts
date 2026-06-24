@@ -428,6 +428,12 @@ export async function updatePlayer(id: string, payload: PlayerPayload) {
   return response.data.data;
 }
 
+export async function deletePlayer(id: string) {
+  const response = await apiClient.delete<ApiResponse<{ id: string }>>(`/players/${id}`);
+
+  return response.data.data;
+}
+
 export async function fetchCountries(params: CountryListParams) {
   const response = await apiClient.get<ApiResponse<PaginationResult<CountryListItem>>>(
     '/countries',
@@ -453,6 +459,12 @@ export async function createCountry(payload: CountryPayload) {
 
 export async function updateCountry(id: string, payload: CountryPayload) {
   const response = await apiClient.put<ApiResponse<CountryDetail>>(`/countries/${id}`, payload);
+
+  return response.data.data;
+}
+
+export async function deleteCountry(id: string) {
+  const response = await apiClient.delete<ApiResponse<{ id: string }>>(`/countries/${id}`);
 
   return response.data.data;
 }
@@ -490,6 +502,12 @@ export async function createClub(payload: ClubPayload) {
 
 export async function updateClub(id: string, payload: ClubPayload) {
   const response = await apiClient.put<ApiResponse<ClubDetail>>(`/clubs/${id}`, payload);
+
+  return response.data.data;
+}
+
+export async function deleteClub(id: string) {
+  const response = await apiClient.delete<ApiResponse<{ id: string }>>(`/clubs/${id}`);
 
   return response.data.data;
 }

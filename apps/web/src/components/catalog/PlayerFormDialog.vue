@@ -27,9 +27,11 @@ import { useOptionStore } from '@/stores/options';
 const visible = defineModel<boolean>({ default: false });
 const props = defineProps<{
   player?: PlayerDetail | null;
+  display?: 'dialog' | 'page';
 }>();
 const emit = defineEmits<{
   saved: [player: PlayerDetail];
+  cancelled: [];
 }>();
 
 const saving = ref(false);
@@ -96,9 +98,9 @@ const form = reactive({
 });
 
 watch(
-  () => [visible.value, props.player] as const,
+  () => [visible.value, props.player, props.display] as const,
   () => {
-    if (!visible.value) {
+    if (props.display !== 'page' && !visible.value) {
       return;
     }
 
@@ -261,10 +263,19 @@ function resolveClubHistoryIds(value?: string | null) {
   });
 }
 
+function cancel() {
+  if (props.display === 'page') {
+    emit('cancelled');
+    return;
+  }
+
+  visible.value = false;
+}
+
 watch(
-  () => visible.value,
-  (isVisible) => {
-    if (isVisible) {
+  () => [visible.value, props.display] as const,
+  ([isVisible]) => {
+    if (isVisible || props.display === 'page') {
       void optionStore.ensureClubs().then(() => {
         form.clubHistoryIds = resolveClubHistoryIds(props.player?.clubs);
       });
@@ -324,7 +335,9 @@ async function submit() {
       ? await updatePlayer(props.player.id, payload)
       : await createPlayer(payload);
 
-    visible.value = false;
+    if (props.display !== 'page') {
+      visible.value = false;
+    }
     emit('saved', result);
     ElMessage.success(props.player ? '球员已更新。' : '球员已新增。');
   } catch (error) {
@@ -336,11 +349,13 @@ async function submit() {
 </script>
 
 <template>
-  <el-dialog
+  <component
+    :is="display === 'page' ? 'div' : 'el-dialog'"
     v-model="visible"
     :title="player ? '编辑球员' : '新增球员'"
     width="880px"
     destroy-on-close
+    :class="display === 'page' ? 'catalog-form-panel' : undefined"
   >
     <el-form class="catalog-form" label-position="top" @submit.prevent="submit">
       <div class="catalog-form-grid">
@@ -564,16 +579,37 @@ async function submit() {
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button :disabled="saving" @click="visible = false">取消</el-button>
+      <el-button :disabled="saving" @click="cancel">取消</el-button>
       <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
     </template>
-  </el-dialog>
+    <div v-if="display === 'page'" class="catalog-form-page-actions">
+      <el-button :disabled="saving" @click="cancel">取消</el-button>
+      <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+    </div>
+  </component>
 </template>
 
 <style scoped>
 .catalog-form {
   display: grid;
   gap: 4px;
+}
+
+.catalog-form-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.catalog-form-page-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), #fff);
 }
 
 .catalog-form-grid {

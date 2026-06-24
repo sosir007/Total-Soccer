@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PlayersService } from './players.service.js';
 import type { PlayerListQuery, PlayerPayload } from './players.types.js';
@@ -30,5 +30,11 @@ export class PlayersController {
   @ApiOperation({ summary: '编辑球员' })
   update(@Param('id') id: string, @Body() body: PlayerPayload) {
     return this.playersService.update(id, body);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除球员' })
+  remove(@Param('id') id: string) {
+    return this.playersService.remove(id);
   }
 }

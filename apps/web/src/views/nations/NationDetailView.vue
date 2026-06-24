@@ -10,6 +10,7 @@ import {
   type NamedRef
 } from '@/services/catalog';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
+import { useRouteTabsStore } from '@/stores/route-tabs';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,
@@ -20,6 +21,7 @@ import {
 
 const route = useRoute();
 const router = useRouter();
+const routeTabsStore = useRouteTabsStore();
 const loading = ref(false);
 const errorMessage = ref('');
 const country = ref<CountryDetail | null>(null);
@@ -37,6 +39,7 @@ async function loadCountry() {
 
   try {
     country.value = await fetchCountryDetail(countryId.value);
+    routeTabsStore.setTitle(route.fullPath, country.value.name);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '国家详情加载失败。';
     ElMessage.error(errorMessage.value);
@@ -112,6 +115,7 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
 
 function handleCountrySaved(savedCountry: CountryDetail) {
   country.value = savedCountry;
+  routeTabsStore.setTitle(route.fullPath, savedCountry.name);
   void loadCountry();
 }
 

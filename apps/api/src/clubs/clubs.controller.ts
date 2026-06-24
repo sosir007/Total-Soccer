@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ClubsService } from './clubs.service.js';
 import type { ClubHonorListQuery, ClubListQuery, ClubPayload } from './clubs.types.js';
@@ -36,5 +36,11 @@ export class ClubsController {
   @ApiOperation({ summary: '编辑俱乐部' })
   update(@Param('id') id: string, @Body() body: ClubPayload) {
     return this.clubsService.update(id, body);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除俱乐部' })
+  remove(@Param('id') id: string) {
+    return this.clubsService.remove(id);
   }
 }
