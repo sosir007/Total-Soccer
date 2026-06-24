@@ -335,6 +335,7 @@ export class CountriesService {
       'playerCount',
       'totalPa',
       'averagePa',
+      'medalCount',
       'championCount',
       'name',
       'createdAt'

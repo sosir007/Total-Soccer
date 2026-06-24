@@ -532,6 +532,7 @@ model CompetitionEdition {
   name          String
   season        String?
   year          Int?
+  quantity      Int?
   host          String?
   remark        String?
   competition   Competition           @relation(fields: [competitionId], references: [id], onDelete: Cascade)

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CompetitionsService } from './competitions.service.js';
 import type {
@@ -39,6 +39,12 @@ export class CompetitionsController {
     return this.competitionsService.update(id, body);
   }
 
+  @Delete(':id')
+  @ApiOperation({ summary: '删除赛事' })
+  remove(@Param('id') id: string) {
+    return this.competitionsService.remove(id);
+  }
+
   @Post(':id/editions')
   @ApiOperation({ summary: '新增赛事届次或赛季' })
   createEdition(@Param('id') id: string, @Body() body: CreateCompetitionEditionBody) {
@@ -55,6 +61,12 @@ export class CompetitionEditionsController {
   @ApiOperation({ summary: '编辑赛事届次或赛季' })
   updateEdition(@Param('id') id: string, @Body() body: UpdateCompetitionEditionBody) {
     return this.competitionsService.updateEdition(id, body);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除赛事届次或赛季' })
+  removeEdition(@Param('id') id: string) {
+    return this.competitionsService.removeEdition(id);
   }
 
   @Put(':id/standings')

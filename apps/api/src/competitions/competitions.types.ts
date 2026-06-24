@@ -39,6 +39,7 @@ export interface CreateCompetitionEditionBody {
   name?: string;
   season?: string;
   year?: number;
+  quantity?: number;
   host?: string;
   remark?: string;
 }

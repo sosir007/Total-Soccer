@@ -3,7 +3,7 @@ import {
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType,
-  type Prisma
+  Prisma
 } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -215,6 +215,38 @@ export class CompetitionsService {
     });
   }
 
+  async remove(id: string) {
+    const competition = await this.prisma.competition.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            editions: true
+          }
+        }
+      }
+    });
+
+    if (!competition) {
+      throw new NotFoundException('赛事不存在。');
+    }
+
+    if (competition._count.editions > 0) {
+      throw new BadRequestException('赛事已有届次结果，不能直接删除。');
+    }
+
+    try {
+      await this.prisma.competition.delete({
+        where: { id }
+      });
+
+      return { id };
+    } catch (error) {
+      this.handleDeleteError(error);
+    }
+  }
+
   async createEdition(competitionId: string, body: CreateCompetitionEditionBody) {
     await this.assertCompetitionExists(competitionId);
 
@@ -236,6 +268,38 @@ export class CompetitionsService {
         standings: true
       }
     });
+  }
+
+  async removeEdition(id: string) {
+    const edition = await this.prisma.competitionEdition.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            standings: true
+          }
+        }
+      }
+    });
+
+    if (!edition) {
+      throw new NotFoundException('赛事届次不存在。');
+    }
+
+    if (edition._count.standings > 0) {
+      throw new BadRequestException('赛事届次已有名次关联，不能直接删除。');
+    }
+
+    try {
+      await this.prisma.competitionEdition.delete({
+        where: { id }
+      });
+
+      return { id };
+    } catch (error) {
+      this.handleEditionDeleteError(error);
+    }
   }
 
   async saveStandings(id: string, body: SaveCompetitionStandingsBody) {
@@ -334,6 +398,7 @@ export class CompetitionsService {
       name,
       season: this.toNullableString(body.season),
       year: this.toNullableNumber(body.year),
+      quantity: this.toNullableNumber(body.quantity),
       host: this.toNullableString(body.host),
       remark: this.toNullableString(body.remark)
     } satisfies Prisma.CompetitionEditionCreateInput;
@@ -344,6 +409,7 @@ export class CompetitionsService {
       ...(body.name !== undefined ? { name: this.requiredString(body.name, '届次名称') } : {}),
       ...(body.season !== undefined ? { season: this.toNullableString(body.season) } : {}),
       ...(body.year !== undefined ? { year: this.toNullableNumber(body.year) } : {}),
+      ...(body.quantity !== undefined ? { quantity: this.toNullableNumber(body.quantity) } : {}),
       ...(body.host !== undefined ? { host: this.toNullableString(body.host) } : {}),
       ...(body.remark !== undefined ? { remark: this.toNullableString(body.remark) } : {})
     } satisfies Prisma.CompetitionEditionUpdateInput;
@@ -549,5 +615,33 @@ export class CompetitionsService {
 
   private toNullableNumber(value: number | undefined) {
     return Number.isFinite(value) ? value : null;
+  }
+
+  private handleDeleteError(error: unknown): never {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException('赛事不存在。');
+      }
+
+      if (error.code === 'P2003') {
+        throw new BadRequestException('赛事存在关联数据，不能直接删除。');
+      }
+    }
+
+    throw error;
+  }
+
+  private handleEditionDeleteError(error: unknown): never {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException('赛事届次不存在。');
+      }
+
+      if (error.code === 'P2003') {
+        throw new BadRequestException('赛事届次存在关联数据，不能直接删除。');
+      }
+    }
+
+    throw error;
   }
 }

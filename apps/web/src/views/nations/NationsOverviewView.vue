@@ -26,7 +26,9 @@ const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
-  confederationId: ''
+  confederationId: '',
+  sortBy: 'honorScore',
+  sortOrder: 'desc' as 'asc' | 'desc'
 });
 
 const hasRows = computed(() => countries.value.length > 0);
@@ -41,8 +43,8 @@ async function loadCountries() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       confederationId: filters.confederationId || undefined,
-      sortBy: 'honorScore',
-      sortOrder: 'desc'
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder
     });
     countries.value = result.items;
     total.value = result.total;
@@ -119,6 +121,19 @@ function openDetail(country: CountryListItem) {
 
 function rowIndex(index: number) {
   return (filters.page - 1) * filters.pageSize + index + 1;
+}
+
+function handleSortChange({
+  prop,
+  order
+}: {
+  prop?: string;
+  order?: 'ascending' | 'descending' | null;
+}) {
+  filters.page = 1;
+  filters.sortBy = prop || 'honorScore';
+  filters.sortOrder = order === 'ascending' ? 'asc' : 'desc';
+  void loadCountries();
 }
 
 function formatNumber(value?: number | null, digits = 0) {
@@ -203,7 +218,7 @@ onMounted(() => {
       </div>
 
       <template v-else>
-        <el-table :data="countries" border @row-click="openDetail">
+        <el-table :data="countries" border @row-click="openDetail" @sort-change="handleSortChange">
           <el-table-column label="序号" width="76" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
@@ -219,13 +234,13 @@ onMounted(() => {
             <template #default="{ row }">{{ formatRef(row.federationRef) }}</template>
           </el-table-column>
           <el-table-column prop="playerCount" label="球员数" width="100" sortable />
-          <el-table-column prop="totalPa" label="总 PA" width="110" sortable />
-          <el-table-column label="平均 PA" width="110">
+          <el-table-column prop="totalPa" label="总 PA" width="110" sortable="custom" />
+          <el-table-column prop="averagePa" label="平均 PA" width="110" sortable="custom">
             <template #default="{ row }">{{ formatNumber(row.averagePa, 2) }}</template>
           </el-table-column>
-          <el-table-column prop="medalCount" label="奖牌数" width="100" />
-          <el-table-column prop="championCount" label="冠军数" width="100" />
-          <el-table-column label="荣誉分" width="120">
+          <el-table-column prop="medalCount" label="奖牌数" width="100" sortable="custom" />
+          <el-table-column prop="championCount" label="冠军数" width="100" sortable="custom" />
+          <el-table-column prop="honorScore" label="荣誉分" width="120" sortable="custom">
             <template #default="{ row }">{{ formatNumber(row.honorScore, 2) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">

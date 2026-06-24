@@ -62,6 +62,7 @@ export interface CompetitionEdition {
   name: string;
   season?: string | null;
   year?: number | null;
+  quantity?: number | null;
   host?: string | null;
   remark?: string | null;
   standings: CompetitionStanding[];
@@ -93,6 +94,7 @@ export interface CreateCompetitionEditionPayload {
   name: string;
   season?: string;
   year?: number;
+  quantity?: number;
   host?: string;
   remark?: string;
 }
@@ -132,6 +134,12 @@ export async function updateCompetition(id: string, payload: CreateCompetitionPa
   return response.data.data;
 }
 
+export async function deleteCompetition(id: string) {
+  const response = await apiClient.delete<ApiResponse<{ id: string }>>(`/competitions/${id}`);
+
+  return response.data.data;
+}
+
 export async function fetchCompetitionDetail(id: string) {
   const response = await apiClient.get<ApiResponse<CompetitionDetail>>(`/competitions/${id}`);
 
@@ -157,6 +165,14 @@ export async function updateCompetitionEdition(
   const response = await apiClient.put<ApiResponse<CompetitionEdition>>(
     `/competition-editions/${id}`,
     payload
+  );
+
+  return response.data.data;
+}
+
+export async function deleteCompetitionEdition(id: string) {
+  const response = await apiClient.delete<ApiResponse<{ id: string }>>(
+    `/competition-editions/${id}`
   );
 
   return response.data.data;

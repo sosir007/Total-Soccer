@@ -389,21 +389,24 @@ h1 {
 }
 
 .route-tab-close {
-  display: grid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
   height: 18px;
-  place-items: center;
   padding: 0;
   border: 0;
   border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
   color: #7a8a80;
   background: transparent;
   cursor: pointer;
 }
 
 .route-tab-close:hover {
-  color: #fff;
-  background: #d44c4c;
+  color: var(--green);
+  background: transparent;
 }
 
 .route-tab-actions {
