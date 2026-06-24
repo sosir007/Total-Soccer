@@ -35,8 +35,11 @@ export interface HonorCompetitionRef {
   scopeType: 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
   category?: string | null;
   level?: string | null;
+  format?: string | null;
   confederation?: NamedRef | null;
   country?: NamedRef | null;
+  scopeConfederations?: Array<{ confederation: NamedRef }>;
+  scopeCountries?: Array<{ country: NamedRef }>;
 }
 
 export interface HonorRecord {

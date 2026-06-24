@@ -9,8 +9,11 @@ import {
   saveCompetitionStandings,
   updateCompetition,
   updateCompetitionEdition,
+  type CompetitionCategory,
   type CompetitionDetail,
   type CompetitionEdition,
+  type CompetitionFormat,
+  type CompetitionLevel,
   type CompetitionListItem,
   type CompetitionScopeType,
   type CompetitionStandingPlacement,
@@ -31,6 +34,22 @@ const scopeTypeOptions: Array<{ label: string; value: CompetitionScopeType }> = 
   { label: '足联', value: 'CONFEDERATION' },
   { label: '国家', value: 'COUNTRY' },
   { label: '自定义', value: 'CUSTOM' }
+];
+const categoryOptions: Array<{ label: string; value: CompetitionCategory }> = [
+  { label: '国际', value: '国际' },
+  { label: '洲际', value: '洲际' },
+  { label: '国内', value: '国内' },
+  { label: '其他', value: '其他' }
+];
+const levelOptions: Array<{ label: string; value: CompetitionLevel }> = [
+  { label: '一级', value: '一级' },
+  { label: '二级', value: '二级' },
+  { label: '三级', value: '三级' }
+];
+const formatOptions: Array<{ label: string; value: CompetitionFormat }> = [
+  { label: '联赛', value: '联赛' },
+  { label: '杯赛', value: '杯赛' },
+  { label: '其他', value: '其他' }
 ];
 const placements: Array<{ label: string; value: CompetitionStandingPlacement }> = [
   { label: '冠军', value: 'CHAMPION' },
@@ -73,9 +92,12 @@ const competitionForm = reactive({
   scopeType: 'GLOBAL' as CompetitionScopeType,
   category: '',
   level: '',
+  format: '其他' as '' | CompetitionFormat,
   description: '',
   confederationId: '',
+  confederationIds: [] as string[],
   countryId: '',
+  countryIds: [] as string[],
   enabled: true,
   sortOrder: 0
 });
@@ -87,9 +109,12 @@ const detailForm = reactive({
   scopeType: 'GLOBAL' as CompetitionScopeType,
   category: '',
   level: '',
+  format: '其他' as '' | CompetitionFormat,
   description: '',
   confederationId: '',
+  confederationIds: [] as string[],
   countryId: '',
+  countryIds: [] as string[],
   enabled: true,
   sortOrder: 0
 });
@@ -298,9 +323,12 @@ function populateDetailForm() {
   detailForm.scopeType = selectedCompetition.value.scopeType;
   detailForm.category = selectedCompetition.value.category ?? '';
   detailForm.level = selectedCompetition.value.level ?? '';
+  detailForm.format = (selectedCompetition.value.format as CompetitionFormat | null) ?? '其他';
   detailForm.description = selectedCompetition.value.description ?? '';
   detailForm.confederationId = selectedCompetition.value.confederationId ?? '';
+  detailForm.confederationIds = getCompetitionConfederationIds(selectedCompetition.value);
   detailForm.countryId = selectedCompetition.value.countryId ?? '';
+  detailForm.countryIds = getCompetitionCountryIds(selectedCompetition.value);
   detailForm.enabled = selectedCompetition.value.enabled;
   detailForm.sortOrder = selectedCompetition.value.sortOrder;
 }
@@ -311,13 +339,13 @@ function validateCompetitionForm(form: typeof competitionForm) {
     return false;
   }
 
-  if (form.scopeType === 'CONFEDERATION' && !form.confederationId) {
-    ElMessage.warning('足联范围赛事需要选择足联。');
+  if (form.scopeType === 'CONFEDERATION' && !form.confederationIds.length) {
+    ElMessage.warning('足联范围赛事需要至少选择一个足联。');
     return false;
   }
 
-  if (form.scopeType === 'COUNTRY' && !form.countryId) {
-    ElMessage.warning('国家范围赛事需要选择国家。');
+  if (form.scopeType === 'COUNTRY' && !form.countryIds.length) {
+    ElMessage.warning('国家范围赛事需要至少选择一个国家。');
     return false;
   }
 
@@ -333,9 +361,12 @@ function buildCompetitionPayload(form: typeof competitionForm) {
     scopeType: form.scopeType,
     category: form.category.trim() || undefined,
     level: form.level.trim() || undefined,
+    format: form.format || undefined,
     description: form.description.trim() || undefined,
-    confederationId: form.scopeType === 'CONFEDERATION' ? form.confederationId : undefined,
-    countryId: form.scopeType === 'COUNTRY' ? form.countryId : undefined,
+    confederationId: form.scopeType === 'CONFEDERATION' ? form.confederationIds[0] : undefined,
+    confederationIds: form.scopeType === 'CONFEDERATION' ? form.confederationIds : [],
+    countryId: form.scopeType === 'COUNTRY' ? form.countryIds[0] : undefined,
+    countryIds: form.scopeType === 'COUNTRY' ? form.countryIds : [],
     enabled: form.enabled,
     sortOrder: form.sortOrder
   };
@@ -347,9 +378,12 @@ function resetCompetitionForm() {
   competitionForm.externalUrl = '';
   competitionForm.category = '';
   competitionForm.level = '';
+  competitionForm.format = '其他';
   competitionForm.description = '';
   competitionForm.confederationId = '';
+  competitionForm.confederationIds = [];
   competitionForm.countryId = '';
+  competitionForm.countryIds = [];
   competitionForm.enabled = true;
   competitionForm.sortOrder = 0;
 }
@@ -374,14 +408,36 @@ function createEmptyStandingForm(): StandingForm {
 
 function formatScope(competition: CompetitionListItem | CompetitionDetail) {
   if (competition.scopeType === 'CONFEDERATION') {
-    return competition.confederation?.name ?? '足联';
+    const names = (competition.scopeConfederations ?? [])
+      .map((scope) => scope.confederation.name)
+      .filter(Boolean);
+
+    return names.length ? names.join('、') : (competition.confederation?.name ?? '足联');
   }
 
   if (competition.scopeType === 'COUNTRY') {
-    return competition.country?.name ?? '国家';
+    const names = (competition.scopeCountries ?? [])
+      .map((scope) => scope.country.name)
+      .filter(Boolean);
+
+    return names.length ? names.join('、') : (competition.country?.name ?? '国家');
   }
 
   return scopeTypeLabels[competition.scopeType];
+}
+
+function getCompetitionConfederationIds(competition: CompetitionListItem | CompetitionDetail) {
+  const ids = (competition.scopeConfederations ?? [])
+    .map((scope) => scope.confederation.id)
+    .filter(Boolean);
+
+  return ids.length ? ids : competition.confederationId ? [competition.confederationId] : [];
+}
+
+function getCompetitionCountryIds(competition: CompetitionListItem | CompetitionDetail) {
+  const ids = (competition.scopeCountries ?? []).map((scope) => scope.country.id).filter(Boolean);
+
+  return ids.length ? ids : competition.countryId ? [competition.countryId] : [];
 }
 
 function formatTargetType(competition: CompetitionListItem | CompetitionDetail) {
@@ -415,8 +471,22 @@ watch(
   () => competitionForm.scopeType,
   () => {
     competitionForm.confederationId = '';
+    competitionForm.confederationIds = [];
     competitionForm.countryId = '';
-  }
+    competitionForm.countryIds = [];
+  },
+  { flush: 'sync' }
+);
+
+watch(
+  () => detailForm.scopeType,
+  () => {
+    detailForm.confederationId = '';
+    detailForm.confederationIds = [];
+    detailForm.countryId = '';
+    detailForm.countryIds = [];
+  },
+  { flush: 'sync' }
 );
 
 onMounted(() => {
@@ -567,23 +637,49 @@ onMounted(() => {
             </el-form-item>
             <el-form-item v-if="competitionForm.scopeType === 'CONFEDERATION'" label="足联">
               <ConfederationSelect
-                v-model="competitionForm.confederationId"
-                placeholder="选择足联"
+                v-model="competitionForm.confederationIds"
+                placeholder="选择一个或多个足联"
                 :clearable="false"
+                multiple
               />
             </el-form-item>
             <el-form-item v-if="competitionForm.scopeType === 'COUNTRY'" label="国家">
               <CountrySelect
-                v-model="competitionForm.countryId"
-                placeholder="选择国家"
+                v-model="competitionForm.countryIds"
+                placeholder="选择一个或多个国家"
                 :clearable="false"
+                multiple
               />
             </el-form-item>
             <el-form-item label="分类">
-              <el-input v-model="competitionForm.category" placeholder="世界杯 / 国内联赛" />
+              <el-select v-model="competitionForm.category" clearable placeholder="选择分类">
+                <el-option
+                  v-for="category in categoryOptions"
+                  :key="category.value"
+                  :label="category.label"
+                  :value="category.value"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="级别">
-              <el-input v-model="competitionForm.level" placeholder="国际 / 洲际 / 国内" />
+              <el-select v-model="competitionForm.level" clearable placeholder="选择级别">
+                <el-option
+                  v-for="level in levelOptions"
+                  :key="level.value"
+                  :label="level.label"
+                  :value="level.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="赛制">
+              <el-select v-model="competitionForm.format" clearable placeholder="选择赛制">
+                <el-option
+                  v-for="format in formatOptions"
+                  :key="format.value"
+                  :label="format.label"
+                  :value="format.value"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="外链">
               <el-input v-model="competitionForm.externalUrl" placeholder="https://..." />
@@ -599,6 +695,10 @@ onMounted(() => {
                 placeholder="赛事说明、统计口径或备注"
               />
             </el-form-item>
+            <div class="form-wide form-help">
+              赛事编码建议使用英文大写下划线，例如
+              WORLD_CUP、UEFA_CHAMPIONS_LEAGUE、LA_LIGA。适用范围决定哪些国家或俱乐部会看到赛事；分类、级别、赛制用于归类和后续计分。
+            </div>
             <el-form-item label="状态">
               <el-switch
                 v-model="competitionForm.enabled"
@@ -644,6 +744,7 @@ onMounted(() => {
               <div class="detail-tags">
                 <el-tag type="success">{{ selectedCompetition.category || '未分类' }}</el-tag>
                 <el-tag>{{ selectedCompetition.level || '未分级' }}</el-tag>
+                <el-tag type="info">{{ selectedCompetition.format || '未设赛制' }}</el-tag>
                 <el-tag type="warning">{{ selectedCompetition.editions.length }} 条结果</el-tag>
               </div>
             </div>
@@ -695,23 +796,49 @@ onMounted(() => {
               </el-form-item>
               <el-form-item v-if="detailForm.scopeType === 'CONFEDERATION'" label="足联">
                 <ConfederationSelect
-                  v-model="detailForm.confederationId"
-                  placeholder="选择足联"
+                  v-model="detailForm.confederationIds"
+                  placeholder="选择一个或多个足联"
                   :clearable="false"
+                  multiple
                 />
               </el-form-item>
               <el-form-item v-if="detailForm.scopeType === 'COUNTRY'" label="国家">
                 <CountrySelect
-                  v-model="detailForm.countryId"
-                  placeholder="选择国家"
+                  v-model="detailForm.countryIds"
+                  placeholder="选择一个或多个国家"
                   :clearable="false"
+                  multiple
                 />
               </el-form-item>
               <el-form-item label="分类">
-                <el-input v-model="detailForm.category" />
+                <el-select v-model="detailForm.category" clearable placeholder="选择分类">
+                  <el-option
+                    v-for="category in categoryOptions"
+                    :key="category.value"
+                    :label="category.label"
+                    :value="category.value"
+                  />
+                </el-select>
               </el-form-item>
               <el-form-item label="级别">
-                <el-input v-model="detailForm.level" />
+                <el-select v-model="detailForm.level" clearable placeholder="选择级别">
+                  <el-option
+                    v-for="level in levelOptions"
+                    :key="level.value"
+                    :label="level.label"
+                    :value="level.value"
+                  />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="赛制">
+                <el-select v-model="detailForm.format" clearable placeholder="选择赛制">
+                  <el-option
+                    v-for="format in formatOptions"
+                    :key="format.value"
+                    :label="format.label"
+                    :value="format.value"
+                  />
+                </el-select>
               </el-form-item>
               <el-form-item label="外链">
                 <el-input v-model="detailForm.externalUrl" placeholder="https://..." />
@@ -727,6 +854,9 @@ onMounted(() => {
                   placeholder="赛事说明、统计口径或备注"
                 />
               </el-form-item>
+              <div class="form-wide form-help">
+                适用范围决定哪些国家或俱乐部会看到赛事；分类、级别、赛制用于归类和后续计分。
+              </div>
               <el-form-item label="状态">
                 <el-switch v-model="detailForm.enabled" active-text="启用" inactive-text="停用" />
               </el-form-item>
@@ -824,3 +954,11 @@ onMounted(() => {
     </el-dialog>
   </section>
 </template>
+
+<style scoped>
+.form-help {
+  color: #66756d;
+  font-size: 13px;
+  line-height: 1.7;
+}
+</style>

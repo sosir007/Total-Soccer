@@ -3,6 +3,9 @@ import type { NamedRef, PaginationResult } from './catalog';
 
 export type CompetitionTargetType = 'COUNTRY' | 'CLUB';
 export type CompetitionScopeType = 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
+export type CompetitionCategory = '国际' | '洲际' | '国内' | '其他';
+export type CompetitionLevel = '一级' | '二级' | '三级';
+export type CompetitionFormat = '联赛' | '杯赛' | '其他';
 export type CompetitionStandingPlacement =
   | 'CHAMPION'
   | 'RUNNER_UP'
@@ -29,6 +32,7 @@ export interface CompetitionListItem {
   scopeType: CompetitionScopeType;
   category?: string | null;
   level?: string | null;
+  format?: string | null;
   description?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
@@ -36,6 +40,8 @@ export interface CompetitionListItem {
   sortOrder: number;
   confederation?: NamedRef | null;
   country?: NamedRef | null;
+  scopeConfederations?: Array<{ confederation: NamedRef }>;
+  scopeCountries?: Array<{ country: NamedRef }>;
   _count?: {
     editions: number;
   };
@@ -73,9 +79,12 @@ export interface CreateCompetitionPayload {
   scopeType: CompetitionScopeType;
   category?: string;
   level?: string;
+  format?: string;
   description?: string;
   confederationId?: string;
+  confederationIds?: string[];
   countryId?: string;
+  countryIds?: string[];
   enabled?: boolean;
   sortOrder?: number;
 }

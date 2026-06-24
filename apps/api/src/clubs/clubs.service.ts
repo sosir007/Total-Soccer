@@ -64,6 +64,30 @@ const CLUB_HONOR_INCLUDE = {
               name: true,
               externalUrl: true
             }
+          },
+          scopeConfederations: {
+            include: {
+              confederation: {
+                select: {
+                  id: true,
+                  uid: true,
+                  name: true,
+                  code: true
+                }
+              }
+            }
+          },
+          scopeCountries: {
+            include: {
+              country: {
+                select: {
+                  id: true,
+                  uid: true,
+                  name: true,
+                  externalUrl: true
+                }
+              }
+            }
           }
         }
       },
@@ -572,7 +596,8 @@ export class ClubsService {
               {
                 edition: { competition: { category: { contains: keyword, mode: 'insensitive' } } }
               },
-              { edition: { competition: { level: { contains: keyword, mode: 'insensitive' } } } }
+              { edition: { competition: { level: { contains: keyword, mode: 'insensitive' } } } },
+              { edition: { competition: { format: { contains: keyword, mode: 'insensitive' } } } }
             ]
           }
         : {})

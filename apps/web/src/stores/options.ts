@@ -317,7 +317,9 @@ function competitionToOption(competition: CompetitionListItem): SelectOption {
     value: competition.id,
     label: competition.name,
     code: competition.code,
-    description: competition.category ?? competition.level,
+    description: [competition.category, competition.level, competition.format]
+      .filter(Boolean)
+      .join(' / '),
     targetType: competition.targetType
   };
 }

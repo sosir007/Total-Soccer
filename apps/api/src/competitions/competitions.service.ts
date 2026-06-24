@@ -16,6 +16,10 @@ import type {
   UpdateCompetitionEditionBody
 } from './competitions.types.js';
 
+const COMPETITION_CATEGORIES = ['国际', '洲际', '国内', '其他'] as const;
+const COMPETITION_LEVELS = ['一级', '二级', '三级'] as const;
+const COMPETITION_FORMATS = ['联赛', '杯赛', '其他'] as const;
+
 const COMPETITION_INCLUDE = {
   confederation: {
     select: {
@@ -31,6 +35,30 @@ const COMPETITION_INCLUDE = {
       uid: true,
       name: true,
       externalUrl: true
+    }
+  },
+  scopeConfederations: {
+    include: {
+      confederation: {
+        select: {
+          id: true,
+          uid: true,
+          code: true,
+          name: true
+        }
+      }
+    }
+  },
+  scopeCountries: {
+    include: {
+      country: {
+        select: {
+          id: true,
+          uid: true,
+          name: true,
+          externalUrl: true
+        }
+      }
     }
   },
   _count: {
@@ -77,22 +105,43 @@ export class CompetitionsService {
   async findAll(query: CompetitionListQuery) {
     const pagination = resolvePagination(query);
     const keyword = query.keyword?.trim();
+    const andConditions: Prisma.CompetitionWhereInput[] = [];
+
+    if (keyword) {
+      andConditions.push({
+        OR: [
+          { code: { contains: keyword, mode: 'insensitive' } },
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { category: { contains: keyword, mode: 'insensitive' } },
+          { level: { contains: keyword, mode: 'insensitive' } },
+          { format: { contains: keyword, mode: 'insensitive' } },
+          { description: { contains: keyword, mode: 'insensitive' } }
+        ]
+      });
+    }
+
+    if (query.confederationId) {
+      andConditions.push({
+        OR: [
+          { confederationId: query.confederationId },
+          { scopeConfederations: { some: { confederationId: query.confederationId } } }
+        ]
+      });
+    }
+
+    if (query.countryId) {
+      andConditions.push({
+        OR: [
+          { countryId: query.countryId },
+          { scopeCountries: { some: { countryId: query.countryId } } }
+        ]
+      });
+    }
+
     const where: Prisma.CompetitionWhereInput = {
-      ...(keyword
-        ? {
-            OR: [
-              { code: { contains: keyword, mode: 'insensitive' } },
-              { name: { contains: keyword, mode: 'insensitive' } },
-              { category: { contains: keyword, mode: 'insensitive' } },
-              { level: { contains: keyword, mode: 'insensitive' } },
-              { description: { contains: keyword, mode: 'insensitive' } }
-            ]
-          }
-        : {}),
       ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
       ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
-      ...(query.confederationId ? { confederationId: query.confederationId } : {}),
-      ...(query.countryId ? { countryId: query.countryId } : {}),
+      ...(andConditions.length ? { AND: andConditions } : {}),
       ...(query.enabled === undefined ? {} : { enabled: query.enabled === 'true' })
     };
     const [items, total] = await this.prisma.$transaction([
@@ -128,22 +177,41 @@ export class CompetitionsService {
   }
 
   async create(body: CreateCompetitionBody) {
-    const data = await this.buildCompetitionData(body);
+    const input = await this.buildCompetitionData(body);
 
-    return this.prisma.competition.create({
-      data,
-      include: COMPETITION_INCLUDE
+    return this.prisma.$transaction(async (tx) => {
+      const competition = await tx.competition.create({
+        data: input.data
+      });
+      await this.replaceCompetitionScopes(
+        tx,
+        competition.id,
+        input.confederationIds,
+        input.countryIds
+      );
+
+      return tx.competition.findUniqueOrThrow({
+        where: { id: competition.id },
+        include: COMPETITION_INCLUDE
+      });
     });
   }
 
   async update(id: string, body: UpdateCompetitionBody) {
     await this.assertCompetitionExists(id);
-    const data = await this.buildCompetitionData(body);
+    const input = await this.buildCompetitionData(body);
 
-    return this.prisma.competition.update({
-      where: { id },
-      data,
-      include: COMPETITION_INCLUDE
+    return this.prisma.$transaction(async (tx) => {
+      await tx.competition.update({
+        where: { id },
+        data: input.data
+      });
+      await this.replaceCompetitionScopes(tx, id, input.confederationIds, input.countryIds);
+
+      return tx.competition.findUniqueOrThrow({
+        where: { id },
+        include: COMPETITION_INCLUDE
+      });
     });
   }
 
@@ -206,11 +274,17 @@ export class CompetitionsService {
     });
   }
 
-  private async buildCompetitionData(body: CreateCompetitionBody) {
+  private async buildCompetitionData(body: CreateCompetitionBody): Promise<{
+    data: Prisma.CompetitionUncheckedCreateInput;
+    confederationIds: string[];
+    countryIds: string[];
+  }> {
     const code = body.code?.trim();
     const name = body.name?.trim();
     const targetType = this.parseTargetType(body.targetType);
     const scopeType = this.parseScopeType(body.scopeType ?? CompetitionScopeType.GLOBAL);
+    const confederationIds = this.getScopeIds(body.confederationIds, body.confederationId);
+    const countryIds = this.getScopeIds(body.countryIds, body.countryId);
 
     if (!code) {
       throw new BadRequestException('赛事编码不能为空。');
@@ -220,23 +294,28 @@ export class CompetitionsService {
       throw new BadRequestException('赛事名称不能为空。');
     }
 
-    this.validateScope(scopeType, body);
+    this.validateScope(scopeType, confederationIds, countryIds);
 
     return {
-      code,
-      name,
-      targetType,
-      scopeType,
-      category: this.toNullableString(body.category),
-      level: this.toNullableString(body.level),
-      description: this.toNullableString(body.description),
-      externalUrl: this.toNullableString(body.externalUrl),
-      confederationId:
-        scopeType === CompetitionScopeType.CONFEDERATION ? body.confederationId : null,
-      countryId: scopeType === CompetitionScopeType.COUNTRY ? body.countryId : null,
-      enabled: body.enabled ?? true,
-      sortOrder: body.sortOrder ?? 0
-    } satisfies Prisma.CompetitionUncheckedCreateInput;
+      data: {
+        code,
+        name,
+        targetType,
+        scopeType,
+        category: this.parseStandardText(body.category, COMPETITION_CATEGORIES, '赛事分类'),
+        level: this.parseStandardText(body.level, COMPETITION_LEVELS, '赛事级别'),
+        format: this.parseStandardText(body.format, COMPETITION_FORMATS, '赛事赛制'),
+        description: this.toNullableString(body.description),
+        externalUrl: this.toNullableString(body.externalUrl),
+        confederationId:
+          scopeType === CompetitionScopeType.CONFEDERATION ? confederationIds[0] : null,
+        countryId: scopeType === CompetitionScopeType.COUNTRY ? countryIds[0] : null,
+        enabled: body.enabled ?? true,
+        sortOrder: body.sortOrder ?? 0
+      },
+      confederationIds: scopeType === CompetitionScopeType.CONFEDERATION ? confederationIds : [],
+      countryIds: scopeType === CompetitionScopeType.COUNTRY ? countryIds : []
+    };
   }
 
   private buildEditionData(competitionId: string, body: CreateCompetitionEditionBody) {
@@ -333,12 +412,50 @@ export class CompetitionsService {
     return rows;
   }
 
-  private validateScope(scopeType: CompetitionScopeType, body: CreateCompetitionBody) {
-    if (scopeType === CompetitionScopeType.CONFEDERATION && !body.confederationId) {
+  private async replaceCompetitionScopes(
+    tx: Prisma.TransactionClient,
+    competitionId: string,
+    confederationIds: string[],
+    countryIds: string[]
+  ) {
+    await tx.competitionScopeConfederation.deleteMany({
+      where: { competitionId }
+    });
+    await tx.competitionScopeCountry.deleteMany({
+      where: { competitionId }
+    });
+
+    if (confederationIds.length) {
+      await tx.competitionScopeConfederation.createMany({
+        data: confederationIds.map((confederationId) => ({
+          competitionId,
+          confederationId
+        })),
+        skipDuplicates: true
+      });
+    }
+
+    if (countryIds.length) {
+      await tx.competitionScopeCountry.createMany({
+        data: countryIds.map((countryId) => ({
+          competitionId,
+          countryId
+        })),
+        skipDuplicates: true
+      });
+    }
+  }
+
+  private validateScope(
+    scopeType: CompetitionScopeType,
+    confederationIds: string[],
+    countryIds: string[]
+  ) {
+    if (scopeType === CompetitionScopeType.CONFEDERATION && !confederationIds.length) {
       throw new BadRequestException('足联范围赛事必须选择足联。');
     }
 
-    if (scopeType === CompetitionScopeType.COUNTRY && !body.countryId) {
+    if (scopeType === CompetitionScopeType.COUNTRY && !countryIds.length) {
       throw new BadRequestException('国家范围赛事必须选择国家。');
     }
   }
@@ -387,6 +504,32 @@ export class CompetitionsService {
     }
 
     return value;
+  }
+
+  private parseStandardText<T extends readonly string[]>(
+    value: string | undefined | null,
+    allowedValues: T,
+    label: string
+  ): T[number] | null {
+    const trimmed = this.toNullableString(value);
+
+    if (!trimmed) {
+      return null;
+    }
+
+    if (!allowedValues.includes(trimmed)) {
+      throw new BadRequestException(`${label}必须是：${allowedValues.join('、')}。`);
+    }
+
+    return trimmed;
+  }
+
+  private getScopeIds(values?: string[], fallback?: string) {
+    const ids = [...(values ?? []), fallback]
+      .map((value) => this.toNullableString(value))
+      .filter((value): value is string => Boolean(value));
+
+    return [...new Set(ids)];
   }
 
   private requiredString(value: string | undefined, label: string) {

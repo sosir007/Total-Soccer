@@ -157,35 +157,36 @@ model AuditLog {
 }
 
 model Country {
-  id                  String                @id @default(cuid())
-  importKey           String                @unique
-  uid                 String
-  name                String
-  externalUrl         String?
-  remark              String?
-  federation          String?
-  federationId        String?
-  playerCount         Int?
-  totalPa             Int?
-  averagePa           Float?
-  medalCount          Int?
-  championCount       Int?
-  majorChampionCount  Int?
-  honorScore          Float?
-  averageHonorScore   Float?
-  players             Player[]
-  birthPlayers        Player[]              @relation("PlayerBirthCountry")
-  playerNationalities PlayerNationality[]
-  cities              City[]
-  clubs               Club[]
-  playerCareers       PlayerCareer[]
-  federationRef       Confederation?        @relation(fields: [federationId], references: [id])
-  honors              CountryHonor[]
-  scopedAwards        Award[]               @relation("AwardScopeCountry")
-  scopedCompetitions  Competition[]         @relation("CompetitionScopeCountry")
-  competitionResults  CompetitionStanding[]
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
+  id                    String                    @id @default(cuid())
+  importKey             String                    @unique
+  uid                   String
+  name                  String
+  externalUrl           String?
+  remark                String?
+  federation            String?
+  federationId          String?
+  playerCount           Int?
+  totalPa               Int?
+  averagePa             Float?
+  medalCount            Int?
+  championCount         Int?
+  majorChampionCount    Int?
+  honorScore            Float?
+  averageHonorScore     Float?
+  players               Player[]
+  birthPlayers          Player[]                  @relation("PlayerBirthCountry")
+  playerNationalities   PlayerNationality[]
+  cities                City[]
+  clubs                 Club[]
+  playerCareers         PlayerCareer[]
+  federationRef         Confederation?            @relation(fields: [federationId], references: [id])
+  honors                CountryHonor[]
+  scopedAwards          Award[]                   @relation("AwardScopeCountry")
+  scopedCompetitions    Competition[]             @relation("CompetitionLegacyScopeCountry")
+  competitionScopeLinks CompetitionScopeCountry[]
+  competitionResults    CompetitionStanding[]
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
 
   @@index([federation])
   @@index([federationId])
@@ -392,45 +393,74 @@ model PlayerType {
 }
 
 model Confederation {
-  id                 String        @id @default(cuid())
-  uid                String        @unique
-  name               String
-  code               String?
-  sortOrder          Int           @default(0)
-  scopedAwards       Award[]       @relation("AwardScopeConfederation")
-  countries          Country[]
-  clubs              Club[]
-  players            Player[]
-  scopedCompetitions Competition[] @relation("CompetitionScopeConfederation")
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                    String                          @id @default(cuid())
+  uid                   String                          @unique
+  name                  String
+  code                  String?
+  sortOrder             Int                             @default(0)
+  scopedAwards          Award[]                         @relation("AwardScopeConfederation")
+  countries             Country[]
+  clubs                 Club[]
+  players               Player[]
+  scopedCompetitions    Competition[]                   @relation("CompetitionLegacyScopeConfederation")
+  competitionScopeLinks CompetitionScopeConfederation[]
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
 }
 
 model Competition {
-  id              String                @id @default(cuid())
-  code            String                @unique
-  name            String
-  externalUrl     String?
-  targetType      CompetitionTargetType
-  scopeType       CompetitionScopeType  @default(GLOBAL)
-  category        String?
-  level           String?
-  description     String?
-  confederationId String?
-  countryId       String?
-  enabled         Boolean               @default(true)
-  sortOrder       Int                   @default(0)
-  confederation   Confederation?        @relation("CompetitionScopeConfederation", fields: [confederationId], references: [id])
-  country         Country?              @relation("CompetitionScopeCountry", fields: [countryId], references: [id])
-  editions        CompetitionEdition[]
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  id                  String                          @id @default(cuid())
+  code                String                          @unique
+  name                String
+  externalUrl         String?
+  targetType          CompetitionTargetType
+  scopeType           CompetitionScopeType            @default(GLOBAL)
+  category            String?
+  level               String?
+  format              String?
+  description         String?
+  confederationId     String?
+  countryId           String?
+  enabled             Boolean                         @default(true)
+  sortOrder           Int                             @default(0)
+  confederation       Confederation?                  @relation("CompetitionLegacyScopeConfederation", fields: [confederationId], references: [id])
+  country             Country?                        @relation("CompetitionLegacyScopeCountry", fields: [countryId], references: [id])
+  scopeConfederations CompetitionScopeConfederation[]
+  scopeCountries      CompetitionScopeCountry[]
+  editions            CompetitionEdition[]
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
 
   @@index([targetType])
   @@index([scopeType])
+  @@index([category])
+  @@index([level])
+  @@index([format])
   @@index([confederationId])
   @@index([countryId])
   @@index([enabled])
+}
+
+model CompetitionScopeConfederation {
+  competitionId   String
+  confederationId String
+  competition     Competition   @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  confederation   Confederation @relation(fields: [confederationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@id([competitionId, confederationId])
+  @@index([confederationId])
+}
+
+model CompetitionScopeCountry {
+  competitionId String
+  countryId     String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  country       Country     @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@id([competitionId, countryId])
+  @@index([countryId])
 }
 
 model Award {

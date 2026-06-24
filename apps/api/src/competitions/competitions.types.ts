@@ -23,9 +23,12 @@ export interface CreateCompetitionBody {
   scopeType?: CompetitionScopeType;
   category?: string;
   level?: string;
+  format?: string;
   description?: string;
   confederationId?: string;
+  confederationIds?: string[];
   countryId?: string;
+  countryIds?: string[];
   enabled?: boolean;
   sortOrder?: number;
 }
