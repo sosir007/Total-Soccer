@@ -2,14 +2,9 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import {
-  deleteClub,
-  fetchClubDetail,
-  fetchClubs,
-  type ClubDetail,
-  type ClubListItem,
-  type NamedRef
-} from '@/services/catalog';
+import { deleteClub, fetchClubDetail, fetchClubs } from '@/services/modules/catalog';
+import type { ClubDetail, ClubListItem } from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';

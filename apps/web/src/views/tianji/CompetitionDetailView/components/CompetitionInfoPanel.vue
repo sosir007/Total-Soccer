@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompetitionDetail, CompetitionTargetType } from '@/services/competitions';
+import type { CompetitionDetail, CompetitionTargetType } from '@/services/types/competitions';
 
 defineProps<{
   competition: CompetitionDetail;

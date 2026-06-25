@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { AwardScopeType } from '@/services/awards';
-import type { AwardRuleItem } from '@/services/award-rules';
+import type { AwardScopeType } from '@/services/types/awards';
+import type { AwardRuleItem } from '@/services/types/award-rules';
 
 defineProps<{
   items: AwardRuleItem[];

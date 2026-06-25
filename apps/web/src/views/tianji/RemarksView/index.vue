@@ -3,7 +3,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
-import { fetchRemarks, type RemarkItem, type RemarkObjectType } from '@/services/remarks';
+import { fetchRemarks } from '@/services/modules/remarks';
+import type { RemarkItem, RemarkObjectType } from '@/services/types/remarks';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 
 type RemarkEntityType = 'country' | 'club' | 'player' | 'competition' | 'award';

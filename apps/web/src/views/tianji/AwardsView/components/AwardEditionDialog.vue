@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { PlayerListItem } from '@/services/catalog';
+import type { PlayerListItem } from '@/services/types/catalog';
 
 interface RecipientFormRow {
   playerId: string;

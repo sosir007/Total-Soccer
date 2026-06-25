@@ -4,9 +4,9 @@ import EntityNameCell from '@/components/EntityNameCell.vue';
 import type {
   CareerProfileLine,
   CountryDetail,
-  LineupPositionGroup,
-  NamedRef
-} from '@/services/catalog';
+  LineupPositionGroup
+} from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,

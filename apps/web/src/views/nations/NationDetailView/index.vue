@@ -2,7 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { fetchCountryDetail, type CountryDetail } from '@/services/catalog';
+import { fetchCountryDetail } from '@/services/modules/catalog';
+import type { CountryDetail } from '@/services/types/catalog';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import NationDetailContent from './components/NationDetailContent.vue';

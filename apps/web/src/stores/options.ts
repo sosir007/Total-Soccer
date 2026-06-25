@@ -1,14 +1,12 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { fetchBaseConfigs, type BaseConfigItem, type BaseConfigType } from '@/services/base-config';
-import { fetchCompetitions, type CompetitionListItem } from '@/services/competitions';
-import {
-  fetchClubs,
-  fetchCountries,
-  type ClubListItem,
-  type CountryListItem,
-  type PaginationResult
-} from '@/services/catalog';
+import { fetchBaseConfigs } from '@/services/modules/base-config';
+import type { BaseConfigItem, BaseConfigType } from '@/services/types/base-config';
+import { fetchCompetitions } from '@/services/modules/competitions';
+import type { CompetitionListItem } from '@/services/types/competitions';
+import { fetchClubs, fetchCountries } from '@/services/modules/catalog';
+import type { ClubListItem, CountryListItem } from '@/services/types/catalog';
+import type { PaginationResult } from '@/services/types/common';
 
 export interface SelectOption {
   id: string;

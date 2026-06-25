@@ -2,13 +2,10 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { type NamedRef, type PlayerListItem } from '@/services/catalog';
-import {
-  fetchSummitCandidates,
-  fetchSummitLineup,
-  type SummitGroup,
-  type SummitLineup
-} from '@/services/summit';
+import type { NamedRef } from '@/services/types/common';
+import type { PlayerListItem } from '@/services/types/catalog';
+import { fetchSummitCandidates, fetchSummitLineup } from '@/services/modules/summit';
+import type { SummitGroup, SummitLineup } from '@/services/types/summit';
 import {
   ClubSelect,
   ConfederationSelect,

@@ -2,15 +2,14 @@
 import { reactive, ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
-import {
-  createPlayer,
-  updatePlayer,
-  type PlayerDetail,
-  type PlayerCareer,
-  type PlayerCareerPayload,
-  type PlayerCareerType,
-  type PlayerPayload
-} from '@/services/catalog';
+import { createPlayer, updatePlayer } from '@/services/modules/catalog';
+import type {
+  PlayerDetail,
+  PlayerCareer,
+  PlayerCareerPayload,
+  PlayerCareerType,
+  PlayerPayload
+} from '@/services/types/catalog';
 import {
   CitySelect,
   ClubSelect,

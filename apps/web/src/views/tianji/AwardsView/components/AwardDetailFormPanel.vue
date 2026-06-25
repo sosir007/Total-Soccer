@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { AwardDetail, AwardScopeType } from '@/services/awards';
+import type { AwardDetail, AwardScopeType } from '@/services/types/awards';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const props = defineProps<{

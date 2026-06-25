@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { CompetitionStandingPlacement, CompetitionTargetType } from '@/services/competitions';
-import type { HonorRuleItem } from '@/services/honor-rules';
+import type {
+  CompetitionStandingPlacement,
+  CompetitionTargetType
+} from '@/services/types/competitions';
+import type { HonorRuleItem } from '@/services/types/honor-rules';
 
 defineProps<{
   items: HonorRuleItem[];

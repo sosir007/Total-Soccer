@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import { createClub, updateClub, type ClubDetail, type ClubPayload } from '@/services/catalog';
+import { createClub, updateClub } from '@/services/modules/catalog';
+import type { ClubDetail, ClubPayload } from '@/services/types/catalog';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 

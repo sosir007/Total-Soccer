@@ -3,7 +3,8 @@ import { toRef } from 'vue';
 import dayjs from 'dayjs';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
-import type { NamedRef, PlayerListItem } from '@/services/catalog';
+import type { PlayerListItem } from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
 
 interface StarsFilters {
   page: number;

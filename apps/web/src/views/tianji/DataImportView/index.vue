@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { ElMessage, type UploadFile, type UploadFiles } from 'element-plus';
-import {
-  confirmImportPreview,
-  createImportPreview,
-  type ImportConfirmResult,
-  type ImportPreviewError,
-  type ImportPreviewResult,
-  type ImportPreviewSheet
-} from '@/services/importPreview';
+import { ElMessage } from 'element-plus';
+import type { UploadFile, UploadFiles } from 'element-plus';
+import { confirmImportPreview, createImportPreview } from '@/services/modules/importPreview';
+import type {
+  ImportConfirmResult,
+  ImportPreviewError,
+  ImportPreviewResult,
+  ImportPreviewSheet
+} from '@/services/types/importPreview';
 
 const acceptedTypes = '.lakesheet,.xlsx,.xls,.csv';
 const selectedFile = ref<File | null>(null);

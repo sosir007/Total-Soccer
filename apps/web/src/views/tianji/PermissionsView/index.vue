@@ -2,7 +2,8 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
-import { fetchAuditLogs, type AuditAction, type AuditLogItem } from '@/services/audit-logs';
+import { fetchAuditLogs } from '@/services/modules/audit-logs';
+import type { AuditAction, AuditLogItem } from '@/services/types/audit-logs';
 
 const loading = ref(false);
 const errorMessage = ref('');

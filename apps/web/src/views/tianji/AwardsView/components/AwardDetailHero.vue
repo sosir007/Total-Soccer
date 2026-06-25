@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AwardDetail, AwardListItem, AwardScopeType } from '@/services/awards';
+import type { AwardDetail, AwardListItem, AwardScopeType } from '@/services/types/awards';
 
 defineProps<{
   award: AwardDetail;

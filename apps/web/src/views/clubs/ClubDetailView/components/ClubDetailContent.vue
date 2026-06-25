@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
-import type {
-  CareerProfileLine,
-  ClubDetail,
-  LineupPositionGroup,
-  NamedRef
-} from '@/services/catalog';
+import type { CareerProfileLine, ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
 import {
   formatHonorEdition,

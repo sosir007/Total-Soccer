@@ -5,11 +5,13 @@ import {
   createBaseConfig,
   deleteBaseConfig,
   fetchBaseConfigs,
-  updateBaseConfig,
-  type BaseConfigItem,
-  type BaseConfigPayload,
-  type BaseConfigType
-} from '@/services/base-config';
+  updateBaseConfig
+} from '@/services/modules/base-config';
+import type {
+  BaseConfigItem,
+  BaseConfigPayload,
+  BaseConfigType
+} from '@/services/types/base-config';
 import { useOptionStore } from '@/stores/options';
 import BaseConfigDialog from './components/BaseConfigDialog.vue';
 import BaseConfigHeaderPanel from './components/BaseConfigHeaderPanel.vue';

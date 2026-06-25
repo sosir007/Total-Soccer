@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import BaseOptionSelect from './BaseOptionSelect.vue';
-import type { CompetitionTargetType } from '@/services/competitions';
+import type { CompetitionTargetType } from '@/services/types/competitions';
 import { useOptionStore } from '@/stores/options';
 
 const model = defineModel<string>({ default: '' });

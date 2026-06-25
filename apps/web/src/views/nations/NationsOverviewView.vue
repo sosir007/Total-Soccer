@@ -2,14 +2,9 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import {
-  deleteCountry,
-  fetchCountries,
-  fetchCountryDetail,
-  type CountryDetail,
-  type CountryListItem,
-  type NamedRef
-} from '@/services/catalog';
+import { deleteCountry, fetchCountries, fetchCountryDetail } from '@/services/modules/catalog';
+import type { CountryDetail, CountryListItem } from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect } from '@/components/selects';

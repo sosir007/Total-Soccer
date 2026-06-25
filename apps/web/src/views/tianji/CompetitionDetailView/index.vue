@@ -8,16 +8,18 @@ import {
   fetchCompetitionDetail,
   saveCompetitionStandings,
   updateCompetition,
-  updateCompetitionEdition,
-  type CompetitionCategory,
-  type CompetitionDetail,
-  type CompetitionEdition,
-  type CompetitionFormat,
-  type CompetitionLevel,
-  type CompetitionScopeType,
-  type CompetitionStandingPlacement,
-  type CompetitionTargetType
-} from '@/services/competitions';
+  updateCompetitionEdition
+} from '@/services/modules/competitions';
+import type {
+  CompetitionCategory,
+  CompetitionDetail,
+  CompetitionEdition,
+  CompetitionFormat,
+  CompetitionLevel,
+  CompetitionScopeType,
+  CompetitionStandingPlacement,
+  CompetitionTargetType
+} from '@/services/types/competitions';
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import CompetitionDetailDialog from './components/CompetitionDetailDialog.vue';

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import { CountrySelect } from '@/components/selects';
-import type { BaseConfigPayload } from '@/services/base-config';
+import type { BaseConfigPayload } from '@/services/types/base-config';
 
 const positionGroupOptions = [
   {

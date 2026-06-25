@@ -5,20 +5,21 @@ import {
   createHonorRule,
   fetchHonorRules,
   recalculateHonorScores,
-  updateHonorRule,
-  type HonorRuleItem,
-  type HonorRulePayload
-} from '@/services/honor-rules';
+  updateHonorRule
+} from '@/services/modules/honor-rules';
+import type { HonorRuleItem, HonorRulePayload } from '@/services/types/honor-rules';
 import {
   createAwardRule,
   fetchAwardRules,
   recalculateAwardScores,
-  updateAwardRule,
-  type AwardRuleItem,
-  type AwardRulePayload
-} from '@/services/award-rules';
-import type { AwardScopeType } from '@/services/awards';
-import type { CompetitionStandingPlacement, CompetitionTargetType } from '@/services/competitions';
+  updateAwardRule
+} from '@/services/modules/award-rules';
+import type { AwardRuleItem, AwardRulePayload } from '@/services/types/award-rules';
+import type { AwardScopeType } from '@/services/types/awards';
+import type {
+  CompetitionStandingPlacement,
+  CompetitionTargetType
+} from '@/services/types/competitions';
 import AwardRuleDialog from './components/AwardRuleDialog.vue';
 import AwardRuleListPanel from './components/AwardRuleListPanel.vue';
 import HonorRuleDialog from './components/HonorRuleDialog.vue';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { BaseConfigType } from '@/services/base-config';
+import type { BaseConfigType } from '@/services/types/base-config';
 
 interface ConfigTab {
   type: BaseConfigType;

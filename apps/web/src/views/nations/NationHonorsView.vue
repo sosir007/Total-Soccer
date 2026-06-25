@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import { fetchCountryHonors, type HonorRecord } from '@/services/catalog';
-import { type CompetitionStandingPlacement } from '@/services/competitions';
+import { fetchCountryHonors } from '@/services/modules/catalog';
+import type { HonorRecord } from '@/services/types/catalog';
+import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { CompetitionSelect, CountrySelect } from '@/components/selects';

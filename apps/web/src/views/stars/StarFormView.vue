@@ -3,7 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import PlayerFormDialog from '@/components/catalog/PlayerFormDialog.vue';
-import { fetchPlayerDetail, type PlayerDetail } from '@/services/catalog';
+import { fetchPlayerDetail } from '@/services/modules/catalog';
+import type { PlayerDetail } from '@/services/types/catalog';
 import { useAppStore } from '@/stores/app';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 

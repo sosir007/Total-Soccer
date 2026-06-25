@@ -3,7 +3,7 @@ import type {
   CompetitionDetail,
   CompetitionScopeType,
   CompetitionTargetType
-} from '@/services/competitions';
+} from '@/services/types/competitions';
 
 defineProps<{
   competition: CompetitionDetail;

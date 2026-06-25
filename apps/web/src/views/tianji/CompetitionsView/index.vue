@@ -5,14 +5,16 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   createCompetition,
   deleteCompetition,
-  fetchCompetitions,
-  type CompetitionCategory,
-  type CompetitionFormat,
-  type CompetitionLevel,
-  type CompetitionListItem,
-  type CompetitionScopeType,
-  type CompetitionTargetType
-} from '@/services/competitions';
+  fetchCompetitions
+} from '@/services/modules/competitions';
+import type {
+  CompetitionCategory,
+  CompetitionFormat,
+  CompetitionLevel,
+  CompetitionListItem,
+  CompetitionScopeType,
+  CompetitionTargetType
+} from '@/services/types/competitions';
 import { useOptionStore } from '@/stores/options';
 import { buildExternalUrl } from '@/utils/external-link';
 import CompetitionCreateDialog from './components/CompetitionCreateDialog.vue';

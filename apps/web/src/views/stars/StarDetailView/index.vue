@@ -2,7 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { fetchPlayerDetail, type PlayerDetail } from '@/services/catalog';
+import { fetchPlayerDetail } from '@/services/modules/catalog';
+import type { PlayerDetail } from '@/services/types/catalog';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import StarDetailContent from './components/StarDetailContent.vue';
 

@@ -2,7 +2,8 @@
 import { onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { deletePlayer, fetchPlayers, type PlayerListItem } from '@/services/catalog';
+import { deletePlayer, fetchPlayers } from '@/services/modules/catalog';
+import type { PlayerListItem } from '@/services/types/catalog';
 import { useAppStore } from '@/stores/app';
 import StarsFilterPanel from './components/StarsFilterPanel.vue';
 import StarsTablePanel from './components/StarsTablePanel.vue';

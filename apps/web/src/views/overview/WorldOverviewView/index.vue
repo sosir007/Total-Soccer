@@ -2,11 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
-import {
-  fetchWorldOverview,
-  type DashboardRankItem,
-  type WorldOverview
-} from '@/services/dashboard';
+import { fetchWorldOverview } from '@/services/modules/dashboard';
+import type { DashboardRankItem, WorldOverview } from '@/services/types/dashboard';
 import EntityLink from '@/components/EntityLink.vue';
 
 const loading = ref(false);

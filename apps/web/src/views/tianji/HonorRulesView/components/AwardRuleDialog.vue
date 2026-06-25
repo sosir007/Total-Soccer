@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { AwardRulePayload } from '@/services/award-rules';
-import type { AwardScopeType } from '@/services/awards';
+import type { AwardRulePayload } from '@/services/types/award-rules';
+import type { AwardScopeType } from '@/services/types/awards';
 
 const props = defineProps<{
   title: string;

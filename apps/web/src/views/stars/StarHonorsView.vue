@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import {
-  fetchAwardRecipients,
-  type AwardRecipientRecord,
-  type AwardScopeType
-} from '@/services/awards';
+import { fetchAwardRecipients } from '@/services/modules/awards';
+import type { AwardRecipientRecord, AwardScopeType } from '@/services/types/awards';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { buildExternalUrl } from '@/utils/external-link';

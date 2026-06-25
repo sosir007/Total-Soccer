@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { CompetitionScopeType, CompetitionTargetType } from '@/services/competitions';
+import type { CompetitionScopeType, CompetitionTargetType } from '@/services/types/competitions';
 
 const props = defineProps<{
   filters: {

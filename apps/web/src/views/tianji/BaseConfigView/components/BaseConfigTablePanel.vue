@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { BaseConfigItem } from '@/services/base-config';
+import type { BaseConfigItem } from '@/services/types/base-config';
 
 interface BaseConfigFilters {
   page: number;

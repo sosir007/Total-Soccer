@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompetitionListItem } from '@/services/competitions';
+import type { CompetitionListItem } from '@/services/types/competitions';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 
 defineProps<{

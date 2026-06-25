@@ -6,7 +6,7 @@ import type {
   CompetitionLevel,
   CompetitionScopeType,
   CompetitionTargetType
-} from '@/services/competitions';
+} from '@/services/types/competitions';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import type { CompetitionDetailForm } from './types';
 

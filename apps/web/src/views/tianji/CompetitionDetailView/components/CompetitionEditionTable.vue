@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { CompetitionEdition, CompetitionStandingPlacement } from '@/services/competitions';
+import type {
+  CompetitionEdition,
+  CompetitionStandingPlacement
+} from '@/services/types/competitions';
 import EntityLink from '@/components/EntityLink.vue';
 
 defineProps<{

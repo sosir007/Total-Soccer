@@ -9,13 +9,16 @@ import {
   fetchAwards,
   saveAwardRecipients,
   updateAward,
-  updateAwardEdition,
-  type AwardDetail,
-  type AwardEdition,
-  type AwardListItem,
-  type AwardScopeType
-} from '@/services/awards';
-import { fetchPlayers, type PlayerListItem } from '@/services/catalog';
+  updateAwardEdition
+} from '@/services/modules/awards';
+import type {
+  AwardDetail,
+  AwardEdition,
+  AwardListItem,
+  AwardScopeType
+} from '@/services/types/awards';
+import { fetchPlayers } from '@/services/modules/catalog';
+import type { PlayerListItem } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
 import AwardCreateDialog from './components/AwardCreateDialog.vue';
 import AwardDetailFormPanel from './components/AwardDetailFormPanel.vue';

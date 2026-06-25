@@ -3,7 +3,7 @@ import type {
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType
-} from '@/services/competitions';
+} from '@/services/types/competitions';
 
 export type StandingForm = Record<
   CompetitionStandingPlacement,

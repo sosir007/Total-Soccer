@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AwardListItem } from '@/services/awards';
+import type { AwardListItem } from '@/services/types/awards';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 
 defineProps<{

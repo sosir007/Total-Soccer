@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { CompetitionStandingPlacement, CompetitionTargetType } from '@/services/competitions';
-import type { HonorRulePayload } from '@/services/honor-rules';
+import type {
+  CompetitionStandingPlacement,
+  CompetitionTargetType
+} from '@/services/types/competitions';
+import type { HonorRulePayload } from '@/services/types/honor-rules';
 
 const props = defineProps<{
   title: string;

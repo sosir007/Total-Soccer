@@ -1,5 +1,6 @@
-import type { HonorRecord, NamedRef } from '@/services/catalog';
-import type { CompetitionStandingPlacement } from '@/services/competitions';
+import type { HonorRecord } from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
+import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 
 export const placementOptions: Array<{ label: string; value: CompetitionStandingPlacement }> = [
   { label: '冠军', value: 'CHAMPION' },

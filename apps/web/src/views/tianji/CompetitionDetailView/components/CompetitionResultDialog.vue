@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { CompetitionDetail, CompetitionStandingPlacement } from '@/services/competitions';
+import type {
+  CompetitionDetail,
+  CompetitionStandingPlacement
+} from '@/services/types/competitions';
 import { ClubSelect, CountrySelect } from '@/components/selects';
 import type { EditionRow } from './types';
 

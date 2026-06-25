@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { AwardScopeType } from '@/services/awards';
+import type { AwardScopeType } from '@/services/types/awards';
 
 const props = defineProps<{
   filters: {

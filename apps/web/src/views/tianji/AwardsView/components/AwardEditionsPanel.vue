@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AwardEdition } from '@/services/awards';
+import type { AwardEdition } from '@/services/types/awards';
 import EntityLink from '@/components/EntityLink.vue';
 
 defineProps<{

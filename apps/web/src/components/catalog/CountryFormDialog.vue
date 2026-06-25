@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import {
-  createCountry,
-  updateCountry,
-  type CountryDetail,
-  type CountryPayload
-} from '@/services/catalog';
+import { createCountry, updateCountry } from '@/services/modules/catalog';
+import type { CountryDetail, CountryPayload } from '@/services/types/catalog';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 

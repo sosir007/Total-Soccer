@@ -2,7 +2,8 @@
 import dayjs from 'dayjs';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
-import type { NamedRef, PlayerDetail } from '@/services/catalog';
+import type { PlayerDetail } from '@/services/types/catalog';
+import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
 
 const props = defineProps<{

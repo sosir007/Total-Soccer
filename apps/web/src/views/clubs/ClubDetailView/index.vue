@@ -2,7 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { fetchClubDetail, type ClubDetail } from '@/services/catalog';
+import { fetchClubDetail } from '@/services/modules/catalog';
+import type { ClubDetail } from '@/services/types/catalog';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import ClubDetailContent from './components/ClubDetailContent.vue';
