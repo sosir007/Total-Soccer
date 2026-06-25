@@ -137,7 +137,7 @@ const emit = defineEmits<{
   </el-dialog>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .form-help {
   color: #66756d;
   font-size: 13px;

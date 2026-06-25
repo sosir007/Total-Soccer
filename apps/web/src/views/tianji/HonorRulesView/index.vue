@@ -775,7 +775,7 @@ onMounted(() => {
   </section>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .header-actions {
   display: flex;
   flex-wrap: wrap;
@@ -795,10 +795,10 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 18px;
-}
 
-.honor-rule-form :deep(.el-form-item:last-child) {
-  grid-column: 1 / -1;
+  :deep(.el-form-item:last-child) {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 1180px) {

@@ -149,7 +149,7 @@ function getRowSequence(page: number, pageSize: number, index: number) {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .competition-meta-tag {
   display: inline-flex;
   align-items: center;
@@ -163,54 +163,54 @@ function getRowSequence(page: number, pageSize: number, index: number) {
   font-weight: 750;
   line-height: 1;
   white-space: nowrap;
-}
 
-.competition-category-国际 {
-  color: #986812;
-  border-color: #f1d28a;
-  background: #fff6dc;
-}
+  &.competition-category-international {
+    color: #986812;
+    border-color: #f1d28a;
+    background: #fff6dc;
+  }
 
-.competition-category-洲际 {
-  color: #25658f;
-  border-color: #b8d8ed;
-  background: #e9f5fb;
-}
+  &.competition-category-continental {
+    color: #25658f;
+    border-color: #b8d8ed;
+    background: #e9f5fb;
+  }
 
-.competition-category-国内 {
-  color: #218353;
-  border-color: #bce4ca;
-  background: #eaf8ef;
-}
+  &.competition-category-domestic {
+    color: #218353;
+    border-color: #bce4ca;
+    background: #eaf8ef;
+  }
 
-.competition-category-其他,
-.competition-category-empty {
-  color: #6a756f;
-  border-color: #d9e1da;
-  background: #f5f7f4;
-}
+  &.competition-category-other,
+  &.competition-category-empty {
+    color: #6a756f;
+    border-color: #d9e1da;
+    background: #f5f7f4;
+  }
 
-.competition-level-一级 {
-  color: #1b7a4b;
-  border-color: #9ed7b6;
-  background: #e8f7ee;
-}
+  &.competition-level-primary {
+    color: #1b7a4b;
+    border-color: #9ed7b6;
+    background: #e8f7ee;
+  }
 
-.competition-level-二级 {
-  color: #806216;
-  border-color: #e6cf82;
-  background: #fff7d8;
-}
+  &.competition-level-secondary {
+    color: #806216;
+    border-color: #e6cf82;
+    background: #fff7d8;
+  }
 
-.competition-level-三级 {
-  color: #536674;
-  border-color: #c7d5dd;
-  background: #edf4f7;
-}
+  &.competition-level-tertiary {
+    color: #536674;
+    border-color: #c7d5dd;
+    background: #edf4f7;
+  }
 
-.competition-level-empty {
-  color: #6a756f;
-  border-color: #d9e1da;
-  background: #f5f7f4;
+  &.competition-level-empty {
+    color: #6a756f;
+    border-color: #d9e1da;
+    background: #f5f7f4;
+  }
 }
 </style>

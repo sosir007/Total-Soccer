@@ -318,7 +318,7 @@ onMounted(() => {
   </section>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .safety-grid,
 .overview-grid {
   display: grid;
@@ -344,16 +344,23 @@ onMounted(() => {
   background: rgb(240 253 244 / 58%);
 }
 
-.safety-card span,
-.danger-list span {
-  color: var(--color-text-muted);
-  font-size: 13px;
-  line-height: 1.6;
+.safety-card {
+  span {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
 }
 
 .danger-list {
   display: grid;
   gap: 10px;
+
+  span {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
 }
 
 .audit-filter {

@@ -58,7 +58,7 @@ defineProps<{
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .competition-info-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -73,18 +73,18 @@ defineProps<{
   border: 1px solid rgba(31, 139, 85, 0.12);
   border-radius: 8px;
   background: #fbfdf9;
-}
 
-.competition-info-item span {
-  color: #6b7b70;
-  font-size: 13px;
-  font-weight: 750;
-}
+  span {
+    color: #6b7b70;
+    font-size: 13px;
+    font-weight: 750;
+  }
 
-.competition-info-item strong {
-  color: #193426;
-  font-size: 16px;
-  line-height: 1.45;
+  strong {
+    color: #193426;
+    font-size: 16px;
+    line-height: 1.45;
+  }
 }
 
 @media (max-width: 1100px) {

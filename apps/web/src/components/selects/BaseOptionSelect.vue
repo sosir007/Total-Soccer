@@ -167,34 +167,34 @@ function isConfederation(value?: string | null) {
   </el-select>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .common-select {
   width: 100%;
-}
 
-:deep(.el-select__wrapper) {
-  min-height: 38px;
-  border-radius: 8px;
-  box-shadow: 0 0 0 1px var(--line) inset;
-  transition:
-    box-shadow 0.18s ease,
-    background 0.18s ease;
-}
+  :deep(.el-select__wrapper) {
+    min-height: 38px;
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px var(--line) inset;
+    transition:
+      box-shadow 0.18s ease,
+      background 0.18s ease;
 
-:deep(.el-select__wrapper:hover) {
-  box-shadow: 0 0 0 1px rgba(31, 139, 85, 0.38) inset;
-}
+    &:hover {
+      box-shadow: 0 0 0 1px rgba(31, 139, 85, 0.38) inset;
+    }
 
-:deep(.el-select__wrapper.is-focused) {
-  background: #fff;
-  box-shadow:
-    0 0 0 1px var(--green) inset,
-    0 8px 20px rgba(31, 139, 85, 0.1);
-}
+    &.is-focused {
+      background: #fff;
+      box-shadow:
+        0 0 0 1px var(--green) inset,
+        0 8px 20px rgba(31, 139, 85, 0.1);
+    }
+  }
 
-:deep(.el-select__placeholder),
-:deep(.el-select__selected-item) {
-  color: #263f32;
+  :deep(.el-select__placeholder),
+  :deep(.el-select__selected-item) {
+    color: #263f32;
+  }
 }
 
 .select-option {
@@ -209,21 +209,21 @@ function isConfederation(value?: string | null) {
   padding: 6px 8px;
   border-radius: 8px;
   line-height: 1.35;
-}
 
-.select-option.is-selected {
-  position: relative;
-}
+  &.is-selected {
+    position: relative;
 
-.select-option.is-selected::before {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 0;
-  width: 3px;
-  border-radius: 999px;
-  background: var(--option-accent-color);
-  content: '';
+    &::before {
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      left: 0;
+      width: 3px;
+      border-radius: 999px;
+      background: var(--option-accent-color);
+      content: '';
+    }
+  }
 }
 
 .select-option-main {
@@ -231,23 +231,23 @@ function isConfederation(value?: string | null) {
   min-width: 0;
   gap: 2px;
   padding-left: 4px;
-}
 
-.select-option-main strong {
-  overflow: hidden;
-  color: #14382a;
-  font-size: 14px;
-  font-weight: 760;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  strong {
+    overflow: hidden;
+    color: #14382a;
+    font-size: 14px;
+    font-weight: 760;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.select-option-main span {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  span {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .select-option-chip {
@@ -261,66 +261,66 @@ function isConfederation(value?: string | null) {
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
 
-.select-option-chip.theme-afc {
-  color: var(--confed-afc);
-  background: var(--confed-afc-bg);
-}
+  &.theme-afc {
+    color: var(--confed-afc);
+    background: var(--confed-afc-bg);
+  }
 
-.select-option-chip.theme-uefa {
-  color: var(--confed-uefa);
-  background: var(--confed-uefa-bg);
-}
+  &.theme-uefa {
+    color: var(--confed-uefa);
+    background: var(--confed-uefa-bg);
+  }
 
-.select-option-chip.theme-conmebol {
-  color: var(--confed-conmebol);
-  background: var(--confed-conmebol-bg);
-}
+  &.theme-conmebol {
+    color: var(--confed-conmebol);
+    background: var(--confed-conmebol-bg);
+  }
 
-.select-option-chip.theme-caf {
-  color: var(--confed-caf);
-  background: var(--confed-caf-bg);
-}
+  &.theme-caf {
+    color: var(--confed-caf);
+    background: var(--confed-caf-bg);
+  }
 
-.select-option-chip.theme-concacaf {
-  color: var(--confed-concacaf);
-  background: var(--confed-concacaf-bg);
-}
+  &.theme-concacaf {
+    color: var(--confed-concacaf);
+    background: var(--confed-concacaf-bg);
+  }
 
-.select-option-chip.theme-ofc {
-  color: var(--confed-ofc);
-  background: var(--confed-ofc-bg);
-}
+  &.theme-ofc {
+    color: var(--confed-ofc);
+    background: var(--confed-ofc-bg);
+  }
 
-.select-option-chip.theme-position-forward {
-  color: var(--position-forward);
-  background: var(--position-forward-bg);
-}
+  &.theme-position-forward {
+    color: var(--position-forward);
+    background: var(--position-forward-bg);
+  }
 
-.select-option-chip.theme-position-midfield {
-  color: var(--position-midfield);
-  background: var(--position-midfield-bg);
-}
+  &.theme-position-midfield {
+    color: var(--position-midfield);
+    background: var(--position-midfield-bg);
+  }
 
-.select-option-chip.theme-position-backfield {
-  color: var(--position-backfield);
-  background: var(--position-backfield-bg);
-}
+  &.theme-position-backfield {
+    color: var(--position-backfield);
+    background: var(--position-backfield-bg);
+  }
 
-.select-option-chip.theme-position-goalkeeper {
-  color: var(--position-goalkeeper);
-  background: var(--position-goalkeeper-bg);
-}
+  &.theme-position-goalkeeper {
+    color: var(--position-goalkeeper);
+    background: var(--position-goalkeeper-bg);
+  }
 
-.select-option-chip.theme-position-default {
-  color: var(--position-default);
-  background: #edf8f1;
-}
+  &.theme-position-default {
+    color: var(--position-default);
+    background: #edf8f1;
+  }
 
-.select-option-chip.theme-default {
-  color: var(--green);
-  background: #edf8f1;
+  &.theme-default {
+    color: var(--green);
+    background: #edf8f1;
+  }
 }
 
 :global(.common-select-popper.el-popper) {
@@ -328,14 +328,14 @@ function isConfederation(value?: string | null) {
   border: 1px solid #dfe8df;
   border-radius: 12px;
   box-shadow: 0 20px 48px rgba(22, 64, 47, 0.14);
-}
 
-:global(.common-select-popper .el-popper__arrow::before) {
-  border-color: #dfe8df;
-}
+  :global(.el-popper__arrow::before) {
+    border-color: #dfe8df;
+  }
 
-:global(.common-select-popper .el-select-dropdown) {
-  border: 0;
+  :global(.el-select-dropdown) {
+    border: 0;
+  }
 }
 
 :global(.common-select-popper .el-select-dropdown__wrap) {

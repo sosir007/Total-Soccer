@@ -117,15 +117,15 @@ const form = toRef(props, 'form');
   </el-dialog>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .position-group-option {
   display: grid;
   gap: 2px;
   line-height: 1.35;
-}
 
-.position-group-option span {
-  color: var(--muted);
-  font-size: 12px;
+  span {
+    color: var(--muted);
+    font-size: 12px;
+  }
 }
 </style>

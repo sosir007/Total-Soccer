@@ -115,16 +115,16 @@ async function submit() {
   </el-dialog>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .catalog-form {
   display: grid;
   gap: 4px;
-}
 
-.catalog-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 16px;
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
 }
 
 @media (max-width: 640px) {

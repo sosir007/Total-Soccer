@@ -77,7 +77,7 @@ const filters = toRef(props, 'filters');
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .base-config-tabs {
   margin-top: 6px;
 }
@@ -89,10 +89,10 @@ const filters = toRef(props, 'filters');
   align-items: center;
   margin: 2px 0 16px;
   color: var(--muted);
-}
 
-.base-config-intro strong {
-  color: var(--green);
+  strong {
+    color: var(--green);
+  }
 }
 
 .base-config-filter {

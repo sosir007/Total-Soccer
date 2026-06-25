@@ -589,71 +589,71 @@ async function submit() {
   </component>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .catalog-form {
   display: grid;
   gap: 4px;
-}
 
-.catalog-form-panel {
-  display: grid;
-  gap: 18px;
-}
+  &-panel {
+    display: grid;
+    gap: 18px;
+  }
 
-.catalog-form-page-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 0 0;
-  border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), #fff);
-}
+  &-page-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), #fff);
+  }
 
-.catalog-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 16px;
-}
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
 
-.catalog-form :deep(.el-date-editor.el-input),
-.catalog-form :deep(.el-input-number) {
-  width: 100%;
+  :deep(.el-date-editor.el-input),
+  :deep(.el-input-number) {
+    width: 100%;
+  }
 }
 
 .career-editor {
   display: grid;
   gap: 12px;
-}
 
-.career-editor-header {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #f8fbf7;
-}
+  &-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #f8fbf7;
 
-.career-editor-header div:first-child {
-  display: grid;
-  gap: 4px;
-}
+    div:first-child {
+      display: grid;
+      gap: 4px;
+    }
 
-.career-editor-header span {
-  color: var(--muted);
-  font-size: 12px;
-}
+    span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+  }
 
-.career-editor-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+  &-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
 }
 
 .career-card {
@@ -663,24 +663,24 @@ async function submit() {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
-}
 
-.career-card-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 12px;
-}
+  &-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 12px;
+  }
 
-.career-card-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 16px;
-}
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
 
-.career-card-wide {
-  grid-column: 1 / -1;
+  &-wide {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 720px) {

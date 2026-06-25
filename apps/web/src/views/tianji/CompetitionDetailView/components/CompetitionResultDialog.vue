@@ -118,7 +118,7 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
   </el-dialog>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .edition-editor-toolbar {
   display: flex;
   align-items: center;
@@ -139,15 +139,15 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
   gap: 10px;
   align-items: center;
   min-width: 1330px;
+
+  &.locked {
+    opacity: 0.92;
+  }
 }
 
 .edition-editor-head {
   color: #51665b;
   font-size: 13px;
   font-weight: 850;
-}
-
-.edition-editor-row.locked {
-  opacity: 0.92;
 }
 </style>

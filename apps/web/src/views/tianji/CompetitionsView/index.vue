@@ -303,15 +303,32 @@ function competitionExternalUrl(competition: CompetitionListItem) {
 }
 
 function getCategoryTagClass(value?: string | null) {
+  const categoryClassMap: Record<string, string> = {
+    国际: 'competition-category-international',
+    洲际: 'competition-category-continental',
+    国内: 'competition-category-domestic',
+    其他: 'competition-category-other'
+  };
+
   return [
     'competition-meta-tag',
     'competition-category-tag',
-    `competition-category-${value || 'empty'}`
+    categoryClassMap[value || ''] || 'competition-category-empty'
   ];
 }
 
 function getLevelTagClass(value?: string | null) {
-  return ['competition-meta-tag', 'competition-level-tag', `competition-level-${value || 'empty'}`];
+  const levelClassMap: Record<string, string> = {
+    一级: 'competition-level-primary',
+    二级: 'competition-level-secondary',
+    三级: 'competition-level-tertiary'
+  };
+
+  return [
+    'competition-meta-tag',
+    'competition-level-tag',
+    levelClassMap[value || ''] || 'competition-level-empty'
+  ];
 }
 
 watch(

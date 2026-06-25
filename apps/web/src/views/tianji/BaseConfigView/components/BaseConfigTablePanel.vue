@@ -94,21 +94,21 @@ const filters = toRef(props, 'filters');
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .base-config-table {
   max-width: 100%;
   width: 100%;
-}
 
-.base-config-table :deep(.el-table__inner-wrapper),
-.base-config-table :deep(.el-table__header-wrapper),
-.base-config-table :deep(.el-table__body-wrapper),
-.base-config-table :deep(.el-scrollbar__wrap) {
-  max-width: 100%;
-  overflow-x: hidden;
-}
+  :deep(.el-table__inner-wrapper),
+  :deep(.el-table__header-wrapper),
+  :deep(.el-table__body-wrapper),
+  :deep(.el-scrollbar__wrap) {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
 
-.base-config-table :deep(.el-scrollbar__bar.is-horizontal) {
-  display: none;
+  :deep(.el-scrollbar__bar.is-horizontal) {
+    display: none;
+  }
 }
 </style>

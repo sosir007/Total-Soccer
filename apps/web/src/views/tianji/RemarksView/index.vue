@@ -286,7 +286,7 @@ onMounted(() => {
   </section>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .remarks-filter {
   grid-template-columns: minmax(240px, 1fr) 240px 240px auto;
 }
@@ -297,10 +297,12 @@ onMounted(() => {
   gap: 18px;
 }
 
-.backup-panel p {
-  margin: 0;
-  color: var(--color-text-muted);
-  line-height: 1.8;
+.backup-panel {
+  p {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: 1.8;
+  }
 }
 
 .backup-command {

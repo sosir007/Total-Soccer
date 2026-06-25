@@ -6,7 +6,7 @@ import App from './App.vue';
 import { i18n } from './plugins/i18n';
 import { router } from './router';
 import 'element-plus/dist/index.css';
-import './styles/main.css';
+import './styles/main.scss';
 
 createApp(App)
   .use(createPinia())
