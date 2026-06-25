@@ -13,10 +13,11 @@ import {
   type CompetitionScopeType,
   type CompetitionTargetType
 } from '@/services/competitions';
-import EntityNameCell from '@/components/EntityNameCell.vue';
-import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 import { buildExternalUrl } from '@/utils/external-link';
+import CompetitionCreateDialog from './components/CompetitionCreateDialog.vue';
+import CompetitionFilterPanel from './components/CompetitionFilterPanel.vue';
+import CompetitionListTable from './components/CompetitionListTable.vue';
 
 const targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }> = [
   { label: '国家队', value: 'COUNTRY' },
@@ -301,10 +302,6 @@ function competitionExternalUrl(competition: CompetitionListItem) {
   return buildExternalUrl(competition.externalUrl, competition.name);
 }
 
-function getRowSequence(index: number) {
-  return (filters.page - 1) * filters.pageSize + index + 1;
-}
-
 function getCategoryTagClass(value?: string | null) {
   return [
     'competition-meta-tag',
@@ -357,360 +354,53 @@ onActivated(() => {
 
 <template>
   <section class="page-stack">
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <h2>赛事管理</h2>
-          <p>维护赛事基础资料。点击赛事名称打开详情页签，在详情里维护资料和历届结果。</p>
-        </div>
-        <span class="status-pill">Competition Hub</span>
-      </div>
-
-      <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
-        <el-form-item label="关键词">
-          <el-input
-            v-model="filters.keyword"
-            clearable
-            placeholder="赛事名称 / 编码 / 分类 / 描述"
-            @keyup.enter="submitFilters"
-          />
-        </el-form-item>
-        <el-form-item label="对象">
-          <el-select v-model="filters.targetType" clearable placeholder="全部对象">
-            <el-option
-              v-for="targetType in targetTypeOptions"
-              :key="targetType.value"
-              :label="targetType.label"
-              :value="targetType.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="范围">
-          <el-select v-model="filters.scopeType" clearable placeholder="全部范围">
-            <el-option
-              v-for="scopeType in scopeTypeOptions"
-              :key="scopeType.value"
-              :label="scopeType.label"
-              :value="scopeType.value"
-            />
-          </el-select>
-        </el-form-item>
-        <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
-        </div>
-      </el-form>
-    </div>
+    <CompetitionFilterPanel
+      :filters="filters"
+      :loading="loading"
+      :target-type-options="targetTypeOptions"
+      :scope-type-options="scopeTypeOptions"
+      @submit="submitFilters"
+      @reset="resetFilters"
+    />
 
     <div v-if="errorMessage" class="panel">
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <h3>赛事列表</h3>
-        <div class="panel-actions">
-          <span class="status-pill">{{ total }} 项赛事</span>
-          <el-button type="primary" @click="openCreateCompetitionDialog">新增赛事</el-button>
-        </div>
-      </div>
+    <CompetitionListTable
+      :competitions="competitions"
+      :total="total"
+      :loading="loading"
+      :has-rows="hasRows"
+      :has-loaded="hasLoaded"
+      :deleting-id="deletingId"
+      :page="filters.page"
+      :page-size="filters.pageSize"
+      :format-target-type="formatTargetType"
+      :format-scope="formatScope"
+      :format-text="formatText"
+      :format-format="formatFormat"
+      :competition-external-url="competitionExternalUrl"
+      :get-category-tag-class="getCategoryTagClass"
+      :get-level-tag-class="getLevelTagClass"
+      @create="openCreateCompetitionDialog"
+      @open="openCompetitionDetail"
+      @delete="confirmDeleteCompetition"
+      @update:page="filters.page = $event"
+      @update:page-size="filters.pageSize = $event"
+    />
 
-      <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
-
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无赛事数据</h3>
-        <p>可以先创建世界杯、欧洲杯、英超、欧冠等赛事。</p>
-      </div>
-
-      <template v-else>
-        <el-table :data="competitions" border>
-          <el-table-column label="序号" width="76" fixed="left">
-            <template #default="{ $index }">{{ getRowSequence($index) }}</template>
-          </el-table-column>
-          <el-table-column label="赛事" min-width="220" fixed="left">
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.id"
-                type="competition"
-                :title="row.name"
-                :subtitle="row.code"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="对象" width="92">
-            <template #default="{ row }">{{ formatTargetType(row) }}</template>
-          </el-table-column>
-          <el-table-column label="适用范围" min-width="160" show-overflow-tooltip>
-            <template #default="{ row }">{{ formatScope(row) }}</template>
-          </el-table-column>
-          <el-table-column label="分类" width="90">
-            <template #default="{ row }">
-              <span :class="getCategoryTagClass(row.category)">
-                {{ formatText(row.category) }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="级别" width="90">
-            <template #default="{ row }">
-              <span :class="getLevelTagClass(row.level)">
-                {{ formatText(row.level) }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="赛制" width="90">
-            <template #default="{ row }">{{ formatFormat(row) }}</template>
-          </el-table-column>
-          <el-table-column label="状态" width="90">
-            <template #default="{ row }">
-              <el-tag :type="row.enabled ? 'success' : 'info'">
-                {{ row.enabled ? '启用' : '停用' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="统计" width="90">
-            <template #default="{ row }">
-              <el-tag :type="row.includeInStats ? 'success' : 'info'">
-                {{ row.includeInStats ? '纳入' : '排除' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="外链" width="86">
-            <template #default="{ row }">
-              <a
-                v-if="row.externalUrl"
-                class="external-text-link"
-                :href="competitionExternalUrl(row)"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                打开
-              </a>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip>
-            <template #default="{ row }">{{ formatText(row.description) }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
-            <template #default="{ row }">
-              <el-button link type="primary" @click="openCompetitionDetail(row.id)">编辑</el-button>
-              <el-button
-                link
-                type="danger"
-                :loading="deletingId === row.id"
-                @click="confirmDeleteCompetition(row)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <div class="table-footer">
-          <el-pagination
-            v-model:current-page="filters.page"
-            v-model:page-size="filters.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next"
-            :total="total"
-          />
-        </div>
-      </template>
-    </div>
-
-    <el-dialog v-model="createDialogVisible" title="创建赛事" width="760px" destroy-on-close>
-      <el-form
-        class="competition-form-grid"
-        label-position="top"
-        @submit.prevent="submitCompetition"
-      >
-        <el-form-item label="赛事编码">
-          <el-input v-model="competitionForm.code" placeholder="FIFA_WORLD_CUP" />
-        </el-form-item>
-        <el-form-item label="赛事名称">
-          <el-input v-model="competitionForm.name" placeholder="国际足联世界杯" />
-        </el-form-item>
-        <el-form-item label="对象">
-          <el-select v-model="competitionForm.targetType">
-            <el-option
-              v-for="targetType in targetTypeOptions"
-              :key="targetType.value"
-              :label="targetType.label"
-              :value="targetType.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="适用范围">
-          <el-select v-model="competitionForm.scopeType">
-            <el-option
-              v-for="scopeType in scopeTypeOptions"
-              :key="scopeType.value"
-              :label="scopeType.label"
-              :value="scopeType.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="competitionForm.scopeType === 'CONFEDERATION'" label="足联">
-          <ConfederationSelect
-            v-model="competitionForm.confederationIds"
-            placeholder="选择一个或多个足联"
-            :clearable="false"
-            multiple
-          />
-        </el-form-item>
-        <el-form-item v-if="competitionForm.scopeType === 'COUNTRY'" label="国家">
-          <CountrySelect
-            v-model="competitionForm.countryIds"
-            placeholder="选择一个或多个国家"
-            :clearable="false"
-            multiple
-          />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="competitionForm.category" clearable placeholder="选择分类">
-            <el-option
-              v-for="category in categoryOptions"
-              :key="category.value"
-              :label="category.label"
-              :value="category.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="级别">
-          <el-select v-model="competitionForm.level" clearable placeholder="选择级别">
-            <el-option
-              v-for="level in levelOptions"
-              :key="level.value"
-              :label="level.label"
-              :value="level.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="showCreateFormatField" label="赛制">
-          <el-select v-model="competitionForm.format" clearable placeholder="选择赛制">
-            <el-option
-              v-for="format in formatOptions"
-              :key="format.value"
-              :label="format.label"
-              :value="format.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="外链">
-          <el-input v-model="competitionForm.externalUrl" placeholder="https://..." />
-        </el-form-item>
-        <el-form-item label="排序">
-          <el-input-number v-model="competitionForm.sortOrder" :min="0" :controls="false" />
-        </el-form-item>
-        <el-form-item label="描述" class="form-wide">
-          <el-input
-            v-model="competitionForm.description"
-            type="textarea"
-            :rows="3"
-            placeholder="赛事说明、统计口径或备注"
-          />
-        </el-form-item>
-        <div class="form-wide form-help">
-          赛事编码建议使用英文大写下划线，例如
-          FIFA_WORLD_CUP、UEFA_CHAMPIONS_LEAGUE、LA_LIGA。适用范围决定哪些国家或俱乐部会看到赛事；分类、级别用于归类和后续计分，赛制仅用于国内赛事区分联赛和杯赛。
-        </div>
-        <el-form-item label="状态">
-          <el-switch v-model="competitionForm.enabled" active-text="启用" inactive-text="停用" />
-        </el-form-item>
-        <el-form-item label="统计">
-          <el-switch
-            v-model="competitionForm.includeInStats"
-            active-text="纳入奖牌/荣誉统计"
-            inactive-text="排除统计"
-          />
-        </el-form-item>
-        <div class="competition-form-actions">
-          <el-button type="primary" :loading="creating" @click="submitCompetition">
-            创建赛事
-          </el-button>
-        </div>
-      </el-form>
-    </el-dialog>
+    <CompetitionCreateDialog
+      v-model:visible="createDialogVisible"
+      :form="competitionForm"
+      :creating="creating"
+      :show-format-field="showCreateFormatField"
+      :target-type-options="targetTypeOptions"
+      :scope-type-options="scopeTypeOptions"
+      :category-options="categoryOptions"
+      :level-options="levelOptions"
+      :format-options="formatOptions"
+      @submit="submitCompetition"
+    />
   </section>
 </template>
-
-<style scoped>
-.form-help {
-  color: #66756d;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.table-name-link {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  text-align: left;
-  background: transparent;
-  cursor: pointer;
-}
-
-.competition-meta-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 46px;
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.competition-category-国际 {
-  color: #986812;
-  border-color: #f1d28a;
-  background: #fff6dc;
-}
-
-.competition-category-洲际 {
-  color: #25658f;
-  border-color: #b8d8ed;
-  background: #e9f5fb;
-}
-
-.competition-category-国内 {
-  color: #218353;
-  border-color: #bce4ca;
-  background: #eaf8ef;
-}
-
-.competition-category-其他,
-.competition-category-empty {
-  color: #6a756f;
-  border-color: #d9e1da;
-  background: #f5f7f4;
-}
-
-.competition-level-一级 {
-  color: #1b7a4b;
-  border-color: #9ed7b6;
-  background: #e8f7ee;
-}
-
-.competition-level-二级 {
-  color: #806216;
-  border-color: #e6cf82;
-  background: #fff7d8;
-}
-
-.competition-level-三级 {
-  color: #536674;
-  border-color: #c7d5dd;
-  background: #edf4f7;
-}
-
-.competition-level-empty {
-  color: #6a756f;
-  border-color: #d9e1da;
-  background: #f5f7f4;
-}
-</style>

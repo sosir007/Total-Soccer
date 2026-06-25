@@ -18,28 +18,18 @@ import {
   type CompetitionStandingPlacement,
   type CompetitionTargetType
 } from '@/services/competitions';
-import EntityLink from '@/components/EntityLink.vue';
-import { ClubSelect, ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
+import CompetitionDetailDialog from './components/CompetitionDetailDialog.vue';
+import CompetitionEditionTable from './components/CompetitionEditionTable.vue';
+import CompetitionHeroPanel from './components/CompetitionHeroPanel.vue';
+import CompetitionInfoPanel from './components/CompetitionInfoPanel.vue';
+import CompetitionResultDialog from './components/CompetitionResultDialog.vue';
+import type { EditionRow, StandingForm } from './components/types';
 
 defineOptions({
   name: 'CompetitionDetailView'
 });
-
-type StandingForm = Record<CompetitionStandingPlacement, { countryId: string; clubId: string }>;
-
-interface EditionRow {
-  clientId: string;
-  id?: string;
-  year: string;
-  season: string;
-  quantity: number | undefined;
-  host: string;
-  remark: string;
-  standings: StandingForm;
-  locked: boolean;
-}
 
 const targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }> = [
   { label: '国家队', value: 'COUNTRY' },
@@ -614,417 +604,67 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <div class="panel player-detail-hero">
-        <div>
-          <div class="detail-kicker">
-            {{ targetTypeLabels[competition.targetType] }} /
-            {{ scopeTypeLabels[competition.scopeType] }}
-          </div>
-          <h2>{{ competition.name }}</h2>
-          <p>{{ competition.code }} · {{ formatScope(competition) }}</p>
-          <div class="detail-tags">
-            <el-tag type="success">{{ competition.category || '未分类' }}</el-tag>
-            <el-tag>{{ competition.level || '未分级' }}</el-tag>
-            <el-tag v-if="shouldUseCompetitionFormat(competition)" type="info">
-              {{ competition.format || '未设赛制' }}
-            </el-tag>
-            <el-tag type="warning">{{ getSummaryCountLabel() }}</el-tag>
-          </div>
-        </div>
-        <div class="panel-actions">
-          <el-button @click="backToList">返回列表</el-button>
-          <el-button type="primary" @click="openDetailDialog">编辑资料</el-button>
-        </div>
-      </div>
+      <CompetitionHeroPanel
+        :competition="competition"
+        :target-type-labels="targetTypeLabels"
+        :scope-type-labels="scopeTypeLabels"
+        :format-scope="formatScope"
+        :should-use-competition-format="shouldUseCompetitionFormat"
+        :get-summary-count-label="getSummaryCountLabel"
+        @back="backToList"
+        @edit="openDetailDialog"
+      />
 
-      <div class="panel">
-        <div class="panel-header">
-          <h3>赛事资料</h3>
-          <span class="status-pill">{{ competition.enabled ? '启用' : '停用' }}</span>
-        </div>
+      <CompetitionInfoPanel
+        :competition="competition"
+        :target-type-labels="targetTypeLabels"
+        :format-scope="formatScope"
+        :format-text="formatText"
+        :format-competition-format="formatCompetitionFormat"
+      />
 
-        <div class="competition-info-grid">
-          <div class="competition-info-item">
-            <span>赛事编码</span>
-            <strong>{{ competition.code }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>赛事名称</span>
-            <strong>{{ competition.name }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>对象</span>
-            <strong>{{ targetTypeLabels[competition.targetType] }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>适用范围</span>
-            <strong>{{ formatScope(competition) }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>分类</span>
-            <strong>{{ formatText(competition.category) }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>级别</span>
-            <strong>{{ formatText(competition.level) }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>赛制</span>
-            <strong>{{ formatCompetitionFormat(competition) }}</strong>
-          </div>
-          <div class="competition-info-item">
-            <span>统计</span>
-            <strong>{{ competition.includeInStats ? '纳入奖牌/荣誉统计' : '排除统计' }}</strong>
-          </div>
-          <div class="competition-info-item form-wide">
-            <span>描述</span>
-            <strong>{{ formatText(competition.description) }}</strong>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <h3>年份结果</h3>
-            <p>在这里查看该赛事全部年份或赛季的冠军、亚军、季军和殿军。</p>
-          </div>
-          <div class="panel-actions">
-            <el-switch v-model="sortAscending" active-text="按年份升序" inactive-text="倒序" />
-            <el-button type="primary" @click="openResultDialog">批量编辑结果</el-button>
-          </div>
-        </div>
-
-        <div v-if="!sortedEditions.length" class="mini-empty">暂无年份结果</div>
-
-        <el-table v-else :data="sortedEditions" border>
-          <el-table-column label="赛季" min-width="120">
-            <template #default="{ row }">{{ formatEditionLabel(row) }}</template>
-          </el-table-column>
-          <el-table-column prop="host" label="举办地" min-width="120">
-            <template #default="{ row }">{{ row.host || '-' }}</template>
-          </el-table-column>
-          <el-table-column
-            v-for="placement in placements"
-            :key="placement.value"
-            :label="placement.label"
-            min-width="120"
-          >
-            <template #default="{ row }">
-              <EntityLink
-                v-if="hasEditionStanding(row, placement.value)"
-                :id="getStandingEntityId(row, placement.value)"
-                :type="getStandingEntityType(row, placement.value)"
-                :name="getStandingEntityName(row, placement.value)"
-              />
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="quantity" label="数量" width="90">
-            <template #default="{ row }">{{ formatText(row.quantity) }}</template>
-          </el-table-column>
-          <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip>
-            <template #default="{ row }">{{ row.remark || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="130" fixed="right">
-            <template #default="{ row }">
-              <el-button link type="primary" @click="openEditEditionDialog(row)">编辑</el-button>
-              <el-button
-                link
-                type="danger"
-                :disabled="row.standings.length > 0"
-                :loading="resultSaving"
-                @click="confirmDeleteEdition(row)"
-              >
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+      <CompetitionEditionTable
+        v-model:sort-ascending="sortAscending"
+        :editions="sortedEditions"
+        :placements="placements"
+        :result-saving="resultSaving"
+        :format-edition-label="formatEditionLabel"
+        :format-text="formatText"
+        :has-edition-standing="hasEditionStanding"
+        :get-standing-entity-id="getStandingEntityId"
+        :get-standing-entity-type="getStandingEntityType"
+        :get-standing-entity-name="getStandingEntityName"
+        @batch-edit="openResultDialog"
+        @edit="openEditEditionDialog"
+        @delete="confirmDeleteEdition"
+      />
     </template>
 
-    <el-dialog v-model="detailDialogVisible" title="编辑赛事资料" width="760px" destroy-on-close>
-      <el-form
-        class="competition-form-grid"
-        label-position="top"
-        @submit.prevent="saveCompetitionDetail"
-      >
-        <el-form-item label="赛事编码">
-          <el-input v-model="detailForm.code" />
-        </el-form-item>
-        <el-form-item label="赛事名称">
-          <el-input v-model="detailForm.name" />
-        </el-form-item>
-        <el-form-item label="对象">
-          <el-select v-model="detailForm.targetType">
-            <el-option
-              v-for="targetType in targetTypeOptions"
-              :key="targetType.value"
-              :label="targetType.label"
-              :value="targetType.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="适用范围">
-          <el-select v-model="detailForm.scopeType">
-            <el-option
-              v-for="scopeType in scopeTypeOptions"
-              :key="scopeType.value"
-              :label="scopeType.label"
-              :value="scopeType.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="detailForm.scopeType === 'CONFEDERATION'" label="足联">
-          <ConfederationSelect
-            v-model="detailForm.confederationIds"
-            placeholder="选择一个或多个足联"
-            :clearable="false"
-            multiple
-          />
-        </el-form-item>
-        <el-form-item v-if="detailForm.scopeType === 'COUNTRY'" label="国家">
-          <CountrySelect
-            v-model="detailForm.countryIds"
-            placeholder="选择一个或多个国家"
-            :clearable="false"
-            multiple
-          />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="detailForm.category" clearable placeholder="选择分类">
-            <el-option
-              v-for="category in categoryOptions"
-              :key="category.value"
-              :label="category.label"
-              :value="category.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="级别">
-          <el-select v-model="detailForm.level" clearable placeholder="选择级别">
-            <el-option
-              v-for="level in levelOptions"
-              :key="level.value"
-              :label="level.label"
-              :value="level.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="showDetailFormatField" label="赛制">
-          <el-select v-model="detailForm.format" clearable placeholder="选择赛制">
-            <el-option
-              v-for="format in formatOptions"
-              :key="format.value"
-              :label="format.label"
-              :value="format.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="外链">
-          <el-input v-model="detailForm.externalUrl" placeholder="https://..." />
-        </el-form-item>
-        <el-form-item label="描述" class="form-wide">
-          <el-input
-            v-model="detailForm.description"
-            type="textarea"
-            :rows="3"
-            placeholder="赛事说明、统计口径或备注"
-          />
-        </el-form-item>
-        <div class="form-wide form-help">
-          适用范围决定哪些国家或俱乐部会看到赛事；分类、级别用于归类和后续计分，赛制仅用于国内赛事区分联赛和杯赛。
-        </div>
-        <el-form-item label="状态">
-          <el-switch v-model="detailForm.enabled" active-text="启用" inactive-text="停用" />
-        </el-form-item>
-        <el-form-item label="统计">
-          <el-switch
-            v-model="detailForm.includeInStats"
-            active-text="纳入奖牌/荣誉统计"
-            inactive-text="排除统计"
-          />
-        </el-form-item>
-      </el-form>
+    <CompetitionDetailDialog
+      v-model:visible="detailDialogVisible"
+      :form="detailForm"
+      :saving="savingDetail"
+      :show-format-field="showDetailFormatField"
+      :target-type-options="targetTypeOptions"
+      :scope-type-options="scopeTypeOptions"
+      :category-options="categoryOptions"
+      :level-options="levelOptions"
+      :format-options="formatOptions"
+      @save="saveCompetitionDetail"
+    />
 
-      <template #footer>
-        <el-button :disabled="savingDetail" @click="detailDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="savingDetail" @click="saveCompetitionDetail">
-          保存资料
-        </el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="resultDialogVisible" :title="resultDialogTitle" width="1180px">
-      <div class="edition-editor-toolbar">
-        <el-button v-if="resultDialogMode === 'batch'" type="primary" @click="addEditionRow">
-          新增一行
-        </el-button>
-        <span v-else class="status-pill">编辑当前行</span>
-        <el-switch v-model="sortAscending" active-text="按年份升序" inactive-text="倒序" />
-      </div>
-
-      <div class="edition-editor-table">
-        <div class="edition-editor-row edition-editor-head">
-          <span>年份</span>
-          <span>赛季/别名</span>
-          <span>举办地</span>
-          <span>冠军</span>
-          <span>亚军</span>
-          <span>季军</span>
-          <span>殿军</span>
-          <span>数量</span>
-          <span>备注</span>
-          <span>操作</span>
-        </div>
-
-        <div
-          v-for="row in sortedEditionRows"
-          :key="row.clientId"
-          class="edition-editor-row"
-          :class="{ locked: row.locked }"
-        >
-          <el-date-picker
-            v-model="row.year"
-            type="year"
-            value-format="YYYY"
-            placeholder="年份"
-            style="width: 100%"
-          />
-          <el-input v-model="row.season" placeholder="2023-24 / 可空" />
-          <el-input v-model="row.host" placeholder="举办地" />
-          <CountrySelect
-            v-if="competition?.targetType === 'COUNTRY'"
-            v-model="row.standings.CHAMPION.countryId"
-            placeholder="冠军"
-            include-hidden
-            include-historical
-          />
-          <ClubSelect v-else v-model="row.standings.CHAMPION.clubId" placeholder="冠军" />
-          <CountrySelect
-            v-if="competition?.targetType === 'COUNTRY'"
-            v-model="row.standings.RUNNER_UP.countryId"
-            placeholder="亚军"
-            include-hidden
-            include-historical
-          />
-          <ClubSelect v-else v-model="row.standings.RUNNER_UP.clubId" placeholder="亚军" />
-          <CountrySelect
-            v-if="competition?.targetType === 'COUNTRY'"
-            v-model="row.standings.THIRD_PLACE.countryId"
-            placeholder="季军"
-            include-hidden
-            include-historical
-          />
-          <ClubSelect v-else v-model="row.standings.THIRD_PLACE.clubId" placeholder="季军" />
-          <CountrySelect
-            v-if="competition?.targetType === 'COUNTRY'"
-            v-model="row.standings.FOURTH_PLACE.countryId"
-            placeholder="殿军"
-            include-hidden
-            include-historical
-          />
-          <ClubSelect v-else v-model="row.standings.FOURTH_PLACE.clubId" placeholder="殿军" />
-          <el-input-number
-            v-model="row.quantity"
-            :min="0"
-            :controls="false"
-            placeholder="可空"
-            style="width: 100%"
-          />
-          <el-input v-model="row.remark" placeholder="备注" />
-          <el-button
-            link
-            type="danger"
-            :disabled="editionRows.length <= 1 || row.locked"
-            @click="removeEditionRow(row)"
-          >
-            删除
-          </el-button>
-        </div>
-      </div>
-
-      <template #footer>
-        <el-button :disabled="resultSaving" @click="resultDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="resultSaving" @click="saveResultRows">
-          保存结果
-        </el-button>
-      </template>
-    </el-dialog>
+    <CompetitionResultDialog
+      v-model:visible="resultDialogVisible"
+      v-model:sort-ascending="sortAscending"
+      :title="resultDialogTitle"
+      :mode="resultDialogMode"
+      :rows="sortedEditionRows"
+      :all-rows-count="editionRows.length"
+      :competition="competition"
+      :saving="resultSaving"
+      @add="addEditionRow"
+      @remove="removeEditionRow"
+      @save="saveResultRows"
+    />
   </section>
 </template>
-
-<style scoped>
-.form-help {
-  color: #66756d;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.competition-info-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.competition-info-item {
-  display: grid;
-  gap: 8px;
-  min-height: 78px;
-  padding: 14px;
-  border: 1px solid rgba(31, 139, 85, 0.12);
-  border-radius: 8px;
-  background: #fbfdf9;
-}
-
-.competition-info-item span {
-  color: #6b7b70;
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.competition-info-item strong {
-  color: #193426;
-  font-size: 16px;
-  line-height: 1.45;
-}
-
-.edition-editor-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.edition-editor-table {
-  display: grid;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.edition-editor-row {
-  display: grid;
-  grid-template-columns: 120px 150px 90px 140px repeat(4, 170px) 150px 72px;
-  gap: 10px;
-  align-items: center;
-  min-width: 1330px;
-}
-
-.edition-editor-head {
-  color: #51665b;
-  font-size: 13px;
-  font-weight: 850;
-}
-
-.edition-editor-row.locked {
-  opacity: 0.92;
-}
-
-@media (max-width: 1100px) {
-  .competition-info-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-</style>
