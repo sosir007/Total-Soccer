@@ -6,6 +6,7 @@ import type { NamedRef } from '@/services/types/common';
 import type { PlayerListItem } from '@/services/types/catalog';
 import { fetchSummitCandidates, fetchSummitLineup } from '@/services/modules/summit';
 import type { SummitGroup, SummitLineup } from '@/services/types/summit';
+import IconFont from '@/components/IconFont.vue';
 import {
   ClubSelect,
   ConfederationSelect,
@@ -204,7 +205,10 @@ onMounted(() => {
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">生成阵容</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
       </el-form>
     </div>
@@ -212,7 +216,10 @@ onMounted(() => {
     <div v-if="errorMessage" class="panel">
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       <div class="detail-actions">
-        <el-button type="primary" @click="loadLineup">重试</el-button>
+        <el-button type="primary" @click="loadLineup">
+          <IconFont name="refresh" />
+          重试
+        </el-button>
       </div>
     </div>
 

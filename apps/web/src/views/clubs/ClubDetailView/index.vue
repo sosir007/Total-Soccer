@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchClubDetail } from '@/services/modules/catalog';
 import type { ClubDetail } from '@/services/types/catalog';
+import IconFont from '@/components/IconFont.vue';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import ClubDetailContent from './components/ClubDetailContent.vue';
@@ -83,7 +84,10 @@ onMounted(() => {
     <div v-if="!clubId" class="panel empty-panel">
       <h3>请选择豪门</h3>
       <p>从豪门概览进入详情，可以查看俱乐部基础统计和荣誉摘要。</p>
-      <el-button type="primary" @click="backToList">返回豪门概览</el-button>
+      <el-button type="primary" @click="backToList">
+        <IconFont name="back" />
+        返回豪门概览
+      </el-button>
     </div>
 
     <div v-else-if="loading" class="panel">
@@ -93,8 +97,14 @@ onMounted(() => {
     <div v-else-if="errorMessage" class="panel">
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       <div class="detail-actions">
-        <el-button @click="backToList">返回豪门概览</el-button>
-        <el-button type="primary" @click="loadClub">重试</el-button>
+        <el-button @click="backToList">
+          <IconFont name="back" />
+          返回豪门概览
+        </el-button>
+        <el-button type="primary" @click="loadClub">
+          <IconFont name="refresh" />
+          重试
+        </el-button>
       </div>
     </div>
 

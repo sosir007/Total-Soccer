@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
+import IconFont from '@/components/IconFont.vue';
 import { useAppStore } from '@/stores/app';
 import { FIXED_TAB_PATH, useRouteTabsStore } from '@/stores/route-tabs';
 
@@ -9,11 +10,12 @@ const route = useRoute();
 const router = useRouter();
 const routeTabsStore = useRouteTabsStore();
 const navRef = ref<HTMLElement | null>(null);
+const routeTabListRef = ref<HTMLElement | null>(null);
 
 const navItems = [
   {
     label: '天下纵览',
-    icon: '⌂',
+    icon: 'overview',
     children: [
       { path: '/overview/world', label: '世界概览' },
       { path: '/overview/forbidden-summit', label: '紫禁之巅' }
@@ -21,7 +23,7 @@ const navItems = [
   },
   {
     label: '国家圣殿',
-    icon: '⚑',
+    icon: 'flag',
     children: [
       { path: '/nations/overview', label: '国家概览' },
       { path: '/nations/honors', label: '国家荣誉' }
@@ -29,7 +31,7 @@ const navItems = [
   },
   {
     label: '豪门殿堂',
-    icon: '▣',
+    icon: 'team',
     children: [
       { path: '/clubs/overview', label: '豪门概览' },
       { path: '/clubs/honors', label: '豪门荣誉' }
@@ -37,7 +39,7 @@ const navItems = [
   },
   {
     label: '巨星殿堂',
-    icon: '◉',
+    icon: 'star',
     children: [
       { path: '/stars/overview', label: '巨星概览' },
       { path: '/stars/honors', label: '巨星荣誉' }
@@ -45,7 +47,7 @@ const navItems = [
   },
   {
     label: '天机阁',
-    icon: '⚙',
+    icon: 'setting',
     children: [
       { path: '/tianji/honor-rules', label: '荣誉规则' },
       { path: '/tianji/competitions', label: '赛事管理' },
@@ -68,6 +70,19 @@ function scrollActiveNavIntoView() {
     if (activeItem instanceof HTMLElement) {
       activeItem.scrollIntoView({
         block: 'nearest'
+      });
+    }
+  });
+}
+
+function scrollActiveTabIntoView() {
+  void nextTick(() => {
+    const activeTab = routeTabListRef.value?.querySelector('.route-tab.active');
+
+    if (activeTab instanceof HTMLElement) {
+      activeTab.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest'
       });
     }
   });
@@ -111,11 +126,15 @@ watch(
   () => {
     routeTabsStore.ensureRoute(route);
     scrollActiveNavIntoView();
+    scrollActiveTabIntoView();
   },
   { immediate: true }
 );
 
-onMounted(scrollActiveNavIntoView);
+onMounted(() => {
+  scrollActiveNavIntoView();
+  scrollActiveTabIntoView();
+});
 </script>
 
 <template>
@@ -132,7 +151,9 @@ onMounted(scrollActiveNavIntoView);
       <nav ref="navRef" class="nav">
         <div v-for="group in navItems" :key="group.label" class="nav-section">
           <div class="nav-group">
-            <span class="nav-icon">{{ group.icon }}</span>
+            <span class="nav-icon">
+              <IconFont :name="group.icon" />
+            </span>
             {{ group.label }}
           </div>
           <RouterLink
@@ -161,32 +182,41 @@ onMounted(scrollActiveNavIntoView);
         </div>
         <div class="global-header-actions">
           <div class="search-box">搜索巨星 / 国家 / 豪门</div>
-          <button class="icon-button" type="button" title="全局搜索">⌕</button>
-          <button class="header-tool" type="button">中文</button>
-          <div class="avatar-placeholder">本</div>
+          <button class="icon-button" type="button" title="全局搜索">
+            <IconFont name="search" title="全局搜索" :decorative="false" />
+          </button>
+          <button class="header-tool" type="button" title="切换语言">
+            <IconFont name="translate" />
+            中文
+          </button>
+          <div class="avatar-placeholder" title="当前用户">
+            <IconFont name="user" />
+          </div>
         </div>
       </header>
 
       <div class="route-tabs">
-        <button
-          v-for="tab in routeTabsStore.tabs"
-          :key="tab.fullPath"
-          class="route-tab"
-          :class="{ active: tab.fullPath === currentTabPath, fixed: tab.fixed }"
-          type="button"
-          @click="openTab(tab.fullPath)"
-        >
-          <span>{{ tab.title }}</span>
+        <div ref="routeTabListRef" class="route-tab-list">
           <button
-            v-if="!tab.fixed"
-            class="route-tab-close"
+            v-for="tab in routeTabsStore.tabs"
+            :key="tab.fullPath"
+            class="route-tab"
+            :class="{ active: tab.fullPath === currentTabPath, fixed: tab.fixed }"
             type="button"
-            title="关闭"
-            @click.stop="closeTab(tab.fullPath)"
+            @click="openTab(tab.fullPath)"
           >
-            ×
+            <span>{{ tab.title }}</span>
+            <button
+              v-if="!tab.fixed"
+              class="route-tab-close"
+              type="button"
+              title="关闭"
+              @click.stop="closeTab(tab.fullPath)"
+            >
+              <IconFont name="close" title="关闭" :decorative="false" :size="12" />
+            </button>
           </button>
-        </button>
+        </div>
 
         <div class="route-tab-actions">
           <button type="button" @click="closeOtherTabs">关闭其他</button>

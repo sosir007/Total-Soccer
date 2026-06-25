@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchCountryDetail } from '@/services/modules/catalog';
 import type { CountryDetail } from '@/services/types/catalog';
+import IconFont from '@/components/IconFont.vue';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import NationDetailContent from './components/NationDetailContent.vue';
@@ -83,7 +84,10 @@ onMounted(() => {
     <div v-if="!countryId" class="panel empty-panel">
       <h3>请选择国家</h3>
       <p>从国家概览进入详情，可以查看国家队基础统计和荣誉摘要。</p>
-      <el-button type="primary" @click="backToList">返回国家概览</el-button>
+      <el-button type="primary" @click="backToList">
+        <IconFont name="back" />
+        返回国家概览
+      </el-button>
     </div>
 
     <div v-else-if="loading" class="panel">
@@ -93,8 +97,14 @@ onMounted(() => {
     <div v-else-if="errorMessage" class="panel">
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       <div class="detail-actions">
-        <el-button @click="backToList">返回国家概览</el-button>
-        <el-button type="primary" @click="loadCountry">重试</el-button>
+        <el-button @click="backToList">
+          <IconFont name="back" />
+          返回国家概览
+        </el-button>
+        <el-button type="primary" @click="loadCountry">
+          <IconFont name="refresh" />
+          重试
+        </el-button>
       </div>
     </div>
 

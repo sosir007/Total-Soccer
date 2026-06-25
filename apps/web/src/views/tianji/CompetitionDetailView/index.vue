@@ -20,6 +20,7 @@ import type {
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import CompetitionDetailDialog from './components/CompetitionDetailDialog.vue';
@@ -603,7 +604,10 @@ onMounted(() => {
     <div v-else-if="!competition" class="panel empty-panel">
       <h3>赛事不存在</h3>
       <p>可以返回赛事管理重新选择。</p>
-      <el-button type="primary" @click="backToList">返回赛事列表</el-button>
+      <el-button type="primary" @click="backToList">
+        <IconFont name="back" />
+        返回赛事列表
+      </el-button>
     </div>
 
     <template v-else>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import IconFont from '@/components/IconFont.vue';
 import type {
   CareerProfileLine,
   CountryDetail,
@@ -90,8 +91,14 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
       </div>
     </div>
     <div class="panel-actions">
-      <el-button type="primary" @click="emit('edit')">编辑</el-button>
-      <el-button @click="emit('back')">返回列表</el-button>
+      <el-button type="primary" @click="emit('edit')">
+        <IconFont name="edit" />
+        编辑
+      </el-button>
+      <el-button @click="emit('back')">
+        <IconFont name="back" />
+        返回列表
+      </el-button>
     </div>
   </div>
 

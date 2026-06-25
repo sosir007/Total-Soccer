@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import dayjs from 'dayjs';
+import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import type { PlayerListItem } from '@/services/types/catalog';
@@ -291,8 +292,14 @@ function formatMarketValue(value?: number | null) {
         </el-table-column>
         <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click.stop="emit('edit', row)">编辑</el-button>
-            <el-button type="danger" link @click.stop="emit('delete', row)">删除</el-button>
+            <el-button type="primary" link @click.stop="emit('edit', row)">
+              <IconFont name="edit" />
+              编辑
+            </el-button>
+            <el-button type="danger" link @click.stop="emit('delete', row)">
+              <IconFont name="delete" />
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -20,6 +20,7 @@ import type {
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 import AwardRuleDialog from './components/AwardRuleDialog.vue';
 import AwardRuleListPanel from './components/AwardRuleListPanel.vue';
 import HonorRuleDialog from './components/HonorRuleDialog.vue';
@@ -574,9 +575,11 @@ onMounted(() => {
             </div>
             <div class="header-actions">
               <el-button type="warning" :loading="recalculating" @click="recalculateScores">
+                <IconFont name="refresh" />
                 重新计算荣誉分
               </el-button>
               <el-button type="success" :disabled="loading" @click="openCreateDialog">
+                <IconFont name="add" />
                 新增规则
               </el-button>
             </div>
@@ -626,8 +629,14 @@ onMounted(() => {
               </el-select>
             </el-form-item>
             <div class="filter-actions">
-              <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-              <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+              <el-button type="primary" :loading="loading" @click="submitFilters">
+                <IconFont name="filter" />
+                筛选
+              </el-button>
+              <el-button :disabled="loading" @click="resetFilters">
+                <IconFont name="reset" />
+                重置
+              </el-button>
             </div>
           </el-form>
 
@@ -675,9 +684,11 @@ onMounted(() => {
                 :loading="awardRecalculating"
                 @click="recalculatePlayerAwardScores"
               >
+                <IconFont name="refresh" />
                 重新计算球员荣誉分
               </el-button>
               <el-button type="success" :disabled="awardLoading" @click="openCreateAwardDialog">
+                <IconFont name="add" />
                 新增奖项规则
               </el-button>
             </div>
@@ -718,9 +729,13 @@ onMounted(() => {
             </el-form-item>
             <div class="filter-actions">
               <el-button type="primary" :loading="awardLoading" @click="submitAwardFilters">
+                <IconFont name="filter" />
                 筛选
               </el-button>
-              <el-button :disabled="awardLoading" @click="resetAwardFilters">重置</el-button>
+              <el-button :disabled="awardLoading" @click="resetAwardFilters">
+                <IconFont name="reset" />
+                重置
+              </el-button>
             </div>
           </el-form>
 

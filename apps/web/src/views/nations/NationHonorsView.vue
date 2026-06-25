@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus';
 import { fetchCountryHonors } from '@/services/modules/catalog';
 import type { HonorRecord } from '@/services/types/catalog';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { CompetitionSelect, CountrySelect } from '@/components/selects';
@@ -110,8 +111,14 @@ onMounted(() => {
           <CountrySelect v-model="filters.countryId" />
         </el-form-item>
         <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="submitFilters">
+            <IconFont name="filter" />
+            筛选
+          </el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
         <el-form-item label="名次">
           <el-select v-model="filters.placement" clearable placeholder="全部名次">

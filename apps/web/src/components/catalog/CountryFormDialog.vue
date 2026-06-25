@@ -3,6 +3,7 @@ import { reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { createCountry, updateCountry } from '@/services/modules/catalog';
 import type { CountryDetail, CountryPayload } from '@/services/types/catalog';
+import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 
@@ -106,7 +107,10 @@ async function submit() {
     </el-form>
     <template #footer>
       <el-button :disabled="saving" @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+      <el-button type="primary" :loading="saving" @click="submit">
+        <IconFont name="save" />
+        保存
+      </el-button>
     </template>
   </el-dialog>
 </template>

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchPlayerDetail } from '@/services/modules/catalog';
 import type { PlayerDetail } from '@/services/types/catalog';
+import IconFont from '@/components/IconFont.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import StarDetailContent from './components/StarDetailContent.vue';
 
@@ -71,7 +72,10 @@ onMounted(() => {
     <div v-if="!playerId" class="panel empty-panel">
       <h3>请选择巨星</h3>
       <p>从巨星概览进入详情，可以查看完整基础资料。</p>
-      <el-button type="primary" @click="backToList">返回巨星概览</el-button>
+      <el-button type="primary" @click="backToList">
+        <IconFont name="back" />
+        返回巨星概览
+      </el-button>
     </div>
 
     <div v-else-if="loading" class="panel">
@@ -81,8 +85,14 @@ onMounted(() => {
     <div v-else-if="errorMessage" class="panel">
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       <div class="detail-actions">
-        <el-button @click="backToList">返回巨星概览</el-button>
-        <el-button type="primary" @click="loadPlayer">重试</el-button>
+        <el-button @click="backToList">
+          <IconFont name="back" />
+          返回巨星概览
+        </el-button>
+        <el-button type="primary" @click="loadPlayer">
+          <IconFont name="refresh" />
+          重试
+        </el-button>
       </div>
     </div>
 

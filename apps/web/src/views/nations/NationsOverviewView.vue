@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { deleteCountry, fetchCountries, fetchCountryDetail } from '@/services/modules/catalog';
 import type { CountryDetail, CountryListItem } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
+import IconFont from '@/components/IconFont.vue';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 
-const router = useRouter();
 const optionStore = useOptionStore();
 const loading = ref(false);
 const errorMessage = ref('');
@@ -23,8 +22,8 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   confederationId: '',
-  sortBy: 'uid',
-  sortOrder: 'asc' as 'asc' | 'desc',
+  sortBy: 'totalPa',
+  sortOrder: 'desc' as 'asc' | 'desc',
   includeHidden: false
 });
 
@@ -115,15 +114,6 @@ async function confirmDelete(country: CountryListItem) {
   }
 }
 
-function openDetail(country: CountryListItem) {
-  void router.push({
-    name: 'nations-detail-id',
-    params: {
-      id: country.id
-    }
-  });
-}
-
 function rowIndex(index: number) {
   return (filters.page - 1) * filters.pageSize + index + 1;
 }
@@ -136,8 +126,8 @@ function handleSortChange({
   order?: 'ascending' | 'descending' | null;
 }) {
   filters.page = 1;
-  filters.sortBy = prop || 'uid';
-  filters.sortOrder = order === 'descending' ? 'desc' : 'asc';
+  filters.sortBy = prop || 'totalPa';
+  filters.sortOrder = order === 'ascending' ? 'asc' : 'desc';
   void loadCountries();
 }
 
@@ -177,8 +167,10 @@ onMounted(() => {
           <p>浏览国家队基础统计、PA 汇总和荣誉分表现。</p>
         </div>
         <div class="panel-actions">
-          <span class="status-pill">真实数据</span>
-          <el-button type="primary" @click="openCreateDialog">新增国家</el-button>
+          <el-button type="primary" @click="openCreateDialog">
+            <IconFont name="add" />
+            新增国家
+          </el-button>
         </div>
       </div>
 
@@ -209,8 +201,14 @@ onMounted(() => {
           />
         </el-form-item>
         <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="submitFilters">
+            <IconFont name="filter" />
+            筛选
+          </el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
       </el-form>
     </div>
@@ -233,7 +231,12 @@ onMounted(() => {
       </div>
 
       <template v-else>
-        <el-table :data="countries" border @row-click="openDetail" @sort-change="handleSortChange">
+        <el-table
+          :data="countries"
+          border
+          :default-sort="{ prop: 'totalPa', order: 'descending' }"
+          @sort-change="handleSortChange"
+        >
           <el-table-column label="序号" width="76" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
@@ -245,13 +248,6 @@ onMounted(() => {
                 :title="row.name"
                 :subtitle="`UID ${row.uid}`"
               />
-            </template>
-          </el-table-column>
-          <el-table-column label="默认展示" width="100">
-            <template #default="{ row }">
-              <el-tag :type="row.visibleInCatalog === false ? 'info' : 'success'" effect="plain">
-                {{ row.visibleInCatalog === false ? '隐藏' : '显示' }}
-              </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="足联" min-width="120">
@@ -269,8 +265,14 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click.stop="openEditDialog(row)">编辑</el-button>
-              <el-button link type="danger" @click.stop="confirmDelete(row)">删除</el-button>
+              <el-button link type="primary" @click.stop="openEditDialog(row)">
+                <IconFont name="edit" />
+                编辑
+              </el-button>
+              <el-button link type="danger" @click.stop="confirmDelete(row)">
+                <IconFont name="delete" />
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>

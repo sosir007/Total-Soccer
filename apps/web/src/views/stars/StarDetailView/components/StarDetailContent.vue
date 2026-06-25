@@ -2,6 +2,7 @@
 import dayjs from 'dayjs';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import IconFont from '@/components/IconFont.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
@@ -166,8 +167,14 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
         </div>
       </div>
       <div class="panel-actions">
-        <el-button type="primary" @click="emit('edit')">编辑</el-button>
-        <el-button @click="emit('back')">返回列表</el-button>
+        <el-button type="primary" @click="emit('edit')">
+          <IconFont name="edit" />
+          编辑
+        </el-button>
+        <el-button @click="emit('back')">
+          <IconFont name="back" />
+          返回列表
+        </el-button>
       </div>
     </div>
 

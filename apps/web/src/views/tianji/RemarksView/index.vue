@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchRemarks } from '@/services/modules/remarks';
 import type { RemarkItem, RemarkObjectType } from '@/services/types/remarks';
+import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 
 type RemarkEntityType = 'country' | 'club' | 'player' | 'competition' | 'award';
@@ -175,8 +176,14 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="submitFilters">
+            <IconFont name="filter" />
+            筛选
+          </el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
       </el-form>
     </div>

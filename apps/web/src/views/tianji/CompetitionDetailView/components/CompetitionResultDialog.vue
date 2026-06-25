@@ -3,6 +3,7 @@ import type {
   CompetitionDetail,
   CompetitionStandingPlacement
 } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 import { ClubSelect, CountrySelect } from '@/components/selects';
 import type { EditionRow } from './types';
 
@@ -42,7 +43,10 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
 <template>
   <el-dialog v-model="visible" :title="title" width="1180px">
     <div class="edition-editor-toolbar">
-      <el-button v-if="mode === 'batch'" type="primary" @click="emit('add')"> 新增一行 </el-button>
+      <el-button v-if="mode === 'batch'" type="primary" @click="emit('add')">
+        <IconFont name="add" />
+        新增一行
+      </el-button>
       <span v-else class="status-pill">编辑当前行</span>
       <el-switch
         :model-value="sortAscending"
@@ -109,6 +113,7 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
           :disabled="allRowsCount <= 1 || row.locked"
           @click="emit('remove', row)"
         >
+          <IconFont name="delete" />
           删除
         </el-button>
       </div>
@@ -116,7 +121,10 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
 
     <template #footer>
       <el-button :disabled="saving" @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="emit('save')"> 保存结果 </el-button>
+      <el-button type="primary" :loading="saving" @click="emit('save')">
+        <IconFont name="save" />
+        保存结果
+      </el-button>
     </template>
   </el-dialog>
 </template>

@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 import { fetchAuditLogs } from '@/services/modules/audit-logs';
 import type { AuditAction, AuditLogItem } from '@/services/types/audit-logs';
+import IconFont from '@/components/IconFont.vue';
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -244,8 +245,14 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="submitFilters">
+            <IconFont name="filter" />
+            筛选
+          </el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
       </el-form>
     </div>

@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { fetchAwardRecipients } from '@/services/modules/awards';
 import type { AwardRecipientRecord, AwardScopeType } from '@/services/types/awards';
+import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { buildExternalUrl } from '@/utils/external-link';
@@ -145,8 +146,14 @@ onMounted(() => {
           <el-input v-model="filters.placement" clearable placeholder="冠军 / 第一名 / 金球奖" />
         </el-form-item>
         <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="submitFilters">
+            <IconFont name="filter" />
+            筛选
+          </el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
         <el-form-item label="年份">
           <el-input-number v-model="filters.year" :min="1800" :max="2200" placeholder="全部年份" />

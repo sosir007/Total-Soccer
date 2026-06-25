@@ -1,0 +1,527 @@
+{
+  "id": "5195036",
+  "name": "total-soccer",
+  "font_family": "iconfont",
+  "css_prefix_text": "ts-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "7627",
+      "name": "分享",
+      "font_class": "share",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "77190",
+      "name": "密码",
+      "font_class": "password",
+      "unicode": "e60c",
+      "unicode_decimal": 58892
+    },
+    {
+      "icon_id": "954148",
+      "name": "地图",
+      "font_class": "map",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    },
+    {
+      "icon_id": "1305463",
+      "name": "查看",
+      "font_class": "view",
+      "unicode": "e63e",
+      "unicode_decimal": 58942
+    },
+    {
+      "icon_id": "2472130",
+      "name": "403",
+      "font_class": "error-403",
+      "unicode": "e685",
+      "unicode_decimal": 59013
+    },
+    {
+      "icon_id": "2472131",
+      "name": "401",
+      "font_class": "error-401",
+      "unicode": "e683",
+      "unicode_decimal": 59011
+    },
+    {
+      "icon_id": "2472132",
+      "name": "500",
+      "font_class": "error-500",
+      "unicode": "e687",
+      "unicode_decimal": 59015
+    },
+    {
+      "icon_id": "2472133",
+      "name": "404",
+      "font_class": "error-404",
+      "unicode": "e684",
+      "unicode_decimal": 59012
+    },
+    {
+      "icon_id": "7239806",
+      "name": "logout",
+      "font_class": "logout",
+      "unicode": "e73c",
+      "unicode_decimal": 59196
+    },
+    {
+      "icon_id": "7556170",
+      "name": "全屏",
+      "font_class": "full-screen",
+      "unicode": "e60d",
+      "unicode_decimal": 58893
+    },
+    {
+      "icon_id": "9297207",
+      "name": "计时器",
+      "font_class": "timer",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "11539970",
+      "name": "可见",
+      "font_class": "visible",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "11539971",
+      "name": "不可见",
+      "font_class": "invisible",
+      "unicode": "e626",
+      "unicode_decimal": 58918
+    },
+    {
+      "icon_id": "12515461",
+      "name": "权限",
+      "font_class": "permission",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    },
+    {
+      "icon_id": "14772881",
+      "name": "laptop-error",
+      "font_class": "page-error",
+      "unicode": "e64c",
+      "unicode_decimal": 58956
+    },
+    {
+      "icon_id": "1790025",
+      "name": "复制",
+      "font_class": "copy",
+      "unicode": "e6dd",
+      "unicode_decimal": 59101
+    },
+    {
+      "icon_id": "4922544",
+      "name": "粘贴",
+      "font_class": "paste",
+      "unicode": "e669",
+      "unicode_decimal": 58985
+    },
+    {
+      "icon_id": "42696599",
+      "name": "引导",
+      "font_class": "guide",
+      "unicode": "e688",
+      "unicode_decimal": 59016
+    },
+    {
+      "icon_id": "10487570",
+      "name": "通知",
+      "font_class": "notice",
+      "unicode": "e69b",
+      "unicode_decimal": 59035
+    },
+    {
+      "icon_id": "35646054",
+      "name": "放大",
+      "font_class": "zoom-in",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "47043000",
+      "name": "缩小",
+      "font_class": "zoom-out",
+      "unicode": "10225",
+      "unicode_decimal": 66085
+    },
+    {
+      "icon_id": "11719492",
+      "name": "地球",
+      "font_class": "earth",
+      "unicode": "e61c",
+      "unicode_decimal": 58908
+    },
+    {
+      "icon_id": "18689945",
+      "name": "等级",
+      "font_class": "level",
+      "unicode": "e679",
+      "unicode_decimal": 59001
+    },
+    {
+      "icon_id": "5232028",
+      "name": "更多",
+      "font_class": "more",
+      "unicode": "e64b",
+      "unicode_decimal": 58955
+    },
+    {
+      "icon_id": "36639876",
+      "name": "总览",
+      "font_class": "overview",
+      "unicode": "e6f7",
+      "unicode_decimal": 59127
+    },
+    {
+      "icon_id": "151334",
+      "name": "旗帜",
+      "font_class": "flag",
+      "unicode": "e686",
+      "unicode_decimal": 59014
+    },
+    {
+      "icon_id": "954218",
+      "name": "取消",
+      "font_class": "close",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "1079632",
+      "name": "规则",
+      "font_class": "rule",
+      "unicode": "e61b",
+      "unicode_decimal": 58907
+    },
+    {
+      "icon_id": "1132488",
+      "name": "右箭头",
+      "font_class": "right-arrow",
+      "unicode": "e644",
+      "unicode_decimal": 58948
+    },
+    {
+      "icon_id": "1132491",
+      "name": "左箭头",
+      "font_class": "left-arrow",
+      "unicode": "e647",
+      "unicode_decimal": 58951
+    },
+    {
+      "icon_id": "1236895",
+      "name": "确定",
+      "font_class": "confirm",
+      "unicode": "e6db",
+      "unicode_decimal": 59099
+    },
+    {
+      "icon_id": "1259673",
+      "name": "球队",
+      "font_class": "team",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "1660743",
+      "name": "上传",
+      "font_class": "upload",
+      "unicode": "e628",
+      "unicode_decimal": 58920
+    },
+    {
+      "icon_id": "1703552",
+      "name": "设置",
+      "font_class": "setting",
+      "unicode": "e64e",
+      "unicode_decimal": 58958
+    },
+    {
+      "icon_id": "1756504",
+      "name": "分数",
+      "font_class": "score",
+      "unicode": "e621",
+      "unicode_decimal": 58913
+    },
+    {
+      "icon_id": "2066644",
+      "name": "第四名",
+      "font_class": "fourth",
+      "unicode": "e66e",
+      "unicode_decimal": 58990
+    },
+    {
+      "icon_id": "2515323",
+      "name": "搜索",
+      "font_class": "search",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
+      "icon_id": "2546351",
+      "name": "盾牌",
+      "font_class": "shield",
+      "unicode": "e62b",
+      "unicode_decimal": 58923
+    },
+    {
+      "icon_id": "2635204",
+      "name": "第一名",
+      "font_class": "first",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "2635212",
+      "name": "第三名",
+      "font_class": "third",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "3394976",
+      "name": "编辑",
+      "font_class": "edit",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "4166101",
+      "name": "徽章",
+      "font_class": "badge",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "4503673",
+      "name": "过滤",
+      "font_class": "filter",
+      "unicode": "e6c7",
+      "unicode_decimal": 59079
+    },
+    {
+      "icon_id": "4506455",
+      "name": "批注",
+      "font_class": "remark",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
+      "icon_id": "4621956",
+      "name": "第二名",
+      "font_class": "second",
+      "unicode": "e744",
+      "unicode_decimal": 59204
+    },
+    {
+      "icon_id": "5121527",
+      "name": "用户",
+      "font_class": "user",
+      "unicode": "e64d",
+      "unicode_decimal": 58957
+    },
+    {
+      "icon_id": "5220744",
+      "name": "球衣",
+      "font_class": "shirt",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "6129213",
+      "name": "皇冠",
+      "font_class": "crown",
+      "unicode": "e7a9",
+      "unicode_decimal": 59305
+    },
+    {
+      "icon_id": "6442653",
+      "name": "比分",
+      "font_class": "score2",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "7450622",
+      "name": "星星",
+      "font_class": "star",
+      "unicode": "e661",
+      "unicode_decimal": 58977
+    },
+    {
+      "icon_id": "11587622",
+      "name": "赛程",
+      "font_class": "schedule",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "12331679",
+      "name": "日志",
+      "font_class": "log",
+      "unicode": "e668",
+      "unicode_decimal": 58984
+    },
+    {
+      "icon_id": "12766497",
+      "name": "定位",
+      "font_class": "location",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "15838493",
+      "name": "链接",
+      "font_class": "link",
+      "unicode": "e676",
+      "unicode_decimal": 58998
+    },
+    {
+      "icon_id": "15954599",
+      "name": "城市",
+      "font_class": "city",
+      "unicode": "e79c",
+      "unicode_decimal": 59292
+    },
+    {
+      "icon_id": "18542395",
+      "name": "返回",
+      "font_class": "back",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "18792322",
+      "name": "国际",
+      "font_class": "international",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "18878499",
+      "name": "球场",
+      "font_class": "pitch",
+      "unicode": "e6c1",
+      "unicode_decimal": 59073
+    },
+    {
+      "icon_id": "21758119",
+      "name": "配置",
+      "font_class": "configuration",
+      "unicode": "e6af",
+      "unicode_decimal": 59055
+    },
+    {
+      "icon_id": "23995134",
+      "name": "奖杯",
+      "font_class": "trophy",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    },
+    {
+      "icon_id": "25532339",
+      "name": "仪表盘",
+      "font_class": "dashboard",
+      "unicode": "e70f",
+      "unicode_decimal": 59151
+    },
+    {
+      "icon_id": "25919429",
+      "name": "删除",
+      "font_class": "delete",
+      "unicode": "e6b4",
+      "unicode_decimal": 59060
+    },
+    {
+      "icon_id": "29483590",
+      "name": "文档",
+      "font_class": "document",
+      "unicode": "e60b",
+      "unicode_decimal": 58891
+    },
+    {
+      "icon_id": "34349176",
+      "name": "翻译",
+      "font_class": "translate",
+      "unicode": "11c42",
+      "unicode_decimal": 72770
+    },
+    {
+      "icon_id": "37538219",
+      "name": "趋势",
+      "font_class": "trend",
+      "unicode": "e62c",
+      "unicode_decimal": 58924
+    },
+    {
+      "icon_id": "37947236",
+      "name": "新增",
+      "font_class": "add",
+      "unicode": "e642",
+      "unicode_decimal": 58946
+    },
+    {
+      "icon_id": "38297827",
+      "name": "位置",
+      "font_class": "position",
+      "unicode": "e715",
+      "unicode_decimal": 59157
+    },
+    {
+      "icon_id": "39022162",
+      "name": "山峰",
+      "font_class": "peak",
+      "unicode": "e663",
+      "unicode_decimal": 58979
+    },
+    {
+      "icon_id": "39097180",
+      "name": "重置",
+      "font_class": "reset",
+      "unicode": "e77d",
+      "unicode_decimal": 59261
+    },
+    {
+      "icon_id": "40379380",
+      "name": "刷新",
+      "font_class": "refresh",
+      "unicode": "e6a7",
+      "unicode_decimal": 59047
+    },
+    {
+      "icon_id": "40408773",
+      "name": "排名",
+      "font_class": "rank",
+      "unicode": "ecae",
+      "unicode_decimal": 60590
+    },
+    {
+      "icon_id": "40532975",
+      "name": "导入",
+      "font_class": "import",
+      "unicode": "e609",
+      "unicode_decimal": 58889
+    },
+    {
+      "icon_id": "43259808",
+      "name": "保存",
+      "font_class": "save",
+      "unicode": "eb56",
+      "unicode_decimal": 60246
+    },
+    {
+      "icon_id": "44624366",
+      "name": "跳转",
+      "font_class": "skip",
+      "unicode": "e657",
+      "unicode_decimal": 58967
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { AwardDetail, AwardScopeType } from '@/services/types/awards';
+import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const props = defineProps<{
@@ -86,7 +87,10 @@ const emit = defineEmits<{
         <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
       </el-form-item>
       <div class="competition-form-actions">
-        <el-button type="primary" :loading="saving" @click="emit('save')">保存奖项资料</el-button>
+        <el-button type="primary" :loading="saving" @click="emit('save')">
+          <IconFont name="save" />
+          保存奖项资料
+        </el-button>
       </div>
     </el-form>
   </div>

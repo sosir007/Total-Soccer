@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { BaseConfigItem } from '@/services/types/base-config';
+import IconFont from '@/components/IconFont.vue';
 
 interface BaseConfigFilters {
   page: number;
@@ -75,8 +76,14 @@ const filters = toRef(props, 'filters');
         </el-table-column>
         <el-table-column label="操作" width="140">
           <template #default="{ row }">
-            <el-button link type="primary" @click="emit('edit', row)">编辑</el-button>
-            <el-button link type="danger" @click="emit('delete', row)">删除</el-button>
+            <el-button link type="primary" @click="emit('edit', row)">
+              <IconFont name="edit" />
+              编辑
+            </el-button>
+            <el-button link type="danger" @click="emit('delete', row)">
+              <IconFont name="delete" />
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>

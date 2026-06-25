@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AwardListItem } from '@/services/types/awards';
+import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 
 defineProps<{
@@ -26,7 +27,10 @@ const emit = defineEmits<{
       <h3>奖项列表</h3>
       <div class="panel-actions">
         <span class="status-pill">{{ total }} 项奖项</span>
-        <el-button type="primary" @click="emit('create')">新增奖项</el-button>
+        <el-button type="primary" @click="emit('create')">
+          <IconFont name="add" />
+          新增奖项
+        </el-button>
       </div>
     </div>
 

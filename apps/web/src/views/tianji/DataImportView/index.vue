@@ -9,6 +9,7 @@ import type {
   ImportPreviewResult,
   ImportPreviewSheet
 } from '@/services/types/importPreview';
+import IconFont from '@/components/IconFont.vue';
 
 const acceptedTypes = '.lakesheet,.xlsx,.xls,.csv';
 const selectedFile = ref<File | null>(null);
@@ -126,7 +127,9 @@ async function submitConfirm() {
         :on-exceed="handleExceed"
       >
         <div class="upload-drop">
-          <div class="upload-icon">⇪</div>
+          <div class="upload-icon">
+            <IconFont name="upload" />
+          </div>
           <div class="upload-title">选择 lakesheet / Excel / CSV 文件</div>
           <div class="upload-meta">先生成预览，确认后会写入球员、国家、俱乐部正式表。</div>
         </div>
@@ -143,6 +146,7 @@ async function submitConfirm() {
             :disabled="!canSubmit || importing"
             @click="submitPreview"
           >
+            <IconFont name="upload" />
             生成预览
           </el-button>
           <el-button
@@ -151,6 +155,7 @@ async function submitConfirm() {
             :disabled="!canConfirm"
             @click="submitConfirm"
           >
+            <IconFont name="import" />
             确认导入
           </el-button>
         </div>

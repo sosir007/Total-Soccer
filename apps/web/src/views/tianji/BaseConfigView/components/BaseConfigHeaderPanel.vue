@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { BaseConfigType } from '@/services/types/base-config';
+import IconFont from '@/components/IconFont.vue';
 
 interface ConfigTab {
   type: BaseConfigType;
@@ -67,9 +68,16 @@ const filters = toRef(props, 'filters');
         />
       </el-form-item>
       <div class="filter-actions">
-        <el-button type="primary" :loading="loading" @click="emit('submit')">筛选</el-button>
-        <el-button :disabled="loading" @click="emit('reset')">重置</el-button>
+        <el-button type="primary" :loading="loading" @click="emit('submit')">
+          <IconFont name="filter" />
+          筛选
+        </el-button>
+        <el-button :disabled="loading" @click="emit('reset')">
+          <IconFont name="reset" />
+          重置
+        </el-button>
         <el-button type="success" :disabled="loading" @click="emit('create')">
+          <IconFont name="add" />
           新增{{ activeTab.label }}
         </el-button>
       </div>

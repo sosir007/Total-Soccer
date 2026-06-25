@@ -2,6 +2,7 @@
 import { toRef } from 'vue';
 import type { AwardRulePayload } from '@/services/types/award-rules';
 import type { AwardScopeType } from '@/services/types/awards';
+import IconFont from '@/components/IconFont.vue';
 
 const props = defineProps<{
   title: string;
@@ -79,7 +80,10 @@ const emit = defineEmits<{
 
     <template #footer>
       <el-button :disabled="submitting" @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="emit('save')">保存</el-button>
+      <el-button type="primary" :loading="submitting" @click="emit('save')">
+        <IconFont name="save" />
+        保存
+      </el-button>
     </template>
   </el-dialog>
 </template>

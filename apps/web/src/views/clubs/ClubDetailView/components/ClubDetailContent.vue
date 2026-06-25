@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import IconFont from '@/components/IconFont.vue';
 import type { CareerProfileLine, ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
@@ -86,8 +87,14 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
       </div>
     </div>
     <div class="panel-actions">
-      <el-button type="primary" @click="emit('edit')">编辑</el-button>
-      <el-button @click="emit('back')">返回列表</el-button>
+      <el-button type="primary" @click="emit('edit')">
+        <IconFont name="edit" />
+        编辑
+      </el-button>
+      <el-button @click="emit('back')">
+        <IconFont name="back" />
+        返回列表
+      </el-button>
     </div>
   </div>
 

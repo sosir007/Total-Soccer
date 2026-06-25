@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CompetitionListItem } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 
 defineProps<{
@@ -39,7 +40,10 @@ function getRowSequence(page: number, pageSize: number, index: number) {
       <h3>赛事列表</h3>
       <div class="panel-actions">
         <span class="status-pill">{{ total }} 项赛事</span>
-        <el-button type="primary" @click="emit('create')">新增赛事</el-button>
+        <el-button type="primary" @click="emit('create')">
+          <IconFont name="add" />
+          新增赛事
+        </el-button>
       </div>
     </div>
 
@@ -121,13 +125,17 @@ function getRowSequence(page: number, pageSize: number, index: number) {
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="emit('open', row.id)">编辑</el-button>
+            <el-button link type="primary" @click="emit('open', row.id)">
+              <IconFont name="edit" />
+              编辑
+            </el-button>
             <el-button
               link
               type="danger"
               :loading="deletingId === row.id"
               @click="emit('delete', row)"
             >
+              <IconFont name="delete" />
               删除
             </el-button>
           </template>

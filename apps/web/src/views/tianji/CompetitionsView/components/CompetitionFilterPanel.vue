@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { CompetitionScopeType, CompetitionTargetType } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 
 const props = defineProps<{
   filters: {
@@ -61,8 +62,14 @@ const emit = defineEmits<{
         </el-select>
       </el-form-item>
       <div class="filter-actions">
-        <el-button type="primary" :loading="loading" @click="emit('submit')">筛选</el-button>
-        <el-button :disabled="loading" @click="emit('reset')">重置</el-button>
+        <el-button type="primary" :loading="loading" @click="emit('submit')">
+          <IconFont name="filter" />
+          筛选
+        </el-button>
+        <el-button :disabled="loading" @click="emit('reset')">
+          <IconFont name="reset" />
+          重置
+        </el-button>
       </div>
     </el-form>
   </div>

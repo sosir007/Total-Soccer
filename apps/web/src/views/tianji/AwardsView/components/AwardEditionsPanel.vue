@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AwardEdition } from '@/services/types/awards';
 import EntityLink from '@/components/EntityLink.vue';
+import IconFont from '@/components/IconFont.vue';
 
 defineProps<{
   editions: AwardEdition[];
@@ -21,7 +22,10 @@ const emit = defineEmits<{
         <h3>年份与获奖人</h3>
         <p>一个奖项下维护所有年份和当年获奖球员。</p>
       </div>
-      <el-button type="success" @click="emit('create')">新增年份</el-button>
+      <el-button type="success" @click="emit('create')">
+        <IconFont name="add" />
+        新增年份
+      </el-button>
     </div>
 
     <div v-if="!editions.length" class="mini-empty">暂无奖项年份</div>
@@ -58,7 +62,10 @@ const emit = defineEmits<{
       </el-table-column>
       <el-table-column label="操作" width="90" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="emit('edit', row)">编辑</el-button>
+          <el-button link type="primary" @click="emit('edit', row)">
+            <IconFont name="edit" />
+            编辑
+          </el-button>
         </template>
       </el-table-column>
     </el-table>

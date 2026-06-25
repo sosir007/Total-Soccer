@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
+import IconFont from '@/components/IconFont.vue';
 import { CountrySelect } from '@/components/selects';
 import type { BaseConfigPayload } from '@/services/types/base-config';
 
@@ -112,7 +113,10 @@ const form = toRef(props, 'form');
 
     <template #footer>
       <el-button :disabled="submitting" @click="emit('update:visible', false)">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="emit('save')">保存</el-button>
+      <el-button type="primary" :loading="submitting" @click="emit('save')">
+        <IconFont name="save" />
+        保存
+      </el-button>
     </template>
   </el-dialog>
 </template>

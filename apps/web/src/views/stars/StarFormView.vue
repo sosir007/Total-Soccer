@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import IconFont from '@/components/IconFont.vue';
 import PlayerFormDialog from '@/components/catalog/PlayerFormDialog.vue';
 import { fetchPlayerDetail } from '@/services/modules/catalog';
 import type { PlayerDetail } from '@/services/types/catalog';
@@ -71,7 +72,10 @@ onMounted(() => {
           <h2>{{ pageTitle }}</h2>
           <p>维护球员基础资料、国籍、位置、身体数据、球队经历和结构化经历。</p>
         </div>
-        <el-button :disabled="loading" @click="goBack(false)">返回巨星概览</el-button>
+        <el-button :disabled="loading" @click="goBack(false)">
+          <IconFont name="back" />
+          返回巨星概览
+        </el-button>
       </div>
 
       <el-alert

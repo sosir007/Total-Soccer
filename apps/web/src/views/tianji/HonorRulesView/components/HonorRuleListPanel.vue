@@ -4,6 +4,7 @@ import type {
   CompetitionTargetType
 } from '@/services/types/competitions';
 import type { HonorRuleItem } from '@/services/types/honor-rules';
+import IconFont from '@/components/IconFont.vue';
 
 defineProps<{
   items: HonorRuleItem[];
@@ -70,7 +71,10 @@ const emit = defineEmits<{
         </el-table-column>
         <el-table-column label="操作" width="132" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="emit('edit', row)">编辑</el-button>
+            <el-button link type="primary" @click="emit('edit', row)">
+              <IconFont name="edit" />
+              编辑
+            </el-button>
             <el-button
               link
               :type="row.enabled ? 'warning' : 'success'"

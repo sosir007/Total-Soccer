@@ -5,6 +5,7 @@ import type {
   CompetitionTargetType
 } from '@/services/types/competitions';
 import type { HonorRulePayload } from '@/services/types/honor-rules';
+import IconFont from '@/components/IconFont.vue';
 
 const props = defineProps<{
   title: string;
@@ -78,7 +79,10 @@ const emit = defineEmits<{
 
     <template #footer>
       <el-button :disabled="submitting" @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="emit('save')">保存</el-button>
+      <el-button type="primary" :loading="submitting" @click="emit('save')">
+        <IconFont name="save" />
+        保存
+      </el-button>
     </template>
   </el-dialog>
 </template>

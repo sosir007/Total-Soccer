@@ -4,6 +4,7 @@ import type {
   CompetitionStandingPlacement
 } from '@/services/types/competitions';
 import EntityLink from '@/components/EntityLink.vue';
+import IconFont from '@/components/IconFont.vue';
 
 defineProps<{
   editions: CompetitionEdition[];
@@ -52,7 +53,10 @@ const emit = defineEmits<{
           inactive-text="倒序"
           @update:model-value="emit('update:sortAscending', $event)"
         />
-        <el-button type="primary" @click="emit('batchEdit')">批量编辑结果</el-button>
+        <el-button type="primary" @click="emit('batchEdit')">
+          <IconFont name="edit" />
+          批量编辑结果
+        </el-button>
       </div>
     </div>
 
@@ -89,7 +93,10 @@ const emit = defineEmits<{
       </el-table-column>
       <el-table-column label="操作" width="130" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="emit('edit', row)">编辑</el-button>
+          <el-button link type="primary" @click="emit('edit', row)">
+            <IconFont name="edit" />
+            编辑
+          </el-button>
           <el-button
             link
             type="danger"
@@ -97,6 +104,7 @@ const emit = defineEmits<{
             :loading="resultSaving"
             @click="emit('delete', row)"
           >
+            <IconFont name="delete" />
             删除
           </el-button>
         </template>

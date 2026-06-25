@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { deleteClub, fetchClubDetail, fetchClubs } from '@/services/modules/catalog';
 import type { ClubDetail, ClubListItem } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
+import IconFont from '@/components/IconFont.vue';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 
-const router = useRouter();
 const optionStore = useOptionStore();
 const loading = ref(false);
 const errorMessage = ref('');
@@ -25,7 +24,7 @@ const filters = reactive({
   keyword: '',
   confederationId: '',
   countryId: '',
-  sortBy: 'honorScore',
+  sortBy: 'totalPa',
   sortOrder: 'desc' as 'asc' | 'desc'
 });
 
@@ -110,15 +109,6 @@ async function confirmDelete(club: ClubListItem) {
   }
 }
 
-function openDetail(club: ClubListItem) {
-  void router.push({
-    name: 'clubs-detail-id',
-    params: {
-      id: club.id
-    }
-  });
-}
-
 function rowIndex(index: number) {
   return (filters.page - 1) * filters.pageSize + index + 1;
 }
@@ -131,7 +121,7 @@ function handleSortChange({
   order?: 'ascending' | 'descending' | null;
 }) {
   filters.page = 1;
-  filters.sortBy = prop || 'honorScore';
+  filters.sortBy = prop || 'totalPa';
   filters.sortOrder = order === 'ascending' ? 'asc' : 'desc';
   void loadClubs();
 }
@@ -172,8 +162,10 @@ onMounted(() => {
           <p>浏览俱乐部基础统计、国家归属、足联归属和荣誉分表现。</p>
         </div>
         <div class="panel-actions">
-          <span class="status-pill">真实数据</span>
-          <el-button type="primary" @click="openCreateDialog">新增俱乐部</el-button>
+          <el-button type="primary" @click="openCreateDialog">
+            <IconFont name="add" />
+            新增俱乐部
+          </el-button>
         </div>
       </div>
 
@@ -193,8 +185,14 @@ onMounted(() => {
           <CountrySelect v-model="filters.countryId" />
         </el-form-item>
         <div class="filter-actions">
-          <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
-          <el-button :disabled="loading" @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="submitFilters">
+            <IconFont name="filter" />
+            筛选
+          </el-button>
+          <el-button :disabled="loading" @click="resetFilters">
+            <IconFont name="reset" />
+            重置
+          </el-button>
         </div>
       </el-form>
     </div>
@@ -217,7 +215,12 @@ onMounted(() => {
       </div>
 
       <template v-else>
-        <el-table :data="clubs" border @row-click="openDetail" @sort-change="handleSortChange">
+        <el-table
+          :data="clubs"
+          border
+          :default-sort="{ prop: 'totalPa', order: 'descending' }"
+          @sort-change="handleSortChange"
+        >
           <el-table-column label="序号" width="76" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
@@ -255,8 +258,14 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click.stop="openEditDialog(row)">编辑</el-button>
-              <el-button link type="danger" @click.stop="confirmDelete(row)">删除</el-button>
+              <el-button link type="primary" @click.stop="openEditDialog(row)">
+                <IconFont name="edit" />
+                编辑
+              </el-button>
+              <el-button link type="danger" @click.stop="confirmDelete(row)">
+                <IconFont name="delete" />
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>

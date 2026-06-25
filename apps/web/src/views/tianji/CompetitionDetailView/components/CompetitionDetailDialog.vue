@@ -7,6 +7,7 @@ import type {
   CompetitionScopeType,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import type { CompetitionDetailForm } from './types';
 
@@ -132,7 +133,10 @@ const emit = defineEmits<{
 
     <template #footer>
       <el-button :disabled="saving" @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="emit('save')"> 保存资料 </el-button>
+      <el-button type="primary" :loading="saving" @click="emit('save')">
+        <IconFont name="save" />
+        保存资料
+      </el-button>
     </template>
   </el-dialog>
 </template>

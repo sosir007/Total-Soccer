@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
+import IconFont from '@/components/IconFont.vue';
 import {
   ClubSelect,
   ConfederationSelect,
@@ -39,8 +40,10 @@ const filters = toRef(props, 'filters');
         <p>按真实导入数据浏览球员资料，支持基础筛选、分页和详情查看。</p>
       </div>
       <div class="panel-actions">
-        <span class="status-pill">真实数据</span>
-        <el-button type="primary" @click="emit('create')">新增球员</el-button>
+        <el-button type="primary" @click="emit('create')">
+          <IconFont name="add" />
+          新增球员
+        </el-button>
       </div>
     </div>
 
@@ -87,8 +90,14 @@ const filters = toRef(props, 'filters');
         </div>
       </el-form-item>
       <div class="filter-actions">
-        <el-button type="primary" :loading="loading" @click="emit('submit')">筛选</el-button>
-        <el-button :disabled="loading" @click="emit('reset')">重置</el-button>
+        <el-button type="primary" :loading="loading" @click="emit('submit')">
+          <IconFont name="filter" />
+          筛选
+        </el-button>
+        <el-button :disabled="loading" @click="emit('reset')">
+          <IconFont name="reset" />
+          重置
+        </el-button>
       </div>
     </el-form>
   </div>

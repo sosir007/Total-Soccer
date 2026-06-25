@@ -187,9 +187,9 @@ p {
   align-items: center;
   gap: 8px;
   margin: 10px 0 2px;
-  color: #7e8c83;
-  font-size: 11px;
-  font-weight: 850;
+  color: #6d7d72;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .nav-item {
@@ -209,6 +209,7 @@ p {
   padding: 0 12px;
   color: #587064;
   font-size: 14px;
+  font-weight: 650;
 }
 
 .nav-item.router-link-active,
@@ -305,6 +306,8 @@ h1 {
 }
 
 .icon-button {
+  display: inline-grid;
+  place-items: center;
   width: 40px;
   height: 40px;
   border: 1px solid #e1eae0;
@@ -315,11 +318,19 @@ h1 {
   box-shadow: 0 8px 22px rgba(28, 79, 51, 0.06);
 }
 
+.el-button > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .header-tool,
 .avatar-placeholder {
-  display: grid;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
   height: 40px;
-  place-items: center;
   border: 1px solid #e1eae0;
   border-radius: 8px;
   color: #315242;
@@ -356,6 +367,26 @@ h1 {
   backdrop-filter: blur(16px) saturate(150%);
 }
 
+.route-tab-list {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(31, 139, 85, 0.22) transparent;
+}
+
+.route-tab-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.route-tab-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(31, 139, 85, 0.22);
+}
+
 .route-tab {
   display: inline-flex;
   flex: 0 0 auto;
@@ -366,6 +397,7 @@ h1 {
   padding: 0 10px 0 12px;
   border: 1px solid #dfe9df;
   border-radius: 8px;
+  font-size: 14px;
   color: #50685b;
   background: #fff;
   cursor: pointer;
@@ -397,7 +429,7 @@ h1 {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 13px;
   line-height: 1;
   color: #7a8a80;
   background: transparent;

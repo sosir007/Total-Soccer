@@ -10,6 +10,7 @@ import type {
   PlayerCareerType,
   PlayerPayload
 } from '@/services/types/catalog';
+import IconFont from '@/components/IconFont.vue';
 import {
   CitySelect,
   ClubSelect,
@@ -477,8 +478,14 @@ async function submit() {
             <span>用于球员列表代表俱乐部、球队经历，以及俱乐部/国家详情档案。</span>
           </div>
           <div class="career-editor-actions">
-            <el-button size="small" @click="addCareer('CLUB')">新增俱乐部经历</el-button>
-            <el-button size="small" @click="addCareer('COUNTRY')">新增国家队经历</el-button>
+            <el-button size="small" @click="addCareer('CLUB')">
+              <IconFont name="add" />
+              新增俱乐部经历
+            </el-button>
+            <el-button size="small" @click="addCareer('COUNTRY')">
+              <IconFont name="add" />
+              新增国家队经历
+            </el-button>
           </div>
         </div>
 
@@ -579,11 +586,17 @@ async function submit() {
     </el-form>
     <template #footer>
       <el-button :disabled="saving" @click="cancel">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+      <el-button type="primary" :loading="saving" @click="submit">
+        <IconFont name="save" />
+        保存
+      </el-button>
     </template>
     <div v-if="display === 'page'" class="catalog-form-page-actions">
       <el-button :disabled="saving" @click="cancel">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="submit">保存</el-button>
+      <el-button type="primary" :loading="saving" @click="submit">
+        <IconFont name="save" />
+        保存
+      </el-button>
     </div>
   </component>
 </template>

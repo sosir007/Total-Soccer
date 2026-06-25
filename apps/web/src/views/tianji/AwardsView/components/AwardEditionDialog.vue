@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { PlayerListItem } from '@/services/types/catalog';
+import IconFont from '@/components/IconFont.vue';
 
 interface RecipientFormRow {
   playerId: string;
@@ -76,7 +77,10 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
     <div class="standing-editor">
       <div class="panel-header">
         <h3>获奖球员</h3>
-        <el-button size="small" @click="addRecipientRow(form)">新增获奖人</el-button>
+        <el-button size="small" @click="addRecipientRow(form)">
+          <IconFont name="add" />
+          新增获奖人
+        </el-button>
       </div>
       <div class="standing-grid">
         <div
@@ -121,6 +125,7 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
           </el-form-item>
           <div class="competition-form-actions">
             <el-button type="danger" plain @click="clearRecipientRow(form, index)">
+              <IconFont name="reset" />
               清空此行
             </el-button>
           </div>
@@ -130,7 +135,10 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
 
     <template #footer>
       <el-button :disabled="saving" @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="emit('save')">保存年份</el-button>
+      <el-button type="primary" :loading="saving" @click="emit('save')">
+        <IconFont name="save" />
+        保存年份
+      </el-button>
     </template>
   </el-dialog>
 </template>

@@ -4,6 +4,7 @@ import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
 import { fetchWorldOverview } from '@/services/modules/dashboard';
 import type { DashboardRankItem, WorldOverview } from '@/services/types/dashboard';
+import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 
 const loading = ref(false);
@@ -210,7 +211,10 @@ onBeforeUnmount(() => {
     <div v-if="errorMessage" class="panel">
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       <div class="detail-actions">
-        <el-button type="primary" @click="loadOverview">重试</el-button>
+        <el-button type="primary" @click="loadOverview">
+          <IconFont name="refresh" />
+          重试
+        </el-button>
       </div>
     </div>
 
