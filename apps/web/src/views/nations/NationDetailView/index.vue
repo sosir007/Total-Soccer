@@ -30,8 +30,9 @@ async function loadCountry() {
   errorMessage.value = '';
 
   try {
-    country.value = await fetchCountryDetail(countryId.value);
-    routeTabsStore.setTitle(route.fullPath, country.value.name);
+    const loadedCountry = await fetchCountryDetail(countryId.value);
+    country.value = loadedCountry;
+    routeTabsStore.setTitle(route.fullPath, loadedCountry.name);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '国家详情加载失败。';
     ElMessage.error(errorMessage.value);

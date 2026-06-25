@@ -29,8 +29,9 @@ async function loadPlayer() {
   errorMessage.value = '';
 
   try {
-    player.value = await fetchPlayerDetail(playerId.value);
-    routeTabsStore.setTitle(route.fullPath, `编辑 ${player.value.chineseName}`);
+    const loadedPlayer = await fetchPlayerDetail(playerId.value);
+    player.value = loadedPlayer;
+    routeTabsStore.setTitle(route.fullPath, `编辑 ${loadedPlayer.chineseName}`);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '球员资料加载失败。';
     ElMessage.error(errorMessage.value);

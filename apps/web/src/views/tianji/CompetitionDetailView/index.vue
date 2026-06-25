@@ -123,8 +123,9 @@ async function loadCompetition() {
   errorMessage.value = '';
 
   try {
-    competition.value = await fetchCompetitionDetail(competitionId.value);
-    routeTabsStore.setTitle(route.fullPath, competition.value.name);
+    const loadedCompetition = await fetchCompetitionDetail(competitionId.value);
+    competition.value = loadedCompetition;
+    routeTabsStore.setTitle(route.fullPath, loadedCompetition.name);
     populateDetailForm();
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '赛事详情加载失败。';

@@ -30,8 +30,9 @@ async function loadClub() {
   errorMessage.value = '';
 
   try {
-    club.value = await fetchClubDetail(clubId.value);
-    routeTabsStore.setTitle(route.fullPath, club.value.name);
+    const loadedClub = await fetchClubDetail(clubId.value);
+    club.value = loadedClub;
+    routeTabsStore.setTitle(route.fullPath, loadedClub.name);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '豪门详情加载失败。';
     ElMessage.error(errorMessage.value);

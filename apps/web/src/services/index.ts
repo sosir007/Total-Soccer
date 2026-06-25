@@ -1,0 +1,21 @@
+export * from './api';
+export * from './api-prefix';
+export * from './types/common';
+export * from './types/catalog';
+export * from './types/competitions';
+export * from './types/awards';
+export * from './types/rules';
+export * from './types/base-config';
+export * from './types/system';
+
+export * as auditLogsService from './modules/audit-logs';
+export * as awardRulesService from './modules/award-rules';
+export * as awardsService from './modules/awards';
+export * as baseConfigService from './modules/base-config';
+export * as catalogService from './modules/catalog';
+export * as competitionsService from './modules/competitions';
+export * as dashboardService from './modules/dashboard';
+export * as honorRulesService from './modules/honor-rules';
+export * as importPreviewService from './modules/importPreview';
+export * as remarksService from './modules/remarks';
+export * as summitService from './modules/summit';
