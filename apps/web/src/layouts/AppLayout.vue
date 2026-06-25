@@ -195,7 +195,7 @@ onMounted(scrollActiveNavIntoView);
       </div>
 
       <RouterView v-slot="{ Component, route: viewRoute }">
-        <KeepAlive :max="24">
+        <KeepAlive :max="24" :exclude="/DetailView$/">
           <component :is="Component" :key="viewRoute.fullPath" />
         </KeepAlive>
       </RouterView>

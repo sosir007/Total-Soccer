@@ -23,6 +23,10 @@ import { ClubSelect, ConfederationSelect, CountrySelect } from '@/components/sel
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 
+defineOptions({
+  name: 'CompetitionDetailView'
+});
+
 type StandingForm = Record<CompetitionStandingPlacement, { countryId: string; clubId: string }>;
 
 interface EditionRow {
@@ -108,6 +112,7 @@ const detailForm = reactive({
   countryId: '',
   countryIds: [] as string[],
   enabled: true,
+  includeInStats: true,
   sortOrder: 0
 });
 
@@ -327,6 +332,7 @@ function populateDetailForm() {
   detailForm.countryId = competition.value.countryId ?? '';
   detailForm.countryIds = getCompetitionCountryIds(competition.value);
   detailForm.enabled = competition.value.enabled;
+  detailForm.includeInStats = competition.value.includeInStats;
   detailForm.sortOrder = competition.value.sortOrder;
 }
 
@@ -377,6 +383,7 @@ function buildCompetitionPayload() {
     countryId: detailForm.scopeType === 'COUNTRY' ? detailForm.countryIds[0] : undefined,
     countryIds: detailForm.scopeType === 'COUNTRY' ? detailForm.countryIds : [],
     enabled: detailForm.enabled,
+    includeInStats: detailForm.includeInStats,
     sortOrder: detailForm.sortOrder
   };
 }
@@ -506,7 +513,13 @@ function getStandingEntityType(
 function getStandingEntityId(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
   const standing = getEditionStanding(edition, placement);
 
-  return standing?.country?.id ?? standing?.club?.id ?? null;
+  if (standing?.country) {
+    return standing.country.isHistorical
+      ? (standing.country.detailRedirectCountryId ?? null)
+      : standing.country.id;
+  }
+
+  return standing?.club?.id ?? null;
 }
 
 function getStandingEntityName(
@@ -658,6 +671,10 @@ onMounted(() => {
           <div class="competition-info-item">
             <span>赛制</span>
             <strong>{{ formatCompetitionFormat(competition) }}</strong>
+          </div>
+          <div class="competition-info-item">
+            <span>统计</span>
+            <strong>{{ competition.includeInStats ? '纳入奖牌/荣誉统计' : '排除统计' }}</strong>
           </div>
           <div class="competition-info-item form-wide">
             <span>描述</span>
@@ -822,6 +839,13 @@ onMounted(() => {
         <el-form-item label="状态">
           <el-switch v-model="detailForm.enabled" active-text="启用" inactive-text="停用" />
         </el-form-item>
+        <el-form-item label="统计">
+          <el-switch
+            v-model="detailForm.includeInStats"
+            active-text="纳入奖牌/荣誉统计"
+            inactive-text="排除统计"
+          />
+        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -874,24 +898,32 @@ onMounted(() => {
             v-if="competition?.targetType === 'COUNTRY'"
             v-model="row.standings.CHAMPION.countryId"
             placeholder="冠军"
+            include-hidden
+            include-historical
           />
           <ClubSelect v-else v-model="row.standings.CHAMPION.clubId" placeholder="冠军" />
           <CountrySelect
             v-if="competition?.targetType === 'COUNTRY'"
             v-model="row.standings.RUNNER_UP.countryId"
             placeholder="亚军"
+            include-hidden
+            include-historical
           />
           <ClubSelect v-else v-model="row.standings.RUNNER_UP.clubId" placeholder="亚军" />
           <CountrySelect
             v-if="competition?.targetType === 'COUNTRY'"
             v-model="row.standings.THIRD_PLACE.countryId"
             placeholder="季军"
+            include-hidden
+            include-historical
           />
           <ClubSelect v-else v-model="row.standings.THIRD_PLACE.clubId" placeholder="季军" />
           <CountrySelect
             v-if="competition?.targetType === 'COUNTRY'"
             v-model="row.standings.FOURTH_PLACE.countryId"
             placeholder="殿军"
+            include-hidden
+            include-historical
           />
           <ClubSelect v-else v-model="row.standings.FOURTH_PLACE.clubId" placeholder="殿军" />
           <el-input-number

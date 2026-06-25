@@ -13,6 +13,7 @@ export interface CompetitionListQuery {
   confederationId?: string;
   countryId?: string;
   enabled?: string;
+  includeInStats?: string;
 }
 
 export interface CreateCompetitionBody {
@@ -30,6 +31,7 @@ export interface CreateCompetitionBody {
   countryId?: string;
   countryIds?: string[];
   enabled?: boolean;
+  includeInStats?: boolean;
   sortOrder?: number;
 }
 

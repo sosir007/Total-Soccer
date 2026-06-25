@@ -160,11 +160,15 @@ model Country {
   id                    String                    @id @default(cuid())
   importKey             String                    @unique
   uid                   String
+  uidSort               Int?
   name                  String
   externalUrl           String?
   remark                String?
   federation            String?
   federationId          String?
+  visibleInCatalog      Boolean                   @default(true)
+  isHistorical          Boolean                   @default(false)
+  detailRedirectCountryId String?
   playerCount           Int?
   totalPa               Int?
   averagePa             Float?
@@ -180,6 +184,10 @@ model Country {
   clubs                 Club[]
   playerCareers         PlayerCareer[]
   federationRef         Confederation?            @relation(fields: [federationId], references: [id])
+  detailRedirectCountry Country?                  @relation("CountryDetailRedirect", fields: [detailRedirectCountryId], references: [id])
+  redirectSourceCountries Country[]               @relation("CountryDetailRedirect")
+  historicalSuccessors  CountrySuccessor[]        @relation("HistoricalCountrySuccessors")
+  inheritedFromCountries CountrySuccessor[]       @relation("CountryInheritedFrom")
   honors                CountryHonor[]
   scopedAwards          Award[]                   @relation("AwardScopeCountry")
   scopedCompetitions    Competition[]             @relation("CompetitionLegacyScopeCountry")
@@ -190,6 +198,21 @@ model Country {
 
   @@index([federation])
   @@index([federationId])
+  @@index([uidSort])
+  @@index([visibleInCatalog])
+  @@index([isHistorical])
+  @@index([detailRedirectCountryId])
+}
+
+model CountrySuccessor {
+  historicalCountryId String
+  successorCountryId  String
+  historicalCountry   Country  @relation("HistoricalCountrySuccessors", fields: [historicalCountryId], references: [id], onDelete: Cascade)
+  successorCountry    Country  @relation("CountryInheritedFrom", fields: [successorCountryId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+
+  @@id([historicalCountryId, successorCountryId])
+  @@index([successorCountryId])
 }
 
 model City {
@@ -422,6 +445,7 @@ model Competition {
   confederationId     String?
   countryId           String?
   enabled             Boolean                         @default(true)
+  includeInStats      Boolean                         @default(true)
   sortOrder           Int                             @default(0)
   confederation       Confederation?                  @relation("CompetitionLegacyScopeConfederation", fields: [confederationId], references: [id])
   country             Country?                        @relation("CompetitionLegacyScopeCountry", fields: [countryId], references: [id])
@@ -439,6 +463,7 @@ model Competition {
   @@index([confederationId])
   @@index([countryId])
   @@index([enabled])
+  @@index([includeInStats])
 }
 
 model CompetitionScopeConfederation {

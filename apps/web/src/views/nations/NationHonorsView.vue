@@ -9,8 +9,10 @@ import { CompetitionSelect, CountrySelect } from '@/components/selects';
 import {
   formatHonorEdition,
   formatPlacement,
+  getCountryEntityLinkId,
   getStandingRef,
-  placementOptions
+  placementOptions,
+  shouldHideCountryLink
 } from '@/utils/honor';
 
 const loading = ref(false);
@@ -165,7 +167,12 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="国家" min-width="130">
             <template #default="{ row }">
-              <EntityLink :id="row.country?.id" type="country" :name="row.country?.name" />
+              <EntityLink
+                :id="getCountryEntityLinkId(row.country)"
+                type="country"
+                :name="row.country?.name"
+                :disabled="shouldHideCountryLink(row.country)"
+              />
             </template>
           </el-table-column>
           <el-table-column label="名次" width="90">
@@ -178,36 +185,40 @@ onMounted(() => {
           <el-table-column label="冠军" min-width="120">
             <template #default="{ row }">
               <EntityLink
-                :id="getStandingRef(row, 'CHAMPION')?.id"
+                :id="getCountryEntityLinkId(getStandingRef(row, 'CHAMPION'))"
                 type="country"
                 :name="getStandingRef(row, 'CHAMPION')?.name"
+                :disabled="shouldHideCountryLink(getStandingRef(row, 'CHAMPION'))"
               />
             </template>
           </el-table-column>
           <el-table-column label="亚军" min-width="120">
             <template #default="{ row }">
               <EntityLink
-                :id="getStandingRef(row, 'RUNNER_UP')?.id"
+                :id="getCountryEntityLinkId(getStandingRef(row, 'RUNNER_UP'))"
                 type="country"
                 :name="getStandingRef(row, 'RUNNER_UP')?.name"
+                :disabled="shouldHideCountryLink(getStandingRef(row, 'RUNNER_UP'))"
               />
             </template>
           </el-table-column>
           <el-table-column label="季军" min-width="120">
             <template #default="{ row }">
               <EntityLink
-                :id="getStandingRef(row, 'THIRD_PLACE')?.id"
+                :id="getCountryEntityLinkId(getStandingRef(row, 'THIRD_PLACE'))"
                 type="country"
                 :name="getStandingRef(row, 'THIRD_PLACE')?.name"
+                :disabled="shouldHideCountryLink(getStandingRef(row, 'THIRD_PLACE'))"
               />
             </template>
           </el-table-column>
           <el-table-column label="殿军" min-width="120">
             <template #default="{ row }">
               <EntityLink
-                :id="getStandingRef(row, 'FOURTH_PLACE')?.id"
+                :id="getCountryEntityLinkId(getStandingRef(row, 'FOURTH_PLACE'))"
                 type="country"
                 :name="getStandingRef(row, 'FOURTH_PLACE')?.name"
+                :disabled="shouldHideCountryLink(getStandingRef(row, 'FOURTH_PLACE'))"
               />
             </template>
           </el-table-column>

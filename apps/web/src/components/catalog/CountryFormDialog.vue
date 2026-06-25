@@ -25,7 +25,8 @@ const form = reactive({
   name: '',
   confederationId: '',
   externalUrl: '',
-  remark: ''
+  remark: '',
+  visibleInCatalog: true
 });
 
 watch(
@@ -40,6 +41,7 @@ watch(
     form.confederationId = props.country?.federationRef?.id ?? '';
     form.externalUrl = props.country?.externalUrl ?? '';
     form.remark = props.country?.remark ?? '';
+    form.visibleInCatalog = props.country?.visibleInCatalog ?? true;
   },
   { immediate: true }
 );
@@ -58,7 +60,8 @@ async function submit() {
       name: form.name.trim(),
       confederationId: form.confederationId || undefined,
       externalUrl: form.externalUrl.trim() || undefined,
-      remark: form.remark.trim() || undefined
+      remark: form.remark.trim() || undefined,
+      visibleInCatalog: form.visibleInCatalog
     };
     const result = props.country
       ? await updateCountry(props.country.id, payload)
@@ -96,6 +99,9 @@ async function submit() {
         </el-form-item>
         <el-form-item label="外部链接">
           <el-input v-model="form.externalUrl" placeholder="https://..." />
+        </el-form-item>
+        <el-form-item label="默认展示">
+          <el-switch v-model="form.visibleInCatalog" active-text="显示" inactive-text="隐藏" />
         </el-form-item>
       </div>
       <el-form-item label="备注">

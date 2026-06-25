@@ -37,6 +37,7 @@ export interface CompetitionListItem {
   confederationId?: string | null;
   countryId?: string | null;
   enabled: boolean;
+  includeInStats: boolean;
   sortOrder: number;
   confederation?: NamedRef | null;
   country?: NamedRef | null;
@@ -53,7 +54,14 @@ export interface CompetitionStanding {
   countryId?: string | null;
   clubId?: string | null;
   remark?: string | null;
-  country?: NamedRef | null;
+  country?:
+    | (NamedRef & {
+        visibleInCatalog?: boolean | null;
+        isHistorical?: boolean | null;
+        detailRedirectCountryId?: string | null;
+        detailRedirectCountry?: NamedRef | null;
+      })
+    | null;
   club?: NamedRef | null;
 }
 
@@ -87,6 +95,7 @@ export interface CreateCompetitionPayload {
   countryId?: string;
   countryIds?: string[];
   enabled?: boolean;
+  includeInStats?: boolean;
   sortOrder?: number;
 }
 

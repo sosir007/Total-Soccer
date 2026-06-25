@@ -28,8 +28,9 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   confederationId: '',
-  sortBy: 'honorScore',
-  sortOrder: 'desc' as 'asc' | 'desc'
+  sortBy: 'uid',
+  sortOrder: 'asc' as 'asc' | 'desc',
+  includeHidden: false
 });
 
 const hasRows = computed(() => countries.value.length > 0);
@@ -44,6 +45,7 @@ async function loadCountries() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       confederationId: filters.confederationId || undefined,
+      includeHidden: filters.includeHidden,
       sortBy: filters.sortBy,
       sortOrder: filters.sortOrder
     });
@@ -66,6 +68,13 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.confederationId = '';
+  filters.includeHidden = false;
+  void loadCountries();
+}
+
+function changeListMode(includeHidden: boolean) {
+  filters.includeHidden = includeHidden;
+  filters.page = 1;
   void loadCountries();
 }
 
@@ -132,8 +141,8 @@ function handleSortChange({
   order?: 'ascending' | 'descending' | null;
 }) {
   filters.page = 1;
-  filters.sortBy = prop || 'honorScore';
-  filters.sortOrder = order === 'ascending' ? 'asc' : 'desc';
+  filters.sortBy = prop || 'uid';
+  filters.sortOrder = order === 'descending' ? 'desc' : 'asc';
   void loadCountries();
 }
 
@@ -194,6 +203,16 @@ onMounted(() => {
         <el-form-item label="足联">
           <ConfederationSelect v-model="filters.confederationId" />
         </el-form-item>
+        <el-form-item label="列表范围">
+          <el-segmented
+            :model-value="filters.includeHidden ? 'all' : 'default'"
+            :options="[
+              { label: '默认国家', value: 'default' },
+              { label: '全部普通国家', value: 'all' }
+            ]"
+            @change="changeListMode($event === 'all')"
+          />
+        </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">筛选</el-button>
           <el-button :disabled="loading" @click="resetFilters">重置</el-button>
@@ -231,6 +250,13 @@ onMounted(() => {
                 :title="row.name"
                 :subtitle="`UID ${row.uid}`"
               />
+            </template>
+          </el-table-column>
+          <el-table-column label="默认展示" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.visibleInCatalog === false ? 'info' : 'success'" effect="plain">
+                {{ row.visibleInCatalog === false ? '隐藏' : '显示' }}
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="足联" min-width="120">

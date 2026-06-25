@@ -78,12 +78,19 @@ export class HonorRulesService {
   }
 
   async recalculate() {
-    const [rules, standings, countryParticipation, clubParticipation, countries, clubs] =
+    const [rules, standings, countryParticipation, clubParticipation, countries, clubs, links] =
       await Promise.all([
         this.prisma.honorRule.findMany({
           where: { enabled: true }
         }),
         this.prisma.competitionStanding.findMany({
+          where: {
+            edition: {
+              competition: {
+                includeInStats: true
+              }
+            }
+          },
           include: {
             edition: {
               include: {
@@ -100,28 +107,41 @@ export class HonorRulesService {
         this.getCountryParticipationStats(),
         this.getClubParticipationStats(),
         this.prisma.country.findMany({ select: { id: true } }),
-        this.prisma.club.findMany({ select: { id: true } })
+        this.prisma.club.findMany({ select: { id: true } }),
+        this.prisma.countrySuccessor.findMany({
+          select: {
+            historicalCountryId: true,
+            successorCountryId: true
+          }
+        })
       ]);
 
     const ruleMap = this.buildRuleMap(rules);
     const countryStats = new Map<string, RecalculateTargetStats>();
     const clubStats = new Map<string, RecalculateTargetStats>();
+    const successorMap = new Map<string, string[]>();
+
+    for (const link of links) {
+      const successors = successorMap.get(link.historicalCountryId) ?? [];
+      successors.push(link.successorCountryId);
+      successorMap.set(link.historicalCountryId, successors);
+    }
 
     for (const standing of standings) {
       const targetType = standing.edition.competition.targetType;
 
       if (targetType === CompetitionTargetType.COUNTRY && standing.countryId) {
-        this.addStandingStats(
-          countryStats,
-          standing.countryId,
-          standing.placement,
-          this.resolveScore(
-            ruleMap,
-            targetType,
-            standing.edition.competition.category,
-            standing.placement
-          )
+        const score = this.resolveScore(
+          ruleMap,
+          targetType,
+          standing.edition.competition.category,
+          standing.placement
         );
+        const targetIds = successorMap.get(standing.countryId) ?? [standing.countryId];
+
+        for (const targetId of targetIds) {
+          this.addStandingStats(countryStats, targetId, standing.placement, score);
+        }
       }
 
       if (targetType === CompetitionTargetType.CLUB && standing.clubId) {

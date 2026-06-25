@@ -6,13 +6,17 @@ const props = withDefaults(
   defineProps<{
     type: 'country' | 'club' | 'player' | 'competition' | 'award';
     id?: string | null;
+    toId?: string | null;
     name?: string | number | null;
     muted?: boolean;
+    disabled?: boolean;
   }>(),
   {
     id: null,
+    toId: null,
     name: null,
-    muted: false
+    muted: false,
+    disabled: false
   }
 );
 
@@ -20,34 +24,35 @@ const router = useRouter();
 const label = computed(() =>
   props.name === null || props.name === undefined || props.name === '' ? '-' : String(props.name)
 );
-const canNavigate = computed(() => Boolean(props.id));
+const navigationId = computed(() => props.toId ?? props.id);
+const canNavigate = computed(() => Boolean(navigationId.value) && !props.disabled);
 
 function openDetail() {
-  if (!props.id) {
+  if (!navigationId.value) {
     return;
   }
 
   if (props.type === 'country') {
-    void router.push({ name: 'nations-detail-id', params: { id: props.id } });
+    void router.push({ name: 'nations-detail-id', params: { id: navigationId.value } });
     return;
   }
 
   if (props.type === 'club') {
-    void router.push({ name: 'clubs-detail-id', params: { id: props.id } });
+    void router.push({ name: 'clubs-detail-id', params: { id: navigationId.value } });
     return;
   }
 
   if (props.type === 'player') {
-    void router.push({ name: 'stars-detail-id', params: { id: props.id } });
+    void router.push({ name: 'stars-detail-id', params: { id: navigationId.value } });
     return;
   }
 
   if (props.type === 'competition') {
-    void router.push({ name: 'tianji-competition-detail-id', params: { id: props.id } });
+    void router.push({ name: 'tianji-competition-detail-id', params: { id: navigationId.value } });
     return;
   }
 
-  void router.push({ name: 'tianji-awards', query: { awardId: props.id } });
+  void router.push({ name: 'tianji-awards', query: { awardId: navigationId.value } });
 }
 </script>
 

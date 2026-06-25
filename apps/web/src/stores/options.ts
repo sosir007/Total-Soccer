@@ -85,7 +85,10 @@ export const useOptionStore = defineStore('options', () => {
   const pending: Partial<Record<OptionType, Promise<void>>> = {};
 
   const countryOptions = computed(() =>
-    [...countries.value].sort(compareCountries).map(countryToOption)
+    countries.value
+      .filter((country) => country.visibleInCatalog !== false && !country.isHistorical)
+      .sort(compareCountries)
+      .map(countryToOption)
   );
   const clubOptions = computed(() => [...clubs.value].sort(compareClubs).map(clubToOption));
   const competitionOptions = computed(() => competitions.value.map(competitionToOption));
@@ -110,7 +113,9 @@ export const useOptionStore = defineStore('options', () => {
   async function ensureCountries() {
     await ensure('countries', async () => {
       countries.value = await fetchAll(fetchCountries, {
-        sortBy: 'name',
+        includeHidden: true,
+        includeHistorical: true,
+        sortBy: 'uid',
         sortOrder: 'asc' as const
       });
     });

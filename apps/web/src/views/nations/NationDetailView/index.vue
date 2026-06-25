@@ -21,6 +21,10 @@ import {
   placementOptions
 } from '@/utils/honor';
 
+defineOptions({
+  name: 'NationDetailView'
+});
+
 const route = useRoute();
 const router = useRouter();
 const routeTabsStore = useRouteTabsStore();

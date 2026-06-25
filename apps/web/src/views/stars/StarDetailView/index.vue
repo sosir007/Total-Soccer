@@ -9,6 +9,10 @@ import EntityNameCell from '@/components/EntityNameCell.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { buildExternalUrl } from '@/utils/external-link';
 
+defineOptions({
+  name: 'StarDetailView'
+});
+
 const route = useRoute();
 const router = useRouter();
 const routeTabsStore = useRouteTabsStore();

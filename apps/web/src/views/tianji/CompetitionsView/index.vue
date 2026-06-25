@@ -84,6 +84,7 @@ const competitionForm = reactive({
   countryId: '',
   countryIds: [] as string[],
   enabled: true,
+  includeInStats: true,
   sortOrder: 0
 });
 
@@ -233,6 +234,7 @@ function buildCompetitionPayload() {
     countryId: competitionForm.scopeType === 'COUNTRY' ? competitionForm.countryIds[0] : undefined,
     countryIds: competitionForm.scopeType === 'COUNTRY' ? competitionForm.countryIds : [],
     enabled: competitionForm.enabled,
+    includeInStats: competitionForm.includeInStats,
     sortOrder: competitionForm.sortOrder
   };
 }
@@ -259,6 +261,7 @@ function resetCompetitionForm() {
   competitionForm.countryId = '';
   competitionForm.countryIds = [];
   competitionForm.enabled = true;
+  competitionForm.includeInStats = true;
   competitionForm.sortOrder = 0;
 }
 
@@ -464,6 +467,13 @@ onActivated(() => {
               </el-tag>
             </template>
           </el-table-column>
+          <el-table-column label="统计" width="90">
+            <template #default="{ row }">
+              <el-tag :type="row.includeInStats ? 'success' : 'info'">
+                {{ row.includeInStats ? '纳入' : '排除' }}
+              </el-tag>
+            </template>
+          </el-table-column>
           <el-table-column label="外链" width="86">
             <template #default="{ row }">
               <a
@@ -606,6 +616,13 @@ onActivated(() => {
         </div>
         <el-form-item label="状态">
           <el-switch v-model="competitionForm.enabled" active-text="启用" inactive-text="停用" />
+        </el-form-item>
+        <el-form-item label="统计">
+          <el-switch
+            v-model="competitionForm.includeInStats"
+            active-text="纳入奖牌/荣誉统计"
+            inactive-text="排除统计"
+          />
         </el-form-item>
         <div class="competition-form-actions">
           <el-button type="primary" :loading="creating" @click="submitCompetition">

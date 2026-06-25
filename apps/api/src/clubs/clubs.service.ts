@@ -132,6 +132,24 @@ export class ClubsService {
     const pagination = resolvePagination(query);
     const where = this.buildWhere(query);
     const orderBy = this.buildOrderBy(query);
+
+    if (this.shouldSortComputedStats(query.sortBy)) {
+      const items = await this.prisma.club.findMany({
+        where,
+        include: CLUB_INCLUDE,
+        orderBy
+      });
+      const computedItems = await this.attachComputedStats(items);
+      const sortedItems = this.sortComputedStats(computedItems, query);
+
+      return {
+        items: sortedItems.slice(pagination.skip, pagination.skip + pagination.take),
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: sortedItems.length
+      };
+    }
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.club.findMany({
         where,
@@ -152,9 +170,9 @@ export class ClubsService {
   }
 
   async findOne(id: string) {
-    const club = await this.prisma.club.findUnique({
+    const club = await this.prisma.club.findFirst({
       where: {
-        id
+        OR: [{ id }, { uid: id }]
       },
       include: CLUB_INCLUDE
     });
@@ -167,8 +185,8 @@ export class ClubsService {
 
     return {
       ...computedClub,
-      honorRecords: await this.getClubHonorRecords(id, 10),
-      ...(await this.getClubCareerProfile(id))
+      honorRecords: await this.getClubHonorRecords(club.id, 10),
+      ...(await this.getClubCareerProfile(club.id))
     };
   }
 
@@ -389,10 +407,56 @@ export class ClubsService {
     ]);
 
     if (!allowedSorts.has(sortBy)) {
-      return [{ honorScore: 'desc' }, { name: 'asc' }];
+      return [{ honorScore: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }];
+    }
+
+    if (sortBy === 'honorScore') {
+      return [{ honorScore: { sort: sortOrder, nulls: 'last' } }, { name: 'asc' }];
     }
 
     return [{ [sortBy]: sortOrder }, { name: 'asc' }];
+  }
+
+  private shouldSortComputedStats(sortBy?: string) {
+    return ['playerCount', 'totalPa', 'averagePa', 'trophyCount', 'championCount'].includes(
+      sortBy ?? ''
+    );
+  }
+
+  private sortComputedStats<T extends { name?: string | null }>(items: T[], query: ClubListQuery) {
+    const sortBy = query.sortBy ?? 'honorScore';
+    const direction = query.sortOrder === 'asc' ? 1 : -1;
+
+    return [...items].sort((a, b) => {
+      const aValue = this.toSortableNumber((a as Record<string, unknown>)[sortBy]);
+      const bValue = this.toSortableNumber((b as Record<string, unknown>)[sortBy]);
+
+      if (aValue === null && bValue === null) {
+        return this.compareName(a, b);
+      }
+
+      if (aValue === null) {
+        return 1;
+      }
+
+      if (bValue === null) {
+        return -1;
+      }
+
+      if (aValue !== bValue) {
+        return (aValue - bValue) * direction;
+      }
+
+      return this.compareName(a, b);
+    });
+  }
+
+  private toSortableNumber(value: unknown) {
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+
+  private compareName(a: { name?: string | null }, b: { name?: string | null }) {
+    return (a.name ?? '').localeCompare(b.name ?? '', 'zh-CN');
   }
 
   private async attachComputedStats<T extends { id: string }>(items: T[]) {

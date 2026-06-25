@@ -5,6 +5,8 @@ export interface CountryListQuery {
   confederationId?: string;
   sortBy?: string;
   sortOrder?: string;
+  includeHidden?: string;
+  includeHistorical?: string;
 }
 
 export interface CountryHonorListQuery {
@@ -23,4 +25,5 @@ export interface CountryPayload {
   confederationId?: string;
   externalUrl?: string;
   remark?: string;
+  visibleInCatalog?: boolean;
 }

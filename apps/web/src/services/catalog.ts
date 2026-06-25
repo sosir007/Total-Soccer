@@ -15,6 +15,11 @@ export interface NamedRef {
   code?: string | null;
   name: string;
   externalUrl?: string | null;
+  visibleInCatalog?: boolean | null;
+  isHistorical?: boolean | null;
+  detailRedirectCountryId?: string | null;
+  detailRedirectCountry?: NamedRef | null;
+  exists?: boolean | null;
 }
 
 export interface HonorEditionRef {
@@ -208,6 +213,10 @@ export interface CountryListItem {
   name: string;
   externalUrl?: string | null;
   remark?: string | null;
+  visibleInCatalog?: boolean | null;
+  isHistorical?: boolean | null;
+  detailRedirectCountryId?: string | null;
+  detailRedirectCountry?: NamedRef | null;
   federation?: string | null;
   playerCount?: number | null;
   totalPa?: number | null;
@@ -285,6 +294,8 @@ export interface CountryListParams {
   pageSize?: number;
   keyword?: string;
   confederationId?: string;
+  includeHidden?: boolean;
+  includeHistorical?: boolean;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
@@ -326,6 +337,7 @@ export interface CountryPayload {
   confederationId?: string;
   externalUrl?: string;
   remark?: string;
+  visibleInCatalog?: boolean;
 }
 
 export interface ClubPayload {

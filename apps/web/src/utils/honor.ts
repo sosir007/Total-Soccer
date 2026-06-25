@@ -31,3 +31,19 @@ export function getStandingName(record: HonorRecord, placement: CompetitionStand
 export function getStandingRef(record: HonorRecord, placement: CompetitionStandingPlacement) {
   return record.standings[placement] ?? null;
 }
+
+export function getCountryEntityLinkId(ref?: NamedRef | null) {
+  if (!ref) {
+    return null;
+  }
+
+  if (ref.isHistorical) {
+    return ref.detailRedirectCountryId ?? null;
+  }
+
+  return ref.id;
+}
+
+export function shouldHideCountryLink(ref?: NamedRef | null) {
+  return Boolean(ref?.isHistorical && !ref?.detailRedirectCountryId);
+}

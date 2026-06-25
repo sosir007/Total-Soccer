@@ -11,7 +11,33 @@ import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { CountryHonorListQuery, CountryListQuery, CountryPayload } from './countries.types.js';
 
+const COUNTRY_REF_SELECT = {
+  id: true,
+  uid: true,
+  name: true,
+  externalUrl: true,
+  visibleInCatalog: true,
+  isHistorical: true,
+  detailRedirectCountryId: true,
+  detailRedirectCountry: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  }
+} satisfies Prisma.CountrySelect;
+
 const COUNTRY_INCLUDE = {
+  detailRedirectCountry: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  },
   federationRef: {
     select: {
       id: true,
@@ -30,12 +56,7 @@ const COUNTRY_INCLUDE = {
 
 const COUNTRY_HONOR_INCLUDE = {
   country: {
-    select: {
-      id: true,
-      uid: true,
-      name: true,
-      externalUrl: true
-    }
+    select: COUNTRY_REF_SELECT
   },
   edition: {
     include: {
@@ -50,12 +71,7 @@ const COUNTRY_HONOR_INCLUDE = {
             }
           },
           country: {
-            select: {
-              id: true,
-              uid: true,
-              name: true,
-              externalUrl: true
-            }
+            select: COUNTRY_REF_SELECT
           },
           scopeConfederations: {
             include: {
@@ -72,12 +88,7 @@ const COUNTRY_HONOR_INCLUDE = {
           scopeCountries: {
             include: {
               country: {
-                select: {
-                  id: true,
-                  uid: true,
-                  name: true,
-                  externalUrl: true
-                }
+                select: COUNTRY_REF_SELECT
               }
             }
           }
@@ -87,12 +98,7 @@ const COUNTRY_HONOR_INCLUDE = {
         orderBy: { placement: 'asc' },
         include: {
           country: {
-            select: {
-              id: true,
-              uid: true,
-              name: true,
-              externalUrl: true
-            }
+            select: COUNTRY_REF_SELECT
           }
         }
       }
@@ -123,6 +129,24 @@ export class CountriesService {
     const pagination = resolvePagination(query);
     const where = this.buildWhere(query);
     const orderBy = this.buildOrderBy(query);
+
+    if (this.shouldSortComputedStats(query.sortBy)) {
+      const items = await this.prisma.country.findMany({
+        where,
+        include: COUNTRY_INCLUDE,
+        orderBy
+      });
+      const computedItems = await this.attachComputedStats(items);
+      const sortedItems = this.sortComputedStats(computedItems, query);
+
+      return {
+        items: sortedItems.slice(pagination.skip, pagination.skip + pagination.take),
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: sortedItems.length
+      };
+    }
+
     const [items, total] = await this.prisma.$transaction([
       this.prisma.country.findMany({
         where,
@@ -143,8 +167,10 @@ export class CountriesService {
   }
 
   async findOne(id: string) {
-    const country = await this.prisma.country.findUnique({
-      where: { id },
+    const country = await this.prisma.country.findFirst({
+      where: {
+        OR: [{ id }, { uid: id }]
+      },
       include: COUNTRY_INCLUDE
     });
 
@@ -156,8 +182,8 @@ export class CountriesService {
 
     return {
       ...computedCountry,
-      honorRecords: await this.getCountryHonorRecords(id, 10),
-      ...(await this.getCountryCareerProfile(id))
+      honorRecords: await this.getCountryHonorRecords(country.id, 10),
+      ...(await this.getCountryCareerProfile(country.id))
     };
   }
 
@@ -209,7 +235,7 @@ export class CountriesService {
 
   async findHonors(query: CountryHonorListQuery) {
     const pagination = resolvePagination(query);
-    const where = this.buildHonorWhere(query);
+    const where = await this.buildHonorWhere(query);
     const [items, total] = await this.prisma.$transaction([
       this.prisma.competitionStanding.findMany({
         where,
@@ -235,19 +261,42 @@ export class CountriesService {
 
   private buildWhere(query: CountryListQuery): Prisma.CountryWhereInput {
     const keyword = query.keyword?.trim();
+    const includeHidden = query.includeHidden === 'true';
+    const includeHistorical = query.includeHistorical === 'true';
+    const andConditions: Prisma.CountryWhereInput[] = [];
 
-    return {
-      ...(keyword
-        ? {
-            OR: [
-              { name: { contains: keyword, mode: 'insensitive' } },
-              { uid: { contains: keyword, mode: 'insensitive' } },
-              { federation: { contains: keyword, mode: 'insensitive' } }
-            ]
-          }
-        : {}),
-      ...(query.confederationId ? { federationId: query.confederationId } : {})
-    };
+    if (keyword) {
+      andConditions.push({
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { uid: { contains: keyword, mode: 'insensitive' } },
+          { federation: { contains: keyword, mode: 'insensitive' } }
+        ]
+      });
+    }
+
+    if (query.confederationId) {
+      andConditions.push({ federationId: query.confederationId });
+    }
+
+    if (includeHistorical) {
+      andConditions.push({
+        OR: [
+          {
+            isHistorical: false,
+            ...(includeHidden ? {} : { visibleInCatalog: true })
+          },
+          { isHistorical: true }
+        ]
+      });
+    } else {
+      andConditions.push({
+        isHistorical: false,
+        ...(includeHidden ? {} : { visibleInCatalog: true })
+      });
+    }
+
+    return andConditions.length ? { AND: andConditions } : {};
   }
 
   private async buildCountryData(
@@ -255,7 +304,14 @@ export class CountriesService {
   ): Promise<
     Pick<
       Prisma.CountryUncheckedCreateInput,
-      'uid' | 'name' | 'externalUrl' | 'remark' | 'federation' | 'federationId'
+      | 'uid'
+      | 'uidSort'
+      | 'name'
+      | 'externalUrl'
+      | 'remark'
+      | 'federation'
+      | 'federationId'
+      | 'visibleInCatalog'
     >
   > {
     const uid = this.requiredText(body.uid, 'UID');
@@ -264,11 +320,13 @@ export class CountriesService {
 
     return {
       uid,
+      uidSort: this.toUidSort(uid),
       name,
       externalUrl: this.optionalText(body.externalUrl),
       remark: this.optionalText(body.remark),
       federation: confederation?.name ?? null,
-      federationId: confederation?.id ?? null
+      federationId: confederation?.id ?? null,
+      visibleInCatalog: body.visibleInCatalog ?? true
     };
   }
 
@@ -323,6 +381,10 @@ export class CountriesService {
     return typeof value === 'string' && value.trim() ? value.trim() : null;
   }
 
+  private toUidSort(uid: string) {
+    return /^\d+$/.test(uid) ? Number(uid) : null;
+  }
+
   private createManualImportKey(entity: string, uid: string) {
     return uid === '-' ? `manual:${entity}:${randomUUID()}` : `manual:${entity}:${uid}`;
   }
@@ -338,14 +400,68 @@ export class CountriesService {
       'medalCount',
       'championCount',
       'name',
+      'uid',
       'createdAt'
     ]);
 
     if (!allowedSorts.has(sortBy)) {
-      return [{ honorScore: 'desc' }, { name: 'asc' }];
+      return [{ honorScore: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }];
+    }
+
+    if (sortBy === 'uid') {
+      return [{ uidSort: { sort: sortOrder, nulls: 'last' } }, { name: 'asc' }];
+    }
+
+    if (sortBy === 'honorScore') {
+      return [{ honorScore: { sort: sortOrder, nulls: 'last' } }, { name: 'asc' }];
     }
 
     return [{ [sortBy]: sortOrder }, { name: 'asc' }];
+  }
+
+  private shouldSortComputedStats(sortBy?: string) {
+    return ['playerCount', 'totalPa', 'averagePa', 'medalCount', 'championCount'].includes(
+      sortBy ?? ''
+    );
+  }
+
+  private sortComputedStats<T extends { name?: string | null }>(
+    items: T[],
+    query: CountryListQuery
+  ) {
+    const sortBy = query.sortBy ?? 'honorScore';
+    const direction = query.sortOrder === 'asc' ? 1 : -1;
+
+    return [...items].sort((a, b) => {
+      const aValue = this.toSortableNumber((a as Record<string, unknown>)[sortBy]);
+      const bValue = this.toSortableNumber((b as Record<string, unknown>)[sortBy]);
+
+      if (aValue === null && bValue === null) {
+        return this.compareName(a, b);
+      }
+
+      if (aValue === null) {
+        return 1;
+      }
+
+      if (bValue === null) {
+        return -1;
+      }
+
+      if (aValue !== bValue) {
+        return (aValue - bValue) * direction;
+      }
+
+      return this.compareName(a, b);
+    });
+  }
+
+  private toSortableNumber(value: unknown) {
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+
+  private compareName(a: { name?: string | null }, b: { name?: string | null }) {
+    return (a.name ?? '').localeCompare(b.name ?? '', 'zh-CN');
   }
 
   private async attachComputedStats<T extends { id: string }>(items: T[]) {
@@ -380,9 +496,12 @@ export class CountriesService {
   }
 
   private async getCountryHonorRecords(countryId: string, take: number) {
+    const countryIds = await this.getCountryIdsWithInheritedSources(countryId);
     const items = await this.prisma.competitionStanding.findMany({
       where: {
-        countryId,
+        countryId: {
+          in: countryIds
+        },
         edition: {
           competition: {
             targetType: CompetitionTargetType.COUNTRY
@@ -395,6 +514,19 @@ export class CountriesService {
     });
 
     return items.map((item) => this.mapHonorRecord(item));
+  }
+
+  private async getCountryIdsWithInheritedSources(countryId: string) {
+    const links = await this.prisma.countrySuccessor.findMany({
+      where: {
+        successorCountryId: countryId
+      },
+      select: {
+        historicalCountryId: true
+      }
+    });
+
+    return [countryId, ...links.map((link) => link.historicalCountryId)];
   }
 
   private async getCountryCareerProfile(countryId: string) {
@@ -554,12 +686,17 @@ export class CountriesService {
     return Number(a.slice(0, 4)) - Number(b.slice(0, 4));
   }
 
-  private buildHonorWhere(query: CountryHonorListQuery): Prisma.CompetitionStandingWhereInput {
+  private async buildHonorWhere(
+    query: CountryHonorListQuery
+  ): Promise<Prisma.CompetitionStandingWhereInput> {
     const keyword = query.keyword?.trim();
     const year = toInteger(query.year, Number.NaN);
+    const countryIds = query.countryId
+      ? await this.getCountryIdsWithInheritedSources(query.countryId)
+      : null;
 
     return {
-      countryId: query.countryId || { not: null },
+      countryId: countryIds ? { in: countryIds } : { not: null },
       ...(this.isPlacement(query.placement) ? { placement: query.placement } : {}),
       edition: {
         ...(query.competitionId ? { competitionId: query.competitionId } : {}),
@@ -614,7 +751,7 @@ export class CountriesService {
   private mapCountryStandingSummary(
     standings: Array<
       Prisma.CompetitionStandingGetPayload<{
-        include: { country: { select: { id: true; uid: true; name: true; externalUrl: true } } };
+        include: { country: { select: typeof COUNTRY_REF_SELECT } };
       }>
     >
   ) {

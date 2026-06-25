@@ -105,11 +105,37 @@ export class CatalogStatsService {
   }
 
   async getCountryStandingStats(countryIds: string[]) {
+    const successorLinks = await this.prisma.countrySuccessor.findMany({
+      where: {
+        successorCountryId: {
+          in: countryIds
+        }
+      },
+      select: {
+        historicalCountryId: true,
+        successorCountryId: true
+      }
+    });
+    const requestedIds = new Set(countryIds);
+    const historicalIds = [...new Set(successorLinks.map((link) => link.historicalCountryId))];
+    const linkMap = new Map<string, string[]>();
+
+    for (const link of successorLinks) {
+      const successors = linkMap.get(link.historicalCountryId) ?? [];
+      successors.push(link.successorCountryId);
+      linkMap.set(link.historicalCountryId, successors);
+    }
+
     const groups = await this.prisma.competitionStanding.groupBy({
       by: ['countryId', 'placement'],
       where: {
         countryId: {
-          in: countryIds
+          in: [...new Set([...countryIds, ...historicalIds])]
+        },
+        edition: {
+          competition: {
+            includeInStats: true
+          }
         }
       },
       _count: {
@@ -117,15 +143,35 @@ export class CatalogStatsService {
       }
     });
 
-    return this.buildStandingStatsMap(
-      groups
-        .filter((group) => group.countryId)
-        .map((group) => ({
-          targetId: group.countryId as string,
+    const expandedGroups: Array<{
+      targetId: string;
+      placement: CompetitionStandingPlacement;
+      count: number;
+    }> = [];
+
+    for (const group of groups) {
+      if (!group.countryId) {
+        continue;
+      }
+
+      if (requestedIds.has(group.countryId)) {
+        expandedGroups.push({
+          targetId: group.countryId,
           placement: group.placement,
           count: group._count._all
-        }))
-    );
+        });
+      }
+
+      for (const successorId of linkMap.get(group.countryId) ?? []) {
+        expandedGroups.push({
+          targetId: successorId,
+          placement: group.placement,
+          count: group._count._all
+        });
+      }
+    }
+
+    return this.buildStandingStatsMap(expandedGroups);
   }
 
   async getClubStandingStats(clubIds: string[]) {
@@ -134,6 +180,11 @@ export class CatalogStatsService {
       where: {
         clubId: {
           in: clubIds
+        },
+        edition: {
+          competition: {
+            includeInStats: true
+          }
         }
       },
       _count: {

@@ -20,6 +20,24 @@ const COMPETITION_CATEGORIES = ['国际', '洲际', '国内', '其他'] as const
 const COMPETITION_LEVELS = ['一级', '二级', '三级'] as const;
 const COMPETITION_FORMATS = ['联赛', '杯赛', '其他'] as const;
 
+const COUNTRY_REF_SELECT = {
+  id: true,
+  uid: true,
+  name: true,
+  externalUrl: true,
+  visibleInCatalog: true,
+  isHistorical: true,
+  detailRedirectCountryId: true,
+  detailRedirectCountry: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  }
+} satisfies Prisma.CountrySelect;
+
 const COMPETITION_INCLUDE = {
   confederation: {
     select: {
@@ -30,12 +48,7 @@ const COMPETITION_INCLUDE = {
     }
   },
   country: {
-    select: {
-      id: true,
-      uid: true,
-      name: true,
-      externalUrl: true
-    }
+    select: COUNTRY_REF_SELECT
   },
   scopeConfederations: {
     include: {
@@ -52,12 +65,7 @@ const COMPETITION_INCLUDE = {
   scopeCountries: {
     include: {
       country: {
-        select: {
-          id: true,
-          uid: true,
-          name: true,
-          externalUrl: true
-        }
+        select: COUNTRY_REF_SELECT
       }
     }
   },
@@ -77,12 +85,7 @@ const COMPETITION_DETAIL_INCLUDE = {
         orderBy: { placement: 'asc' },
         include: {
           country: {
-            select: {
-              id: true,
-              uid: true,
-              name: true,
-              externalUrl: true
-            }
+            select: COUNTRY_REF_SELECT
           },
           club: {
             select: {
@@ -142,7 +145,10 @@ export class CompetitionsService {
       ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
       ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
       ...(andConditions.length ? { AND: andConditions } : {}),
-      ...(query.enabled === undefined ? {} : { enabled: query.enabled === 'true' })
+      ...(query.enabled === undefined ? {} : { enabled: query.enabled === 'true' }),
+      ...(query.includeInStats === undefined
+        ? {}
+        : { includeInStats: query.includeInStats === 'true' })
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.competition.findMany({
@@ -375,6 +381,7 @@ export class CompetitionsService {
           scopeType === CompetitionScopeType.CONFEDERATION ? confederationIds[0] : null,
         countryId: scopeType === CompetitionScopeType.COUNTRY ? countryIds[0] : null,
         enabled: body.enabled ?? true,
+        includeInStats: body.includeInStats ?? true,
         sortOrder: body.sortOrder ?? 0
       },
       confederationIds: scopeType === CompetitionScopeType.CONFEDERATION ? confederationIds : [],
