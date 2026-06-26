@@ -3,15 +3,19 @@ import { api } from '../api';
 import type {
   ClubDetail,
   ClubHonorListParams,
+  ClubHonorSummaryParams,
   ClubListItem,
   ClubListParams,
   ClubPayload,
   CountryDetail,
   CountryHonorListParams,
+  CountryHonorSummaryParams,
   CountryListItem,
   CountryListParams,
   CountryPayload,
   HonorRecord,
+  HonorSummaryResult,
+  HonorSummaryRow,
   PlayerDetail,
   PlayerListItem,
   PlayerListParams,
@@ -112,6 +116,17 @@ export async function fetchCountryHonors(params: CountryHonorListParams) {
   return response;
 }
 
+export async function fetchCountryHonorSummary(params: CountryHonorSummaryParams) {
+  const response = await api.get<HonorSummaryResult<HonorSummaryRow>>(
+    `${API.COUNTRIES.HONORS}/summary`,
+    {
+      params
+    }
+  );
+
+  return response;
+}
+
 export async function fetchClubs(params: ClubListParams) {
   const response = await api.get<PaginationResult<ClubListItem>>(API.CLUBS.LIST, {
     params
@@ -148,6 +163,17 @@ export async function fetchClubHonors(params: ClubHonorListParams) {
   const response = await api.get<PaginationResult<HonorRecord>>(API.CLUBS.HONORS, {
     params
   });
+
+  return response;
+}
+
+export async function fetchClubHonorSummary(params: ClubHonorSummaryParams) {
+  const response = await api.get<HonorSummaryResult<HonorSummaryRow>>(
+    `${API.CLUBS.HONORS}/summary`,
+    {
+      params
+    }
+  );
 
   return response;
 }

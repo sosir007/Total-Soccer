@@ -5,6 +5,7 @@ import type {
 } from '@/services/types/competitions';
 import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
+import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
 
 defineProps<{
   editions: CompetitionEdition[];
@@ -69,12 +70,10 @@ const emit = defineEmits<{
       <el-table-column prop="host" label="举办地" min-width="120">
         <template #default="{ row }">{{ row.host || '-' }}</template>
       </el-table-column>
-      <el-table-column
-        v-for="placement in placements"
-        :key="placement.value"
-        :label="placement.label"
-        min-width="120"
-      >
+      <el-table-column v-for="placement in placements" :key="placement.value" min-width="120">
+        <template #header>
+          <HonorPlacementLabel :placement="placement.value" />
+        </template>
         <template #default="{ row }">
           <EntityLink
             v-if="hasEditionStanding(row, placement.value)"
@@ -91,7 +90,7 @@ const emit = defineEmits<{
       <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip>
         <template #default="{ row }">{{ row.remark || '-' }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="130" fixed="right">
+      <el-table-column label="操作" min-width="120" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="emit('edit', row)">
             <IconFont name="edit" />

@@ -1,7 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CountriesService } from './countries.service.js';
-import type { CountryHonorListQuery, CountryListQuery, CountryPayload } from './countries.types.js';
+import type {
+  CountryHonorListQuery,
+  CountryHonorSummaryQuery,
+  CountryListQuery,
+  CountryPayload
+} from './countries.types.js';
 
 @ApiTags('countries')
 @Controller('countries')
@@ -18,6 +23,12 @@ export class CountriesController {
   @ApiOperation({ summary: '新增国家' })
   create(@Body() body: CountryPayload) {
     return this.countriesService.create(body);
+  }
+
+  @Get('honors/summary')
+  @ApiOperation({ summary: '获取国家队荣誉汇总矩阵' })
+  findHonorSummary(@Query() query: CountryHonorSummaryQuery) {
+    return this.countriesService.findHonorSummary(query);
   }
 
   @Get('honors')

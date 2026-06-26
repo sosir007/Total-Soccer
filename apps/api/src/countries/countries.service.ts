@@ -9,7 +9,12 @@ import {
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { CountryHonorListQuery, CountryListQuery, CountryPayload } from './countries.types.js';
+import type {
+  CountryHonorListQuery,
+  CountryHonorSummaryQuery,
+  CountryListQuery,
+  CountryPayload
+} from './countries.types.js';
 
 const COUNTRY_REF_SELECT = {
   id: true,
@@ -183,6 +188,7 @@ export class CountriesService {
     return {
       ...computedCountry,
       honorRecords: await this.getCountryHonorRecords(country.id, 10),
+      honorGroups: await this.getCountryHonorGroups(country.id),
       ...(await this.getCountryCareerProfile(country.id))
     };
   }
@@ -256,6 +262,22 @@ export class CountriesService {
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
+    };
+  }
+
+  async findHonorSummary(query: CountryHonorSummaryQuery) {
+    const pagination = resolvePagination(query);
+    const records = await this.getCountryHonorSummaryRecords(query);
+    const effectiveRecords = this.filterCountryHonorSummaryRecords(records, query);
+    const rows = await this.buildCountryHonorSummaryRows(effectiveRecords, query);
+    const competitions = this.buildHonorSummaryCompetitions(effectiveRecords);
+
+    return {
+      items: rows.slice(pagination.skip, pagination.skip + pagination.take),
+      competitions,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total: rows.length
     };
   }
 
@@ -514,6 +536,393 @@ export class CountriesService {
     });
 
     return items.map((item) => this.mapHonorRecord(item));
+  }
+
+  private async getCountryHonorGroups(countryId: string) {
+    const countryIds = await this.getCountryIdsWithInheritedSources(countryId);
+    const items = await this.prisma.competitionStanding.findMany({
+      where: {
+        countryId: {
+          in: countryIds
+        },
+        edition: {
+          competition: {
+            targetType: CompetitionTargetType.COUNTRY,
+            includeInStats: true
+          }
+        }
+      },
+      include: COUNTRY_HONOR_INCLUDE,
+      orderBy: [{ edition: { year: 'asc' } }, { edition: { name: 'asc' } }, { placement: 'asc' }]
+    });
+
+    return this.buildCountryHonorGroups(items, countryId);
+  }
+
+  private async getCountryHonorSummaryRecords(query: CountryHonorSummaryQuery) {
+    const countryIds = query.countryId
+      ? await this.getCountryIdsWithInheritedSources(query.countryId)
+      : null;
+
+    return this.prisma.competitionStanding.findMany({
+      where: {
+        countryId: countryIds ? { in: countryIds } : { not: null },
+        edition: {
+          ...(query.competitionId ? { competitionId: query.competitionId } : {}),
+          competition: {
+            targetType: CompetitionTargetType.COUNTRY,
+            includeInStats: true
+          }
+        }
+      },
+      include: COUNTRY_HONOR_INCLUDE,
+      orderBy: [
+        { edition: { competition: { sortOrder: 'asc' } } },
+        { edition: { competition: { level: 'asc' } } },
+        { edition: { competition: { name: 'asc' } } },
+        { edition: { year: 'asc' } },
+        { placement: 'asc' }
+      ]
+    });
+  }
+
+  private async buildCountryHonorSummaryRows(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>>,
+    query: CountryHonorSummaryQuery
+  ) {
+    const successorMap = await this.getCountrySuccessorMap(
+      records.map((record) => record.countryId).filter(Boolean) as string[]
+    );
+    const keyword = this.normalizeKeyword(query.keyword);
+    const competitionKeywordMatched = keyword
+      ? records.some((record) =>
+          this.matchesCompetitionKeyword(record.edition.competition, keyword)
+        )
+      : false;
+    const effectiveRecords = competitionKeywordMatched
+      ? records.filter((record) =>
+          this.matchesCompetitionKeyword(record.edition.competition, keyword)
+        )
+      : records;
+    const targetIds = new Set<string>();
+
+    for (const record of effectiveRecords) {
+      if (!record.countryId || !record.country) {
+        continue;
+      }
+
+      if (!record.country.isHistorical) {
+        targetIds.add(record.countryId);
+      }
+
+      for (const successorId of successorMap.get(record.countryId) ?? []) {
+        targetIds.add(successorId);
+      }
+    }
+
+    const countries = targetIds.size
+      ? await this.attachComputedStats(
+          await this.prisma.country.findMany({
+            where: {
+              id: { in: [...targetIds] },
+              isHistorical: false
+            },
+            include: COUNTRY_INCLUDE
+          })
+        )
+      : [];
+    const countryMap = new Map(countries.map((country) => [country.id, country]));
+    const rowMap = new Map<string, ReturnType<typeof this.createCountryHonorSummaryRow>>();
+
+    for (const record of effectiveRecords) {
+      if (!record.countryId || !record.country) {
+        continue;
+      }
+
+      const ids = [
+        ...(record.country.isHistorical ? [] : [record.countryId]),
+        ...(successorMap.get(record.countryId) ?? [])
+      ];
+
+      for (const targetId of ids) {
+        const country = countryMap.get(targetId);
+
+        if (!country) {
+          continue;
+        }
+
+        const row = rowMap.get(targetId) ?? this.createCountryHonorSummaryRow(country);
+        this.addHonorSummaryPlacement(row, record.edition.competition.id, record.placement);
+        rowMap.set(targetId, row);
+      }
+    }
+
+    return [...rowMap.values()]
+      .filter((row) => {
+        if (!keyword || competitionKeywordMatched) {
+          return true;
+        }
+
+        return this.matchesText(keyword, row.name, row.uid, row.federationRef?.name);
+      })
+      .sort((a, b) => {
+        if (a.honorScore !== b.honorScore) {
+          return (b.honorScore ?? 0) - (a.honorScore ?? 0);
+        }
+
+        if (a.championCount !== b.championCount) {
+          return b.championCount - a.championCount;
+        }
+
+        if (a.totalCount !== b.totalCount) {
+          return b.totalCount - a.totalCount;
+        }
+
+        return a.name.localeCompare(b.name, 'zh-CN');
+      });
+  }
+
+  private filterCountryHonorSummaryRecords(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>>,
+    query: CountryHonorSummaryQuery
+  ) {
+    const keyword = this.normalizeKeyword(query.keyword);
+
+    if (!keyword) {
+      return records;
+    }
+
+    const competitionKeywordMatched = records.some((record) =>
+      this.matchesCompetitionKeyword(record.edition.competition, keyword)
+    );
+
+    return competitionKeywordMatched
+      ? records.filter((record) =>
+          this.matchesCompetitionKeyword(record.edition.competition, keyword)
+        )
+      : records;
+  }
+
+  private buildCountryHonorGroups(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>>,
+    targetCountryId: string
+  ) {
+    const groupMap = new Map<
+      string,
+      {
+        competition: (typeof records)[number]['edition']['competition'];
+        placements: Record<
+          CompetitionStandingPlacement,
+          Array<{
+            id: string;
+            label: string;
+            year: number | null;
+            season: string | null;
+            host: string | null;
+            sourceName?: string | null;
+          }>
+        >;
+      }
+    >();
+
+    for (const record of records) {
+      const competition = record.edition.competition;
+      const group = groupMap.get(competition.id) ?? {
+        competition,
+        placements: this.createPlacementEntryMap<{
+          id: string;
+          label: string;
+          year: number | null;
+          season: string | null;
+          host: string | null;
+          sourceName?: string | null;
+        }>()
+      };
+      group.placements[record.placement].push({
+        id: record.id,
+        label: this.formatHonorEntryLabel(record.edition),
+        year: record.edition.year,
+        season: record.edition.season,
+        host: record.edition.host,
+        sourceName: record.countryId === targetCountryId ? null : record.country?.name
+      });
+      groupMap.set(competition.id, group);
+    }
+
+    return [...groupMap.values()]
+      .map((group) => ({
+        competition: group.competition,
+        placements: group.placements
+      }))
+      .sort((a, b) => {
+        if (a.competition.sortOrder !== b.competition.sortOrder) {
+          return a.competition.sortOrder - b.competition.sortOrder;
+        }
+
+        return a.competition.name.localeCompare(b.competition.name, 'zh-CN');
+      });
+  }
+
+  private buildHonorSummaryCompetitions(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>>
+  ) {
+    const competitionMap = new Map<string, (typeof records)[number]['edition']['competition']>();
+
+    for (const record of records) {
+      competitionMap.set(record.edition.competition.id, record.edition.competition);
+    }
+
+    return [...competitionMap.values()].sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) {
+        return a.sortOrder - b.sortOrder;
+      }
+
+      if ((a.level ?? '') !== (b.level ?? '')) {
+        return (a.level ?? '').localeCompare(b.level ?? '', 'zh-CN');
+      }
+
+      return a.name.localeCompare(b.name, 'zh-CN');
+    });
+  }
+
+  private async getCountrySuccessorMap(countryIds: string[]) {
+    const links = await this.prisma.countrySuccessor.findMany({
+      where: {
+        historicalCountryId: {
+          in: [...new Set(countryIds)]
+        }
+      },
+      select: {
+        historicalCountryId: true,
+        successorCountryId: true
+      }
+    });
+    const map = new Map<string, string[]>();
+
+    for (const link of links) {
+      const rows = map.get(link.historicalCountryId) ?? [];
+      rows.push(link.successorCountryId);
+      map.set(link.historicalCountryId, rows);
+    }
+
+    return map;
+  }
+
+  private createCountryHonorSummaryRow(country: {
+    id: string;
+    uid: string;
+    name: string;
+    honorScore?: number | null;
+    federationRef?: { id: string; uid: string; name: string; code?: string | null } | null;
+  }) {
+    return {
+      id: country.id,
+      uid: country.uid,
+      name: country.name,
+      federationRef: country.federationRef,
+      honorScore: country.honorScore ?? 0,
+      totalCount: 0,
+      championCount: 0,
+      runnerUpCount: 0,
+      thirdPlaceCount: 0,
+      fourthPlaceCount: 0,
+      competitionStats: {} as Record<string, ReturnType<typeof this.createHonorSummaryCounts>>
+    };
+  }
+
+  private addHonorSummaryPlacement(
+    row: ReturnType<typeof this.createCountryHonorSummaryRow>,
+    competitionId: string,
+    placement: CompetitionStandingPlacement
+  ) {
+    const counts = row.competitionStats[competitionId] ?? this.createHonorSummaryCounts();
+    this.addPlacementCount(counts, placement);
+    this.addPlacementCount(row, placement);
+    row.competitionStats[competitionId] = counts;
+  }
+
+  private createHonorSummaryCounts() {
+    return {
+      totalCount: 0,
+      championCount: 0,
+      runnerUpCount: 0,
+      thirdPlaceCount: 0,
+      fourthPlaceCount: 0
+    };
+  }
+
+  private createPlacementEntryMap<T>() {
+    return {
+      [CompetitionStandingPlacement.CHAMPION]: [],
+      [CompetitionStandingPlacement.RUNNER_UP]: [],
+      [CompetitionStandingPlacement.THIRD_PLACE]: [],
+      [CompetitionStandingPlacement.FOURTH_PLACE]: []
+    } as Record<CompetitionStandingPlacement, T[]>;
+  }
+
+  private addPlacementCount(
+    target: ReturnType<typeof this.createHonorSummaryCounts>,
+    placement: CompetitionStandingPlacement
+  ) {
+    target.totalCount += 1;
+
+    if (placement === CompetitionStandingPlacement.CHAMPION) {
+      target.championCount += 1;
+    } else if (placement === CompetitionStandingPlacement.RUNNER_UP) {
+      target.runnerUpCount += 1;
+    } else if (placement === CompetitionStandingPlacement.THIRD_PLACE) {
+      target.thirdPlaceCount += 1;
+    } else if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
+      target.fourthPlaceCount += 1;
+    }
+  }
+
+  private formatHonorEntryLabel(edition: {
+    season: string | null;
+    name: string;
+    year: number | null;
+  }) {
+    if (edition.season) {
+      return edition.season;
+    }
+
+    if (edition.year) {
+      return `${edition.year}年`;
+    }
+
+    return edition.name;
+  }
+
+  private normalizeKeyword(value?: string | null) {
+    return value?.trim().toLocaleLowerCase('zh-CN') ?? '';
+  }
+
+  private matchesText(keyword: string, ...values: Array<string | number | null | undefined>) {
+    return values.some((value) =>
+      String(value ?? '')
+        .toLocaleLowerCase('zh-CN')
+        .includes(keyword)
+    );
+  }
+
+  private matchesCompetitionKeyword(
+    competition: {
+      name: string;
+      code: string;
+      category?: string | null;
+      level?: string | null;
+      format?: string | null;
+    },
+    keyword: string
+  ) {
+    return this.matchesText(
+      keyword,
+      competition.name,
+      competition.code,
+      competition.category,
+      competition.level,
+      competition.format
+    );
   }
 
   private async getCountryIdsWithInheritedSources(countryId: string) {

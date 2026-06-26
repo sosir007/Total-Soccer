@@ -13,6 +13,13 @@ export const placementLabels = Object.fromEntries(
   placementOptions.map((placement) => [placement.value, placement.label])
 ) as Record<CompetitionStandingPlacement, string>;
 
+export const placementIconNames: Record<CompetitionStandingPlacement, string> = {
+  CHAMPION: 'first',
+  RUNNER_UP: 'second',
+  THIRD_PLACE: 'third',
+  FOURTH_PLACE: 'fourth'
+};
+
 export function formatPlacement(value?: CompetitionStandingPlacement | null) {
   return value ? placementLabels[value] : '-';
 }

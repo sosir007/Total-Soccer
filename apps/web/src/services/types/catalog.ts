@@ -38,6 +38,42 @@ export interface HonorRecord {
   standings: Partial<Record<CompetitionStandingPlacement, NamedRef | null>>;
 }
 
+export interface HonorSummaryCounts {
+  totalCount: number;
+  championCount: number;
+  runnerUpCount: number;
+  thirdPlaceCount: number;
+  fourthPlaceCount: number;
+}
+
+export interface HonorSummaryCompetition extends HonorCompetitionRef {
+  counts?: HonorSummaryCounts;
+}
+
+export interface HonorSummaryRow extends HonorSummaryCounts {
+  id: string;
+  uid: string;
+  name: string;
+  countryRef?: NamedRef | null;
+  federationRef?: NamedRef | null;
+  honorScore?: number | null;
+  competitionStats: Record<string, HonorSummaryCounts>;
+}
+
+export interface HonorGroupedPlacementEntry {
+  id: string;
+  label: string;
+  year?: number | null;
+  season?: string | null;
+  host?: string | null;
+  sourceName?: string | null;
+}
+
+export interface HonorGroupedRecord {
+  competition: HonorCompetitionRef;
+  placements: Partial<Record<CompetitionStandingPlacement, HonorGroupedPlacementEntry[]>>;
+}
+
 export type PlayerCareerType = 'CLUB' | 'COUNTRY';
 
 export interface PlayerCareer {
@@ -218,6 +254,7 @@ export interface CountryListItem {
 
 export type CountryDetail = CountryListItem & {
   honorRecords?: HonorRecord[];
+  honorGroups?: HonorGroupedRecord[];
   careerTimeline?: CareerTimelineGroup[];
   lineupByPosition?: LineupPositionGroup[];
 };
@@ -249,6 +286,7 @@ export interface ClubListItem {
 
 export type ClubDetail = ClubListItem & {
   honorRecords?: HonorRecord[];
+  honorGroups?: HonorGroupedRecord[];
   careerTimeline?: CareerTimelineGroup[];
   lineupByPosition?: LineupPositionGroup[];
   representativeLineupByPosition?: LineupPositionGroup[];
@@ -290,6 +328,14 @@ export interface CountryHonorListParams {
   countryId?: string;
 }
 
+export interface CountryHonorSummaryParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  competitionId?: string;
+  countryId?: string;
+}
+
 export interface ClubListParams {
   page?: number;
   pageSize?: number;
@@ -309,6 +355,22 @@ export interface ClubHonorListParams {
   placement?: CompetitionStandingPlacement;
   year?: number;
   clubId?: string;
+}
+
+export interface ClubHonorSummaryParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  competitionId?: string;
+  clubId?: string;
+}
+
+export interface HonorSummaryResult<TItem> {
+  items: TItem[];
+  competitions: HonorSummaryCompetition[];
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
 export interface CountryPayload {

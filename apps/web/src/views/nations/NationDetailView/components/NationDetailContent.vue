@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import EntityLink from '@/components/EntityLink.vue';
-import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
+import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import type {
   CareerProfileLine,
   CountryDetail,
@@ -9,12 +8,6 @@ import type {
 } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import {
-  formatHonorEdition,
-  formatPlacement,
-  getStandingRef,
-  placementOptions
-} from '@/utils/honor';
 
 const props = defineProps<{
   country: CountryDetail;
@@ -197,50 +190,10 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
   <div class="panel">
     <div class="panel-header">
       <h3>荣誉明细</h3>
-      <span class="status-pill">{{ country.honorRecords?.length ?? 0 }} 条最近记录</span>
+      <span class="status-pill">{{ country.honorGroups?.length ?? 0 }} 项赛事</span>
     </div>
 
-    <div v-if="!country.honorRecords?.length" class="mini-empty">暂无赛事荣誉记录</div>
-
-    <el-table v-else :data="country.honorRecords" border>
-      <el-table-column label="赛事" min-width="150" fixed>
-        <template #default="{ row }">
-          <EntityNameCell
-            :id="row.competition.id"
-            type="competition"
-            :title="row.competition.name"
-            :subtitle="row.competition.category || row.competition.level || row.competition.code"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="届次 / 赛季" min-width="150">
-        <template #default="{ row }">{{ formatHonorEdition(row) }}</template>
-      </el-table-column>
-      <el-table-column label="年份" width="90">
-        <template #default="{ row }">{{ row.edition.year || '-' }}</template>
-      </el-table-column>
-      <el-table-column label="名次" width="90">
-        <template #default="{ row }">
-          <el-tag :type="row.placement === 'CHAMPION' ? 'warning' : 'success'">
-            {{ formatPlacement(row.placement) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        v-for="placement in placementOptions"
-        :key="placement.value"
-        :label="placement.label"
-        min-width="120"
-      >
-        <template #default="{ row }">
-          <EntityLink
-            :id="getStandingRef(row, placement.value)?.id"
-            type="country"
-            :name="getStandingRef(row, placement.value)?.name"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <HonorGroupList :groups="country.honorGroups" />
   </div>
 
   <div class="panel">

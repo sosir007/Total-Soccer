@@ -19,6 +19,8 @@ export interface CountryHonorListQuery {
   countryId?: string;
 }
 
+export type CountryHonorSummaryQuery = Omit<CountryHonorListQuery, 'placement' | 'year'>;
+
 export interface CountryPayload {
   uid?: string;
   name?: string;

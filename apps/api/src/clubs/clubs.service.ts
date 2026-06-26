@@ -9,7 +9,12 @@ import {
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { ClubHonorListQuery, ClubListQuery, ClubPayload } from './clubs.types.js';
+import type {
+  ClubHonorListQuery,
+  ClubHonorSummaryQuery,
+  ClubListQuery,
+  ClubPayload
+} from './clubs.types.js';
 
 const CLUB_INCLUDE = {
   countryRef: {
@@ -186,6 +191,7 @@ export class ClubsService {
     return {
       ...computedClub,
       honorRecords: await this.getClubHonorRecords(club.id, 10),
+      honorGroups: await this.getClubHonorGroups(club.id),
       ...(await this.getClubCareerProfile(club.id))
     };
   }
@@ -259,6 +265,22 @@ export class ClubsService {
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
+    };
+  }
+
+  async findHonorSummary(query: ClubHonorSummaryQuery) {
+    const pagination = resolvePagination(query);
+    const records = await this.getClubHonorSummaryRecords(query);
+    const effectiveRecords = this.filterClubHonorSummaryRecords(records, query);
+    const rows = await this.buildClubHonorSummaryRows(effectiveRecords, query);
+    const competitions = this.buildHonorSummaryCompetitions(effectiveRecords);
+
+    return {
+      items: rows.slice(pagination.skip, pagination.skip + pagination.take),
+      competitions,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total: rows.length
     };
   }
 
@@ -505,6 +527,348 @@ export class ClubsService {
     });
 
     return items.map((item) => this.mapHonorRecord(item));
+  }
+
+  private async getClubHonorGroups(clubId: string) {
+    const items = await this.prisma.competitionStanding.findMany({
+      where: {
+        clubId,
+        edition: {
+          competition: {
+            targetType: CompetitionTargetType.CLUB,
+            includeInStats: true
+          }
+        }
+      },
+      include: CLUB_HONOR_INCLUDE,
+      orderBy: [{ edition: { year: 'asc' } }, { edition: { name: 'asc' } }, { placement: 'asc' }]
+    });
+
+    return this.buildClubHonorGroups(items);
+  }
+
+  private async getClubHonorSummaryRecords(query: ClubHonorSummaryQuery) {
+    return this.prisma.competitionStanding.findMany({
+      where: {
+        clubId: query.clubId || { not: null },
+        edition: {
+          ...(query.competitionId ? { competitionId: query.competitionId } : {}),
+          competition: {
+            targetType: CompetitionTargetType.CLUB,
+            includeInStats: true
+          }
+        }
+      },
+      include: CLUB_HONOR_INCLUDE,
+      orderBy: [
+        { edition: { competition: { sortOrder: 'asc' } } },
+        { edition: { competition: { level: 'asc' } } },
+        { edition: { competition: { name: 'asc' } } },
+        { edition: { year: 'asc' } },
+        { placement: 'asc' }
+      ]
+    });
+  }
+
+  private async buildClubHonorSummaryRows(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof CLUB_HONOR_INCLUDE }>>,
+    query: ClubHonorSummaryQuery
+  ) {
+    const keyword = this.normalizeKeyword(query.keyword);
+    const competitionKeywordMatched = keyword
+      ? records.some((record) =>
+          this.matchesCompetitionKeyword(record.edition.competition, keyword)
+        )
+      : false;
+    const effectiveRecords = competitionKeywordMatched
+      ? records.filter((record) =>
+          this.matchesCompetitionKeyword(record.edition.competition, keyword)
+        )
+      : records;
+    const clubIds = [
+      ...new Set(
+        effectiveRecords
+          .map((record) => record.clubId)
+          .filter((clubId): clubId is string => Boolean(clubId))
+      )
+    ];
+    const clubs = clubIds.length
+      ? await this.attachComputedStats(
+          await this.prisma.club.findMany({
+            where: {
+              id: { in: clubIds },
+              exists: true
+            },
+            include: CLUB_INCLUDE
+          })
+        )
+      : [];
+    const clubMap = new Map(clubs.map((club) => [club.id, club]));
+    const rowMap = new Map<string, ReturnType<typeof this.createClubHonorSummaryRow>>();
+
+    for (const record of effectiveRecords) {
+      if (!record.clubId) {
+        continue;
+      }
+
+      const club = clubMap.get(record.clubId);
+
+      if (!club) {
+        continue;
+      }
+
+      const row = rowMap.get(record.clubId) ?? this.createClubHonorSummaryRow(club);
+      this.addHonorSummaryPlacement(row, record.edition.competition.id, record.placement);
+      rowMap.set(record.clubId, row);
+    }
+
+    return [...rowMap.values()]
+      .filter((row) => {
+        if (!keyword || competitionKeywordMatched) {
+          return true;
+        }
+
+        return this.matchesText(
+          keyword,
+          row.name,
+          row.uid,
+          row.countryRef?.name,
+          row.federationRef?.name
+        );
+      })
+      .sort((a, b) => {
+        if (a.honorScore !== b.honorScore) {
+          return (b.honorScore ?? 0) - (a.honorScore ?? 0);
+        }
+
+        if (a.championCount !== b.championCount) {
+          return b.championCount - a.championCount;
+        }
+
+        if (a.totalCount !== b.totalCount) {
+          return b.totalCount - a.totalCount;
+        }
+
+        return a.name.localeCompare(b.name, 'zh-CN');
+      });
+  }
+
+  private filterClubHonorSummaryRecords(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof CLUB_HONOR_INCLUDE }>>,
+    query: ClubHonorSummaryQuery
+  ) {
+    const keyword = this.normalizeKeyword(query.keyword);
+
+    if (!keyword) {
+      return records;
+    }
+
+    const competitionKeywordMatched = records.some((record) =>
+      this.matchesCompetitionKeyword(record.edition.competition, keyword)
+    );
+
+    return competitionKeywordMatched
+      ? records.filter((record) =>
+          this.matchesCompetitionKeyword(record.edition.competition, keyword)
+        )
+      : records;
+  }
+
+  private buildClubHonorGroups(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof CLUB_HONOR_INCLUDE }>>
+  ) {
+    const groupMap = new Map<
+      string,
+      {
+        competition: (typeof records)[number]['edition']['competition'];
+        placements: Record<
+          CompetitionStandingPlacement,
+          Array<{
+            id: string;
+            label: string;
+            year: number | null;
+            season: string | null;
+            host: string | null;
+          }>
+        >;
+      }
+    >();
+
+    for (const record of records) {
+      const competition = record.edition.competition;
+      const group = groupMap.get(competition.id) ?? {
+        competition,
+        placements: this.createPlacementEntryMap<{
+          id: string;
+          label: string;
+          year: number | null;
+          season: string | null;
+          host: string | null;
+        }>()
+      };
+      group.placements[record.placement].push({
+        id: record.id,
+        label: this.formatHonorEntryLabel(record.edition),
+        year: record.edition.year,
+        season: record.edition.season,
+        host: record.edition.host
+      });
+      groupMap.set(competition.id, group);
+    }
+
+    return [...groupMap.values()]
+      .map((group) => ({
+        competition: group.competition,
+        placements: group.placements
+      }))
+      .sort((a, b) => {
+        if (a.competition.sortOrder !== b.competition.sortOrder) {
+          return a.competition.sortOrder - b.competition.sortOrder;
+        }
+
+        return a.competition.name.localeCompare(b.competition.name, 'zh-CN');
+      });
+  }
+
+  private buildHonorSummaryCompetitions(
+    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof CLUB_HONOR_INCLUDE }>>
+  ) {
+    const competitionMap = new Map<string, (typeof records)[number]['edition']['competition']>();
+
+    for (const record of records) {
+      competitionMap.set(record.edition.competition.id, record.edition.competition);
+    }
+
+    return [...competitionMap.values()].sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) {
+        return a.sortOrder - b.sortOrder;
+      }
+
+      if ((a.level ?? '') !== (b.level ?? '')) {
+        return (a.level ?? '').localeCompare(b.level ?? '', 'zh-CN');
+      }
+
+      return a.name.localeCompare(b.name, 'zh-CN');
+    });
+  }
+
+  private createClubHonorSummaryRow(club: {
+    id: string;
+    uid: string;
+    name: string;
+    honorScore?: number | null;
+    countryRef?: { id: string; uid: string; name: string; externalUrl?: string | null } | null;
+    federationRef?: { id: string; uid: string; name: string; code?: string | null } | null;
+  }) {
+    return {
+      id: club.id,
+      uid: club.uid,
+      name: club.name,
+      countryRef: club.countryRef,
+      federationRef: club.federationRef,
+      honorScore: club.honorScore ?? 0,
+      totalCount: 0,
+      championCount: 0,
+      runnerUpCount: 0,
+      thirdPlaceCount: 0,
+      fourthPlaceCount: 0,
+      competitionStats: {} as Record<string, ReturnType<typeof this.createHonorSummaryCounts>>
+    };
+  }
+
+  private addHonorSummaryPlacement(
+    row: ReturnType<typeof this.createClubHonorSummaryRow>,
+    competitionId: string,
+    placement: CompetitionStandingPlacement
+  ) {
+    const counts = row.competitionStats[competitionId] ?? this.createHonorSummaryCounts();
+    this.addPlacementCount(counts, placement);
+    this.addPlacementCount(row, placement);
+    row.competitionStats[competitionId] = counts;
+  }
+
+  private createHonorSummaryCounts() {
+    return {
+      totalCount: 0,
+      championCount: 0,
+      runnerUpCount: 0,
+      thirdPlaceCount: 0,
+      fourthPlaceCount: 0
+    };
+  }
+
+  private createPlacementEntryMap<T>() {
+    return {
+      [CompetitionStandingPlacement.CHAMPION]: [],
+      [CompetitionStandingPlacement.RUNNER_UP]: [],
+      [CompetitionStandingPlacement.THIRD_PLACE]: [],
+      [CompetitionStandingPlacement.FOURTH_PLACE]: []
+    } as Record<CompetitionStandingPlacement, T[]>;
+  }
+
+  private addPlacementCount(
+    target: ReturnType<typeof this.createHonorSummaryCounts>,
+    placement: CompetitionStandingPlacement
+  ) {
+    target.totalCount += 1;
+
+    if (placement === CompetitionStandingPlacement.CHAMPION) {
+      target.championCount += 1;
+    } else if (placement === CompetitionStandingPlacement.RUNNER_UP) {
+      target.runnerUpCount += 1;
+    } else if (placement === CompetitionStandingPlacement.THIRD_PLACE) {
+      target.thirdPlaceCount += 1;
+    } else if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
+      target.fourthPlaceCount += 1;
+    }
+  }
+
+  private formatHonorEntryLabel(edition: {
+    season: string | null;
+    name: string;
+    year: number | null;
+  }) {
+    if (edition.season) {
+      return edition.season;
+    }
+
+    if (edition.year) {
+      return `${edition.year}年`;
+    }
+
+    return edition.name;
+  }
+
+  private normalizeKeyword(value?: string | null) {
+    return value?.trim().toLocaleLowerCase('zh-CN') ?? '';
+  }
+
+  private matchesText(keyword: string, ...values: Array<string | number | null | undefined>) {
+    return values.some((value) =>
+      String(value ?? '')
+        .toLocaleLowerCase('zh-CN')
+        .includes(keyword)
+    );
+  }
+
+  private matchesCompetitionKeyword(
+    competition: {
+      name: string;
+      code: string;
+      category?: string | null;
+      level?: string | null;
+      format?: string | null;
+    },
+    keyword: string
+  ) {
+    return this.matchesText(
+      keyword,
+      competition.name,
+      competition.code,
+      competition.category,
+      competition.level,
+      competition.format
+    );
   }
 
   private async getClubCareerProfile(clubId: string) {

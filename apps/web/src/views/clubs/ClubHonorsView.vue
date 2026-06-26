@@ -1,51 +1,41 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import { fetchClubHonors } from '@/services/modules/catalog';
-import type { HonorRecord } from '@/services/types/catalog';
-import type { CompetitionStandingPlacement } from '@/services/types/competitions';
+import { fetchClubHonorSummary } from '@/services/modules/catalog';
+import type { HonorSummaryCompetition, HonorSummaryRow } from '@/services/types/catalog';
 import IconFont from '@/components/IconFont.vue';
+import HonorSummaryMatrix from '@/components/honors/HonorSummaryMatrix.vue';
 import { ClubSelect, CompetitionSelect } from '@/components/selects';
-import EntityLink from '@/components/EntityLink.vue';
-import EntityNameCell from '@/components/EntityNameCell.vue';
-import {
-  formatHonorEdition,
-  formatPlacement,
-  getStandingRef,
-  placementOptions
-} from '@/utils/honor';
 
 const loading = ref(false);
 const errorMessage = ref('');
-const records = ref<HonorRecord[]>([]);
+const rows = ref<HonorSummaryRow[]>([]);
+const competitions = ref<HonorSummaryCompetition[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
   competitionId: '',
-  placement: '' as '' | CompetitionStandingPlacement,
-  year: undefined as number | undefined,
   clubId: ''
 });
 
-const hasRows = computed(() => records.value.length > 0);
+const hasRows = computed(() => rows.value.length > 0);
 
 async function loadHonors() {
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    const result = await fetchClubHonors({
+    const result = await fetchClubHonorSummary({
       page: filters.page,
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       competitionId: filters.competitionId || undefined,
-      placement: filters.placement || undefined,
-      year: filters.year,
       clubId: filters.clubId || undefined
     });
-    records.value = result.items;
+    rows.value = result.items;
+    competitions.value = result.competitions;
     total.value = result.total;
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '豪门荣誉加载失败。';
@@ -64,8 +54,6 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.competitionId = '';
-  filters.placement = '';
-  filters.year = undefined;
   filters.clubId = '';
   void loadHonors();
 }
@@ -90,7 +78,6 @@ onMounted(() => {
           <h2>豪门荣誉</h2>
           <p>查看俱乐部赛事历届最终名次，统计来源为赛事管理录入结果。</p>
         </div>
-        <span class="status-pill">真实数据</span>
       </div>
 
       <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
@@ -118,19 +105,6 @@ onMounted(() => {
             重置
           </el-button>
         </div>
-        <el-form-item label="名次">
-          <el-select v-model="filters.placement" clearable placeholder="全部名次">
-            <el-option
-              v-for="placement in placementOptions"
-              :key="placement.value"
-              :label="placement.label"
-              :value="placement.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="年份">
-          <el-input-number v-model="filters.year" :min="1800" :max="2200" placeholder="全部年份" />
-        </el-form-item>
       </el-form>
     </div>
 
@@ -140,8 +114,8 @@ onMounted(() => {
 
     <div class="panel">
       <div class="panel-header">
-        <h3>荣誉明细</h3>
-        <span class="status-pill">{{ total }} 条记录</span>
+        <h3>荣誉矩阵</h3>
+        <span class="status-pill">{{ total }} 家俱乐部</span>
       </div>
 
       <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
@@ -152,74 +126,13 @@ onMounted(() => {
       </div>
 
       <template v-else>
-        <el-table :data="records" border>
-          <el-table-column label="赛事" min-width="160" fixed>
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.competition.id"
-                type="competition"
-                :title="row.competition.name"
-                :subtitle="
-                  row.competition.category || row.competition.level || row.competition.code
-                "
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="届次 / 赛季" min-width="150">
-            <template #default="{ row }">{{ formatHonorEdition(row) }}</template>
-          </el-table-column>
-          <el-table-column label="年份" width="90">
-            <template #default="{ row }">{{ row.edition.year || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="俱乐部" min-width="130">
-            <template #default="{ row }">
-              <EntityLink :id="row.club?.id" type="club" :name="row.club?.name" />
-            </template>
-          </el-table-column>
-          <el-table-column label="名次" width="90">
-            <template #default="{ row }">
-              <el-tag :type="row.placement === 'CHAMPION' ? 'warning' : 'success'">
-                {{ formatPlacement(row.placement) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="冠军" min-width="120">
-            <template #default="{ row }">
-              <EntityLink
-                :id="getStandingRef(row, 'CHAMPION')?.id"
-                type="club"
-                :name="getStandingRef(row, 'CHAMPION')?.name"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="亚军" min-width="120">
-            <template #default="{ row }">
-              <EntityLink
-                :id="getStandingRef(row, 'RUNNER_UP')?.id"
-                type="club"
-                :name="getStandingRef(row, 'RUNNER_UP')?.name"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="季军" min-width="120">
-            <template #default="{ row }">
-              <EntityLink
-                :id="getStandingRef(row, 'THIRD_PLACE')?.id"
-                type="club"
-                :name="getStandingRef(row, 'THIRD_PLACE')?.name"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="殿军" min-width="120">
-            <template #default="{ row }">
-              <EntityLink
-                :id="getStandingRef(row, 'FOURTH_PLACE')?.id"
-                type="club"
-                :name="getStandingRef(row, 'FOURTH_PLACE')?.name"
-              />
-            </template>
-          </el-table-column>
-        </el-table>
+        <HonorSummaryMatrix
+          :rows="rows"
+          :competitions="competitions"
+          entity-type="club"
+          :page="filters.page"
+          :page-size="filters.pageSize"
+        />
 
         <div class="table-footer">
           <el-pagination

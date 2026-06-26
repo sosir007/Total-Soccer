@@ -4,6 +4,7 @@ import type {
   CompetitionStandingPlacement
 } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
+import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
 import { ClubSelect, CountrySelect } from '@/components/selects';
 import type { EditionRow } from './types';
 
@@ -61,10 +62,9 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
         <span>年份</span>
         <span>赛季/别名</span>
         <span>举办地</span>
-        <span>冠军</span>
-        <span>亚军</span>
-        <span>季军</span>
-        <span>殿军</span>
+        <span v-for="placement in placementFields" :key="placement">
+          <HonorPlacementLabel :placement="placement" />
+        </span>
         <span>数量</span>
         <span>备注</span>
         <span>操作</span>

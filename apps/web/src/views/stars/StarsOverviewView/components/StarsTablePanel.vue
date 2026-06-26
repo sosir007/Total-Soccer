@@ -290,7 +290,7 @@ function formatMarketValue(value?: number | null) {
             <el-tag v-else type="success">现役</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140" fixed="right">
+        <el-table-column label="操作" min-width="150" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click.stop="emit('edit', row)">
               <IconFont name="edit" />
