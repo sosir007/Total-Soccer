@@ -17,7 +17,7 @@ import type {
 } from './competitions.types.js';
 
 const COMPETITION_CATEGORIES = ['国际', '洲际', '国内', '其他'] as const;
-const COMPETITION_LEVELS = ['一级', '二级', '三级'] as const;
+const COMPETITION_LEVELS = ['一级', '二级', '三级', '四级'] as const;
 const COMPETITION_FORMATS = ['联赛', '杯赛', '其他'] as const;
 
 const COUNTRY_REF_SELECT = {

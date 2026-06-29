@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import {
   CompetitionStandingPlacement,
   CompetitionTargetType,
+  HonorRuleConversionType,
+  HonorRulePlacementScope,
   PlayerCareerType,
   Prisma
 } from '@prisma/client';
@@ -93,6 +95,12 @@ const CLUB_HONOR_INCLUDE = {
                 }
               }
             }
+          },
+          editions: {
+            select: {
+              year: true,
+              quantity: true
+            }
           }
         }
       },
@@ -113,6 +121,12 @@ const CLUB_HONOR_INCLUDE = {
     }
   }
 } satisfies Prisma.CompetitionStandingInclude;
+
+type ClubHonorRecord = Prisma.CompetitionStandingGetPayload<{
+  include: typeof CLUB_HONOR_INCLUDE;
+}>;
+type ClubHonorCompetition = ClubHonorRecord['edition']['competition'];
+type HonorSummaryRule = Prisma.HonorRuleGetPayload<{ include: { coefficients: true } }>;
 
 const CAREER_PLAYER_SELECT = {
   id: true,
@@ -270,10 +284,22 @@ export class ClubsService {
 
   async findHonorSummary(query: ClubHonorSummaryQuery) {
     const pagination = resolvePagination(query);
-    const records = await this.getClubHonorSummaryRecords(query);
+    const [records, rules] = await Promise.all([
+      this.getClubHonorSummaryRecords(query),
+      this.getHonorSummaryRules(CompetitionTargetType.CLUB)
+    ]);
     const effectiveRecords = this.filterClubHonorSummaryRecords(records, query);
-    const rows = await this.buildClubHonorSummaryRows(effectiveRecords, query);
-    const competitions = this.buildHonorSummaryCompetitions(effectiveRecords);
+    const scoringRecords = effectiveRecords.filter((record) =>
+      this.resolveHonorSummaryScore(
+        rules,
+        record.edition.competition,
+        record.placement,
+        record.edition.year,
+        record.edition.quantity
+      )
+    );
+    const rows = await this.buildClubHonorSummaryRows(scoringRecords, query, rules);
+    const competitions = this.buildHonorSummaryCompetitions(scoringRecords);
 
     return {
       items: rows.slice(pagination.skip, pagination.skip + pagination.take),
@@ -571,8 +597,9 @@ export class ClubsService {
   }
 
   private async buildClubHonorSummaryRows(
-    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof CLUB_HONOR_INCLUDE }>>,
-    query: ClubHonorSummaryQuery
+    records: ClubHonorRecord[],
+    query: ClubHonorSummaryQuery,
+    rules: HonorSummaryRule[]
   ) {
     const keyword = this.normalizeKeyword(query.keyword);
     const competitionKeywordMatched = keyword
@@ -617,8 +644,20 @@ export class ClubsService {
         continue;
       }
 
+      const score = this.resolveHonorSummaryScore(
+        rules,
+        record.edition.competition,
+        record.placement,
+        record.edition.year,
+        record.edition.quantity
+      );
+
+      if (score === null) {
+        continue;
+      }
+
       const row = rowMap.get(record.clubId) ?? this.createClubHonorSummaryRow(club);
-      this.addHonorSummaryPlacement(row, record.edition.competition.id, record.placement);
+      this.addHonorSummaryPlacement(row, record.edition.competition.id, record.placement, score);
       rowMap.set(record.clubId, row);
     }
 
@@ -766,7 +805,7 @@ export class ClubsService {
       name: club.name,
       countryRef: club.countryRef,
       federationRef: club.federationRef,
-      honorScore: club.honorScore ?? 0,
+      honorScore: 0,
       totalCount: 0,
       championCount: 0,
       runnerUpCount: 0,
@@ -779,11 +818,13 @@ export class ClubsService {
   private addHonorSummaryPlacement(
     row: ReturnType<typeof this.createClubHonorSummaryRow>,
     competitionId: string,
-    placement: CompetitionStandingPlacement
+    placement: CompetitionStandingPlacement,
+    score: number
   ) {
     const counts = row.competitionStats[competitionId] ?? this.createHonorSummaryCounts();
     this.addPlacementCount(counts, placement);
     this.addPlacementCount(row, placement);
+    row.honorScore = this.round((row.honorScore ?? 0) + score);
     row.competitionStats[competitionId] = counts;
   }
 
@@ -821,6 +862,223 @@ export class ClubsService {
     } else if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
       target.fourthPlaceCount += 1;
     }
+  }
+
+  private async getHonorSummaryRules(targetType: CompetitionTargetType) {
+    return this.prisma.honorRule.findMany({
+      where: {
+        enabled: true,
+        isSystem: true,
+        targetType
+      },
+      include: { coefficients: true }
+    });
+  }
+
+  private resolveHonorSummaryScore(
+    rules: HonorSummaryRule[],
+    competition: ClubHonorCompetition,
+    placement: CompetitionStandingPlacement,
+    year: number | null,
+    quantity: number | null
+  ) {
+    const rule = this.resolveHonorSummaryRule(rules, competition, placement);
+
+    if (!rule) {
+      return null;
+    }
+
+    const placementScore = this.resolvePlacementScore(rule, placement);
+
+    if (placementScore === null || placementScore <= 0) {
+      return null;
+    }
+
+    return this.round(
+      placementScore *
+        this.resolveQualityCoefficient(rule, competition) *
+        this.resolveConversionCoefficient(rule, competition, year, quantity)
+    );
+  }
+
+  private resolveHonorSummaryRule(
+    rules: HonorSummaryRule[],
+    competition: ClubHonorCompetition,
+    placement: CompetitionStandingPlacement
+  ) {
+    return rules
+      .filter(
+        (rule) =>
+          this.honorRuleMatches(rule, competition) && this.honorRuleAllowsPlacement(rule, placement)
+      )
+      .sort((a, b) => this.honorRuleSpecificity(b) - this.honorRuleSpecificity(a))[0];
+  }
+
+  private honorRuleMatches(rule: HonorSummaryRule, competition: ClubHonorCompetition) {
+    return (
+      rule.targetType === competition.targetType &&
+      this.sameText(rule.category, competition.category) &&
+      this.sameText(rule.level, competition.level) &&
+      this.formatMatches(rule.format, competition) &&
+      (!rule.scopeType || rule.scopeType === competition.scopeType) &&
+      (!rule.confederationId ||
+        this.competitionConfederationIds(competition).includes(rule.confederationId)) &&
+      (!rule.countryId || this.competitionCountryIds(competition).includes(rule.countryId))
+    );
+  }
+
+  private formatMatches(ruleFormat: string | null, competition: ClubHonorCompetition) {
+    if (this.sameText(ruleFormat, competition.format)) {
+      return true;
+    }
+
+    return (
+      competition.format === '其他' && ruleFormat === '杯赛' && competition.category !== '国内'
+    );
+  }
+
+  private honorRuleSpecificity(rule: HonorSummaryRule) {
+    return [
+      rule.confederationId,
+      rule.countryId,
+      rule.scopeType,
+      rule.format,
+      rule.level,
+      rule.category
+    ].filter(Boolean).length;
+  }
+
+  private resolvePlacementScore(rule: HonorSummaryRule, placement: CompetitionStandingPlacement) {
+    if (!this.honorRuleAllowsPlacement(rule, placement)) {
+      return null;
+    }
+
+    if (placement === CompetitionStandingPlacement.CHAMPION)
+      return rule.championScore ?? rule.baseScore;
+    if (placement === CompetitionStandingPlacement.RUNNER_UP) return rule.runnerUpScore;
+    if (placement === CompetitionStandingPlacement.THIRD_PLACE) return rule.thirdPlaceScore;
+    if (placement === CompetitionStandingPlacement.FOURTH_PLACE) return rule.fourthPlaceScore;
+
+    return null;
+  }
+
+  private honorRuleAllowsPlacement(
+    rule: HonorSummaryRule,
+    placement: CompetitionStandingPlacement
+  ) {
+    if (placement === CompetitionStandingPlacement.CHAMPION) return true;
+
+    if (placement === CompetitionStandingPlacement.RUNNER_UP) {
+      return rule.placementScope !== HonorRulePlacementScope.CHAMPION_ONLY;
+    }
+
+    if (placement === CompetitionStandingPlacement.THIRD_PLACE) {
+      const thirdPlaceScopes: HonorRulePlacementScope[] = [
+        HonorRulePlacementScope.TOP_THREE,
+        HonorRulePlacementScope.TOP_FOUR,
+        HonorRulePlacementScope.LEAGUE_TOP_THREE
+      ];
+
+      return thirdPlaceScopes.includes(rule.placementScope);
+    }
+
+    return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;
+  }
+
+  private resolveQualityCoefficient(rule: HonorSummaryRule, competition: ClubHonorCompetition) {
+    const confederationIds = this.competitionConfederationIds(competition);
+    const countryIds = this.competitionCountryIds(competition);
+    const coefficient = rule.coefficients.find(
+      (item) =>
+        (item.confederationId && confederationIds.includes(item.confederationId)) ||
+        (item.countryId && countryIds.includes(item.countryId))
+    );
+
+    return coefficient?.coefficient ?? rule.qualityCoefficient;
+  }
+
+  private resolveConversionCoefficient(
+    rule: HonorSummaryRule,
+    competition: ClubHonorCompetition,
+    year: number | null,
+    quantity: number | null
+  ) {
+    if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
+      return this.frequencyCoefficient(competition) * this.scaleCoefficient(competition, quantity);
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
+      if (!year) return 1;
+      if (year <= 1928) return 2.5;
+      if (year <= 1988) return 1.2;
+
+      return 0.75;
+    }
+
+    return 1;
+  }
+
+  private frequencyCoefficient(competition: ClubHonorCompetition) {
+    const years = [
+      ...new Set(competition.editions.map((edition) => edition.year).filter(isNumber))
+    ].sort((a, b) => a - b);
+
+    if (years.length < 2) {
+      return 1;
+    }
+
+    const gaps = years.slice(1).map((year, index) => year - years[index]);
+    const averageGap = gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length;
+
+    if (averageGap >= 3.5) return 1;
+    if (averageGap >= 2.5) return 0.85;
+    if (averageGap >= 1.5) return 0.7;
+
+    return 0.45;
+  }
+
+  private scaleCoefficient(competition: ClubHonorCompetition, quantity: number | null) {
+    const resolvedQuantity =
+      quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
+
+    if (!resolvedQuantity) return 1;
+    if (resolvedQuantity >= 24) return 1;
+    if (resolvedQuantity >= 16) return 0.9;
+    if (resolvedQuantity >= 10) return 0.75;
+    if (resolvedQuantity >= 8) return 0.65;
+    if (resolvedQuantity >= 4) return 0.5;
+
+    return 1;
+  }
+
+  private median(values: Array<number | null>) {
+    const numbers = values.filter(isNumber).sort((a, b) => a - b);
+
+    if (!numbers.length) return null;
+
+    return numbers[Math.floor(numbers.length / 2)];
+  }
+
+  private competitionConfederationIds(competition: ClubHonorCompetition) {
+    return [
+      competition.confederationId,
+      ...competition.scopeConfederations.map((item) => item.confederationId)
+    ].filter(isString);
+  }
+
+  private competitionCountryIds(competition: ClubHonorCompetition) {
+    return [
+      competition.countryId,
+      ...competition.scopeCountries.map((item) => item.countryId)
+    ].filter(isString);
+  }
+
+  private sameText(left?: string | null, right?: string | null) {
+    return (left?.trim() ?? '') === (right?.trim() ?? '');
+  }
+
+  private round(value: number) {
+    return Math.round(value * 100) / 100;
   }
 
   private formatHonorEntryLabel(edition: {
@@ -1101,4 +1359,12 @@ export class ClubsService {
 
     throw error;
   }
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
 }

@@ -3,7 +3,7 @@ import type { NamedRef } from './common';
 export type CompetitionTargetType = 'COUNTRY' | 'CLUB';
 export type CompetitionScopeType = 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
 export type CompetitionCategory = '国际' | '洲际' | '国内' | '其他';
-export type CompetitionLevel = '一级' | '二级' | '三级';
+export type CompetitionLevel = '一级' | '二级' | '三级' | '四级';
 export type CompetitionFormat = '联赛' | '杯赛' | '其他';
 export type CompetitionStandingPlacement =
   | 'CHAMPION'

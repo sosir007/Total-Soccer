@@ -2,7 +2,6 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  createHonorRule,
   fetchHonorRules,
   recalculateHonorScores,
   updateHonorRule
@@ -16,10 +15,7 @@ import {
 } from '@/services/modules/award-rules';
 import type { AwardRuleItem, AwardRulePayload } from '@/services/types/award-rules';
 import type { AwardScopeType } from '@/services/types/awards';
-import type {
-  CompetitionStandingPlacement,
-  CompetitionTargetType
-} from '@/services/types/competitions';
+import type { CompetitionTargetType } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
 import AwardRuleDialog from './components/AwardRuleDialog.vue';
 import AwardRuleListPanel from './components/AwardRuleListPanel.vue';
@@ -29,12 +25,6 @@ import HonorRuleListPanel from './components/HonorRuleListPanel.vue';
 const targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }> = [
   { label: '国家队', value: 'COUNTRY' },
   { label: '俱乐部', value: 'CLUB' }
-];
-const placementOptions: Array<{ label: string; value: CompetitionStandingPlacement }> = [
-  { label: '冠军', value: 'CHAMPION' },
-  { label: '亚军', value: 'RUNNER_UP' },
-  { label: '季军', value: 'THIRD_PLACE' },
-  { label: '殿军', value: 'FOURTH_PLACE' }
 ];
 const enabledOptions = [
   { label: '启用', value: 'true' },
@@ -51,9 +41,6 @@ const awardScopeOptions: Array<{ label: string; value: AwardScopeType }> = [
 const targetTypeLabels = Object.fromEntries(
   targetTypeOptions.map((item) => [item.value, item.label])
 ) as Record<CompetitionTargetType, string>;
-const placementLabels = Object.fromEntries(
-  placementOptions.map((item) => [item.value, item.label])
-) as Record<CompetitionStandingPlacement, string>;
 const awardScopeLabels = Object.fromEntries(
   awardScopeOptions.map((item) => [item.value, item.label])
 ) as Record<AwardScopeType, string>;
@@ -70,28 +57,23 @@ const total = ref(0);
 const lastRecalculateSummary = ref('');
 
 const filters = reactive({
-  page: 1,
-  pageSize: 20,
   keyword: '',
-  targetType: '' as '' | CompetitionTargetType,
-  placement: '' as '' | CompetitionStandingPlacement,
   enabled: ''
 });
 const form = reactive<HonorRulePayload>({
-  code: '',
-  name: '',
-  targetType: 'COUNTRY',
-  category: '',
-  placement: 'CHAMPION',
-  baseScore: 0,
-  coefficient: 1,
-  enabled: true,
-  sortOrder: 0,
-  remark: ''
+  championScore: null,
+  runnerUpScore: null,
+  thirdPlaceScore: null,
+  fourthPlaceScore: null,
+  typicalCompetitionIds: [],
+  remark: null
 });
 
-const hasRows = computed(() => items.value.length > 0);
-const dialogTitle = computed(() => (editingItem.value ? '编辑荣誉规则' : '新增荣誉规则'));
+const countryRules = computed(() => items.value.filter((item) => item.targetType === 'COUNTRY'));
+const clubRules = computed(() => items.value.filter((item) => item.targetType === 'CLUB'));
+const dialogTitle = computed(() =>
+  editingItem.value ? `编辑荣誉规则：${editingItem.value.name}` : '编辑荣誉规则'
+);
 
 const awardLoading = ref(false);
 const awardSubmitting = ref(false);
@@ -134,11 +116,9 @@ async function loadRules() {
 
   try {
     const result = await fetchHonorRules({
-      page: filters.page,
-      pageSize: filters.pageSize,
+      page: 1,
+      pageSize: 100,
       keyword: filters.keyword || undefined,
-      targetType: filters.targetType || undefined,
-      placement: filters.placement || undefined,
       enabled: filters.enabled || undefined
     });
     items.value = result.items;
@@ -152,111 +132,84 @@ async function loadRules() {
 }
 
 function submitFilters() {
-  filters.page = 1;
   void loadRules();
 }
 
 function resetFilters() {
-  filters.page = 1;
   filters.keyword = '';
-  filters.targetType = '';
-  filters.placement = '';
   filters.enabled = '';
   void loadRules();
 }
 
 function resetForm() {
-  form.code = '';
-  form.name = '';
-  form.targetType = 'COUNTRY';
-  form.category = '';
-  form.placement = 'CHAMPION';
-  form.baseScore = 0;
-  form.coefficient = 1;
-  form.enabled = true;
-  form.sortOrder = 0;
-  form.remark = '';
-}
-
-function openCreateDialog() {
-  editingItem.value = null;
-  resetForm();
-  dialogVisible.value = true;
+  form.championScore = null;
+  form.runnerUpScore = null;
+  form.thirdPlaceScore = null;
+  form.fourthPlaceScore = null;
+  form.typicalCompetitionIds = [];
+  form.remark = null;
 }
 
 function openEditDialog(row: HonorRuleItem) {
   editingItem.value = row;
-  form.code = row.code;
-  form.name = row.name;
-  form.targetType = row.targetType;
-  form.category = row.category ?? '';
-  form.placement = row.placement;
-  form.baseScore = row.baseScore;
-  form.coefficient = row.coefficient;
-  form.enabled = row.enabled;
-  form.sortOrder = row.sortOrder;
-  form.remark = row.remark ?? '';
+  form.championScore = row.championScore ?? null;
+  form.runnerUpScore = row.runnerUpScore ?? null;
+  form.thirdPlaceScore = row.thirdPlaceScore ?? null;
+  form.fourthPlaceScore = row.fourthPlaceScore ?? null;
+  form.typicalCompetitionIds = (row.typicalCompetitions ?? []).map((item) => item.competition.id);
+  form.remark = row.remark ?? null;
   dialogVisible.value = true;
 }
 
-function validateForm() {
-  if (!form.code.trim()) {
-    ElMessage.warning('请填写规则编码。');
-    return false;
+function validateNullableScore(value: unknown, label: string) {
+  if (value === null || value === undefined || value === '') {
+    return true;
   }
 
-  if (!form.name.trim()) {
-    ElMessage.warning('请填写规则名称。');
-    return false;
-  }
-
-  if (!Number.isFinite(form.baseScore) || form.baseScore < 0) {
-    ElMessage.warning('基础分必须是不小于 0 的数字。');
-    return false;
-  }
-
-  if (!Number.isFinite(form.coefficient) || form.coefficient < 0) {
-    ElMessage.warning('系数必须是不小于 0 的数字。');
+  if (!Number.isFinite(Number(value)) || Number(value) < 0) {
+    ElMessage.warning(`${label}必须是不小于 0 的数字。`);
     return false;
   }
 
   return true;
 }
 
+function validateForm() {
+  return (
+    validateNullableScore(form.championScore, '冠军分') &&
+    validateNullableScore(form.runnerUpScore, '亚军分') &&
+    validateNullableScore(form.thirdPlaceScore, '季军分') &&
+    validateNullableScore(form.fourthPlaceScore, '殿军分')
+  );
+}
+
+function normalizeNullableNumber(value: number | null | undefined) {
+  return value === null || value === undefined ? null : Number(value);
+}
+
 function buildPayload(): HonorRulePayload {
   return {
-    code: form.code.trim(),
-    name: form.name.trim(),
-    targetType: form.targetType,
-    category: form.category?.trim() || undefined,
-    placement: form.placement,
-    baseScore: Number(form.baseScore),
-    coefficient: Number(form.coefficient),
-    enabled: form.enabled,
-    sortOrder: form.sortOrder ?? 0,
-    remark: form.remark?.trim() || undefined
+    championScore: normalizeNullableNumber(form.championScore),
+    runnerUpScore: normalizeNullableNumber(form.runnerUpScore),
+    thirdPlaceScore: normalizeNullableNumber(form.thirdPlaceScore),
+    fourthPlaceScore: normalizeNullableNumber(form.fourthPlaceScore),
+    typicalCompetitionIds: form.typicalCompetitionIds ?? [],
+    remark: form.remark?.trim() || null
   };
 }
 
 async function saveRule() {
-  if (!validateForm()) {
+  if (!editingItem.value || !validateForm()) {
     return;
   }
 
   submitting.value = true;
 
   try {
-    const payload = buildPayload();
-
-    if (editingItem.value) {
-      await updateHonorRule(editingItem.value.id, payload);
-      ElMessage.success('荣誉规则已更新。');
-    } else {
-      await createHonorRule(payload);
-      ElMessage.success('荣誉规则已创建。');
-    }
-
+    await updateHonorRule(editingItem.value.id, buildPayload());
+    ElMessage.success('荣誉规则已更新。');
     dialogVisible.value = false;
+    resetForm();
     await loadRules();
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '保存荣誉规则失败。');
@@ -265,35 +218,10 @@ async function saveRule() {
   }
 }
 
-async function toggleRule(row: HonorRuleItem) {
-  submitting.value = true;
-
-  try {
-    await updateHonorRule(row.id, {
-      code: row.code,
-      name: row.name,
-      targetType: row.targetType,
-      category: row.category ?? undefined,
-      placement: row.placement,
-      baseScore: row.baseScore,
-      coefficient: row.coefficient,
-      enabled: !row.enabled,
-      sortOrder: row.sortOrder,
-      remark: row.remark ?? undefined
-    });
-    ElMessage.success(row.enabled ? '规则已停用。' : '规则已启用。');
-    await loadRules();
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '切换规则状态失败。');
-  } finally {
-    submitting.value = false;
-  }
-}
-
 async function recalculateScores() {
   try {
     await ElMessageBox.confirm(
-      '将根据当前启用规则重新计算国家和俱乐部荣誉分，并写回概览统计字段。是否继续？',
+      '将根据当前系统规则重新计算国家和俱乐部荣誉分，并写回概览统计字段。是否继续？',
       '重新计算荣誉分',
       {
         confirmButtonText: '开始重算',
@@ -318,16 +246,8 @@ async function recalculateScores() {
   }
 }
 
-function formatScore(row: HonorRuleItem) {
-  return Number(row.baseScore * row.coefficient).toFixed(2);
-}
-
 function getTargetTypeLabel(value: CompetitionTargetType) {
   return targetTypeLabels[value] ?? value;
-}
-
-function getPlacementLabel(value: CompetitionStandingPlacement) {
-  return placementLabels[value] ?? value;
 }
 
 function getAwardScopeLabel(value?: AwardScopeType | null) {
@@ -505,7 +425,7 @@ async function toggleAwardRule(row: AwardRuleItem) {
     ElMessage.success(row.enabled ? '规则已停用。' : '规则已启用。');
     await loadAwardRules();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '切换球员奖项规则状态失败。');
+    ElMessage.error(error instanceof Error ? error.message : '切换球员奖项规则失败。');
   } finally {
     awardSubmitting.value = false;
   }
@@ -544,13 +464,6 @@ function formatAwardRuleScore(row: AwardRuleItem) {
 }
 
 watch(
-  () => [filters.page, filters.pageSize],
-  () => {
-    void loadRules();
-  }
-);
-
-watch(
   () => [awardFilters.page, awardFilters.pageSize],
   () => {
     void loadAwardRules();
@@ -571,16 +484,14 @@ onMounted(() => {
           <div class="panel-header">
             <div>
               <h2>荣誉规则</h2>
-              <p>按赛事对象、分类和名次配置评分规则，手动触发后更新国家与俱乐部荣誉分。</p>
+              <p>
+                系统规则按对象、分类、级别、赛制和适用范围命中赛事；典型赛事只用于展示辅助理解。
+              </p>
             </div>
             <div class="header-actions">
               <el-button type="warning" :loading="recalculating" @click="recalculateScores">
                 <IconFont name="refresh" />
                 重新计算荣誉分
-              </el-button>
-              <el-button type="success" :disabled="loading" @click="openCreateDialog">
-                <IconFont name="add" />
-                新增规则
               </el-button>
             </div>
           </div>
@@ -597,26 +508,6 @@ onMounted(() => {
                 placeholder="编码 / 名称 / 分类 / 备注"
                 @keyup.enter="submitFilters"
               />
-            </el-form-item>
-            <el-form-item label="对象">
-              <el-select v-model="filters.targetType" clearable placeholder="全部对象">
-                <el-option
-                  v-for="option in targetTypeOptions"
-                  :key="option.value"
-                  :label="option.label"
-                  :value="option.value"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="名次">
-              <el-select v-model="filters.placement" clearable placeholder="全部名次">
-                <el-option
-                  v-for="option in placementOptions"
-                  :key="option.value"
-                  :label="option.label"
-                  :value="option.value"
-                />
-              </el-select>
             </el-form-item>
             <el-form-item label="状态">
               <el-select v-model="filters.enabled" clearable placeholder="全部状态">
@@ -655,20 +546,24 @@ onMounted(() => {
         </div>
 
         <HonorRuleListPanel
-          :items="items"
-          :total="total"
+          title="国家队规则"
+          description="国家队赛事按国际、洲际和其他分类匹配，世界杯、洲际杯等按规则范围决定是否计算殿军。"
+          :items="countryRules"
           :loading="loading"
-          :has-rows="hasRows"
-          :page="filters.page"
-          :page-size="filters.pageSize"
           :get-target-type-label="getTargetTypeLabel"
-          :get-placement-label="getPlacementLabel"
-          :format-score="formatScore"
           @edit="openEditDialog"
-          @toggle="toggleRule"
-          @update:page="filters.page = $event"
-          @update:page-size="filters.pageSize = $event"
         />
+
+        <HonorRuleListPanel
+          title="俱乐部规则"
+          description="俱乐部赛事按国际、洲际、国内和其他分类匹配，国内联赛只计前三，杯赛和超级杯按冠亚处理。"
+          :items="clubRules"
+          :loading="loading"
+          :get-target-type-label="getTargetTypeLabel"
+          @edit="openEditDialog"
+        />
+
+        <p class="rule-count-hint">当前共 {{ total }} 条系统规则，页面不提供新增和删除。</p>
       </el-tab-pane>
 
       <el-tab-pane label="球员奖项规则" name="player-award">
@@ -773,10 +668,10 @@ onMounted(() => {
     <HonorRuleDialog
       v-model:visible="dialogVisible"
       :form="form"
+      :rule="editingItem"
       :title="dialogTitle"
       :submitting="submitting"
-      :target-type-options="targetTypeOptions"
-      :placement-options="placementOptions"
+      :get-target-type-label="getTargetTypeLabel"
       @save="saveRule"
     />
 
@@ -799,22 +694,27 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
+.rule-tabs {
+  min-width: 0;
+
+  :deep(.el-tabs__content),
+  :deep(.el-tab-pane) {
+    min-width: 0;
+  }
+}
+
 .honor-rule-filter {
-  grid-template-columns: minmax(240px, 1fr) repeat(3, 240px) auto;
+  grid-template-columns: minmax(240px, 1fr) 220px auto;
 }
 
 .recalculate-alert {
   margin-top: 16px;
 }
 
-.honor-rule-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 18px;
-
-  :deep(.el-form-item:last-child) {
-    grid-column: 1 / -1;
-  }
+.rule-count-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 @media (max-width: 1180px) {
@@ -824,7 +724,6 @@ onMounted(() => {
 }
 
 @media (max-width: 720px) {
-  .honor-rule-form,
   .honor-rule-filter {
     grid-template-columns: 1fr;
   }

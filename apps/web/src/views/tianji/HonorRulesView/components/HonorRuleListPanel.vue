@@ -1,102 +1,219 @@
 <script setup lang="ts">
+import type { CompetitionTargetType } from '@/services/types/competitions';
 import type {
-  CompetitionStandingPlacement,
-  CompetitionTargetType
-} from '@/services/types/competitions';
-import type { HonorRuleItem } from '@/services/types/honor-rules';
+  HonorRuleConversionType,
+  HonorRuleItem,
+  HonorRulePlacementScope
+} from '@/services/types/honor-rules';
 import IconFont from '@/components/IconFont.vue';
 
 defineProps<{
+  title: string;
+  description: string;
   items: HonorRuleItem[];
-  total: number;
   loading: boolean;
-  hasRows: boolean;
-  page: number;
-  pageSize: number;
   getTargetTypeLabel: (value: CompetitionTargetType) => string;
-  getPlacementLabel: (value: CompetitionStandingPlacement) => string;
-  formatScore: (row: HonorRuleItem) => string;
 }>();
 
 const emit = defineEmits<{
   edit: [row: HonorRuleItem];
-  toggle: [row: HonorRuleItem];
-  'update:page': [value: number];
-  'update:pageSize': [value: number];
 }>();
+
+const placementScopeLabels: Record<HonorRulePlacementScope, string> = {
+  TOP_FOUR: '冠亚季殿',
+  TOP_THREE: '前三',
+  TOP_TWO: '冠亚',
+  LEAGUE_TOP_THREE: '联赛前三',
+  CHAMPION_ONLY: '仅冠军'
+};
+
+const conversionTypeLabels: Record<HonorRuleConversionType, string> = {
+  NONE: '不换算',
+  FREQUENCY_SCALE: '频率 / 规模自动换算',
+  OLYMPIC_STAGE: '奥运年份阶段换算',
+  CLUB_WORLD_CUP_STAGE: '世俱杯阶段换算'
+};
+const countryCoefficientOrder = ['765', '796', '776', '771', '769', '1651', '1649', '788', '784'];
+const confederationCoefficientOrder = ['UEFA', 'CONMEBOL', 'AFC', 'CAF', 'CONCACAF', 'OFC'];
+
+function formatNumber(value?: number | null) {
+  return value === null || value === undefined ? '-' : Number(value).toFixed(2);
+}
+
+function formatScope(row: HonorRuleItem) {
+  if (row.scopeType === 'GLOBAL') return '全球';
+  if (row.scopeType === 'CONFEDERATION') return row.confederation?.name ?? '足联';
+  if (row.scopeType === 'COUNTRY') return row.country?.name ?? '国家';
+  if (row.scopeType === 'CUSTOM') return '自定义';
+
+  return '全部';
+}
+
+function formatTypicalCompetitions(row: HonorRuleItem) {
+  const names = (row.typicalCompetitions ?? [])
+    .map((item) => item.competition?.name)
+    .filter(Boolean);
+
+  return names.length ? names.join('、') : '-';
+}
+
+function formatCoefficients(row: HonorRuleItem) {
+  const coefficients = row.coefficients ?? [];
+
+  if (!coefficients.length) {
+    return `默认 ${formatNumber(row.qualityCoefficient)}`;
+  }
+
+  const labels = [...coefficients]
+    .sort((left, right) => coefficientOrder(left, row) - coefficientOrder(right, row))
+    .map((item) => {
+      const subject = item.confederation?.name ?? item.country?.name ?? '默认';
+
+      return `${subject} ${formatNumber(item.coefficient)}`;
+    });
+
+  if (row.targetType === 'CLUB' && row.category === '国内' && row.scopeType === 'COUNTRY') {
+    labels.push(`其他 ${formatNumber(row.qualityCoefficient)}`);
+  }
+
+  return labels.join('；');
+}
+
+function coefficientOrder(
+  item: NonNullable<HonorRuleItem['coefficients']>[number],
+  row: HonorRuleItem
+) {
+  if (item.country?.uid) {
+    const index = countryCoefficientOrder.indexOf(item.country.uid);
+
+    return index === -1 ? 100 : index;
+  }
+
+  if (item.confederation) {
+    const key = item.confederation.code ?? item.confederation.name;
+    const index = confederationCoefficientOrder.findIndex((matcher) =>
+      key.toLowerCase().includes(matcher.toLowerCase())
+    );
+
+    return index === -1 ? 100 : index;
+  }
+
+  return row.qualityCoefficient === item.coefficient ? 999 : 100;
+}
+
+function getPlacementScopeLabel(value: HonorRulePlacementScope) {
+  return placementScopeLabels[value] ?? value;
+}
+
+function getConversionTypeLabel(value: HonorRuleConversionType) {
+  return conversionTypeLabels[value] ?? value;
+}
 </script>
 
 <template>
-  <div class="panel">
+  <div class="panel honor-rule-panel">
     <div class="panel-header">
-      <h3>规则列表</h3>
-      <span class="status-pill">{{ total }} 条</span>
+      <div>
+        <h3>{{ title }}</h3>
+        <p>{{ description }}</p>
+      </div>
+      <span class="status-pill">{{ items.length }} 条</span>
     </div>
 
-    <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
+    <el-skeleton v-if="loading && !items.length" :rows="8" animated />
 
-    <div v-else-if="!hasRows" class="empty-panel">
-      <h3>暂无荣誉规则</h3>
-      <p>先新增赛事评分规则，再录入赛事名次并手动重算荣誉分。</p>
+    <div v-else-if="!items.length" class="empty-panel">
+      <h3>暂无系统规则</h3>
+      <p>默认荣誉规则会由后端按稳定编码自动导入。</p>
     </div>
 
-    <template v-else>
+    <div v-else class="honor-rule-table-wrap">
       <el-table :data="items" border>
-        <el-table-column prop="sortOrder" label="排序" width="72" />
-        <el-table-column prop="code" label="编码" min-width="120" show-overflow-tooltip />
-        <el-table-column prop="name" label="规则名称" min-width="150" show-overflow-tooltip />
-        <el-table-column label="对象" width="92">
+        <el-table-column label="序号" width="72" align="center">
+          <template #default="{ $index }">
+            <span class="rule-index">{{ $index + 1 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" label="规则名称" min-width="180" show-overflow-tooltip />
+        <el-table-column label="对象" width="92" align="center">
           <template #default="{ row }">{{ getTargetTypeLabel(row.targetType) }}</template>
         </el-table-column>
-        <el-table-column label="赛事分类" min-width="120">
-          <template #default="{ row }">{{ row.category || '未分类' }}</template>
+        <el-table-column prop="category" label="分类" width="86" align="center" />
+        <el-table-column prop="level" label="级别" width="86" align="center" />
+        <el-table-column prop="format" label="赛制" width="86" align="center" />
+        <el-table-column label="适用范围" width="110" align="center">
+          <template #default="{ row }">{{ formatScope(row) }}</template>
         </el-table-column>
-        <el-table-column label="名次" width="84">
-          <template #default="{ row }">{{ getPlacementLabel(row.placement) }}</template>
+        <el-table-column label="典型命中赛事" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatTypicalCompetitions(row) }}</template>
         </el-table-column>
-        <el-table-column prop="baseScore" label="基础分" width="92" />
-        <el-table-column prop="coefficient" label="系数" width="84" />
-        <el-table-column label="实际分" width="92">
-          <template #default="{ row }">{{ formatScore(row) }}</template>
+        <el-table-column label="基础分" width="86" align="center">
+          <template #default="{ row }">{{ formatNumber(row.baseScore) }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="84">
+        <el-table-column label="质量系数" min-width="180" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatCoefficients(row) }}</template>
+        </el-table-column>
+        <el-table-column label="换算方式" min-width="150" show-overflow-tooltip>
+          <template #default="{ row }">{{ getConversionTypeLabel(row.conversionType) }}</template>
+        </el-table-column>
+        <el-table-column label="名次范围" width="110" align="center">
+          <template #default="{ row }">{{ getPlacementScopeLabel(row.placementScope) }}</template>
+        </el-table-column>
+        <el-table-column label="冠军分" width="92" align="center">
+          <template #default="{ row }">{{ formatNumber(row.championScore) }}</template>
+        </el-table-column>
+        <el-table-column label="亚军分" width="92" align="center">
+          <template #default="{ row }">{{ formatNumber(row.runnerUpScore) }}</template>
+        </el-table-column>
+        <el-table-column label="季军分" width="92" align="center">
+          <template #default="{ row }">{{ formatNumber(row.thirdPlaceScore) }}</template>
+        </el-table-column>
+        <el-table-column label="殿军分" width="92" align="center">
+          <template #default="{ row }">{{ formatNumber(row.fourthPlaceScore) }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="84" align="center">
           <template #default="{ row }">
             <el-tag :type="row.enabled ? 'success' : 'info'">
               {{ row.enabled ? '启用' : '停用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip>
+        <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ row.remark || '-' }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="132" fixed="right">
+        <el-table-column label="操作" width="92" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="primary" @click="emit('edit', row)">
               <IconFont name="edit" />
               编辑
             </el-button>
-            <el-button
-              link
-              :type="row.enabled ? 'warning' : 'success'"
-              @click="emit('toggle', row)"
-            >
-              {{ row.enabled ? '停用' : '启用' }}
-            </el-button>
           </template>
         </el-table-column>
       </el-table>
-
-      <div class="table-footer">
-        <el-pagination
-          :current-page="page"
-          :page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          @update:current-page="emit('update:page', $event)"
-          @update:page-size="emit('update:pageSize', $event)"
-        />
-      </div>
-    </template>
+    </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.honor-rule-panel {
+  margin-top: 16px;
+  overflow: hidden;
+
+  :deep(.el-table__cell) {
+    vertical-align: middle;
+  }
+}
+
+.honor-rule-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.rule-index {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+</style>

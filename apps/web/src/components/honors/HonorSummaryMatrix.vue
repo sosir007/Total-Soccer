@@ -121,7 +121,7 @@ function getCompetitionCounts(row: HonorSummaryRow, competitionId: string): Hono
       </template>
     </el-table-column>
 
-    <el-table-column label="评分" width="100" fixed="right" align="center">
+    <el-table-column label="荣誉分" width="100" fixed="right" align="center">
       <template #default="{ row }">
         <span class="honor-count-cell">{{ formatNumber(row.honorScore, 2) }}</span>
       </template>

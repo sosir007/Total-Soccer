@@ -49,6 +49,21 @@ enum AuditAction {
   OTHER
 }
 
+enum HonorRulePlacementScope {
+  TOP_FOUR
+  TOP_THREE
+  TOP_TWO
+  LEAGUE_TOP_THREE
+  CHAMPION_ONLY
+}
+
+enum HonorRuleConversionType {
+  NONE
+  FREQUENCY_SCALE
+  OLYMPIC_STAGE
+  CLUB_WORLD_CUP_STAGE
+}
+
 model Player {
   id                 String              @id @default(cuid())
   importKey          String              @unique
@@ -190,6 +205,8 @@ model Country {
   inheritedFromCountries CountrySuccessor[]       @relation("CountryInheritedFrom")
   honors                CountryHonor[]
   scopedAwards          Award[]                   @relation("AwardScopeCountry")
+  honorRules            HonorRule[]               @relation("HonorRuleScopeCountry")
+  honorRuleCoefficients HonorRuleCoefficient[]    @relation("HonorRuleCoefficientCountry")
   scopedCompetitions    Competition[]             @relation("CompetitionLegacyScopeCountry")
   competitionScopeLinks CompetitionScopeCountry[]
   competitionResults    CompetitionStanding[]
@@ -317,27 +334,77 @@ model PlayerCareer {
 }
 
 model HonorRule {
-  id              String                       @id @default(cuid())
-  code            String                       @unique
-  name            String
-  targetType      CompetitionTargetType        @default(COUNTRY)
-  category        String?
-  placement       CompetitionStandingPlacement @default(CHAMPION)
-  baseScore       Float                        @default(0)
-  championScore   Float?
-  runnerUpScore   Float?
-  thirdPlaceScore Float?
-  coefficient     Float                        @default(1)
-  enabled         Boolean                      @default(true)
-  sortOrder       Int                          @default(0)
-  remark          String?
-  createdAt       DateTime                     @default(now())
-  updatedAt       DateTime                     @updatedAt
+  id                  String                       @id @default(cuid())
+  code                String                       @unique
+  name                String
+  targetType          CompetitionTargetType        @default(COUNTRY)
+  category            String?
+  level               String?
+  format              String?
+  scopeType           CompetitionScopeType?
+  confederationId     String?
+  countryId           String?
+  placement           CompetitionStandingPlacement @default(CHAMPION)
+  placementScope      HonorRulePlacementScope      @default(TOP_TWO)
+  conversionType      HonorRuleConversionType      @default(NONE)
+  baseScore           Float                        @default(0)
+  championScore       Float?
+  runnerUpScore       Float?
+  thirdPlaceScore     Float?
+  fourthPlaceScore    Float?
+  coefficient         Float                        @default(1)
+  qualityCoefficient  Float                        @default(1)
+  isSystem            Boolean                      @default(false)
+  enabled             Boolean                      @default(true)
+  sortOrder           Int                          @default(0)
+  remark              String?
+  confederation       Confederation?               @relation("HonorRuleScopeConfederation", fields: [confederationId], references: [id])
+  country             Country?                     @relation("HonorRuleScopeCountry", fields: [countryId], references: [id])
+  typicalCompetitions HonorRuleCompetition[]
+  coefficients        HonorRuleCoefficient[]
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
 
   @@index([targetType])
   @@index([category])
+  @@index([level])
+  @@index([format])
+  @@index([scopeType])
+  @@index([confederationId])
+  @@index([countryId])
   @@index([placement])
+  @@index([placementScope])
+  @@index([conversionType])
+  @@index([isSystem])
   @@index([enabled])
+}
+
+model HonorRuleCompetition {
+  honorRuleId   String
+  competitionId String
+  honorRule     HonorRule   @relation(fields: [honorRuleId], references: [id], onDelete: Cascade)
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@id([honorRuleId, competitionId])
+  @@index([competitionId])
+}
+
+model HonorRuleCoefficient {
+  id              String         @id @default(cuid())
+  honorRuleId     String
+  confederationId String?
+  countryId       String?
+  coefficient     Float          @default(1)
+  honorRule       HonorRule      @relation(fields: [honorRuleId], references: [id], onDelete: Cascade)
+  confederation   Confederation? @relation("HonorRuleCoefficientConfederation", fields: [confederationId], references: [id])
+  country         Country?       @relation("HonorRuleCoefficientCountry", fields: [countryId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([honorRuleId])
+  @@index([confederationId])
+  @@index([countryId])
 }
 
 model AwardRule {
@@ -422,6 +489,8 @@ model Confederation {
   code                  String?
   sortOrder             Int                             @default(0)
   scopedAwards          Award[]                         @relation("AwardScopeConfederation")
+  honorRules            HonorRule[]                     @relation("HonorRuleScopeConfederation")
+  honorRuleCoefficients HonorRuleCoefficient[]          @relation("HonorRuleCoefficientConfederation")
   countries             Country[]
   clubs                 Club[]
   players               Player[]
@@ -451,6 +520,7 @@ model Competition {
   country             Country?                        @relation("CompetitionLegacyScopeCountry", fields: [countryId], references: [id])
   scopeConfederations CompetitionScopeConfederation[]
   scopeCountries      CompetitionScopeCountry[]
+  typicalHonorRules   HonorRuleCompetition[]
   editions            CompetitionEdition[]
   createdAt           DateTime                        @default(now())
   updatedAt           DateTime                        @updatedAt

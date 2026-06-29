@@ -53,7 +53,8 @@ const categoryOptions: Array<{ label: string; value: CompetitionCategory }> = [
 const levelOptions: Array<{ label: string; value: CompetitionLevel }> = [
   { label: '一级', value: '一级' },
   { label: '二级', value: '二级' },
-  { label: '三级', value: '三级' }
+  { label: '三级', value: '三级' },
+  { label: '四级', value: '四级' }
 ];
 const formatOptions: Array<{ label: string; value: CompetitionFormat }> = [
   { label: '联赛', value: '联赛' },

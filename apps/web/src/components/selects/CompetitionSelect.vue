@@ -4,19 +4,21 @@ import BaseOptionSelect from './BaseOptionSelect.vue';
 import type { CompetitionTargetType } from '@/services/types/competitions';
 import { useOptionStore } from '@/stores/options';
 
-const model = defineModel<string>({ default: '' });
+const model = defineModel<string | string[]>({ default: '' });
 const props = withDefaults(
   defineProps<{
     targetType?: CompetitionTargetType;
     placeholder?: string;
     clearable?: boolean;
     disabled?: boolean;
+    multiple?: boolean;
   }>(),
   {
     targetType: undefined,
     placeholder: '全部赛事',
     clearable: true,
-    disabled: false
+    disabled: false,
+    multiple: false
   }
 );
 
@@ -40,5 +42,6 @@ onMounted(() => {
     :placeholder="placeholder"
     :clearable="clearable"
     :disabled="disabled"
+    :multiple="multiple"
   />
 </template>

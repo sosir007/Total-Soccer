@@ -16,8 +16,8 @@ export class HonorRulesController {
 
   @Post()
   @ApiOperation({ summary: '创建荣誉规则' })
-  create(@Body() body: HonorRulePayload) {
-    return this.honorRulesService.create(body);
+  create() {
+    return this.honorRulesService.create();
   }
 
   @Put(':id')
