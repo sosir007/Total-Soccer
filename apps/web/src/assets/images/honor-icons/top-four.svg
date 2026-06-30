@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Top four honor icon</title>
+  <defs>
+    <linearGradient id="topfour-bg" x1="40" y1="26" x2="220" y2="230" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.5" stop-color="#ECF7EF"/>
+      <stop offset="1" stop-color="#FFF3D8"/>
+    </linearGradient>
+    <linearGradient id="topfour-field" x1="64" y1="50" x2="194" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DAF6B"/>
+      <stop offset="1" stop-color="#0F6F43"/>
+    </linearGradient>
+    <linearGradient id="topfour-gold" x1="78" y1="60" x2="180" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE8A3"/>
+      <stop offset="1" stop-color="#C89436"/>
+    </linearGradient>
+    <filter id="topfour-shadow" x="24" y="24" width="208" height="212" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="13" flood-color="#1B432D" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <circle cx="128" cy="128" r="108" fill="url(#topfour-bg)"/>
+  <path d="M47 151c36-18 126-18 162 0" stroke="#1F8B55" stroke-width="6" stroke-linecap="round" opacity="0.12"/>
+  <path d="M64 177c27-12 101-12 128 0" stroke="#C89436" stroke-width="5" stroke-linecap="round" opacity="0.14"/>
+
+  <g filter="url(#topfour-shadow)">
+    <path d="M128 211c-46-18-72-52-72-101V68l72-30 72 30v42c0 49-26 83-72 101z" fill="#FFFFFF"/>
+    <path d="M128 198c-38-15-60-44-60-86V78l60-25 60 25v34c0 42-22 71-60 86z" fill="url(#topfour-field)"/>
+    <path d="M90 96h76v76H90z" rx="10" fill="#FAFFF9" opacity="0.96"/>
+    <path d="M128 96v76M90 134h76" stroke="#1F8B55" stroke-width="5" stroke-linecap="round" opacity="0.34"/>
+    <circle cx="128" cy="134" r="18" stroke="#1F8B55" stroke-width="5" opacity="0.34"/>
+    <path d="M96 87h64" stroke="url(#topfour-gold)" stroke-width="10" stroke-linecap="round"/>
+    <path d="M94 177h68l9 21H85l9-21z" fill="url(#topfour-gold)"/>
+    <path d="M106 115h44M106 153h44M109 115v-14h38v14M109 153v14h38v-14" stroke="#10251B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.82"/>
+    <circle cx="101" cy="115" r="7" fill="#F4C64A"/>
+    <circle cx="155" cy="115" r="7" fill="#C7D0D9"/>
+    <circle cx="101" cy="153" r="7" fill="#C97934"/>
+    <circle cx="155" cy="153" r="7" fill="#1F8B55"/>
+    <text x="128" y="190" text-anchor="middle" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="900">4</text>
+  </g>
+</svg>

@@ -543,15 +543,21 @@ h1 {
 }
 
 .honor-group-placement {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 4px 6px;
+  align-items: center;
   color: #3d4d43;
-  line-height: 1.8;
+  line-height: 1.6;
 
   strong {
+    display: inline-flex;
+    align-items: center;
     font-weight: 800;
+  }
+
+  > span {
+    min-width: 0;
   }
 }
 
@@ -1276,6 +1282,14 @@ h1 {
   cursor: pointer;
 }
 
+.lineup-player {
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  gap: 8px;
+  padding: 12px;
+}
+
 .timeline-player:hover,
 .lineup-player:hover {
   border-color: rgba(31, 139, 85, 0.28);
@@ -1284,6 +1298,7 @@ h1 {
 
 .timeline-player strong,
 .lineup-player strong {
+  min-width: 0;
   overflow: hidden;
   color: var(--green);
   font-weight: 850;
@@ -1301,6 +1316,22 @@ h1 {
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.lineup-player-meta {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+  align-items: center;
+}
+
+.lineup-player-meta span {
+  flex: 0 0 auto;
+}
+
+.lineup-player-meta em {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .lineup-board {

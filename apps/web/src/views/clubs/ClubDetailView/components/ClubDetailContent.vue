@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import IconFont from '@/components/IconFont.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
+import OverflowTooltip from '@/components/OverflowTooltip.vue';
 import type { CareerProfileLine, ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
@@ -241,9 +242,13 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
               type="button"
               @click="emit('openPlayer', item.player.id)"
             >
-              <strong>{{ item.player.chineseName }}</strong>
-              <span>PA {{ formatText(item.player.pa) }}</span>
-              <em>{{ formatLineStats(item) }}</em>
+              <strong>
+                <OverflowTooltip :content="item.player.chineseName" />
+              </strong>
+              <div class="lineup-player-meta">
+                <span>PA {{ formatText(item.player.pa) }}</span>
+                <em>{{ formatLineStats(item) }}</em>
+              </div>
             </button>
           </div>
         </div>
@@ -278,9 +283,13 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
               type="button"
               @click="emit('openPlayer', item.player.id)"
             >
-              <strong>{{ item.player.chineseName }}</strong>
-              <span>PA {{ formatText(item.player.pa) }}</span>
-              <em>{{ formatLineStats(item) }}</em>
+              <strong>
+                <OverflowTooltip :content="item.player.chineseName" />
+              </strong>
+              <div class="lineup-player-meta">
+                <span>PA {{ formatText(item.player.pa) }}</span>
+                <em>{{ formatLineStats(item) }}</em>
+              </div>
             </button>
           </div>
         </div>

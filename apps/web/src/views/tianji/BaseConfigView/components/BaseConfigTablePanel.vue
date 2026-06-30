@@ -74,16 +74,18 @@ const filters = toRef(props, 'filters');
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140">
+        <el-table-column label="操作" width="172" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="emit('edit', row)">
-              <IconFont name="edit" />
-              编辑
-            </el-button>
-            <el-button link type="danger" @click="emit('delete', row)">
-              <IconFont name="delete" />
-              删除
-            </el-button>
+            <div class="base-config-row-actions">
+              <el-button link type="primary" @click="emit('edit', row)">
+                <IconFont name="edit" />
+                编辑
+              </el-button>
+              <el-button link type="danger" @click="emit('delete', row)">
+                <IconFont name="delete" />
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -116,6 +118,17 @@ const filters = toRef(props, 'filters');
 
   :deep(.el-scrollbar__bar.is-horizontal) {
     display: none;
+  }
+}
+
+.base-config-row-actions {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+
+  :deep(.el-button) {
+    margin-left: 0;
   }
 }
 </style>

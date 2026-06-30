@@ -1,7 +1,19 @@
 <script setup lang="ts">
-import IconFont from '@/components/IconFont.vue';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
-import { placementIconNames, placementLabels } from '@/utils/honor';
+import { placementLabels } from '@/utils/honor';
+import championIcon from '@/assets/images/honor-icons/champion.svg';
+import runnerUpIcon from '@/assets/images/honor-icons/runner-up.svg';
+import thirdPlaceIcon from '@/assets/images/honor-icons/third-place.svg';
+import fourthPlaceIcon from '@/assets/images/honor-icons/fourth-place.svg';
+import topFourIcon from '@/assets/images/honor-icons/top-four.svg';
+
+const placementImageUrls: Record<CompetitionStandingPlacement, string> = {
+  CHAMPION: championIcon,
+  RUNNER_UP: runnerUpIcon,
+  THIRD_PLACE: thirdPlaceIcon,
+  FOURTH_PLACE: fourthPlaceIcon,
+  SEMI_FINALIST: topFourIcon
+};
 
 const props = withDefaults(
   defineProps<{
@@ -16,7 +28,28 @@ const props = withDefaults(
 
 <template>
   <span class="honor-placement-label" :class="{ compact: props.compact }">
-    <IconFont :name="placementIconNames[placement]" />
+    <img
+      class="honor-placement-icon"
+      :src="placementImageUrls[placement]"
+      alt=""
+      aria-hidden="true"
+    />
     <span>{{ placementLabels[placement] }}</span>
   </span>
 </template>
+
+<style scoped lang="scss">
+.honor-placement-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.honor-placement-label.compact {
+  .honor-placement-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+</style>
