@@ -5,7 +5,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   createCompetition,
   deleteCompetition,
-  fetchCompetitions
+  fetchCompetitions,
+  updateCompetition
 } from '@/services/modules/competitions';
 import type {
   CompetitionCategory,
@@ -59,6 +60,7 @@ const router = useRouter();
 const optionStore = useOptionStore();
 const loading = ref(false);
 const creating = ref(false);
+const editingId = ref('');
 const deletingId = ref('');
 const createDialogVisible = ref(false);
 const errorMessage = ref('');
@@ -94,6 +96,8 @@ const competitionForm = reactive({
 
 const hasRows = computed(() => competitions.value.length > 0);
 const showCreateFormatField = computed(() => shouldUseCompetitionFormat(competitionForm));
+const competitionDialogTitle = computed(() => (editingId.value ? '编辑赛事' : '创建赛事'));
+const competitionDialogSubmitText = computed(() => (editingId.value ? '保存赛事' : '创建赛事'));
 
 async function loadCompetitions() {
   loading.value = true;
@@ -132,7 +136,31 @@ function resetFilters() {
 }
 
 function openCreateCompetitionDialog() {
+  editingId.value = '';
   resetCompetitionForm();
+  createDialogVisible.value = true;
+}
+
+function openEditCompetitionDialog(row: CompetitionListItem) {
+  editingId.value = row.id;
+  competitionForm.code = row.code;
+  competitionForm.name = row.name;
+  competitionForm.externalUrl = row.externalUrl ?? '';
+  competitionForm.targetType = row.targetType;
+  competitionForm.scopeType = row.scopeType;
+  competitionForm.category = row.category ?? '';
+  competitionForm.level = row.level ?? '';
+  competitionForm.format = (row.format as '' | CompetitionFormat) ?? '其他';
+  competitionForm.description = row.description ?? '';
+  competitionForm.confederationId = row.confederationId ?? '';
+  competitionForm.confederationIds = (row.scopeConfederations ?? []).map(
+    (scope) => scope.confederation.id
+  );
+  competitionForm.countryId = row.countryId ?? '';
+  competitionForm.countryIds = (row.scopeCountries ?? []).map((scope) => scope.country.id);
+  competitionForm.enabled = row.enabled;
+  competitionForm.includeInStats = row.includeInStats;
+  competitionForm.sortOrder = row.sortOrder;
   createDialogVisible.value = true;
 }
 
@@ -144,15 +172,24 @@ async function submitCompetition() {
   creating.value = true;
 
   try {
-    const created = await createCompetition(buildCompetitionPayload());
-    ElMessage.success('赛事创建成功。');
+    const payload = buildCompetitionPayload();
+
+    if (editingId.value) {
+      await updateCompetition(editingId.value, payload);
+      ElMessage.success('赛事已更新。');
+    } else {
+      const created = await createCompetition(payload);
+      ElMessage.success('赛事创建成功。');
+      openCompetitionDetail(created.id);
+    }
+
     createDialogVisible.value = false;
     resetCompetitionForm();
+    editingId.value = '';
     optionStore.invalidate('competitions');
     await loadCompetitions();
-    openCompetitionDetail(created.id);
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '赛事创建失败。');
+    ElMessage.error(error instanceof Error ? error.message : '保存赛事失败。');
   } finally {
     creating.value = false;
   }
@@ -361,6 +398,16 @@ watch(
   }
 );
 
+watch(
+  () => createDialogVisible.value,
+  (visible) => {
+    if (!visible) {
+      editingId.value = '';
+      resetCompetitionForm();
+    }
+  }
+);
+
 onMounted(() => {
   void loadCompetitions();
 });
@@ -404,6 +451,7 @@ onActivated(() => {
       :get-category-tag-class="getCategoryTagClass"
       :get-level-tag-class="getLevelTagClass"
       @create="openCreateCompetitionDialog"
+      @edit="openEditCompetitionDialog"
       @open="openCompetitionDetail"
       @delete="confirmDeleteCompetition"
       @update:page="filters.page = $event"
@@ -412,8 +460,10 @@ onActivated(() => {
 
     <CompetitionCreateDialog
       v-model:visible="createDialogVisible"
+      :title="competitionDialogTitle"
+      :submit-text="competitionDialogSubmitText"
       :form="competitionForm"
-      :creating="creating"
+      :submitting="creating"
       :show-format-field="showCreateFormatField"
       :target-type-options="targetTypeOptions"
       :scope-type-options="scopeTypeOptions"

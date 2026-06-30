@@ -124,6 +124,14 @@ type CountryHonorRecord = Prisma.CompetitionStandingGetPayload<{
 }>;
 type CountryHonorCompetition = CountryHonorRecord['edition']['competition'];
 type HonorSummaryRule = Prisma.HonorRuleGetPayload<{ include: { coefficients: true } }>;
+type HonorSummaryCounts = {
+  totalCount: number;
+  championCount: number;
+  runnerUpCount: number;
+  thirdPlaceCount: number;
+  fourthPlaceCount: number;
+  semiFinalistCount: number;
+};
 
 const PROFILE_PLAYER_SELECT = {
   id: true,
@@ -805,10 +813,21 @@ export class CountriesService {
   private buildHonorSummaryCompetitions(
     records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>>
   ) {
-    const competitionMap = new Map<string, (typeof records)[number]['edition']['competition']>();
+    const competitionMap = new Map<
+      string,
+      (typeof records)[number]['edition']['competition'] & {
+        counts: HonorSummaryCounts;
+      }
+    >();
 
     for (const record of records) {
-      competitionMap.set(record.edition.competition.id, record.edition.competition);
+      const competition = competitionMap.get(record.edition.competition.id) ?? {
+        ...record.edition.competition,
+        counts: this.createHonorSummaryCounts()
+      };
+
+      this.addPlacementCount(competition.counts, record.placement);
+      competitionMap.set(record.edition.competition.id, competition);
     }
 
     return [...competitionMap.values()].sort((a, b) => {
@@ -865,6 +884,7 @@ export class CountriesService {
       runnerUpCount: 0,
       thirdPlaceCount: 0,
       fourthPlaceCount: 0,
+      semiFinalistCount: 0,
       competitionStats: {} as Record<string, ReturnType<typeof this.createHonorSummaryCounts>>
     };
   }
@@ -888,7 +908,8 @@ export class CountriesService {
       championCount: 0,
       runnerUpCount: 0,
       thirdPlaceCount: 0,
-      fourthPlaceCount: 0
+      fourthPlaceCount: 0,
+      semiFinalistCount: 0
     };
   }
 
@@ -897,7 +918,8 @@ export class CountriesService {
       [CompetitionStandingPlacement.CHAMPION]: [],
       [CompetitionStandingPlacement.RUNNER_UP]: [],
       [CompetitionStandingPlacement.THIRD_PLACE]: [],
-      [CompetitionStandingPlacement.FOURTH_PLACE]: []
+      [CompetitionStandingPlacement.FOURTH_PLACE]: [],
+      [CompetitionStandingPlacement.SEMI_FINALIST]: []
     } as Record<CompetitionStandingPlacement, T[]>;
   }
 
@@ -915,6 +937,8 @@ export class CountriesService {
       target.thirdPlaceCount += 1;
     } else if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
       target.fourthPlaceCount += 1;
+    } else if (placement === CompetitionStandingPlacement.SEMI_FINALIST) {
+      target.semiFinalistCount += 1;
     }
   }
 
@@ -1012,6 +1036,7 @@ export class CountriesService {
     if (placement === CompetitionStandingPlacement.RUNNER_UP) return rule.runnerUpScore;
     if (placement === CompetitionStandingPlacement.THIRD_PLACE) return rule.thirdPlaceScore;
     if (placement === CompetitionStandingPlacement.FOURTH_PLACE) return rule.fourthPlaceScore;
+    if (placement === CompetitionStandingPlacement.SEMI_FINALIST) return rule.semiFinalistScore;
 
     return null;
   }
@@ -1034,6 +1059,10 @@ export class CountriesService {
       ];
 
       return thirdPlaceScopes.includes(rule.placementScope);
+    }
+
+    if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
+      return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;
     }
 
     return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;

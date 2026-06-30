@@ -65,6 +65,7 @@ const form = reactive<HonorRulePayload>({
   runnerUpScore: null,
   thirdPlaceScore: null,
   fourthPlaceScore: null,
+  semiFinalistScore: null,
   typicalCompetitionIds: [],
   remark: null
 });
@@ -146,6 +147,7 @@ function resetForm() {
   form.runnerUpScore = null;
   form.thirdPlaceScore = null;
   form.fourthPlaceScore = null;
+  form.semiFinalistScore = null;
   form.typicalCompetitionIds = [];
   form.remark = null;
 }
@@ -156,6 +158,7 @@ function openEditDialog(row: HonorRuleItem) {
   form.runnerUpScore = row.runnerUpScore ?? null;
   form.thirdPlaceScore = row.thirdPlaceScore ?? null;
   form.fourthPlaceScore = row.fourthPlaceScore ?? null;
+  form.semiFinalistScore = row.semiFinalistScore ?? null;
   form.typicalCompetitionIds = (row.typicalCompetitions ?? []).map((item) => item.competition.id);
   form.remark = row.remark ?? null;
   dialogVisible.value = true;
@@ -179,7 +182,8 @@ function validateForm() {
     validateNullableScore(form.championScore, '冠军分') &&
     validateNullableScore(form.runnerUpScore, '亚军分') &&
     validateNullableScore(form.thirdPlaceScore, '季军分') &&
-    validateNullableScore(form.fourthPlaceScore, '殿军分')
+    validateNullableScore(form.fourthPlaceScore, '殿军分') &&
+    validateNullableScore(form.semiFinalistScore, '四强分')
   );
 }
 
@@ -193,6 +197,7 @@ function buildPayload(): HonorRulePayload {
     runnerUpScore: normalizeNullableNumber(form.runnerUpScore),
     thirdPlaceScore: normalizeNullableNumber(form.thirdPlaceScore),
     fourthPlaceScore: normalizeNullableNumber(form.fourthPlaceScore),
+    semiFinalistScore: normalizeNullableNumber(form.semiFinalistScore),
     typicalCompetitionIds: form.typicalCompetitionIds ?? [],
     remark: form.remark?.trim() || null
   };

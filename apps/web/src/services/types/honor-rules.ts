@@ -57,6 +57,7 @@ export interface HonorRuleItem {
   runnerUpScore?: number | null;
   thirdPlaceScore?: number | null;
   fourthPlaceScore?: number | null;
+  semiFinalistScore?: number | null;
   coefficient: number;
   qualityCoefficient: number;
   placementScope: HonorRulePlacementScope;
@@ -78,6 +79,7 @@ export interface HonorRulePayload {
   runnerUpScore?: number | null;
   thirdPlaceScore?: number | null;
   fourthPlaceScore?: number | null;
+  semiFinalistScore?: number | null;
   typicalCompetitionIds?: string[];
   remark?: string | null;
 }

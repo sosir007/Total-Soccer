@@ -1,5 +1,6 @@
 import type {
   CompetitionScopeType,
+  CompetitionEditionStandingMode,
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@prisma/client';
@@ -42,6 +43,7 @@ export interface CreateCompetitionEditionBody {
   season?: string;
   year?: number;
   quantity?: number;
+  standingMode?: CompetitionEditionStandingMode;
   host?: string;
   remark?: string;
 }
@@ -49,8 +51,10 @@ export interface CreateCompetitionEditionBody {
 export type UpdateCompetitionEditionBody = CreateCompetitionEditionBody;
 
 export interface SaveCompetitionStandingsBody {
+  standingMode?: CompetitionEditionStandingMode;
   standings?: Array<{
     placement?: CompetitionStandingPlacement;
+    standingOrder?: number | null;
     countryId?: string | null;
     clubId?: string | null;
     remark?: string | null;

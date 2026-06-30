@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  CompetitionEditionStandingMode,
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType,
@@ -82,7 +83,7 @@ const COMPETITION_DETAIL_INCLUDE = {
     orderBy: [{ year: 'desc' }, { name: 'desc' }],
     include: {
       standings: {
-        orderBy: { placement: 'asc' },
+        orderBy: [{ placement: 'asc' }, { standingOrder: 'asc' }],
         include: {
           country: {
             select: COUNTRY_REF_SELECT
@@ -280,21 +281,12 @@ export class CompetitionsService {
     const edition = await this.prisma.competitionEdition.findUnique({
       where: { id },
       select: {
-        id: true,
-        _count: {
-          select: {
-            standings: true
-          }
-        }
+        id: true
       }
     });
 
     if (!edition) {
       throw new NotFoundException('赛事届次不存在。');
-    }
-
-    if (edition._count.standings > 0) {
-      throw new BadRequestException('赛事届次已有名次关联，不能直接删除。');
     }
 
     try {
@@ -320,9 +312,14 @@ export class CompetitionsService {
       throw new NotFoundException('赛事届次不存在。');
     }
 
-    const standings = this.buildStandingData(edition.competition.targetType, body);
+    const standingMode = this.parseStandingMode(body.standingMode ?? edition.standingMode);
+    const standings = this.buildStandingData(edition.competition.targetType, standingMode, body);
 
     await this.prisma.$transaction([
+      this.prisma.competitionEdition.update({
+        where: { id },
+        data: { standingMode }
+      }),
       this.prisma.competitionStanding.deleteMany({
         where: { editionId: id }
       }),
@@ -406,6 +403,9 @@ export class CompetitionsService {
       season: this.toNullableString(body.season),
       year: this.toNullableNumber(body.year),
       quantity: this.toNullableNumber(body.quantity),
+      standingMode: this.parseStandingMode(
+        body.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH
+      ),
       host: this.toNullableString(body.host),
       remark: this.toNullableString(body.remark)
     } satisfies Prisma.CompetitionEditionCreateInput;
@@ -417,6 +417,9 @@ export class CompetitionsService {
       ...(body.season !== undefined ? { season: this.toNullableString(body.season) } : {}),
       ...(body.year !== undefined ? { year: this.toNullableNumber(body.year) } : {}),
       ...(body.quantity !== undefined ? { quantity: this.toNullableNumber(body.quantity) } : {}),
+      ...(body.standingMode !== undefined
+        ? { standingMode: this.parseStandingMode(body.standingMode) }
+        : {}),
       ...(body.host !== undefined ? { host: this.toNullableString(body.host) } : {}),
       ...(body.remark !== undefined ? { remark: this.toNullableString(body.remark) } : {})
     } satisfies Prisma.CompetitionEditionUpdateInput;
@@ -424,18 +427,23 @@ export class CompetitionsService {
 
   private buildStandingData(
     targetType: CompetitionTargetType,
+    standingMode: CompetitionEditionStandingMode,
     body: SaveCompetitionStandingsBody
   ): Array<{
     placement: CompetitionStandingPlacement;
+    standingOrder: number;
     countryId?: string;
     clubId?: string;
     remark?: string | null;
   }> {
     const standings = body.standings ?? [];
-    const usedPlacements = new Set<CompetitionStandingPlacement>();
+    const usedPlacementKeys = new Set<string>();
+    const semiFinalistOrders = new Set<number>();
+    const allowedPlacements = this.allowedPlacementsByMode(standingMode);
 
     const rows: Array<{
       placement: CompetitionStandingPlacement;
+      standingOrder: number;
       countryId?: string;
       clubId?: string;
       remark?: string | null;
@@ -443,12 +451,30 @@ export class CompetitionsService {
 
     for (const standing of standings) {
       const placement = this.parsePlacement(standing.placement);
+      const standingOrder = this.parseStandingOrder(placement, standing.standingOrder);
 
-      if (usedPlacements.has(placement)) {
+      if (!allowedPlacements.includes(placement)) {
+        throw new BadRequestException('赛事名次与当前届次名次口径不匹配。');
+      }
+
+      const placementKey =
+        placement === CompetitionStandingPlacement.SEMI_FINALIST
+          ? `${placement}:${standingOrder}`
+          : placement;
+
+      if (usedPlacementKeys.has(placementKey)) {
         throw new BadRequestException('同一届赛事不能重复录入相同名次。');
       }
 
-      usedPlacements.add(placement);
+      usedPlacementKeys.add(placementKey);
+
+      if (placement === CompetitionStandingPlacement.SEMI_FINALIST) {
+        semiFinalistOrders.add(standingOrder);
+
+        if (semiFinalistOrders.size > 2) {
+          throw new BadRequestException('同一届赛事最多录入两支四强球队。');
+        }
+      }
 
       if (targetType === CompetitionTargetType.COUNTRY) {
         if (!standing.countryId) {
@@ -461,6 +487,7 @@ export class CompetitionsService {
 
         rows.push({
           placement,
+          standingOrder,
           countryId: standing.countryId,
           remark: standing.remark ?? null
         });
@@ -477,6 +504,7 @@ export class CompetitionsService {
 
       rows.push({
         placement,
+        standingOrder,
         clubId: standing.clubId,
         remark: standing.remark ?? null
       });
@@ -577,6 +605,62 @@ export class CompetitionsService {
     }
 
     return value;
+  }
+
+  private parseStandingMode(value: CompetitionEditionStandingMode | undefined) {
+    if (!value || !Object.values(CompetitionEditionStandingMode).includes(value)) {
+      throw new BadRequestException('届次名次口径不合法。');
+    }
+
+    return value;
+  }
+
+  private parseStandingOrder(
+    placement: CompetitionStandingPlacement,
+    value: number | null | undefined
+  ) {
+    if (placement !== CompetitionStandingPlacement.SEMI_FINALIST) {
+      return 0;
+    }
+
+    const order = value === null || value === undefined ? 1 : Number(value);
+
+    if (!Number.isInteger(order) || order < 1 || order > 2) {
+      throw new BadRequestException('四强序号必须是 1 或 2。');
+    }
+
+    return order;
+  }
+
+  private allowedPlacementsByMode(
+    standingMode: CompetitionEditionStandingMode
+  ): CompetitionStandingPlacement[] {
+    if (standingMode === CompetitionEditionStandingMode.THIRD_PLACE_MATCH) {
+      return [
+        CompetitionStandingPlacement.CHAMPION,
+        CompetitionStandingPlacement.RUNNER_UP,
+        CompetitionStandingPlacement.THIRD_PLACE,
+        CompetitionStandingPlacement.FOURTH_PLACE
+      ];
+    }
+
+    if (standingMode === CompetitionEditionStandingMode.SEMI_FINALISTS) {
+      return [
+        CompetitionStandingPlacement.CHAMPION,
+        CompetitionStandingPlacement.RUNNER_UP,
+        CompetitionStandingPlacement.SEMI_FINALIST
+      ];
+    }
+
+    if (standingMode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE) {
+      return [
+        CompetitionStandingPlacement.CHAMPION,
+        CompetitionStandingPlacement.RUNNER_UP,
+        CompetitionStandingPlacement.THIRD_PLACE
+      ];
+    }
+
+    return [CompetitionStandingPlacement.CHAMPION, CompetitionStandingPlacement.RUNNER_UP];
   }
 
   private parseStandardText<T extends readonly string[]>(

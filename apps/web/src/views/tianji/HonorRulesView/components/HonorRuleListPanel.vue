@@ -20,7 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const placementScopeLabels: Record<HonorRulePlacementScope, string> = {
-  TOP_FOUR: '冠亚季殿',
+  TOP_FOUR: '冠亚季殿/四强',
   TOP_THREE: '前三',
   TOP_TWO: '冠亚',
   LEAGUE_TOP_THREE: '联赛前三',
@@ -170,6 +170,9 @@ function getConversionTypeLabel(value: HonorRuleConversionType) {
         </el-table-column>
         <el-table-column label="殿军分" width="92" align="center">
           <template #default="{ row }">{{ formatNumber(row.fourthPlaceScore) }}</template>
+        </el-table-column>
+        <el-table-column label="四强分" width="92" align="center">
+          <template #default="{ row }">{{ formatNumber(row.semiFinalistScore) }}</template>
         </el-table-column>
         <el-table-column label="状态" width="84" align="center">
           <template #default="{ row }">

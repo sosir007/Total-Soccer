@@ -122,7 +122,7 @@ onMounted(() => {
 
       <div v-else-if="!hasRows" class="empty-panel">
         <h3>暂无国家荣誉</h3>
-        <p>可以先到天机阁创建国家队赛事，并录入冠亚季殿。</p>
+        <p>可以先到天机阁创建国家队赛事，并录入名次结果。</p>
       </div>
 
       <template v-else>

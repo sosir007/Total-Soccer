@@ -24,6 +24,14 @@ enum CompetitionStandingPlacement {
   RUNNER_UP
   THIRD_PLACE
   FOURTH_PLACE
+  SEMI_FINALIST
+}
+
+enum CompetitionEditionStandingMode {
+  THIRD_PLACE_MATCH
+  SEMI_FINALISTS
+  FINAL_ONLY
+  LEAGUE_TOP_THREE
 }
 
 enum PlayerCareerType {
@@ -352,6 +360,7 @@ model HonorRule {
   runnerUpScore       Float?
   thirdPlaceScore     Float?
   fourthPlaceScore    Float?
+  semiFinalistScore    Float?
   coefficient         Float                        @default(1)
   qualityCoefficient  Float                        @default(1)
   isSystem            Boolean                      @default(false)
@@ -628,6 +637,7 @@ model CompetitionEdition {
   season        String?
   year          Int?
   quantity      Int?
+  standingMode  CompetitionEditionStandingMode @default(THIRD_PLACE_MATCH)
   host          String?
   remark        String?
   competition   Competition           @relation(fields: [competitionId], references: [id], onDelete: Cascade)
@@ -644,6 +654,7 @@ model CompetitionStanding {
   id        String                       @id @default(cuid())
   editionId String
   placement CompetitionStandingPlacement
+  standingOrder Int                         @default(0)
   countryId String?
   clubId    String?
   remark    String?
@@ -653,7 +664,7 @@ model CompetitionStanding {
   createdAt DateTime                     @default(now())
   updatedAt DateTime                     @updatedAt
 
-  @@unique([editionId, placement])
+  @@index([editionId, placement])
   @@index([countryId])
   @@index([clubId])
   @@index([placement])

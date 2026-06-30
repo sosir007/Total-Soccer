@@ -9,7 +9,13 @@ export type CompetitionStandingPlacement =
   | 'CHAMPION'
   | 'RUNNER_UP'
   | 'THIRD_PLACE'
-  | 'FOURTH_PLACE';
+  | 'FOURTH_PLACE'
+  | 'SEMI_FINALIST';
+export type CompetitionEditionStandingMode =
+  | 'THIRD_PLACE_MATCH'
+  | 'SEMI_FINALISTS'
+  | 'FINAL_ONLY'
+  | 'LEAGUE_TOP_THREE';
 
 export interface CompetitionListParams {
   page?: number;
@@ -50,6 +56,7 @@ export interface CompetitionListItem {
 export interface CompetitionStanding {
   id: string;
   placement: CompetitionStandingPlacement;
+  standingOrder: number;
   countryId?: string | null;
   clubId?: string | null;
   remark?: string | null;
@@ -70,6 +77,7 @@ export interface CompetitionEdition {
   season?: string | null;
   year?: number | null;
   quantity?: number | null;
+  standingMode: CompetitionEditionStandingMode;
   host?: string | null;
   remark?: string | null;
   standings: CompetitionStanding[];
@@ -103,13 +111,16 @@ export interface CreateCompetitionEditionPayload {
   season?: string;
   year?: number;
   quantity?: number;
+  standingMode?: CompetitionEditionStandingMode;
   host?: string;
   remark?: string;
 }
 
 export interface SaveCompetitionStandingsPayload {
+  standingMode?: CompetitionEditionStandingMode;
   standings: Array<{
     placement: CompetitionStandingPlacement;
+    standingOrder?: number | null;
     countryId?: string | null;
     clubId?: string | null;
     remark?: string | null;

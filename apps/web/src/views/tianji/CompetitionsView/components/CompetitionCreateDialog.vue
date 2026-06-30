@@ -10,6 +10,8 @@ import type {
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const props = defineProps<{
+  title: string;
+  submitText: string;
   form: {
     code: string;
     name: string;
@@ -28,7 +30,7 @@ const props = defineProps<{
     includeInStats: boolean;
     sortOrder: number;
   };
-  creating: boolean;
+  submitting: boolean;
   showFormatField: boolean;
   targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }>;
   scopeTypeOptions: Array<{ label: string; value: CompetitionScopeType }>;
@@ -46,7 +48,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <el-dialog v-model="visible" title="创建赛事" width="760px" destroy-on-close>
+  <el-dialog v-model="visible" :title="title" width="760px" destroy-on-close>
     <el-form class="competition-form-grid" label-position="top" @submit.prevent="emit('submit')">
       <el-form-item label="赛事编码">
         <el-input v-model="form.code" placeholder="FIFA_WORLD_CUP" />
@@ -149,7 +151,9 @@ const emit = defineEmits<{
         />
       </el-form-item>
       <div class="competition-form-actions">
-        <el-button type="primary" :loading="creating" @click="emit('submit')"> 创建赛事 </el-button>
+        <el-button type="primary" :loading="submitting" @click="emit('submit')">
+          {{ submitText }}
+        </el-button>
       </div>
     </el-form>
   </el-dialog>

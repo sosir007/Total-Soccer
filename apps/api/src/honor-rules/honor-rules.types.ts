@@ -18,6 +18,7 @@ export interface HonorRulePayload {
   runnerUpScore?: number | string | null;
   thirdPlaceScore?: number | string | null;
   fourthPlaceScore?: number | string | null;
+  semiFinalistScore?: number | string | null;
   typicalCompetitionIds?: string[];
   remark?: string | null;
 }
@@ -38,6 +39,7 @@ export interface HonorRuleDefaultDefinition {
   runnerUpScore?: number | null;
   thirdPlaceScore?: number | null;
   fourthPlaceScore?: number | null;
+  semiFinalistScore?: number | null;
   sortOrder: number;
   remark?: string;
   confederationCoefficients?: Array<{

@@ -1,14 +1,20 @@
 import type {
+  CompetitionEditionStandingMode,
   CompetitionFormat,
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@/services/types/competitions';
 
-export type StandingForm = Record<
-  CompetitionStandingPlacement,
-  { countryId: string; clubId: string }
->;
+export type StandingSlot = { countryId: string; clubId: string };
+export type StandingForm = Record<string, StandingSlot>;
+
+export interface PlacementField {
+  key: string;
+  label: string;
+  placement: CompetitionStandingPlacement;
+  standingOrder: number;
+}
 
 export interface EditionRow {
   clientId: string;
@@ -16,6 +22,7 @@ export interface EditionRow {
   year: string;
   season: string;
   quantity: number | undefined;
+  standingMode: CompetitionEditionStandingMode;
   host: string;
   remark: string;
   standings: StandingForm;

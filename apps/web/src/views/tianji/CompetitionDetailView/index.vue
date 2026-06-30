@@ -14,6 +14,7 @@ import type {
   CompetitionCategory,
   CompetitionDetail,
   CompetitionEdition,
+  CompetitionEditionStandingMode,
   CompetitionFormat,
   CompetitionLevel,
   CompetitionScopeType,
@@ -28,7 +29,7 @@ import CompetitionEditionTable from './components/CompetitionEditionTable.vue';
 import CompetitionHeroPanel from './components/CompetitionHeroPanel.vue';
 import CompetitionInfoPanel from './components/CompetitionInfoPanel.vue';
 import CompetitionResultDialog from './components/CompetitionResultDialog.vue';
-import type { EditionRow, StandingForm } from './components/types';
+import type { EditionRow, PlacementField, StandingForm } from './components/types';
 
 defineOptions({
   name: 'CompetitionDetailView'
@@ -61,12 +62,23 @@ const formatOptions: Array<{ label: string; value: CompetitionFormat }> = [
   { label: '杯赛', value: '杯赛' },
   { label: '其他', value: '其他' }
 ];
-const placements: Array<{ label: string; value: CompetitionStandingPlacement }> = [
-  { label: '冠军', value: 'CHAMPION' },
-  { label: '亚军', value: 'RUNNER_UP' },
-  { label: '季军', value: 'THIRD_PLACE' },
-  { label: '殿军', value: 'FOURTH_PLACE' }
+const standingModeOptions: Array<{ label: string; value: CompetitionEditionStandingMode }> = [
+  { label: '有三四名赛', value: 'THIRD_PLACE_MATCH' },
+  { label: '无三四名赛', value: 'SEMI_FINALISTS' },
+  { label: '仅冠亚军', value: 'FINAL_ONLY' },
+  { label: '联赛前三', value: 'LEAGUE_TOP_THREE' }
 ];
+const allPlacementFields: PlacementField[] = [
+  { key: 'CHAMPION', label: '冠军', placement: 'CHAMPION', standingOrder: 0 },
+  { key: 'RUNNER_UP', label: '亚军', placement: 'RUNNER_UP', standingOrder: 0 },
+  { key: 'THIRD_PLACE', label: '季军', placement: 'THIRD_PLACE', standingOrder: 0 },
+  { key: 'FOURTH_PLACE', label: '殿军', placement: 'FOURTH_PLACE', standingOrder: 0 },
+  { key: 'SEMI_FINALIST_1', label: '四强 1', placement: 'SEMI_FINALIST', standingOrder: 1 },
+  { key: 'SEMI_FINALIST_2', label: '四强 2', placement: 'SEMI_FINALIST', standingOrder: 2 }
+];
+const standingModeLabels = Object.fromEntries(
+  standingModeOptions.map((standingMode) => [standingMode.value, standingMode.label])
+) as Record<CompetitionEditionStandingMode, string>;
 const targetTypeLabels = Object.fromEntries(
   targetTypeOptions.map((targetType) => [targetType.value, targetType.label])
 ) as Record<CompetitionTargetType, string>;
@@ -112,6 +124,12 @@ const detailForm = reactive({
 
 const sortedEditions = computed(() => sortEditions(competition.value?.editions ?? []));
 const sortedEditionRows = computed(() => sortRows(editionRows.value));
+const editionTablePlacementFields = computed(() =>
+  getPlacementFieldUnion(sortedEditions.value.map((edition) => edition.standingMode))
+);
+const resultDialogPlacementFields = computed(() =>
+  getPlacementFieldUnion(sortedEditionRows.value.map((row) => row.standingMode))
+);
 const showDetailFormatField = computed(() => shouldUseCompetitionFormat(detailForm));
 const resultDialogTitle = computed(() =>
   resultDialogMode.value === 'single' ? '编辑年份结果' : '批量编辑年份结果'
@@ -197,17 +215,13 @@ function openEditEditionDialog(edition: CompetitionEdition) {
 }
 
 function addEditionRow() {
-  editionRows.value.push(createBlankEditionRow());
+  const previousRow = sortRows(editionRows.value).at(-1);
+  editionRows.value.push(createBlankEditionRow(previousRow?.standingMode));
 }
 
 function removeEditionRow(row: EditionRow) {
   if (editionRows.value.length <= 1) {
     ElMessage.warning('至少保留一行年份结果。');
-    return;
-  }
-
-  if (row.locked) {
-    ElMessage.warning('该年份已有冠军/亚军/季军/殿军关联，不能直接删除。');
     return;
   }
 
@@ -219,14 +233,9 @@ function removeEditionRow(row: EditionRow) {
 }
 
 async function confirmDeleteEdition(edition: CompetitionEdition) {
-  if (edition.standings.length) {
-    ElMessage.warning('该年份已有冠军/亚军/季军/殿军关联，不能直接删除。');
-    return;
-  }
-
   try {
     await ElMessageBox.confirm(
-      `确定删除「${formatEditionLabel(edition)}」这条年份结果吗？`,
+      `确定删除「${formatEditionLabel(edition)}」这条年份结果吗？该届冠军、亚军、季军、殿军/四强记录会一起删除。`,
       '删除年份结果',
       {
         type: 'warning',
@@ -276,6 +285,7 @@ async function saveResultRows() {
         season: row.season.trim() || undefined,
         year: row.year ? Number(row.year) : undefined,
         quantity: row.quantity,
+        standingMode: row.standingMode,
         host: row.host.trim() || undefined,
         remark: row.remark.trim() || undefined
       };
@@ -284,15 +294,17 @@ async function saveResultRows() {
         : await createCompetitionEdition(competition.value.id, payload);
 
       await saveCompetitionStandings(edition.id, {
-        standings: placements.map((placement) => ({
-          placement: placement.value,
+        standingMode: row.standingMode,
+        standings: getPlacementFieldsByMode(row.standingMode).map((field) => ({
+          placement: field.placement,
+          standingOrder: field.standingOrder,
           countryId:
             competition.value?.targetType === 'COUNTRY'
-              ? row.standings[placement.value].countryId || null
+              ? row.standings[field.key]?.countryId || null
               : null,
           clubId:
             competition.value?.targetType === 'CLUB'
-              ? row.standings[placement.value].clubId || null
+              ? row.standings[field.key]?.clubId || null
               : null
         }))
       });
@@ -391,20 +403,18 @@ function shouldUseCompetitionFormat(form: {
 }
 
 function createEmptyStandingForm(): StandingForm {
-  return {
-    CHAMPION: { countryId: '', clubId: '' },
-    RUNNER_UP: { countryId: '', clubId: '' },
-    THIRD_PLACE: { countryId: '', clubId: '' },
-    FOURTH_PLACE: { countryId: '', clubId: '' }
-  };
+  return Object.fromEntries(
+    allPlacementFields.map((field) => [field.key, { countryId: '', clubId: '' }])
+  );
 }
 
-function createBlankEditionRow(): EditionRow {
+function createBlankEditionRow(standingMode?: CompetitionEditionStandingMode): EditionRow {
   return {
     clientId: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     year: '',
     season: '',
     quantity: undefined,
+    standingMode: standingMode ?? getDefaultStandingMode(),
     host: '',
     remark: '',
     standings: createEmptyStandingForm(),
@@ -416,8 +426,14 @@ function mapEditionToRow(edition: CompetitionEdition): EditionRow {
   const standings = createEmptyStandingForm();
 
   for (const standing of edition.standings) {
-    standings[standing.placement].countryId = standing.countryId ?? '';
-    standings[standing.placement].clubId = standing.clubId ?? '';
+    const fieldKey = getStandingFieldKey(standing.placement, standing.standingOrder ?? 0);
+
+    if (!standings[fieldKey]) {
+      continue;
+    }
+
+    standings[fieldKey].countryId = standing.countryId ?? '';
+    standings[fieldKey].clubId = standing.clubId ?? '';
   }
 
   return {
@@ -426,6 +442,7 @@ function mapEditionToRow(edition: CompetitionEdition): EditionRow {
     year: edition.year ? String(edition.year) : '',
     season: edition.season ?? '',
     quantity: edition.quantity ?? undefined,
+    standingMode: edition.standingMode ?? 'THIRD_PLACE_MATCH',
     host: edition.host ?? '',
     remark: edition.remark ?? '',
     standings,
@@ -488,15 +505,59 @@ function getCompetitionCountryIds(item: CompetitionDetail) {
   return ids.length ? ids : item.countryId ? [item.countryId] : [];
 }
 
-function getEditionStanding(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
-  return edition.standings.find((item) => item.placement === placement);
+function getPlacementFieldsByMode(standingMode: CompetitionEditionStandingMode) {
+  if (standingMode === 'THIRD_PLACE_MATCH') {
+    return allPlacementFields.filter((field) =>
+      ['CHAMPION', 'RUNNER_UP', 'THIRD_PLACE', 'FOURTH_PLACE'].includes(field.key)
+    );
+  }
+
+  if (standingMode === 'SEMI_FINALISTS') {
+    return allPlacementFields.filter((field) =>
+      ['CHAMPION', 'RUNNER_UP', 'SEMI_FINALIST_1', 'SEMI_FINALIST_2'].includes(field.key)
+    );
+  }
+
+  if (standingMode === 'LEAGUE_TOP_THREE') {
+    return allPlacementFields.filter((field) =>
+      ['CHAMPION', 'RUNNER_UP', 'THIRD_PLACE'].includes(field.key)
+    );
+  }
+
+  return allPlacementFields.filter((field) => ['CHAMPION', 'RUNNER_UP'].includes(field.key));
 }
 
-function getStandingEntityType(
-  edition: CompetitionEdition,
-  placement: CompetitionStandingPlacement
+function getPlacementFieldUnion(standingModes: CompetitionEditionStandingMode[]) {
+  const keys = new Set(
+    standingModes.flatMap((standingMode) =>
+      getPlacementFieldsByMode(standingMode).map((field) => field.key)
+    )
+  );
+
+  return allPlacementFields.filter((field) => keys.has(field.key));
+}
+
+function getDefaultStandingMode(): CompetitionEditionStandingMode {
+  return competition.value?.format === '联赛' ? 'LEAGUE_TOP_THREE' : 'FINAL_ONLY';
+}
+
+function getStandingFieldKey(
+  placement: CompetitionStandingPlacement,
+  standingOrder: number | null | undefined
 ) {
-  const standing = getEditionStanding(edition, placement);
+  return placement === 'SEMI_FINALIST' ? `SEMI_FINALIST_${standingOrder || 1}` : placement;
+}
+
+function getEditionStanding(edition: CompetitionEdition, field: PlacementField) {
+  return edition.standings.find(
+    (item) =>
+      item.placement === field.placement &&
+      (field.placement !== 'SEMI_FINALIST' || item.standingOrder === field.standingOrder)
+  );
+}
+
+function getStandingEntityType(edition: CompetitionEdition, field: PlacementField) {
+  const standing = getEditionStanding(edition, field);
 
   if (standing?.country) {
     return 'country';
@@ -505,8 +566,8 @@ function getStandingEntityType(
   return 'club';
 }
 
-function getStandingEntityId(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
-  const standing = getEditionStanding(edition, placement);
+function getStandingEntityId(edition: CompetitionEdition, field: PlacementField) {
+  const standing = getEditionStanding(edition, field);
 
   if (standing?.country) {
     return standing.country.isHistorical
@@ -517,17 +578,14 @@ function getStandingEntityId(edition: CompetitionEdition, placement: Competition
   return standing?.club?.id ?? null;
 }
 
-function getStandingEntityName(
-  edition: CompetitionEdition,
-  placement: CompetitionStandingPlacement
-) {
-  const standing = getEditionStanding(edition, placement);
+function getStandingEntityName(edition: CompetitionEdition, field: PlacementField) {
+  const standing = getEditionStanding(edition, field);
 
   return standing?.country?.name ?? standing?.club?.name ?? '-';
 }
 
-function hasEditionStanding(edition: CompetitionEdition, placement: CompetitionStandingPlacement) {
-  const standing = getEditionStanding(edition, placement);
+function hasEditionStanding(edition: CompetitionEdition, field: PlacementField) {
+  const standing = getEditionStanding(edition, field);
 
   return Boolean(standing?.country || standing?.club);
 }
@@ -634,7 +692,8 @@ onMounted(() => {
       <CompetitionEditionTable
         v-model:sort-ascending="sortAscending"
         :editions="sortedEditions"
-        :placements="placements"
+        :placement-fields="editionTablePlacementFields"
+        :standing-mode-labels="standingModeLabels"
         :result-saving="resultSaving"
         :format-edition-label="formatEditionLabel"
         :format-text="formatText"
@@ -669,6 +728,9 @@ onMounted(() => {
       :rows="sortedEditionRows"
       :all-rows-count="editionRows.length"
       :competition="competition"
+      :placement-fields="resultDialogPlacementFields"
+      :standing-mode-options="standingModeOptions"
+      :get-placement-fields-by-mode="getPlacementFieldsByMode"
       :saving="resultSaving"
       @add="addEditionRow"
       @remove="removeEditionRow"

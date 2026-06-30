@@ -44,6 +44,7 @@ export interface HonorSummaryCounts {
   runnerUpCount: number;
   thirdPlaceCount: number;
   fourthPlaceCount: number;
+  semiFinalistCount: number;
 }
 
 export interface HonorSummaryCompetition extends HonorCompetitionRef {

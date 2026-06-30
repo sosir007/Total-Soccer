@@ -13,6 +13,7 @@ export interface StandingStats {
   runnerUpCount: number;
   thirdPlaceCount: number;
   fourthPlaceCount: number;
+  semiFinalistCount: number;
   medalCount: number;
   trophyCount: number;
   majorChampionCount: number;
@@ -29,6 +30,7 @@ const EMPTY_STANDING_STATS: StandingStats = {
   runnerUpCount: 0,
   thirdPlaceCount: 0,
   fourthPlaceCount: 0,
+  semiFinalistCount: 0,
   medalCount: 0,
   trophyCount: 0,
   majorChampionCount: 0
@@ -231,11 +233,17 @@ export class CatalogStatsService {
         stats.thirdPlaceCount += group.count;
       } else if (group.placement === CompetitionStandingPlacement.FOURTH_PLACE) {
         stats.fourthPlaceCount += group.count;
+      } else if (group.placement === CompetitionStandingPlacement.SEMI_FINALIST) {
+        stats.semiFinalistCount += group.count;
       }
 
       stats.medalCount = stats.championCount + stats.runnerUpCount + stats.thirdPlaceCount;
       stats.trophyCount =
-        stats.championCount + stats.runnerUpCount + stats.thirdPlaceCount + stats.fourthPlaceCount;
+        stats.championCount +
+        stats.runnerUpCount +
+        stats.thirdPlaceCount +
+        stats.fourthPlaceCount +
+        stats.semiFinalistCount;
       stats.majorChampionCount = stats.championCount;
       map.set(group.targetId, stats);
     }

@@ -26,7 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const placementScopeLabels: Record<HonorRulePlacementScope, string> = {
-  TOP_FOUR: '冠亚季殿',
+  TOP_FOUR: '冠亚季殿/四强',
   TOP_THREE: '前三',
   TOP_TWO: '冠亚',
   LEAGUE_TOP_THREE: '联赛前三',
@@ -128,6 +128,15 @@ function formatScope(rule: HonorRuleItem) {
       <el-form-item label="殿军分">
         <el-input-number
           v-model="form.fourthPlaceScore"
+          :min="0"
+          :precision="2"
+          :controls="false"
+          placeholder="不计分可留空"
+        />
+      </el-form-item>
+      <el-form-item label="四强分">
+        <el-input-number
+          v-model="form.semiFinalistScore"
           :min="0"
           :precision="2"
           :controls="false"

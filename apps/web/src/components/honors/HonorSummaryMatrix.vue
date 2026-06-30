@@ -5,6 +5,7 @@ import type {
   HonorSummaryCounts,
   HonorSummaryRow
 } from '@/services/types/catalog';
+import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementLabels } from '@/utils/honor';
 import HonorPlacementLabel from './HonorPlacementLabel.vue';
 
@@ -12,8 +13,14 @@ const placements = [
   { key: 'championCount', value: 'CHAMPION' },
   { key: 'runnerUpCount', value: 'RUNNER_UP' },
   { key: 'thirdPlaceCount', value: 'THIRD_PLACE' },
-  { key: 'fourthPlaceCount', value: 'FOURTH_PLACE' }
+  { key: 'fourthPlaceCount', value: 'FOURTH_PLACE' },
+  { key: 'semiFinalistCount', value: 'SEMI_FINALIST' }
 ] as const;
+type PlacementStat = (typeof placements)[number];
+
+const fallbackPlacements = placements.filter((placement) =>
+  ['CHAMPION', 'RUNNER_UP'].includes(placement.value)
+) as PlacementStat[];
 
 const props = defineProps<{
   rows: HonorSummaryRow[];
@@ -49,9 +56,48 @@ function getCompetitionCounts(row: HonorSummaryRow, competitionId: string): Hono
       championCount: 0,
       runnerUpCount: 0,
       thirdPlaceCount: 0,
-      fourthPlaceCount: 0
+      fourthPlaceCount: 0,
+      semiFinalistCount: 0
     }
   );
+}
+
+function getCompetitionPlacementFields(competition: HonorSummaryCompetition): PlacementStat[] {
+  const counts = competition.counts ?? getCompetitionCountsFromRows(competition.id);
+
+  const visiblePlacements = placements.filter((placement) => counts[placement.key] > 0);
+
+  return visiblePlacements.length ? visiblePlacements : fallbackPlacements;
+}
+
+function getCompetitionCountsFromRows(competitionId: string): HonorSummaryCounts {
+  return props.rows.reduce((total, row) => {
+    const counts = getCompetitionCounts(row, competitionId);
+
+    total.totalCount += counts.totalCount;
+    total.championCount += counts.championCount;
+    total.runnerUpCount += counts.runnerUpCount;
+    total.thirdPlaceCount += counts.thirdPlaceCount;
+    total.fourthPlaceCount += counts.fourthPlaceCount;
+    total.semiFinalistCount += counts.semiFinalistCount;
+
+    return total;
+  }, createEmptyCounts());
+}
+
+function createEmptyCounts(): HonorSummaryCounts {
+  return {
+    totalCount: 0,
+    championCount: 0,
+    runnerUpCount: 0,
+    thirdPlaceCount: 0,
+    fourthPlaceCount: 0,
+    semiFinalistCount: 0
+  };
+}
+
+function getPlacementValue(placement: PlacementStat) {
+  return placement.value as CompetitionStandingPlacement;
 }
 </script>
 
@@ -89,7 +135,10 @@ function getCompetitionCounts(row: HonorSummaryRow, competitionId: string): Hono
 
     <template v-for="competition in competitions" :key="competition.id">
       <el-table-column :label="competition.name" align="center" header-align="center">
-        <template v-for="placement in placements" :key="`${competition.id}-${placement.value}`">
+        <template
+          v-for="placement in getCompetitionPlacementFields(competition)"
+          :key="`${competition.id}-${placement.value}`"
+        >
           <el-table-column
             :label="placementLabels[placement.value]"
             width="82"
@@ -97,7 +146,7 @@ function getCompetitionCounts(row: HonorSummaryRow, competitionId: string): Hono
             header-align="center"
           >
             <template #header>
-              <HonorPlacementLabel :placement="placement.value" compact />
+              <HonorPlacementLabel :placement="getPlacementValue(placement)" compact />
             </template>
             <template #default="{ row }">
               <span class="honor-count-cell">

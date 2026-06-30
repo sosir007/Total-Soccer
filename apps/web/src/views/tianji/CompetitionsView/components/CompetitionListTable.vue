@@ -23,6 +23,7 @@ defineProps<{
 
 const emit = defineEmits<{
   create: [];
+  edit: [row: CompetitionListItem];
   open: [id: string];
   delete: [row: CompetitionListItem];
   'update:page': [value: number];
@@ -125,7 +126,7 @@ function getRowSequence(page: number, pageSize: number, index: number) {
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="emit('open', row.id)">
+            <el-button link type="primary" @click.stop="emit('edit', row)">
               <IconFont name="edit" />
               编辑
             </el-button>
@@ -133,7 +134,7 @@ function getRowSequence(page: number, pageSize: number, index: number) {
               link
               type="danger"
               :loading="deletingId === row.id"
-              @click="emit('delete', row)"
+              @click.stop="emit('delete', row)"
             >
               <IconFont name="delete" />
               删除

@@ -1,35 +1,28 @@
 <script setup lang="ts">
 import type {
   CompetitionEdition,
-  CompetitionStandingPlacement
+  CompetitionEditionStandingMode
 } from '@/services/types/competitions';
 import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
+import type { PlacementField } from './types';
 
-defineProps<{
+const props = defineProps<{
   editions: CompetitionEdition[];
-  placements: Array<{ label: string; value: CompetitionStandingPlacement }>;
+  placementFields: PlacementField[];
+  standingModeLabels: Record<CompetitionEditionStandingMode, string>;
   sortAscending: boolean;
   resultSaving: boolean;
   formatEditionLabel: (edition: CompetitionEdition) => string;
   formatText: (value?: string | number | boolean | null) => string | number | boolean;
-  hasEditionStanding: (
-    edition: CompetitionEdition,
-    placement: CompetitionStandingPlacement
-  ) => boolean;
+  hasEditionStanding: (edition: CompetitionEdition, field: PlacementField) => boolean;
   getStandingEntityId: (
     edition: CompetitionEdition,
-    placement: CompetitionStandingPlacement
+    field: PlacementField
   ) => string | null | undefined;
-  getStandingEntityType: (
-    edition: CompetitionEdition,
-    placement: CompetitionStandingPlacement
-  ) => 'country' | 'club';
-  getStandingEntityName: (
-    edition: CompetitionEdition,
-    placement: CompetitionStandingPlacement
-  ) => string;
+  getStandingEntityType: (edition: CompetitionEdition, field: PlacementField) => 'country' | 'club';
+  getStandingEntityName: (edition: CompetitionEdition, field: PlacementField) => string;
 }>();
 
 const emit = defineEmits<{
@@ -38,6 +31,10 @@ const emit = defineEmits<{
   delete: [edition: CompetitionEdition];
   batchEdit: [];
 }>();
+
+function getStandingModeLabel(edition: CompetitionEdition) {
+  return props.standingModeLabels[edition.standingMode] ?? '-';
+}
 </script>
 
 <template>
@@ -45,7 +42,7 @@ const emit = defineEmits<{
     <div class="panel-header">
       <div>
         <h3>年份结果</h3>
-        <p>在这里查看该赛事全部年份或赛季的冠军、亚军、季军和殿军。</p>
+        <p>在这里查看该赛事全部年份或赛季的名次结果。</p>
       </div>
       <div class="panel-actions">
         <el-switch
@@ -70,16 +67,22 @@ const emit = defineEmits<{
       <el-table-column prop="host" label="举办地" min-width="120">
         <template #default="{ row }">{{ row.host || '-' }}</template>
       </el-table-column>
-      <el-table-column v-for="placement in placements" :key="placement.value" min-width="120">
+      <el-table-column label="名次口径" width="120">
+        <template #default="{ row }">{{ getStandingModeLabel(row) }}</template>
+      </el-table-column>
+      <el-table-column v-for="field in placementFields" :key="field.key" min-width="120">
         <template #header>
-          <HonorPlacementLabel :placement="placement.value" />
+          <span class="edition-placement-head">
+            <HonorPlacementLabel :placement="field.placement" />
+            <span v-if="field.standingOrder">{{ field.standingOrder }}</span>
+          </span>
         </template>
         <template #default="{ row }">
           <EntityLink
-            v-if="hasEditionStanding(row, placement.value)"
-            :id="getStandingEntityId(row, placement.value)"
-            :type="getStandingEntityType(row, placement.value)"
-            :name="getStandingEntityName(row, placement.value)"
+            v-if="hasEditionStanding(row, field)"
+            :id="getStandingEntityId(row, field)"
+            :type="getStandingEntityType(row, field)"
+            :name="getStandingEntityName(row, field)"
           />
           <span v-else>-</span>
         </template>
@@ -90,24 +93,29 @@ const emit = defineEmits<{
       <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip>
         <template #default="{ row }">{{ row.remark || '-' }}</template>
       </el-table-column>
-      <el-table-column label="操作" min-width="120" fixed="right">
+      <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="emit('edit', row)">
-            <IconFont name="edit" />
-            编辑
-          </el-button>
-          <el-button
-            link
-            type="danger"
-            :disabled="row.standings.length > 0"
-            :loading="resultSaving"
-            @click="emit('delete', row)"
-          >
-            <IconFont name="delete" />
-            删除
-          </el-button>
+          <div class="edition-actions">
+            <el-button link type="primary" @click="emit('edit', row)">
+              <IconFont name="edit" />
+              编辑
+            </el-button>
+            <el-button link type="danger" :loading="resultSaving" @click="emit('delete', row)">
+              <IconFont name="delete" />
+              删除
+            </el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
   </div>
 </template>
+
+<style scoped lang="scss">
+.edition-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+</style>

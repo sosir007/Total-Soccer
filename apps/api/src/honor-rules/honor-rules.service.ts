@@ -21,6 +21,7 @@ interface RecalculateTargetStats {
   runnerUpCount: number;
   thirdPlaceCount: number;
   fourthPlaceCount: number;
+  semiFinalistCount: number;
   medalCount: number;
   trophyCount: number;
   honorScore: number;
@@ -53,6 +54,7 @@ const EMPTY_TARGET_STATS: RecalculateTargetStats = {
   runnerUpCount: 0,
   thirdPlaceCount: 0,
   fourthPlaceCount: 0,
+  semiFinalistCount: 0,
   medalCount: 0,
   trophyCount: 0,
   honorScore: 0
@@ -385,6 +387,7 @@ export class HonorRulesService {
           runnerUpScore: this.optionalNumber(body.runnerUpScore, '亚军分'),
           thirdPlaceScore: this.optionalNumber(body.thirdPlaceScore, '季军分'),
           fourthPlaceScore: this.optionalNumber(body.fourthPlaceScore, '殿军分'),
+          semiFinalistScore: this.optionalNumber(body.semiFinalistScore, '四强分'),
           remark: this.optionalText(body.remark)
         }
       });
@@ -519,7 +522,7 @@ export class HonorRulesService {
             playerCount: participation?.playerCount ?? 0,
             totalPa: participation?.totalPa ?? null,
             averagePa: this.roundNullable(participation?.averagePa),
-            trophyCount: stats.championCount,
+            trophyCount: stats.trophyCount,
             championCount: stats.championCount,
             honorScore: this.round(stats.honorScore)
           }
@@ -631,6 +634,15 @@ export class HonorRulesService {
         create: this.defaultRuleData(definition),
         update: this.defaultRuleUpdateData(definition)
       });
+      const semiFinalistScore =
+        definition.semiFinalistScore ?? this.defaultSemiFinalistScore(definition);
+
+      if (rule.semiFinalistScore === null && semiFinalistScore !== null) {
+        await this.prisma.honorRule.update({
+          where: { id: rule.id },
+          data: { semiFinalistScore }
+        });
+      }
 
       await this.prisma.honorRuleCoefficient.deleteMany({ where: { honorRuleId: rule.id } });
       const coefficientData = [
@@ -662,6 +674,7 @@ export class HonorRulesService {
         definition.thirdPlaceScore ?? this.defaultPlacementScore(definition, 'third'),
       fourthPlaceScore:
         definition.fourthPlaceScore ?? this.defaultPlacementScore(definition, 'fourth'),
+      semiFinalistScore: definition.semiFinalistScore ?? this.defaultSemiFinalistScore(definition),
       coefficient: 1,
       qualityCoefficient: definition.qualityCoefficient ?? 1,
       placementScope: definition.placementScope,
@@ -720,6 +733,17 @@ export class HonorRulesService {
     if (placement === 'runner') return score * 0.5;
     if (placement === 'third') return score * 0.3;
     return score * 0.2;
+  }
+
+  private defaultSemiFinalistScore(definition: HonorRuleDefaultDefinition) {
+    if (definition.placementScope !== HonorRulePlacementScope.TOP_FOUR) {
+      return null;
+    }
+
+    const third = definition.thirdPlaceScore ?? this.defaultPlacementScore(definition, 'third');
+    const fourth = definition.fourthPlaceScore ?? this.defaultPlacementScore(definition, 'fourth');
+
+    return third === null || fourth === null ? null : (third + fourth) / 2;
   }
 
   private resolveConfederationCoefficients(
@@ -838,6 +862,7 @@ export class HonorRulesService {
     if (placement === CompetitionStandingPlacement.RUNNER_UP) return rule.runnerUpScore;
     if (placement === CompetitionStandingPlacement.THIRD_PLACE) return rule.thirdPlaceScore;
     if (placement === CompetitionStandingPlacement.FOURTH_PLACE) return rule.fourthPlaceScore;
+    if (placement === CompetitionStandingPlacement.SEMI_FINALIST) return rule.semiFinalistScore;
     return null;
   }
 
@@ -856,6 +881,10 @@ export class HonorRulesService {
       ];
 
       return thirdPlaceScopes.includes(rule.placementScope);
+    }
+
+    if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
+      return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;
     }
 
     return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;
@@ -988,11 +1017,17 @@ export class HonorRulesService {
       stats.thirdPlaceCount += 1;
     } else if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
       stats.fourthPlaceCount += 1;
+    } else if (placement === CompetitionStandingPlacement.SEMI_FINALIST) {
+      stats.semiFinalistCount += 1;
     }
 
     stats.medalCount = stats.championCount + stats.runnerUpCount + stats.thirdPlaceCount;
     stats.trophyCount =
-      stats.championCount + stats.runnerUpCount + stats.thirdPlaceCount + stats.fourthPlaceCount;
+      stats.championCount +
+      stats.runnerUpCount +
+      stats.thirdPlaceCount +
+      stats.fourthPlaceCount +
+      stats.semiFinalistCount;
     stats.honorScore += score;
     map.set(targetId, stats);
   }

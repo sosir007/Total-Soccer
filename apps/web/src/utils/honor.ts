@@ -6,7 +6,8 @@ export const placementOptions: Array<{ label: string; value: CompetitionStanding
   { label: '冠军', value: 'CHAMPION' },
   { label: '亚军', value: 'RUNNER_UP' },
   { label: '季军', value: 'THIRD_PLACE' },
-  { label: '殿军', value: 'FOURTH_PLACE' }
+  { label: '殿军', value: 'FOURTH_PLACE' },
+  { label: '四强', value: 'SEMI_FINALIST' }
 ];
 
 export const placementLabels = Object.fromEntries(
@@ -17,7 +18,8 @@ export const placementIconNames: Record<CompetitionStandingPlacement, string> = 
   CHAMPION: 'first',
   RUNNER_UP: 'second',
   THIRD_PLACE: 'third',
-  FOURTH_PLACE: 'fourth'
+  FOURTH_PLACE: 'fourth',
+  SEMI_FINALIST: 'rank'
 };
 
 export function formatPlacement(value?: CompetitionStandingPlacement | null) {

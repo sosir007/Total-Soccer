@@ -1,19 +1,23 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type {
   CompetitionDetail,
-  CompetitionStandingPlacement
+  CompetitionEditionStandingMode
 } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
 import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
 import { ClubSelect, CountrySelect } from '@/components/selects';
-import type { EditionRow } from './types';
+import type { EditionRow, PlacementField } from './types';
 
-defineProps<{
+const props = defineProps<{
   title: string;
   mode: 'batch' | 'single';
   rows: EditionRow[];
   allRowsCount: number;
   competition: CompetitionDetail | null;
+  placementFields: PlacementField[];
+  standingModeOptions: Array<{ label: string; value: CompetitionEditionStandingMode }>;
+  getPlacementFieldsByMode: (standingMode: CompetitionEditionStandingMode) => PlacementField[];
   sortAscending: boolean;
   saving: boolean;
 }>();
@@ -27,18 +31,22 @@ const emit = defineEmits<{
   'update:sortAscending': [value: boolean];
 }>();
 
-const placementFields: CompetitionStandingPlacement[] = [
-  'CHAMPION',
-  'RUNNER_UP',
-  'THIRD_PLACE',
-  'FOURTH_PLACE'
-];
-const placementLabels: Record<CompetitionStandingPlacement, string> = {
-  CHAMPION: '冠军',
-  RUNNER_UP: '亚军',
-  THIRD_PLACE: '季军',
-  FOURTH_PLACE: '殿军'
-};
+const gridTemplateColumns = computed(
+  () =>
+    `120px 150px 120px 120px ${props.placementFields.map(() => '170px').join(' ')} 90px 150px 72px`
+);
+const gridMinWidth = computed(() => `${882 + props.placementFields.length * 180}px`);
+const rowGridStyle = computed(() => ({
+  gridTemplateColumns: gridTemplateColumns.value,
+  width: gridMinWidth.value,
+  minWidth: gridMinWidth.value
+}));
+
+function hasPlacementField(row: EditionRow, field: PlacementField) {
+  return props
+    .getPlacementFieldsByMode(row.standingMode)
+    .some((candidate) => candidate.key === field.key);
+}
 </script>
 
 <template>
@@ -58,12 +66,14 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
     </div>
 
     <div class="edition-editor-table">
-      <div class="edition-editor-row edition-editor-head">
+      <div class="edition-editor-row edition-editor-head" :style="rowGridStyle">
         <span>年份</span>
         <span>赛季/别名</span>
         <span>举办地</span>
-        <span v-for="placement in placementFields" :key="placement">
-          <HonorPlacementLabel :placement="placement" />
+        <span>名次口径</span>
+        <span v-for="field in placementFields" :key="field.key">
+          <HonorPlacementLabel :placement="field.placement" />
+          <span v-if="field.standingOrder">{{ field.standingOrder }}</span>
         </span>
         <span>数量</span>
         <span>备注</span>
@@ -75,6 +85,7 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
         :key="row.clientId"
         class="edition-editor-row"
         :class="{ locked: row.locked }"
+        :style="rowGridStyle"
       >
         <el-date-picker
           v-model="row.year"
@@ -85,19 +96,28 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
         />
         <el-input v-model="row.season" placeholder="2023-24 / 可空" />
         <el-input v-model="row.host" placeholder="举办地" />
-        <template v-for="placement in placementFields" :key="placement">
+        <el-select v-model="row.standingMode" placeholder="名次口径">
+          <el-option
+            v-for="option in standingModeOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
+        </el-select>
+        <template v-for="field in placementFields" :key="field.key">
           <CountrySelect
-            v-if="competition?.targetType === 'COUNTRY'"
-            v-model="row.standings[placement].countryId"
-            :placeholder="placementLabels[placement]"
+            v-if="competition?.targetType === 'COUNTRY' && hasPlacementField(row, field)"
+            v-model="row.standings[field.key].countryId"
+            :placeholder="field.label"
             include-hidden
             include-historical
           />
           <ClubSelect
-            v-else
-            v-model="row.standings[placement].clubId"
-            :placeholder="placementLabels[placement]"
+            v-else-if="hasPlacementField(row, field)"
+            v-model="row.standings[field.key].clubId"
+            :placeholder="field.label"
           />
+          <span v-else class="edition-editor-disabled">-</span>
         </template>
         <el-input-number
           v-model="row.quantity"
@@ -107,12 +127,7 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
           style="width: 100%"
         />
         <el-input v-model="row.remark" placeholder="备注" />
-        <el-button
-          link
-          type="danger"
-          :disabled="allRowsCount <= 1 || row.locked"
-          @click="emit('remove', row)"
-        >
+        <el-button link type="danger" :disabled="allRowsCount <= 1" @click="emit('remove', row)">
           <IconFont name="delete" />
           删除
         </el-button>
@@ -146,10 +161,8 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
 
 .edition-editor-row {
   display: grid;
-  grid-template-columns: 120px 150px 90px 140px repeat(4, 170px) 150px 72px;
   gap: 10px;
   align-items: center;
-  min-width: 1330px;
 
   &.locked {
     opacity: 0.92;
@@ -160,5 +173,13 @@ const placementLabels: Record<CompetitionStandingPlacement, string> = {
   color: #51665b;
   font-size: 13px;
   font-weight: 850;
+}
+
+.edition-editor-disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  color: var(--muted);
 }
 </style>
