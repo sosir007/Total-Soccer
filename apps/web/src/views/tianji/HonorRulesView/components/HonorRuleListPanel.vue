@@ -6,6 +6,7 @@ import type {
   HonorRulePlacementScope
 } from '@/services/types/honor-rules';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 
 defineProps<{
   title: string;
@@ -176,9 +177,9 @@ function getConversionTypeLabel(value: HonorRuleConversionType) {
         </el-table-column>
         <el-table-column label="状态" width="84" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'info'">
+            <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
-            </el-tag>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip>

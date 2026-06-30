@@ -7,8 +7,10 @@ import type { NamedRef } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 const optionStore = useOptionStore();
 const loading = ref(false);
@@ -142,8 +144,8 @@ function formatNumber(value?: number | null, digits = 0) {
   }).format(value);
 }
 
-function formatRef(ref?: NamedRef | null) {
-  return ref?.name ?? '-';
+function formatConfederation(ref?: NamedRef | null) {
+  return ref?.name ?? '';
 }
 
 watch(
@@ -251,7 +253,15 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column label="足联" min-width="120">
-            <template #default="{ row }">{{ formatRef(row.federationRef) }}</template>
+            <template #default="{ row }">
+              <SemanticTag
+                v-if="formatConfederation(row.federationRef)"
+                :variant="getConfederationVariant(formatConfederation(row.federationRef))"
+              >
+                {{ formatConfederation(row.federationRef) }}
+              </SemanticTag>
+              <span v-else>-</span>
+            </template>
           </el-table-column>
           <el-table-column prop="playerCount" label="球员数" width="100" sortable />
           <el-table-column prop="totalPa" label="总 PA" width="110" sortable="custom" />

@@ -6,6 +6,7 @@ import type { NamedRef } from '@/services/types/common';
 import type { PlayerListItem } from '@/services/types/catalog';
 import { fetchSummitCandidates, fetchSummitLineup } from '@/services/modules/summit';
 import type { SummitGroup, SummitLineup } from '@/services/types/summit';
+import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import {
   ClubSelect,
@@ -128,10 +129,6 @@ function findStarter(slot: string) {
 
 function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
-}
-
-function formatPa(value?: number | null) {
-  return value === null || value === undefined ? '-' : value;
 }
 
 watch(
@@ -261,10 +258,10 @@ onMounted(() => {
               >
                 <span>{{ starter?.label ?? '-' }}</span>
                 <strong>{{ starter?.player?.chineseName ?? '待定' }}</strong>
-                <em
-                  >PA {{ formatPa(starter?.player?.pa) }} ·
-                  {{ starter?.player?.primaryRole ?? '-' }}</em
-                >
+                <em class="ability-inline-meta">
+                  <AbilityBadge type="PA" :value="starter?.player?.pa" size="small" />
+                  <span>{{ starter?.player?.primaryRole ?? '-' }}</span>
+                </em>
               </button>
             </div>
           </div>
@@ -293,7 +290,10 @@ onMounted(() => {
                   @click="openPlayer(player)"
                 >
                   <span>{{ player.chineseName }}</span>
-                  <em>PA {{ formatPa(player.pa) }} · {{ formatRef(player.country) }}</em>
+                  <em class="ability-inline-meta">
+                    <AbilityBadge type="PA" :value="player.pa" size="small" />
+                    <span>{{ formatRef(player.country) }}</span>
+                  </em>
                 </button>
               </div>
             </div>
@@ -334,8 +334,16 @@ onMounted(() => {
                     />
                   </template>
                 </el-table-column>
-                <el-table-column prop="pa" label="PA" width="80" />
-                <el-table-column prop="ca" label="CA" width="80" />
+                <el-table-column prop="pa" label="PA" width="90">
+                  <template #default="{ row }">
+                    <AbilityBadge type="PA" :value="row.pa" size="small" />
+                  </template>
+                </el-table-column>
+                <el-table-column prop="ca" label="CA" width="90">
+                  <template #default="{ row }">
+                    <AbilityBadge type="CA" :value="row.ca" size="small" />
+                  </template>
+                </el-table-column>
                 <el-table-column label="国家" min-width="110">
                   <template #default="{ row }">
                     <EntityLink

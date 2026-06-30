@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import OverflowTooltip from '@/components/OverflowTooltip.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import type {
   CareerProfileLine,
   CountryDetail,
@@ -79,9 +81,15 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
       </a>
       <p>UID {{ country.uid }}</p>
       <div class="detail-tags">
-        <el-tag type="success">球员 {{ formatNumber(country.playerCount) }}</el-tag>
-        <el-tag>平均 PA {{ formatNumber(country.averagePa, 2) }}</el-tag>
-        <el-tag type="warning">荣誉分 {{ formatNumber(country.honorScore, 2) }}</el-tag>
+        <SemanticTag variant="object-player">
+          球员 {{ formatNumber(country.playerCount) }}
+        </SemanticTag>
+        <SemanticTag variant="neutral">
+          平均 PA {{ formatNumber(country.averagePa, 2) }}
+        </SemanticTag>
+        <SemanticTag variant="status-legend">
+          荣誉分 {{ formatNumber(country.honorScore, 2) }}
+        </SemanticTag>
       </div>
     </div>
     <div class="panel-actions">
@@ -218,7 +226,10 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           >
             <span>{{ item.position }}</span>
             <strong>{{ item.player.chineseName }}</strong>
-            <em>PA {{ formatText(item.player.pa) }} · {{ formatText(item.period) }}</em>
+            <em class="ability-inline-meta">
+              <AbilityBadge type="PA" :value="item.player.pa" size="small" />
+              <span>{{ formatText(item.period) }}</span>
+            </em>
           </button>
         </div>
       </div>
@@ -249,7 +260,7 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
               <OverflowTooltip :content="item.player.chineseName" />
             </strong>
             <div class="lineup-player-meta">
-              <span>PA {{ formatText(item.player.pa) }}</span>
+              <AbilityBadge type="PA" :value="item.player.pa" size="small" />
               <em>{{ formatLineStats(item) }}</em>
             </div>
           </button>

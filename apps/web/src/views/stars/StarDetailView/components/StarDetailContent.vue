@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import dayjs from 'dayjs';
+import AbilityBadge from '@/components/AbilityBadge.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
+import { getPlayerStatusLabel, getPlayerStatusVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   player: PlayerDetail;
@@ -157,13 +160,15 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
         </a>
         <p>{{ player.englishName || player.uid }}</p>
         <div class="detail-tags">
-          <el-tag type="success">PA {{ formatText(player.pa) }}</el-tag>
-          <el-tag>CA {{ formatText(player.ca) }}</el-tag>
-          <el-tag type="warning">荣誉分 {{ formatText(player.honorScore) }}</el-tag>
-          <el-tag type="warning">{{ formatRef(player.playerTypeRef) }}</el-tag>
-          <el-tag v-if="player.deceased" type="info">已故</el-tag>
-          <el-tag v-else-if="player.retired" type="warning">退役</el-tag>
-          <el-tag v-else type="success">现役</el-tag>
+          <AbilityBadge type="PA" :value="player.pa" />
+          <AbilityBadge type="CA" :value="player.ca" />
+          <SemanticTag variant="status-legend">
+            荣誉分 {{ formatText(player.honorScore) }}
+          </SemanticTag>
+          <SemanticTag variant="object-player">{{ formatRef(player.playerTypeRef) }}</SemanticTag>
+          <SemanticTag :variant="getPlayerStatusVariant(player)">
+            {{ getPlayerStatusLabel(player) }}
+          </SemanticTag>
         </div>
       </div>
       <div class="panel-actions">
@@ -394,8 +399,12 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
           </el-table-column>
           <el-table-column label="标签" width="170">
             <template #default="{ row }">
-              <el-tag v-if="row.isRepresentative" size="small" type="success">代表</el-tag>
-              <el-tag v-if="row.isLegend" size="small" type="warning">名宿</el-tag>
+              <SemanticTag v-if="row.isRepresentative" size="small" variant="status-representative">
+                代表
+              </SemanticTag>
+              <SemanticTag v-if="row.isLegend" size="small" variant="status-legend">
+                名宿
+              </SemanticTag>
             </template>
           </el-table-column>
         </el-table>
@@ -462,7 +471,7 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
         </el-table-column>
         <el-table-column label="名次" width="110">
           <template #default="{ row }">
-            <el-tag type="warning">{{ formatAwardPlacement(row) }}</el-tag>
+            <SemanticTag variant="status-top-award">{{ formatAwardPlacement(row) }}</SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="备注" min-width="180">

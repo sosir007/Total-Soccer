@@ -2,6 +2,8 @@
 import type { CompetitionListItem } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
+import { getCompetitionCategoryVariant, getCompetitionLevelVariant } from '@/utils/tag-theme';
 
 defineProps<{
   competitions: CompetitionListItem[];
@@ -17,8 +19,6 @@ defineProps<{
   formatText: (value?: string | number | null) => string | number;
   formatFormat: (competition: CompetitionListItem) => string;
   competitionExternalUrl: (competition: CompetitionListItem) => string;
-  getCategoryTagClass: (value?: string | null) => string[];
-  getLevelTagClass: (value?: string | null) => string[];
 }>();
 
 const emit = defineEmits<{
@@ -78,16 +78,16 @@ function getRowSequence(page: number, pageSize: number, index: number) {
         </el-table-column>
         <el-table-column label="分类" width="90">
           <template #default="{ row }">
-            <span :class="getCategoryTagClass(row.category)">
+            <SemanticTag :variant="getCompetitionCategoryVariant(row.category)">
               {{ formatText(row.category) }}
-            </span>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="级别" width="90">
           <template #default="{ row }">
-            <span :class="getLevelTagClass(row.level)">
+            <SemanticTag :variant="getCompetitionLevelVariant(row.level)">
               {{ formatText(row.level) }}
-            </span>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="赛制" width="90">
@@ -95,16 +95,16 @@ function getRowSequence(page: number, pageSize: number, index: number) {
         </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'info'">
+            <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
-            </el-tag>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="统计" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.includeInStats ? 'success' : 'info'">
+            <SemanticTag :variant="row.includeInStats ? 'status-included' : 'status-excluded'">
               {{ row.includeInStats ? '纳入' : '排除' }}
-            </el-tag>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="外链" width="86">
@@ -157,69 +157,3 @@ function getRowSequence(page: number, pageSize: number, index: number) {
     </template>
   </div>
 </template>
-
-<style scoped lang="scss">
-.competition-meta-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 46px;
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1;
-  white-space: nowrap;
-
-  &.competition-category-international {
-    color: #986812;
-    border-color: #f1d28a;
-    background: #fff6dc;
-  }
-
-  &.competition-category-continental {
-    color: #25658f;
-    border-color: #b8d8ed;
-    background: #e9f5fb;
-  }
-
-  &.competition-category-domestic {
-    color: #218353;
-    border-color: #bce4ca;
-    background: #eaf8ef;
-  }
-
-  &.competition-category-other,
-  &.competition-category-empty {
-    color: #6a756f;
-    border-color: #d9e1da;
-    background: #f5f7f4;
-  }
-
-  &.competition-level-primary {
-    color: #1b7a4b;
-    border-color: #9ed7b6;
-    background: #e8f7ee;
-  }
-
-  &.competition-level-secondary {
-    color: #806216;
-    border-color: #e6cf82;
-    background: #fff7d8;
-  }
-
-  &.competition-level-tertiary {
-    color: #536674;
-    border-color: #c7d5dd;
-    background: #edf4f7;
-  }
-
-  &.competition-level-empty {
-    color: #6a756f;
-    border-color: #d9e1da;
-    background: #f5f7f4;
-  }
-}
-</style>

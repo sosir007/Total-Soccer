@@ -6,6 +6,7 @@ import { fetchWorldOverview } from '@/services/modules/dashboard';
 import type { DashboardRankItem, WorldOverview } from '@/services/types/dashboard';
 import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
+import { chartPalette } from '@/utils/tag-theme';
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -78,7 +79,7 @@ function renderCharts() {
   playerTypeChart = initChart(playerTypeChart, playerTypeChartRef.value);
 
   paChart?.setOption({
-    color: ['#1f8b55'],
+    color: chartPalette.primary,
     grid: { top: 24, right: 16, bottom: 30, left: 36 },
     tooltip: { trigger: 'axis' },
     xAxis: {
@@ -98,7 +99,7 @@ function renderCharts() {
   });
 
   confederationChart?.setOption({
-    color: ['#1f8b55', '#c89436', '#5ca778', '#9fbc5a', '#6f9fd8', '#d68b52', '#8f7bc2'],
+    color: chartPalette.categorical,
     tooltip: { trigger: 'item' },
     legend: { bottom: 0, type: 'scroll' },
     series: [
@@ -116,7 +117,7 @@ function renderCharts() {
   });
 
   positionChart?.setOption({
-    color: ['#c89436'],
+    color: chartPalette.gold,
     grid: { top: 12, right: 18, bottom: 20, left: 72 },
     tooltip: { trigger: 'axis' },
     xAxis: { type: 'value' },
@@ -136,7 +137,7 @@ function renderCharts() {
   });
 
   playerTypeChart?.setOption({
-    color: ['#1f8b55', '#c89436', '#6f9fd8', '#d68b52', '#8f7bc2'],
+    color: chartPalette.compactCategorical,
     tooltip: { trigger: 'item' },
     series: [
       {

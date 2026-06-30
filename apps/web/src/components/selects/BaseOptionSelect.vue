@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import type { SelectOption } from '@/stores/options';
+import {
+  getConfederationVariant,
+  getSemanticTagStyle,
+  type SemanticTagVariant
+} from '@/utils/tag-theme';
 
 const confederationPattern =
   /亚足联|亚洲|欧足联|欧洲|南美|非足联|非洲|中北美|北中美|加勒比|大洋足联|大洋洲|AFC|UEFA|CONMEBOL|CAF|CONCACAF|OFC/i;
@@ -76,48 +81,22 @@ function chipLabel(option: SelectOption) {
   return isConfederation(label) ? label : '';
 }
 
-function optionTheme(option: SelectOption) {
+function optionTheme(option: SelectOption): SemanticTagVariant {
   if (option.chipTheme) {
-    return option.chipTheme;
+    return option.chipTheme as SemanticTagVariant;
   }
 
   const label = chipLabel(option);
 
-  if (/亚足联|亚洲|AFC/i.test(label)) {
-    return 'afc';
-  }
-
-  if (/欧足联|欧洲|UEFA/i.test(label)) {
-    return 'uefa';
-  }
-
-  if (/南美|CONMEBOL/i.test(label)) {
-    return 'conmebol';
-  }
-
-  if (/非足联|非洲|CAF/i.test(label)) {
-    return 'caf';
-  }
-
-  if (/中北美|北中美|加勒比|CONCACAF/i.test(label)) {
-    return 'concacaf';
-  }
-
-  if (/大洋足联|大洋洲|OFC/i.test(label)) {
-    return 'ofc';
-  }
-
-  return 'default';
+  return getConfederationVariant(label);
 }
 
 function optionAccentVar(option: SelectOption) {
-  const theme = optionTheme(option);
+  return getSemanticTagStyle(optionTheme(option)).color;
+}
 
-  if (theme.startsWith('position-')) {
-    return `var(--${theme})`;
-  }
-
-  return `var(--confed-${theme})`;
+function optionChipStyle(option: SelectOption) {
+  return getSemanticTagStyle(optionTheme(option));
 }
 
 function isConfederation(value?: string | null) {
@@ -155,11 +134,7 @@ function isConfederation(value?: string | null) {
           <strong>{{ option.label }}</strong>
           <span v-if="optionMeta(option)">{{ optionMeta(option) }}</span>
         </div>
-        <span
-          v-if="chipLabel(option)"
-          class="select-option-chip"
-          :class="`theme-${optionTheme(option)}`"
-        >
+        <span v-if="chipLabel(option)" class="select-option-chip" :style="optionChipStyle(option)">
           {{ chipLabel(option) }}
         </span>
       </div>
@@ -255,72 +230,13 @@ function isConfederation(value?: string | null) {
   max-width: 116px;
   padding: 4px 12px;
   overflow: hidden;
+  border: 1px solid;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 760;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
-
-  &.theme-afc {
-    color: var(--confed-afc);
-    background: var(--confed-afc-bg);
-  }
-
-  &.theme-uefa {
-    color: var(--confed-uefa);
-    background: var(--confed-uefa-bg);
-  }
-
-  &.theme-conmebol {
-    color: var(--confed-conmebol);
-    background: var(--confed-conmebol-bg);
-  }
-
-  &.theme-caf {
-    color: var(--confed-caf);
-    background: var(--confed-caf-bg);
-  }
-
-  &.theme-concacaf {
-    color: var(--confed-concacaf);
-    background: var(--confed-concacaf-bg);
-  }
-
-  &.theme-ofc {
-    color: var(--confed-ofc);
-    background: var(--confed-ofc-bg);
-  }
-
-  &.theme-position-forward {
-    color: var(--position-forward);
-    background: var(--position-forward-bg);
-  }
-
-  &.theme-position-midfield {
-    color: var(--position-midfield);
-    background: var(--position-midfield-bg);
-  }
-
-  &.theme-position-backfield {
-    color: var(--position-backfield);
-    background: var(--position-backfield-bg);
-  }
-
-  &.theme-position-goalkeeper {
-    color: var(--position-goalkeeper);
-    background: var(--position-goalkeeper-bg);
-  }
-
-  &.theme-position-default {
-    color: var(--position-default);
-    background: #edf8f1;
-  }
-
-  &.theme-default {
-    color: var(--green);
-    background: #edf8f1;
-  }
 }
 
 :global(.common-select-popper.el-popper) {

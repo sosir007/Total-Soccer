@@ -11,6 +11,7 @@ import type {
   PlayerPayload
 } from '@/services/types/catalog';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import {
   CitySelect,
   ClubSelect,
@@ -495,9 +496,9 @@ async function submit() {
 
         <div v-for="(career, index) in form.careers" :key="index" class="career-card">
           <div class="career-card-title">
-            <el-tag :type="career.careerType === 'CLUB' ? 'success' : 'warning'">
+            <SemanticTag :variant="career.careerType === 'CLUB' ? 'object-club' : 'object-country'">
               {{ career.careerType === 'CLUB' ? '俱乐部经历' : '国家队经历' }}
-            </el-tag>
+            </SemanticTag>
             <span>排序 {{ index + 1 }}</span>
           </div>
           <div class="career-card-grid">

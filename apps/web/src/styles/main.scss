@@ -6,28 +6,169 @@
   --green: #1f8b55;
   --gold: #c89436;
   --white: #ffffff;
-  --confed-afc: #d89a18;
-  --confed-afc-bg: #fff7e3;
-  --confed-uefa: #2563eb;
-  --confed-uefa-bg: #eef4ff;
-  --confed-conmebol: #16a34a;
-  --confed-conmebol-bg: #ecfdf3;
-  --confed-caf: #dc6b19;
-  --confed-caf-bg: #fff3e8;
-  --confed-concacaf: #0891b2;
-  --confed-concacaf-bg: #eafbff;
-  --confed-ofc: #7c3aed;
-  --confed-ofc-bg: #f4eeff;
-  --confed-default: #1f8b55;
-  --position-forward: #dc6b19;
-  --position-forward-bg: #fff3e8;
-  --position-midfield: #16a34a;
-  --position-midfield-bg: #ecfdf3;
-  --position-backfield: #2563eb;
-  --position-backfield-bg: #eef4ff;
-  --position-goalkeeper: #7c3aed;
-  --position-goalkeeper-bg: #f4eeff;
-  --position-default: #1f8b55;
+  --tag-neutral-text: #64748b;
+  --tag-neutral-border: #cbd5e1;
+  --tag-neutral-bg: #f8fafc;
+  --tag-confed-afc-text: #b45309;
+  --tag-confed-afc-border: #fed7aa;
+  --tag-confed-afc-bg: #fff7ed;
+  --tag-confed-uefa-text: #1d4ed8;
+  --tag-confed-uefa-border: #bfdbfe;
+  --tag-confed-uefa-bg: #eff6ff;
+  --tag-confed-conmebol-text: #047857;
+  --tag-confed-conmebol-border: #a7f3d0;
+  --tag-confed-conmebol-bg: #ecfdf5;
+  --tag-confed-caf-text: #be123c;
+  --tag-confed-caf-border: #fecdd3;
+  --tag-confed-caf-bg: #fff1f2;
+  --tag-confed-concacaf-text: #0e7490;
+  --tag-confed-concacaf-border: #a5f3fc;
+  --tag-confed-concacaf-bg: #ecfeff;
+  --tag-confed-ofc-text: #7e22ce;
+  --tag-confed-ofc-border: #e9d5ff;
+  --tag-confed-ofc-bg: #faf5ff;
+  --tag-position-forward-text: #dc2626;
+  --tag-position-forward-border: #fecaca;
+  --tag-position-forward-bg: #fef2f2;
+  --tag-position-midfield-text: #15803d;
+  --tag-position-midfield-border: #bbf7d0;
+  --tag-position-midfield-bg: #f0fdf4;
+  --tag-position-backfield-text: #4f46e5;
+  --tag-position-backfield-border: #c7d2fe;
+  --tag-position-backfield-bg: #eef2ff;
+  --tag-position-goalkeeper-text: #9333ea;
+  --tag-position-goalkeeper-border: #e9d5ff;
+  --tag-position-goalkeeper-bg: #faf5ff;
+  --tag-competition-category-international-text: #a16207;
+  --tag-competition-category-international-border: #fde68a;
+  --tag-competition-category-international-bg: #fefce8;
+  --tag-competition-category-continental-text: #0f766e;
+  --tag-competition-category-continental-border: #99f6e4;
+  --tag-competition-category-continental-bg: #f0fdfa;
+  --tag-competition-category-domestic-text: #15803d;
+  --tag-competition-category-domestic-border: #bbf7d0;
+  --tag-competition-category-domestic-bg: #f0fdf4;
+  --tag-competition-category-other-text: #475569;
+  --tag-competition-category-other-border: #cbd5e1;
+  --tag-competition-category-other-bg: #f8fafc;
+  --tag-competition-level-primary-text: #b91c1c;
+  --tag-competition-level-primary-border: #fecaca;
+  --tag-competition-level-primary-bg: #fef2f2;
+  --tag-competition-level-secondary-text: #c2410c;
+  --tag-competition-level-secondary-border: #fed7aa;
+  --tag-competition-level-secondary-bg: #fff7ed;
+  --tag-competition-level-tertiary-text: #0369a1;
+  --tag-competition-level-tertiary-border: #bae6fd;
+  --tag-competition-level-tertiary-bg: #f0f9ff;
+  --tag-competition-level-quaternary-text: #64748b;
+  --tag-competition-level-quaternary-border: #cbd5e1;
+  --tag-competition-level-quaternary-bg: #f8fafc;
+  --tag-status-enabled-text: #15803d;
+  --tag-status-enabled-border: #bbf7d0;
+  --tag-status-enabled-bg: #f0fdf4;
+  --tag-status-disabled-text: #64748b;
+  --tag-status-disabled-border: #cbd5e1;
+  --tag-status-disabled-bg: #f8fafc;
+  --tag-status-included-text: #0f766e;
+  --tag-status-included-border: #99f6e4;
+  --tag-status-included-bg: #f0fdfa;
+  --tag-status-excluded-text: #64748b;
+  --tag-status-excluded-border: #cbd5e1;
+  --tag-status-excluded-bg: #f8fafc;
+  --tag-status-active-text: #15803d;
+  --tag-status-active-border: #bbf7d0;
+  --tag-status-active-bg: #f0fdf4;
+  --tag-status-retired-text: #b45309;
+  --tag-status-retired-border: #fed7aa;
+  --tag-status-retired-bg: #fff7ed;
+  --tag-status-deceased-text: #475569;
+  --tag-status-deceased-border: #cbd5e1;
+  --tag-status-deceased-bg: #f8fafc;
+  --tag-status-success-text: #15803d;
+  --tag-status-success-border: #bbf7d0;
+  --tag-status-success-bg: #f0fdf4;
+  --tag-status-failed-text: #b91c1c;
+  --tag-status-failed-border: #fecaca;
+  --tag-status-failed-bg: #fef2f2;
+  --tag-status-representative-text: #0e7490;
+  --tag-status-representative-border: #a5f3fc;
+  --tag-status-representative-bg: #ecfeff;
+  --tag-status-legend-text: #a16207;
+  --tag-status-legend-border: #fde68a;
+  --tag-status-legend-bg: #fefce8;
+  --tag-status-top-award-text: #a16207;
+  --tag-status-top-award-border: #fde68a;
+  --tag-status-top-award-bg: #fefce8;
+  --tag-object-country-text: #0f766e;
+  --tag-object-country-border: #99f6e4;
+  --tag-object-country-bg: #f0fdfa;
+  --tag-object-club-text: #7e22ce;
+  --tag-object-club-border: #e9d5ff;
+  --tag-object-club-bg: #faf5ff;
+  --tag-object-player-text: #1d4ed8;
+  --tag-object-player-border: #bfdbfe;
+  --tag-object-player-bg: #eff6ff;
+  --tag-object-competition-text: #a16207;
+  --tag-object-competition-border: #fde68a;
+  --tag-object-competition-bg: #fefce8;
+  --tag-object-award-text: #c2410c;
+  --tag-object-award-border: #fed7aa;
+  --tag-object-award-bg: #fff7ed;
+  --tag-ability-legend-text: #9f1239;
+  --tag-ability-legend-border: #fda4af;
+  --tag-ability-legend-bg: #fff1f2;
+  --tag-ability-elite-text: #7e22ce;
+  --tag-ability-elite-border: #d8b4fe;
+  --tag-ability-elite-bg: #faf5ff;
+  --tag-ability-superstar-text: #1d4ed8;
+  --tag-ability-superstar-border: #bfdbfe;
+  --tag-ability-superstar-bg: #eff6ff;
+  --tag-ability-first-class-text: #0f766e;
+  --tag-ability-first-class-border: #99f6e4;
+  --tag-ability-first-class-bg: #f0fdfa;
+  --tag-ability-excellent-text: #15803d;
+  --tag-ability-excellent-border: #bbf7d0;
+  --tag-ability-excellent-bg: #f0fdf4;
+  --tag-ability-starter-text: #65a30d;
+  --tag-ability-starter-border: #d9f99d;
+  --tag-ability-starter-bg: #f7fee7;
+  --tag-ability-rotation-text: #a16207;
+  --tag-ability-rotation-border: #fde68a;
+  --tag-ability-rotation-bg: #fefce8;
+  --tag-ability-prospect-text: #c2410c;
+  --tag-ability-prospect-border: #fed7aa;
+  --tag-ability-prospect-bg: #fff7ed;
+  --tag-ability-normal-text: #0369a1;
+  --tag-ability-normal-border: #bae6fd;
+  --tag-ability-normal-bg: #f0f9ff;
+  --tag-ability-basic-text: #475569;
+  --tag-ability-basic-border: #cbd5e1;
+  --tag-ability-basic-bg: #f8fafc;
+  --tag-ability-muted-text: #64748b;
+  --tag-ability-muted-border: #cbd5e1;
+  --tag-ability-muted-bg: #f8fafc;
+  --confed-afc: var(--tag-confed-afc-text);
+  --confed-afc-bg: var(--tag-confed-afc-bg);
+  --confed-uefa: var(--tag-confed-uefa-text);
+  --confed-uefa-bg: var(--tag-confed-uefa-bg);
+  --confed-conmebol: var(--tag-confed-conmebol-text);
+  --confed-conmebol-bg: var(--tag-confed-conmebol-bg);
+  --confed-caf: var(--tag-confed-caf-text);
+  --confed-caf-bg: var(--tag-confed-caf-bg);
+  --confed-concacaf: var(--tag-confed-concacaf-text);
+  --confed-concacaf-bg: var(--tag-confed-concacaf-bg);
+  --confed-ofc: var(--tag-confed-ofc-text);
+  --confed-ofc-bg: var(--tag-confed-ofc-bg);
+  --confed-default: var(--tag-neutral-text);
+  --position-forward: var(--tag-position-forward-text);
+  --position-forward-bg: var(--tag-position-forward-bg);
+  --position-midfield: var(--tag-position-midfield-text);
+  --position-midfield-bg: var(--tag-position-midfield-bg);
+  --position-backfield: var(--tag-position-backfield-text);
+  --position-backfield-bg: var(--tag-position-backfield-bg);
+  --position-goalkeeper: var(--tag-position-goalkeeper-text);
+  --position-goalkeeper-bg: var(--tag-position-goalkeeper-bg);
+  --position-default: var(--tag-neutral-text);
   --el-color-primary: #1f8b55;
   --el-color-primary-light-3: #58a87b;
   --el-color-primary-light-5: #8bc8a5;
@@ -1296,8 +1437,8 @@ h1 {
   box-shadow: var(--soft-shadow);
 }
 
-.timeline-player strong,
-.lineup-player strong {
+.timeline-player > strong,
+.lineup-player > strong {
   min-width: 0;
   overflow: hidden;
   color: var(--green);
@@ -1306,10 +1447,10 @@ h1 {
   white-space: nowrap;
 }
 
-.timeline-player span,
-.lineup-player span,
-.timeline-player em,
-.lineup-player em {
+.timeline-player > span,
+.lineup-player > span,
+.timeline-player > em,
+.lineup-player > em {
   overflow: hidden;
   color: var(--muted);
   font-size: 12px;
@@ -1325,13 +1466,27 @@ h1 {
   align-items: center;
 }
 
-.lineup-player-meta span {
+.lineup-player-meta > span {
   flex: 0 0 auto;
 }
 
 .lineup-player-meta em {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.ability-inline-meta {
+  display: inline-flex;
+  min-width: 0;
+  gap: 6px;
+  align-items: center;
+
+  > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .lineup-board {
@@ -1518,16 +1673,16 @@ h1 {
   background: rgba(255, 255, 255, 0.42);
 }
 
-.summit-player span,
-.summit-player em,
-.bench-player em {
+.summit-player > span,
+.summit-player > em,
+.bench-player > em {
   color: var(--muted);
   font-size: 12px;
   font-style: normal;
 }
 
-.summit-player strong,
-.bench-player span {
+.summit-player > strong,
+.bench-player > span {
   overflow: hidden;
   font-weight: 850;
   text-overflow: ellipsis;

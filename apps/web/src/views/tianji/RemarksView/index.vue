@@ -7,6 +7,7 @@ import { fetchRemarks } from '@/services/modules/remarks';
 import type { RemarkItem, RemarkObjectType } from '@/services/types/remarks';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 
 type RemarkEntityType = 'country' | 'club' | 'player' | 'competition' | 'award';
 
@@ -259,7 +260,7 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="类型" width="120">
             <template #default="{ row }">
-              <el-tag>{{ row.subType || row.objectTypeLabel }}</el-tag>
+              <SemanticTag variant="neutral">{{ row.subType || row.objectTypeLabel }}</SemanticTag>
             </template>
           </el-table-column>
           <el-table-column label="字段" width="86">

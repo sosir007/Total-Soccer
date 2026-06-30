@@ -2,10 +2,17 @@
 import { toRef } from 'vue';
 import dayjs from 'dayjs';
 import IconFont from '@/components/IconFont.vue';
+import AbilityBadge from '@/components/AbilityBadge.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerListItem } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
+import {
+  getConfederationVariant,
+  getPlayerStatusLabel,
+  getPlayerStatusVariant
+} from '@/utils/tag-theme';
 
 interface StarsFilters {
   page: number;
@@ -32,6 +39,10 @@ function rowIndex(index: number) {
 
 function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
+}
+
+function formatConfederation(ref?: NamedRef | null) {
+  return ref?.name ?? '';
 }
 
 function formatDate(value?: string | number | null) {
@@ -166,7 +177,11 @@ function formatMarketValue(value?: number | null) {
             />
           </template>
         </el-table-column>
-        <el-table-column prop="pa" label="PA" width="90" sortable />
+        <el-table-column prop="pa" label="PA" width="90" sortable>
+          <template #default="{ row }">
+            <AbilityBadge type="PA" :value="row.pa" size="small" />
+          </template>
+        </el-table-column>
         <el-table-column prop="honorScore" label="荣誉分" width="100" sortable>
           <template #default="{ row }">{{ formatText(row.honorScore) }}</template>
         </el-table-column>
@@ -193,7 +208,15 @@ function formatMarketValue(value?: number | null) {
           <template #default="{ row }">{{ formatFoot(row) }}</template>
         </el-table-column>
         <el-table-column label="足联" min-width="120">
-          <template #default="{ row }">{{ formatRef(row.confederationRef) }}</template>
+          <template #default="{ row }">
+            <SemanticTag
+              v-if="formatConfederation(row.confederationRef)"
+              :variant="getConfederationVariant(formatConfederation(row.confederationRef))"
+            >
+              {{ formatConfederation(row.confederationRef) }}
+            </SemanticTag>
+            <span v-else>-</span>
+          </template>
         </el-table-column>
         <el-table-column label="代表国籍" min-width="150">
           <template #default="{ row }">
@@ -285,9 +308,9 @@ function formatMarketValue(value?: number | null) {
         <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
         <el-table-column label="状态" width="120">
           <template #default="{ row }">
-            <el-tag v-if="row.deceased" type="info">已故</el-tag>
-            <el-tag v-else-if="row.retired" type="warning">退役</el-tag>
-            <el-tag v-else type="success">现役</el-tag>
+            <SemanticTag :variant="getPlayerStatusVariant(row)">
+              {{ getPlayerStatusLabel(row) }}
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="150" fixed="right">

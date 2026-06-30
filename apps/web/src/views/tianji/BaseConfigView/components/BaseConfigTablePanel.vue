@@ -2,6 +2,7 @@
 import { toRef } from 'vue';
 import type { BaseConfigItem } from '@/services/types/base-config';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 
 interface BaseConfigFilters {
   page: number;
@@ -69,9 +70,9 @@ const filters = toRef(props, 'filters');
         </el-table-column>
         <el-table-column v-if="showEnabled" label="状态" width="84">
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'info'">
+            <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
-            </el-tag>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="172" fixed="right">

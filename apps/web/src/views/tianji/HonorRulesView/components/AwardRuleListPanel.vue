@@ -2,6 +2,7 @@
 import type { AwardScopeType } from '@/services/types/awards';
 import type { AwardRuleItem } from '@/services/types/award-rules';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 
 defineProps<{
   items: AwardRuleItem[];
@@ -60,16 +61,16 @@ const emit = defineEmits<{
         </el-table-column>
         <el-table-column label="顶级奖" width="86">
           <template #default="{ row }">
-            <el-tag :type="row.topAward ? 'warning' : 'info'">
+            <SemanticTag :variant="row.topAward ? 'status-top-award' : 'status-disabled'">
               {{ row.topAward ? '是' : '否' }}
-            </el-tag>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="84">
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'info'">
+            <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
-            </el-tag>
+            </SemanticTag>
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip>

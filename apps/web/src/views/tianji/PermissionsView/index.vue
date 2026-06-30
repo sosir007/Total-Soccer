@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus';
 import { fetchAuditLogs } from '@/services/modules/audit-logs';
 import type { AuditAction, AuditLogItem } from '@/services/types/audit-logs';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -285,9 +286,9 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="状态" width="92">
             <template #default="{ row }">
-              <el-tag :type="row.success ? 'success' : 'danger'">
+              <SemanticTag :variant="row.success ? 'status-success' : 'status-failed'">
                 {{ row.success ? '成功' : '失败' }}
-              </el-tag>
+              </SemanticTag>
             </template>
           </el-table-column>
           <el-table-column label="请求" min-width="180" show-overflow-tooltip>

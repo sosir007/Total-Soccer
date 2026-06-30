@@ -342,35 +342,6 @@ function competitionExternalUrl(competition: CompetitionListItem) {
   return buildExternalUrl(competition.externalUrl, competition.name);
 }
 
-function getCategoryTagClass(value?: string | null) {
-  const categoryClassMap: Record<string, string> = {
-    国际: 'competition-category-international',
-    洲际: 'competition-category-continental',
-    国内: 'competition-category-domestic',
-    其他: 'competition-category-other'
-  };
-
-  return [
-    'competition-meta-tag',
-    'competition-category-tag',
-    categoryClassMap[value || ''] || 'competition-category-empty'
-  ];
-}
-
-function getLevelTagClass(value?: string | null) {
-  const levelClassMap: Record<string, string> = {
-    一级: 'competition-level-primary',
-    二级: 'competition-level-secondary',
-    三级: 'competition-level-tertiary'
-  };
-
-  return [
-    'competition-meta-tag',
-    'competition-level-tag',
-    levelClassMap[value || ''] || 'competition-level-empty'
-  ];
-}
-
 watch(
   () => [filters.page, filters.pageSize],
   () => {
@@ -448,8 +419,6 @@ onActivated(() => {
       :format-text="formatText"
       :format-format="formatFormat"
       :competition-external-url="competitionExternalUrl"
-      :get-category-tag-class="getCategoryTagClass"
-      :get-level-tag-class="getLevelTagClass"
       @create="openCreateCompetitionDialog"
       @edit="openEditCompetitionDialog"
       @open="openCompetitionDetail"

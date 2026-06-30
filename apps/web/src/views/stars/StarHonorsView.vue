@@ -3,9 +3,11 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { fetchAwardRecipients } from '@/services/modules/awards';
 import type { AwardRecipientRecord, AwardScopeType } from '@/services/types/awards';
+import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 
 const loading = ref(false);
@@ -219,11 +221,13 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="名次" width="110">
             <template #default="{ row }">
-              <el-tag type="warning">{{ formatPlacement(row) }}</el-tag>
+              <SemanticTag variant="status-top-award">{{ formatPlacement(row) }}</SemanticTag>
             </template>
           </el-table-column>
-          <el-table-column label="PA" width="80">
-            <template #default="{ row }">{{ formatText(row.player.pa) }}</template>
+          <el-table-column label="PA" width="90">
+            <template #default="{ row }">
+              <AbilityBadge type="PA" :value="row.player.pa" size="small" />
+            </template>
           </el-table-column>
           <el-table-column label="国家" min-width="120">
             <template #default="{ row }">

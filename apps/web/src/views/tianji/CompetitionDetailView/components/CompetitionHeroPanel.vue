@@ -5,6 +5,8 @@ import type {
   CompetitionTargetType
 } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
+import { getCompetitionCategoryVariant, getCompetitionLevelVariant } from '@/utils/tag-theme';
 
 defineProps<{
   competition: CompetitionDetail;
@@ -34,12 +36,16 @@ const emit = defineEmits<{
       <h2>{{ competition.name }}</h2>
       <p>{{ competition.code }} · {{ formatScope(competition) }}</p>
       <div class="detail-tags">
-        <el-tag type="success">{{ competition.category || '未分类' }}</el-tag>
-        <el-tag>{{ competition.level || '未分级' }}</el-tag>
-        <el-tag v-if="shouldUseCompetitionFormat(competition)" type="info">
+        <SemanticTag :variant="getCompetitionCategoryVariant(competition.category)">
+          {{ competition.category || '未分类' }}
+        </SemanticTag>
+        <SemanticTag :variant="getCompetitionLevelVariant(competition.level)">
+          {{ competition.level || '未分级' }}
+        </SemanticTag>
+        <SemanticTag v-if="shouldUseCompetitionFormat(competition)" variant="neutral">
           {{ competition.format || '未设赛制' }}
-        </el-tag>
-        <el-tag type="warning">{{ getSummaryCountLabel() }}</el-tag>
+        </SemanticTag>
+        <SemanticTag variant="status-legend">{{ getSummaryCountLabel() }}</SemanticTag>
       </div>
     </div>
     <div class="panel-actions">
