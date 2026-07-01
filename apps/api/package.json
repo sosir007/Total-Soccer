@@ -13,7 +13,8 @@
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema prisma/schema.prisma",
     "seed:world-cup": "tsx src/scripts/seed-world-cup.ts",
-    "seed:euro": "tsx src/scripts/seed-euro.ts"
+    "seed:euro": "tsx src/scripts/seed-euro.ts",
+    "seed:asian-cup": "tsx src/scripts/seed-asian-cup.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

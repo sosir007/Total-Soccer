@@ -226,18 +226,9 @@ function hasPlacementDetails(
   return getPlacementDetails(row, competition, placement).length > 0;
 }
 
-function formatDetailTitle(
-  detail: HonorSummaryDetail,
-  competition: HonorSummaryDisplayCompetition
-) {
+function formatDetailTitle(detail: HonorSummaryDetail) {
   const parts = [detail.label || '-', formatDetailHost(detail)].filter(Boolean);
-  const title = parts.join(' / ');
-
-  if (competition.sourceCompetitionIds.length > 1 && detail.competitionName) {
-    return `${detail.competitionName}：${title}`;
-  }
-
-  return title;
+  return parts.join(' / ');
 }
 
 function formatDetailHost(detail: HonorSummaryDetail) {
@@ -363,7 +354,7 @@ function getScoreBreakdownName(row: HonorSummaryRow, competition: HonorSummaryDi
                       :key="detail.id"
                       class="honor-summary-tooltip__item"
                     >
-                      {{ formatDetailTitle(detail, competition) }}
+                      {{ formatDetailTitle(detail) }}
                     </div>
                   </div>
                 </template>
