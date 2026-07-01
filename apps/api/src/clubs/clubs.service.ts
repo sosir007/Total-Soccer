@@ -134,6 +134,19 @@ type HonorSummaryCounts = {
   thirdPlaceCount: number;
   fourthPlaceCount: number;
   semiFinalistCount: number;
+  score: number;
+  details: Record<
+    CompetitionStandingPlacement,
+    Array<{
+      id: string;
+      label: string;
+      year: number | null;
+      season: string | null;
+      host: string | null;
+      competitionId: string;
+      competitionName: string;
+    }>
+  >;
 };
 
 const CAREER_PLAYER_SELECT = {
@@ -665,7 +678,7 @@ export class ClubsService {
       }
 
       const row = rowMap.get(record.clubId) ?? this.createClubHonorSummaryRow(club);
-      this.addHonorSummaryPlacement(row, record.edition.competition.id, record.placement, score);
+      this.addHonorSummaryPlacement(row, record, score);
       rowMap.set(record.clubId, row);
     }
 
@@ -837,13 +850,24 @@ export class ClubsService {
 
   private addHonorSummaryPlacement(
     row: ReturnType<typeof this.createClubHonorSummaryRow>,
-    competitionId: string,
-    placement: CompetitionStandingPlacement,
+    record: ClubHonorRecord,
     score: number
   ) {
+    const competitionId = record.edition.competition.id;
+    const placement = record.placement;
     const counts = row.competitionStats[competitionId] ?? this.createHonorSummaryCounts();
     this.addPlacementCount(counts, placement);
     this.addPlacementCount(row, placement);
+    counts.details[placement].push({
+      id: record.id,
+      label: this.formatHonorEntryLabel(record.edition),
+      year: record.edition.year,
+      season: record.edition.season,
+      host: record.edition.host,
+      competitionId,
+      competitionName: record.edition.competition.name
+    });
+    counts.score = this.round(counts.score + score);
     row.honorScore = this.round((row.honorScore ?? 0) + score);
     row.competitionStats[competitionId] = counts;
   }
@@ -855,7 +879,17 @@ export class ClubsService {
       runnerUpCount: 0,
       thirdPlaceCount: 0,
       fourthPlaceCount: 0,
-      semiFinalistCount: 0
+      semiFinalistCount: 0,
+      score: 0,
+      details: this.createPlacementEntryMap<{
+        id: string;
+        label: string;
+        year: number | null;
+        season: string | null;
+        host: string | null;
+        competitionId: string;
+        competitionName: string;
+      }>()
     };
   }
 
@@ -870,7 +904,14 @@ export class ClubsService {
   }
 
   private addPlacementCount(
-    target: ReturnType<typeof this.createHonorSummaryCounts>,
+    target: {
+      totalCount: number;
+      championCount: number;
+      runnerUpCount: number;
+      thirdPlaceCount: number;
+      fourthPlaceCount: number;
+      semiFinalistCount: number;
+    },
     placement: CompetitionStandingPlacement
   ) {
     target.totalCount += 1;

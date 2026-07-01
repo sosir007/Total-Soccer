@@ -45,6 +45,19 @@ export interface HonorSummaryCounts {
   thirdPlaceCount: number;
   fourthPlaceCount: number;
   semiFinalistCount: number;
+  score?: number;
+  details?: Partial<Record<CompetitionStandingPlacement, HonorSummaryDetail[]>>;
+}
+
+export interface HonorSummaryDetail {
+  id: string;
+  label: string;
+  year?: number | null;
+  season?: string | null;
+  host?: string | null;
+  competitionId?: string | null;
+  competitionName?: string | null;
+  sourceName?: string | null;
 }
 
 export interface HonorSummaryCompetition extends HonorCompetitionRef {

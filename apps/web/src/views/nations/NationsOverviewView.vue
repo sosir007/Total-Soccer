@@ -242,17 +242,7 @@ onMounted(() => {
           <el-table-column label="序号" width="76" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
-          <el-table-column prop="name" label="国家" min-width="140" fixed>
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.id"
-                type="country"
-                :title="row.name"
-                :subtitle="`UID ${row.uid}`"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="足联" min-width="120">
+          <el-table-column label="足联" width="120" fixed>
             <template #default="{ row }">
               <SemanticTag
                 v-if="formatConfederation(row.federationRef)"
@@ -261,6 +251,16 @@ onMounted(() => {
                 {{ formatConfederation(row.federationRef) }}
               </SemanticTag>
               <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" label="国家" min-width="140" fixed>
+            <template #default="{ row }">
+              <EntityNameCell
+                :id="row.id"
+                type="country"
+                :title="row.name"
+                :subtitle="`UID ${row.uid}`"
+              />
             </template>
           </el-table-column>
           <el-table-column prop="playerCount" label="球员数" width="100" sortable />

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f6f43" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>天下足球浏览器图标预览</title>
+    <style>
+      :root {
+        --bg: #f7faf6;
+        --ink: #10251b;
+        --muted: #6d7d72;
+        --green: #1f8b55;
+        --gold: #c89436;
+        --line: #e2eae1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ink);
+        font-family: Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+        background:
+          radial-gradient(ellipse at 76% 0%, rgba(211, 236, 224, 0.9), transparent 31%),
+          radial-gradient(ellipse at 18% 2%, rgba(255, 241, 191, 0.72), transparent 26%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 246, 0.96)),
+          repeating-linear-gradient(
+            90deg,
+            rgba(31, 139, 85, 0.026) 0 88px,
+            rgba(31, 139, 85, 0.052) 88px 176px
+          ),
+          var(--bg);
+      }
+
+      main {
+        width: min(960px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 56px 0;
+      }
+
+      .browser {
+        overflow: hidden;
+        border: 1px solid rgba(31, 139, 85, 0.14);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.84);
+        box-shadow: 0 20px 52px rgba(27, 67, 45, 0.1);
+      }
+
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        height: 54px;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .dots {
+        display: flex;
+        gap: 7px;
+      }
+
+      .dots span {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+
+      .dots span:nth-child(1) {
+        background: #e46d5f;
+      }
+
+      .dots span:nth-child(2) {
+        background: #e6b84f;
+      }
+
+      .dots span:nth-child(3) {
+        background: #42b877;
+      }
+
+      .tab {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 236px;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid rgba(31, 139, 85, 0.12);
+        border-radius: 8px 8px 0 0;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        box-shadow: 0 8px 20px rgba(25, 66, 43, 0.08);
+      }
+
+      .tab img {
+        width: 18px;
+        height: 18px;
+      }
+
+      .stage {
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 40px;
+        align-items: center;
+        padding: 54px;
+      }
+
+      .mark {
+        display: grid;
+        min-height: 300px;
+        place-items: center;
+        border-radius: 8px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(237, 247, 239, 0.82)),
+          radial-gradient(circle at 50% 48%, rgba(200, 148, 54, 0.18), transparent 44%);
+      }
+
+      .mark img {
+        width: 184px;
+        height: 184px;
+        filter: drop-shadow(0 18px 26px rgba(16, 37, 27, 0.16));
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.16;
+        letter-spacing: 0;
+      }
+
+      p {
+        margin: 16px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      .sizes {
+        display: flex;
+        align-items: end;
+        gap: 22px;
+        margin-top: 28px;
+      }
+
+      .size-item {
+        display: grid;
+        gap: 10px;
+        justify-items: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .size-item img {
+        display: block;
+      }
+
+      .note {
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+        color: #137849;
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          width: min(100vw - 28px, 520px);
+          padding: 28px 0;
+        }
+
+        .stage {
+          grid-template-columns: 1fr;
+          gap: 28px;
+          padding: 28px;
+        }
+
+        .mark {
+          min-height: 220px;
+        }
+
+        .mark img {
+          width: 146px;
+          height: 146px;
+        }
+
+        h1 {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="browser">
+        <div class="bar">
+          <div class="dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="tab">
+            <img src="./favicon.svg" alt="" />
+            <span>天下足球</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="mark">
+            <img src="./favicon.svg" alt="天下足球浏览器图标" />
+          </div>
+          <div>
+            <h1>天下足球浏览器图标</h1>
+            <p>以一个几何化的 T 作为核心记号，代表 Total / 天下；项目绿和奖杯金保留足球荣誉气质，背景弧线轻轻带出绿茵场语义。</p>
+            <div class="sizes">
+              <div class="size-item">
+                <img src="./favicon.svg" alt="" width="16" height="16" />
+                <span>16px</span>
+              </div>
+              <div class="size-item">
+                <img src="./favicon.svg" alt="" width="32" height="32" />
+                <span>32px</span>
+              </div>
+              <div class="size-item">
+                <img src="./favicon.svg" alt="" width="64" height="64" />
+                <span>64px</span>
+              </div>
+              <div class="size-item">
+                <img src="./favicon.svg" alt="" width="96" height="96" />
+                <span>96px</span>
+              </div>
+            </div>
+            <div class="note">实际浏览器标签页会使用同一个 favicon.svg。</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">天下足球</title>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="5" x2="56" y2="59" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#24A767"/>
+      <stop offset="0.55" stop-color="#137849"/>
+      <stop offset="1" stop-color="#0B4B32"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="19" y1="13" x2="46" y2="51" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE28B"/>
+      <stop offset="1" stop-color="#C89436"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="3" y="3" width="58" height="58" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="#0B2F20" flood-opacity="0.24"/>
+    </filter>
+    <filter id="mark-shadow" x="13" y="12" width="38" height="42" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#083623" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect width="64" height="64" rx="15" fill="#F7FAF6"/>
+  <g filter="url(#soft-shadow)">
+    <rect x="8" y="8" width="48" height="48" rx="14" fill="url(#bg)"/>
+    <path d="M15 36c8.1-4.6 25.9-4.6 34 0" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" opacity="0.16"/>
+    <path d="M18 43c6.8-3 21.2-3 28 0" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity="0.12"/>
+    <g filter="url(#mark-shadow)">
+      <path d="M18 18h28v8.5H36.6V49h-9.2V26.5H18V18z" fill="url(#gold)"/>
+      <path d="M36.6 26.5H46L36.6 35v-8.5z" fill="#F4C64A" opacity="0.72"/>
+      <circle cx="32" cy="49" r="3.3" fill="#F9FFF7"/>
+    </g>
+  </g>
+</svg>
