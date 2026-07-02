@@ -235,16 +235,25 @@ function formatDetailHost(detail: HonorSummaryDetail) {
   return detail.host ? `举办地 ${detail.host}` : '';
 }
 
-function getTooltipTitle(
+function getPlacementDetailGroups(
   row: HonorSummaryRow,
   competition: HonorSummaryDisplayCompetition,
   placement: PlacementStat
 ) {
   const details = getPlacementDetails(row, competition, placement);
-  const names = [...new Set(details.map((detail) => detail.competitionName).filter(Boolean))];
+  const groupMap = new Map<string, HonorSummaryDetail[]>();
 
-  const competitionName = names.length === 1 ? names[0] : competition.name;
-  return `${competitionName} · ${placementLabels[placement.value]}`;
+  for (const detail of details) {
+    const competitionName = detail.competitionName || competition.name;
+    const group = groupMap.get(competitionName) ?? [];
+    group.push(detail);
+    groupMap.set(competitionName, group);
+  }
+
+  return [...groupMap.entries()].map(([name, groupDetails]) => ({
+    name,
+    details: groupDetails
+  }));
 }
 
 function hasScoreBreakdown(row: HonorSummaryRow) {
@@ -253,21 +262,47 @@ function hasScoreBreakdown(row: HonorSummaryRow) {
 
 function getScoreBreakdown(row: HonorSummaryRow) {
   return displayCompetitions.value
-    .map((competition) => ({
-      name: getScoreBreakdownName(row, competition),
-      score: getDisplayCompetitionCounts(row, competition).score ?? 0
-    }))
+    .flatMap((competition) => getCompetitionScoreBreakdown(row, competition))
     .filter((item) => item.score > 0);
+}
+
+function getCompetitionScoreBreakdown(
+  row: HonorSummaryRow,
+  competition: HonorSummaryDisplayCompetition
+) {
+  if (competition.sourceCompetitionIds.length <= 1) {
+    return [
+      {
+        name: getScoreBreakdownName(row, competition),
+        score: getDisplayCompetitionCounts(row, competition).score ?? 0
+      }
+    ];
+  }
+
+  return competition.sourceCompetitionIds.map((competitionId) => {
+    const counts = getCompetitionCounts(row, competitionId);
+    const sourceCompetition =
+      props.competitions.find((item) => item.id === competitionId) ?? competition;
+
+    return {
+      name: getScoreBreakdownNameFromCounts(counts, sourceCompetition.name),
+      score: counts.score ?? 0
+    };
+  });
 }
 
 function getScoreBreakdownName(row: HonorSummaryRow, competition: HonorSummaryDisplayCompetition) {
   const counts = getDisplayCompetitionCounts(row, competition);
+  return getScoreBreakdownNameFromCounts(counts, competition.name);
+}
+
+function getScoreBreakdownNameFromCounts(counts: HonorSummaryCounts, fallbackName: string) {
   const names = placementValues.flatMap((placement) =>
     (counts.details?.[placement] ?? []).map((detail) => detail.competitionName).filter(Boolean)
   );
   const uniqueNames = [...new Set(names)];
 
-  return uniqueNames.length === 1 ? (uniqueNames[0] ?? competition.name) : competition.name;
+  return uniqueNames.length === 1 ? (uniqueNames[0] ?? fallbackName) : fallbackName;
 }
 </script>
 
@@ -347,14 +382,23 @@ function getScoreBreakdownName(row: HonorSummaryRow, competition: HonorSummaryDi
                 <template #content>
                   <div class="honor-summary-tooltip">
                     <div class="honor-summary-tooltip__title">
-                      {{ getTooltipTitle(row, competition, placement) }}
+                      {{ placementLabels[placement.value] }}
                     </div>
                     <div
-                      v-for="detail in getPlacementDetails(row, competition, placement)"
-                      :key="detail.id"
-                      class="honor-summary-tooltip__item"
+                      v-for="group in getPlacementDetailGroups(row, competition, placement)"
+                      :key="group.name"
+                      class="honor-summary-tooltip__group"
                     >
-                      {{ formatDetailTitle(detail) }}
+                      <div class="honor-summary-tooltip__group-title">
+                        {{ group.name }}
+                      </div>
+                      <div
+                        v-for="detail in group.details"
+                        :key="detail.id"
+                        class="honor-summary-tooltip__item"
+                      >
+                        {{ formatDetailTitle(detail) }}
+                      </div>
                     </div>
                   </div>
                 </template>
@@ -440,6 +484,17 @@ function getScoreBreakdownName(row: HonorSummaryRow, competition: HonorSummaryDi
   &__title {
     color: #10291d;
     font-weight: 800;
+  }
+
+  &__group {
+    display: grid;
+    gap: 4px;
+  }
+
+  &__group-title {
+    color: #15784b;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   &__item {
