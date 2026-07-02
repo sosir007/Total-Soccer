@@ -1089,22 +1089,17 @@ export class ClubsService {
   }
 
   private frequencyCoefficient(competition: ClubHonorCompetition) {
-    const years = [
-      ...new Set(competition.editions.map((edition) => edition.year).filter(isNumber))
-    ].sort((a, b) => a - b);
+    const years = competition.editions.map((edition) => edition.year).filter(isNumber);
 
     if (years.length < 2) {
       return 1;
     }
 
-    const gaps = years.slice(1).map((year, index) => year - years[index]);
-    const averageGap = gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length;
+    const firstYear = Math.min(...years);
+    const lastYear = Math.max(...years);
+    const averageGap = (lastYear - firstYear) / (years.length - 1);
 
-    if (averageGap >= 3.5) return 1;
-    if (averageGap >= 2.5) return 0.85;
-    if (averageGap >= 1.5) return 0.7;
-
-    return 0.45;
+    return Math.min(averageGap / 4, 1);
   }
 
   private scaleCoefficient(competition: ClubHonorCompetition, quantity: number | null) {
@@ -1117,8 +1112,10 @@ export class ClubsService {
     if (resolvedQuantity >= 10) return 0.75;
     if (resolvedQuantity >= 8) return 0.65;
     if (resolvedQuantity >= 4) return 0.5;
+    if (resolvedQuantity === 3) return 0.35;
+    if (resolvedQuantity === 2) return 0.25;
 
-    return 1;
+    return 0;
   }
 
   private median(values: Array<number | null>) {

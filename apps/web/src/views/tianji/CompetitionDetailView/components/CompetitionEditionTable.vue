@@ -61,6 +61,9 @@ function getStandingModeLabel(edition: CompetitionEdition) {
     <div v-if="!editions.length" class="mini-empty">暂无年份结果</div>
 
     <el-table v-else :data="editions" border>
+      <el-table-column label="序号" width="72" align="center">
+        <template #default="{ $index }">{{ $index + 1 }}</template>
+      </el-table-column>
       <el-table-column label="赛季" min-width="120">
         <template #default="{ row }">{{ formatEditionLabel(row) }}</template>
       </el-table-column>
@@ -70,11 +73,13 @@ function getStandingModeLabel(edition: CompetitionEdition) {
       <el-table-column label="名次口径" width="120">
         <template #default="{ row }">{{ getStandingModeLabel(row) }}</template>
       </el-table-column>
-      <el-table-column v-for="field in placementFields" :key="field.key" min-width="120">
+      <el-table-column v-for="field in placementFields" :key="field.key" width="132">
         <template #header>
           <span class="edition-placement-head">
             <HonorPlacementLabel :placement="field.placement" />
-            <span v-if="field.standingOrder">{{ field.standingOrder }}</span>
+            <span v-if="field.standingOrder" class="edition-placement-order">
+              {{ field.standingOrder }}
+            </span>
           </span>
         </template>
         <template #default="{ row }">
@@ -117,5 +122,17 @@ function getStandingModeLabel(edition: CompetitionEdition) {
   align-items: center;
   gap: 10px;
   white-space: nowrap;
+}
+
+.edition-placement-head {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.edition-placement-order {
+  flex: 0 0 auto;
 }
 </style>

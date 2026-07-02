@@ -33,9 +33,9 @@ const emit = defineEmits<{
 
 const gridTemplateColumns = computed(
   () =>
-    `120px 150px 120px 120px ${props.placementFields.map(() => '170px').join(' ')} 90px 150px 72px`
+    `72px 120px 150px 120px 120px ${props.placementFields.map(() => '170px').join(' ')} 90px 150px 72px`
 );
-const gridMinWidth = computed(() => `${882 + props.placementFields.length * 180}px`);
+const gridMinWidth = computed(() => `${954 + props.placementFields.length * 180}px`);
 const rowGridStyle = computed(() => ({
   gridTemplateColumns: gridTemplateColumns.value,
   width: gridMinWidth.value,
@@ -67,13 +67,16 @@ function hasPlacementField(row: EditionRow, field: PlacementField) {
 
     <div class="edition-editor-table">
       <div class="edition-editor-row edition-editor-head" :style="rowGridStyle">
+        <span>序号</span>
         <span>年份</span>
         <span>赛季/别名</span>
         <span>举办地</span>
         <span>名次口径</span>
-        <span v-for="field in placementFields" :key="field.key">
+        <span v-for="field in placementFields" :key="field.key" class="edition-placement-head">
           <HonorPlacementLabel :placement="field.placement" />
-          <span v-if="field.standingOrder">{{ field.standingOrder }}</span>
+          <span v-if="field.standingOrder" class="edition-placement-order">
+            {{ field.standingOrder }}
+          </span>
         </span>
         <span>数量</span>
         <span>备注</span>
@@ -81,12 +84,13 @@ function hasPlacementField(row: EditionRow, field: PlacementField) {
       </div>
 
       <div
-        v-for="row in rows"
+        v-for="(row, index) in rows"
         :key="row.clientId"
         class="edition-editor-row"
         :class="{ locked: row.locked }"
         :style="rowGridStyle"
       >
+        <span class="edition-editor-index">{{ index + 1 }}</span>
         <el-date-picker
           v-model="row.year"
           type="year"
@@ -173,6 +177,23 @@ function hasPlacementField(row: EditionRow, field: PlacementField) {
   color: #51665b;
   font-size: 13px;
   font-weight: 850;
+}
+
+.edition-editor-index {
+  color: #738278;
+  font-weight: 800;
+  text-align: center;
+}
+
+.edition-placement-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.edition-placement-order {
+  flex: 0 0 auto;
 }
 
 .edition-editor-disabled {
