@@ -66,13 +66,16 @@ const standingModeOptions: Array<{ label: string; value: CompetitionEditionStand
   { label: '有三四名赛', value: 'THIRD_PLACE_MATCH' },
   { label: '无三四名赛', value: 'SEMI_FINALISTS' },
   { label: '仅冠亚军', value: 'FINAL_ONLY' },
-  { label: '联赛前三', value: 'LEAGUE_TOP_THREE' }
+  { label: '联赛前三', value: 'LEAGUE_TOP_THREE' },
+  { label: '并列季军', value: 'DOUBLE_THIRD_PLACE' }
 ];
 const allPlacementFields: PlacementField[] = [
   { key: 'CHAMPION', label: '冠军', placement: 'CHAMPION', standingOrder: 0 },
   { key: 'RUNNER_UP', label: '亚军', placement: 'RUNNER_UP', standingOrder: 0 },
   { key: 'THIRD_PLACE', label: '季军', placement: 'THIRD_PLACE', standingOrder: 0 },
   { key: 'FOURTH_PLACE', label: '殿军', placement: 'FOURTH_PLACE', standingOrder: 0 },
+  { key: 'THIRD_PLACE_1', label: '季军 1', placement: 'THIRD_PLACE', standingOrder: 1 },
+  { key: 'THIRD_PLACE_2', label: '季军 2', placement: 'THIRD_PLACE', standingOrder: 2 },
   { key: 'SEMI_FINALIST_1', label: '四强 1', placement: 'SEMI_FINALIST', standingOrder: 1 },
   { key: 'SEMI_FINALIST_2', label: '四强 2', placement: 'SEMI_FINALIST', standingOrder: 2 }
 ];
@@ -524,6 +527,12 @@ function getPlacementFieldsByMode(standingMode: CompetitionEditionStandingMode) 
     );
   }
 
+  if (standingMode === 'DOUBLE_THIRD_PLACE') {
+    return allPlacementFields.filter((field) =>
+      ['CHAMPION', 'RUNNER_UP', 'THIRD_PLACE_1', 'THIRD_PLACE_2'].includes(field.key)
+    );
+  }
+
   return allPlacementFields.filter((field) => ['CHAMPION', 'RUNNER_UP'].includes(field.key));
 }
 
@@ -545,14 +554,22 @@ function getStandingFieldKey(
   placement: CompetitionStandingPlacement,
   standingOrder: number | null | undefined
 ) {
-  return placement === 'SEMI_FINALIST' ? `SEMI_FINALIST_${standingOrder || 1}` : placement;
+  if (placement === 'SEMI_FINALIST') {
+    return `SEMI_FINALIST_${standingOrder || 1}`;
+  }
+
+  if (placement === 'THIRD_PLACE' && standingOrder) {
+    return `THIRD_PLACE_${standingOrder}`;
+  }
+
+  return placement;
 }
 
 function getEditionStanding(edition: CompetitionEdition, field: PlacementField) {
   return edition.standings.find(
     (item) =>
       item.placement === field.placement &&
-      (field.placement !== 'SEMI_FINALIST' || item.standingOrder === field.standingOrder)
+      (field.standingOrder === 0 || item.standingOrder === field.standingOrder)
   );
 }
 

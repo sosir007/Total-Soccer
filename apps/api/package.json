@@ -18,7 +18,9 @@
     "seed:copa-america": "tsx src/scripts/seed-copa-america.ts",
     "seed:africa-cup": "tsx src/scripts/seed-africa-cup.ts",
     "seed:gold-cup": "tsx src/scripts/seed-gold-cup.ts",
-    "seed:ofc-nations-cup": "tsx src/scripts/seed-ofc-nations-cup.ts"
+    "seed:ofc-nations-cup": "tsx src/scripts/seed-ofc-nations-cup.ts",
+    "seed:confederations-cup": "tsx src/scripts/seed-confederations-cup.ts",
+    "seed:olympic-mens-football": "tsx src/scripts/seed-olympic-mens-football.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

@@ -914,9 +914,10 @@ export class HonorRulesService {
 
     if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
       if (!year) return 1;
-      if (year <= 1928) return 2.5;
-      if (year <= 1988) return 1.2;
-      return 0.75;
+      if (year <= 1928) return 2;
+      if (year <= 1980) return 4 / 3;
+      if (year <= 1988) return 1;
+      return 2 / 3;
     }
 
     return 1;

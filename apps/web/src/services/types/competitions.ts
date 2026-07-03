@@ -15,7 +15,8 @@ export type CompetitionEditionStandingMode =
   | 'THIRD_PLACE_MATCH'
   | 'SEMI_FINALISTS'
   | 'FINAL_ONLY'
-  | 'LEAGUE_TOP_THREE';
+  | 'LEAGUE_TOP_THREE'
+  | 'DOUBLE_THIRD_PLACE';
 
 export interface CompetitionListParams {
   page?: number;

@@ -439,6 +439,7 @@ export class CompetitionsService {
     const standings = body.standings ?? [];
     const usedPlacementKeys = new Set<string>();
     const semiFinalistOrders = new Set<number>();
+    const thirdPlaceOrders = new Set<number>();
     const allowedPlacements = this.allowedPlacementsByMode(standingMode);
 
     const rows: Array<{
@@ -451,14 +452,20 @@ export class CompetitionsService {
 
     for (const standing of standings) {
       const placement = this.parsePlacement(standing.placement);
-      const standingOrder = this.parseStandingOrder(placement, standing.standingOrder);
+      const standingOrder = this.parseStandingOrder(
+        standingMode,
+        placement,
+        standing.standingOrder
+      );
 
       if (!allowedPlacements.includes(placement)) {
         throw new BadRequestException('赛事名次与当前届次名次口径不匹配。');
       }
 
       const placementKey =
-        placement === CompetitionStandingPlacement.SEMI_FINALIST
+        placement === CompetitionStandingPlacement.SEMI_FINALIST ||
+        (standingMode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE &&
+          placement === CompetitionStandingPlacement.THIRD_PLACE)
           ? `${placement}:${standingOrder}`
           : placement;
 
@@ -473,6 +480,17 @@ export class CompetitionsService {
 
         if (semiFinalistOrders.size > 2) {
           throw new BadRequestException('同一届赛事最多录入两支四强球队。');
+        }
+      }
+
+      if (
+        standingMode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE &&
+        placement === CompetitionStandingPlacement.THIRD_PLACE
+      ) {
+        thirdPlaceOrders.add(standingOrder);
+
+        if (thirdPlaceOrders.size > 2) {
+          throw new BadRequestException('同一届赛事最多录入两支并列季军球队。');
         }
       }
 
@@ -616,17 +634,23 @@ export class CompetitionsService {
   }
 
   private parseStandingOrder(
+    standingMode: CompetitionEditionStandingMode,
     placement: CompetitionStandingPlacement,
     value: number | null | undefined
   ) {
-    if (placement !== CompetitionStandingPlacement.SEMI_FINALIST) {
+    const needsOrder =
+      placement === CompetitionStandingPlacement.SEMI_FINALIST ||
+      (standingMode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE &&
+        placement === CompetitionStandingPlacement.THIRD_PLACE);
+
+    if (!needsOrder) {
       return 0;
     }
 
     const order = value === null || value === undefined ? 1 : Number(value);
 
     if (!Number.isInteger(order) || order < 1 || order > 2) {
-      throw new BadRequestException('四强序号必须是 1 或 2。');
+      throw new BadRequestException('名次序号必须是 1 或 2。');
     }
 
     return order;
@@ -653,6 +677,14 @@ export class CompetitionsService {
     }
 
     if (standingMode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE) {
+      return [
+        CompetitionStandingPlacement.CHAMPION,
+        CompetitionStandingPlacement.RUNNER_UP,
+        CompetitionStandingPlacement.THIRD_PLACE
+      ];
+    }
+
+    if (standingMode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE) {
       return [
         CompetitionStandingPlacement.CHAMPION,
         CompetitionStandingPlacement.RUNNER_UP,

@@ -1,0 +1,1 @@
+ALTER TYPE "CompetitionEditionStandingMode" ADD VALUE IF NOT EXISTS 'DOUBLE_THIRD_PLACE';
