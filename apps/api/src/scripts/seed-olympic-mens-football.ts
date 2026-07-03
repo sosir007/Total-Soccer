@@ -5,6 +5,7 @@ import {
   CompetitionTargetType,
   PrismaClient
 } from '@prisma/client';
+import { runCompetitionSeed } from './helpers/competition-seed.js';
 
 const prisma = new PrismaClient();
 
@@ -390,184 +391,50 @@ const OLYMPIC_RESULTS: Array<TopFourOlympicResult | DoubleThirdOlympicResult> = 
 ];
 
 async function main() {
-  const confederations = new Map<string, { id: string; name: string }>();
-  const countries = new Map<string, { id: string; name: string }>();
-
-  for (const confederationData of CONFEDERATIONS) {
-    const confederation = await prisma.confederation.upsert({
-      where: { uid: confederationData.uid },
-      create: confederationData,
-      update: {
-        code: confederationData.code,
-        name: confederationData.name,
-        sortOrder: confederationData.sortOrder
-      },
-      select: { id: true, name: true }
-    });
-    confederations.set(confederationData.code, confederation);
-  }
-
-  for (const countryData of REQUIRED_COUNTRIES) {
-    const confederation = confederations.get(countryData.confederationCode);
-
-    if (!confederation) {
-      throw new Error(`${countryData.confederationCode} confederation not found.`);
-    }
-
-    const country = await upsertCountry({
-      uid: countryData.uid,
-      name: countryData.name,
-      confederationId: confederation.id,
-      confederationName: confederation.name,
-      isHistorical: false,
-      visibleInCatalogForNew: countryData.visibleInCatalogForNew ?? false
-    });
-    countries.set(country.name, country);
-  }
-
-  for (const item of HISTORICAL_COUNTRIES) {
-    const confederation = confederations.get(item.confederationCode);
-
-    if (!confederation) {
-      throw new Error(`${item.confederationCode} confederation not found.`);
-    }
-
-    const country = await upsertCountry({
-      uid: item.uid,
-      name: item.name,
-      confederationId: confederation.id,
-      confederationName: confederation.name,
-      isHistorical: true,
-      visibleInCatalogForNew: false,
-      detailRedirectCountryId: item.redirectName ? countries.get(item.redirectName)?.id : null
-    });
-    countries.set(country.name, country);
-  }
-
-  for (const item of HISTORICAL_COUNTRIES) {
-    const historical = countries.get(item.name);
-
-    if (!historical) {
-      continue;
-    }
-
-    await prisma.countrySuccessor.deleteMany({
-      where: { historicalCountryId: historical.id }
-    });
-
-    for (const successorName of item.successorNames) {
-      const successor = countries.get(successorName);
-
-      if (!successor) {
-        continue;
-      }
-
-      await prisma.countrySuccessor.create({
-        data: {
-          historicalCountryId: historical.id,
-          successorCountryId: successor.id
-        }
-      });
-    }
-  }
-
-  const olympics = await prisma.competition.upsert({
-    where: { code: 'OLYMPIC_MENS_FOOTBALL' },
-    create: {
+  await runCompetitionSeed({
+    prisma,
+    confederations: CONFEDERATIONS,
+    countries: REQUIRED_COUNTRIES,
+    historicalCountries: HISTORICAL_COUNTRIES,
+    competition: {
       code: 'OLYMPIC_MENS_FOOTBALL',
-      name: '奥运会男子足球赛',
-      externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.GLOBAL,
-      category: '国际',
-      level: '三级',
-      format: '杯赛',
-      description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 15
-    },
-    update: {
-      name: '奥运会男子足球赛',
-      externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.GLOBAL,
-      category: '国际',
-      level: '三级',
-      format: '杯赛',
-      description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
-      confederationId: null,
-      countryId: null,
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 15
-    },
-    select: { id: true }
-  });
-
-  await prisma.competitionScopeConfederation.deleteMany({
-    where: { competitionId: olympics.id }
-  });
-  await prisma.competitionScopeCountry.deleteMany({
-    where: { competitionId: olympics.id }
-  });
-
-  for (const result of OLYMPIC_RESULTS) {
-    const editionName = `${result.year}年`;
-    const edition = await prisma.competitionEdition.upsert({
-      where: {
-        competitionId_name: {
-          competitionId: olympics.id,
-          name: editionName
-        }
-      },
       create: {
-        competitionId: olympics.id,
-        name: editionName,
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: result.mode,
-        remark: result.remark ?? null
+        code: 'OLYMPIC_MENS_FOOTBALL',
+        name: '奥运会男子足球赛',
+        externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.GLOBAL,
+        category: '国际',
+        level: '三级',
+        format: '杯赛',
+        description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 15
       },
       update: {
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: result.mode,
-        remark: result.remark ?? null
-      },
-      select: { id: true }
-    });
-
-    await prisma.competitionStanding.deleteMany({
-      where: { editionId: edition.id }
-    });
-
-    await prisma.competitionStanding.createMany({
-      data: buildStandings(result).flatMap(({ placement, countryName, standingOrder }) => {
-        const country = countries.get(countryName);
-
-        if (!country) {
-          console.warn(`Skip ${editionName} ${countryName}: country not found.`);
-          return [];
-        }
-
-        return [
-          {
-            editionId: edition.id,
-            placement,
-            standingOrder,
-            countryId: country.id
-          }
-        ];
-      })
-    });
-  }
-
-  console.log('Olympic men football seed completed.');
+        name: '奥运会男子足球赛',
+        externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.GLOBAL,
+        category: '国际',
+        level: '三级',
+        format: '杯赛',
+        description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
+        confederationId: null,
+        countryId: null,
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 15
+      }
+    },
+    editions: OLYMPIC_RESULTS.map((result) => ({
+      ...result,
+      standingMode: result.mode
+    })),
+    buildStandings,
+    completedMessage: 'Olympic men football seed completed.'
+  });
 }
 
 function buildStandings(result: TopFourOlympicResult | DoubleThirdOlympicResult) {
@@ -618,86 +485,6 @@ function buildStandings(result: TopFourOlympicResult | DoubleThirdOlympicResult)
   );
 
   return standings;
-}
-
-async function upsertCountry(input: {
-  uid: string;
-  name: string;
-  confederationId: string | null;
-  confederationName: string | null;
-  isHistorical: boolean;
-  visibleInCatalogForNew: boolean;
-  detailRedirectCountryId?: string | null;
-}) {
-  const existing = await findExistingCountry(input.uid, input.name);
-  const uidSort = toUidSort(input.uid);
-
-  if (existing) {
-    return prisma.country.update({
-      where: { id: existing.id },
-      data: {
-        uid: existing.uid === '-' && input.uid !== '-' ? input.uid : existing.uid,
-        uidSort: existing.uid === '-' && input.uid !== '-' ? uidSort : existing.uidSort,
-        federationId: existing.federationId ?? input.confederationId,
-        federation: existing.federation ?? input.confederationName,
-        isHistorical: input.isHistorical,
-        visibleInCatalog: input.isHistorical ? false : existing.visibleInCatalog,
-        detailRedirectCountryId: input.detailRedirectCountryId ?? null
-      },
-      select: { id: true, name: true }
-    });
-  }
-
-  return prisma.country.create({
-    data: {
-      importKey: `seed:country:${input.uid === '-' ? input.name : input.uid}`,
-      uid: input.uid,
-      uidSort,
-      name: input.name,
-      federationId: input.confederationId,
-      federation: input.confederationName,
-      visibleInCatalog: input.visibleInCatalogForNew,
-      isHistorical: input.isHistorical,
-      detailRedirectCountryId: input.detailRedirectCountryId ?? null
-    },
-    select: { id: true, name: true }
-  });
-}
-
-async function findExistingCountry(uid: string, name: string) {
-  if (uid !== '-') {
-    const byUid = await prisma.country.findFirst({
-      where: { uid },
-      select: {
-        id: true,
-        uid: true,
-        uidSort: true,
-        federationId: true,
-        federation: true,
-        visibleInCatalog: true
-      }
-    });
-
-    if (byUid) {
-      return byUid;
-    }
-  }
-
-  return prisma.country.findFirst({
-    where: { name },
-    select: {
-      id: true,
-      uid: true,
-      uidSort: true,
-      federationId: true,
-      federation: true,
-      visibleInCatalog: true
-    }
-  });
-}
-
-function toUidSort(uid: string) {
-  return /^\d+$/.test(uid) ? Number(uid) : null;
 }
 
 main()

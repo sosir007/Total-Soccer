@@ -1,10 +1,5 @@
-import {
-  CompetitionEditionStandingMode,
-  CompetitionScopeType,
-  CompetitionStandingPlacement,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
+import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
+import { buildTopFourStandings, runCompetitionSeed } from './helpers/competition-seed.js';
 
 const prisma = new PrismaClient();
 
@@ -151,218 +146,46 @@ const CONFEDERATIONS_CUP_RESULTS: ConfederationsCupResult[] = [
 ];
 
 async function main() {
-  const confederations = new Map<string, { id: string; name: string }>();
-  const countries = new Map<string, { id: string; name: string }>();
-
-  for (const confederationData of CONFEDERATIONS) {
-    const confederation = await prisma.confederation.upsert({
-      where: { uid: confederationData.uid },
-      create: confederationData,
-      update: {
-        code: confederationData.code,
-        name: confederationData.name,
-        sortOrder: confederationData.sortOrder
-      },
-      select: { id: true, name: true }
-    });
-    confederations.set(confederationData.code, confederation);
-  }
-
-  for (const countryData of REQUIRED_COUNTRIES) {
-    const confederation = confederations.get(countryData.confederationCode);
-
-    if (!confederation) {
-      throw new Error(`${countryData.confederationCode} confederation not found.`);
-    }
-
-    const country = await upsertCountry({
-      uid: countryData.uid,
-      name: countryData.name,
-      confederationId: confederation.id,
-      confederationName: confederation.name,
-      visibleInCatalogForNew: false
-    });
-    countries.set(country.name, country);
-  }
-
-  const confederationsCup = await prisma.competition.upsert({
-    where: { code: 'FIFA_CONFEDERATIONS_CUP' },
-    create: {
+  await runCompetitionSeed({
+    prisma,
+    confederations: CONFEDERATIONS,
+    countries: REQUIRED_COUNTRIES,
+    competition: {
       code: 'FIFA_CONFEDERATIONS_CUP',
-      name: '国际足联联合会杯',
-      externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.GLOBAL,
-      category: '国际',
-      level: '二级',
-      format: '杯赛',
-      description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 10
-    },
-    update: {
-      name: '国际足联联合会杯',
-      externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.GLOBAL,
-      category: '国际',
-      level: '二级',
-      format: '杯赛',
-      description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
-      confederationId: null,
-      countryId: null,
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 10
-    },
-    select: { id: true }
-  });
-
-  await prisma.competitionScopeConfederation.deleteMany({
-    where: { competitionId: confederationsCup.id }
-  });
-  await prisma.competitionScopeCountry.deleteMany({
-    where: { competitionId: confederationsCup.id }
-  });
-
-  for (const result of CONFEDERATIONS_CUP_RESULTS) {
-    const editionName = `${result.year}年`;
-    const edition = await prisma.competitionEdition.upsert({
-      where: {
-        competitionId_name: {
-          competitionId: confederationsCup.id,
-          name: editionName
-        }
-      },
       create: {
-        competitionId: confederationsCup.id,
-        name: editionName,
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-        remark: result.remark ?? null
+        code: 'FIFA_CONFEDERATIONS_CUP',
+        name: '国际足联联合会杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.GLOBAL,
+        category: '国际',
+        level: '二级',
+        format: '杯赛',
+        description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 10
       },
       update: {
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-        remark: result.remark ?? null
-      },
-      select: { id: true }
-    });
-
-    await prisma.competitionStanding.deleteMany({
-      where: { editionId: edition.id }
-    });
-
-    await prisma.competitionStanding.createMany({
-      data: buildStandings(result).flatMap(({ placement, countryName }) => {
-        const country = countries.get(countryName);
-
-        if (!country) {
-          console.warn(`Skip ${editionName} ${countryName}: country not found.`);
-          return [];
-        }
-
-        return [
-          {
-            editionId: edition.id,
-            placement,
-            countryId: country.id
-          }
-        ];
-      })
-    });
-  }
-
-  console.log('FIFA Confederations Cup seed completed.');
-}
-
-function buildStandings(result: ConfederationsCupResult) {
-  return [
-    { placement: CompetitionStandingPlacement.CHAMPION, countryName: result.champion },
-    { placement: CompetitionStandingPlacement.RUNNER_UP, countryName: result.runnerUp },
-    { placement: CompetitionStandingPlacement.THIRD_PLACE, countryName: result.thirdPlace },
-    { placement: CompetitionStandingPlacement.FOURTH_PLACE, countryName: result.fourthPlace }
-  ];
-}
-
-async function upsertCountry(input: {
-  uid: string;
-  name: string;
-  confederationId: string | null;
-  confederationName: string | null;
-  visibleInCatalogForNew: boolean;
-}) {
-  const existing = await findExistingCountry(input.uid, input.name);
-  const uidSort = toUidSort(input.uid);
-
-  if (existing) {
-    return prisma.country.update({
-      where: { id: existing.id },
-      data: {
-        uid: existing.uid === '-' && input.uid !== '-' ? input.uid : existing.uid,
-        uidSort: existing.uid === '-' && input.uid !== '-' ? uidSort : existing.uidSort,
-        federationId: existing.federationId ?? input.confederationId,
-        federation: existing.federation ?? input.confederationName
-      },
-      select: { id: true, name: true }
-    });
-  }
-
-  return prisma.country.create({
-    data: {
-      importKey: `seed:country:${input.uid === '-' ? input.name : input.uid}`,
-      uid: input.uid,
-      uidSort,
-      name: input.name,
-      federationId: input.confederationId,
-      federation: input.confederationName,
-      visibleInCatalog: input.visibleInCatalogForNew
-    },
-    select: { id: true, name: true }
-  });
-}
-
-async function findExistingCountry(uid: string, name: string) {
-  if (uid !== '-') {
-    const byUid = await prisma.country.findFirst({
-      where: { uid },
-      select: {
-        id: true,
-        uid: true,
-        uidSort: true,
-        federationId: true,
-        federation: true,
-        visibleInCatalog: true
+        name: '国际足联联合会杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.GLOBAL,
+        category: '国际',
+        level: '二级',
+        format: '杯赛',
+        description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
+        confederationId: null,
+        countryId: null,
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 10
       }
-    });
-
-    if (byUid) {
-      return byUid;
-    }
-  }
-
-  return prisma.country.findFirst({
-    where: { name },
-    select: {
-      id: true,
-      uid: true,
-      uidSort: true,
-      federationId: true,
-      federation: true,
-      visibleInCatalog: true
-    }
+    },
+    editions: CONFEDERATIONS_CUP_RESULTS,
+    buildStandings: buildTopFourStandings,
+    completedMessage: 'FIFA Confederations Cup seed completed.'
   });
-}
-
-function toUidSort(uid: string) {
-  return /^\d+$/.test(uid) ? Number(uid) : null;
 }
 
 main()
