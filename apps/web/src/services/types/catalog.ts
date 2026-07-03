@@ -58,6 +58,11 @@ export interface HonorSummaryDetail {
   competitionId?: string | null;
   competitionName?: string | null;
   sourceName?: string | null;
+  score?: number | null;
+  placementScore?: number | null;
+  qualityCoefficient?: number | null;
+  conversionCoefficient?: number | null;
+  ruleName?: string | null;
 }
 
 export interface HonorSummaryCompetition extends HonorCompetitionRef {

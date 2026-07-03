@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
@@ -38,6 +38,21 @@ const props = defineProps<{
 type HonorSummaryDisplayCompetition = HonorSummaryCompetition & {
   sourceCompetitionIds: string[];
 };
+type HonorScoreBreakdownEntry = HonorSummaryDetail & {
+  placement: CompetitionStandingPlacement;
+  placementLabel: string;
+};
+type HonorScoreBreakdownGroup = {
+  name: string;
+  score: number;
+  entries: HonorScoreBreakdownEntry[];
+};
+type HonorSummaryScoreRow = HonorSummaryRow & {
+  scoreBreakdown: HonorScoreBreakdownGroup[];
+};
+
+const scoreDialogVisible = ref(false);
+const scoreDialogRow = ref<HonorSummaryScoreRow | null>(null);
 
 const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   const columns: HonorSummaryDisplayCompetition[] = [];
@@ -260,7 +275,7 @@ function hasScoreBreakdown(row: HonorSummaryRow) {
   return getScoreBreakdown(row).length > 0;
 }
 
-function getScoreBreakdown(row: HonorSummaryRow) {
+function getScoreBreakdown(row: HonorSummaryRow): HonorScoreBreakdownGroup[] {
   return displayCompetitions.value
     .flatMap((competition) => getCompetitionScoreBreakdown(row, competition))
     .filter((item) => item.score > 0);
@@ -271,10 +286,12 @@ function getCompetitionScoreBreakdown(
   competition: HonorSummaryDisplayCompetition
 ) {
   if (competition.sourceCompetitionIds.length <= 1) {
+    const counts = getDisplayCompetitionCounts(row, competition);
     return [
       {
         name: getScoreBreakdownName(row, competition),
-        score: getDisplayCompetitionCounts(row, competition).score ?? 0
+        score: counts.score ?? 0,
+        entries: getScoreBreakdownEntries(counts)
       }
     ];
   }
@@ -286,7 +303,8 @@ function getCompetitionScoreBreakdown(
 
     return {
       name: getScoreBreakdownNameFromCounts(counts, sourceCompetition.name),
-      score: counts.score ?? 0
+      score: counts.score ?? 0,
+      entries: getScoreBreakdownEntries(counts)
     };
   });
 }
@@ -303,6 +321,29 @@ function getScoreBreakdownNameFromCounts(counts: HonorSummaryCounts, fallbackNam
   const uniqueNames = [...new Set(names)];
 
   return uniqueNames.length === 1 ? (uniqueNames[0] ?? fallbackName) : fallbackName;
+}
+
+function getScoreBreakdownEntries(counts: HonorSummaryCounts): HonorScoreBreakdownEntry[] {
+  return placementValues.flatMap((placement) =>
+    (counts.details?.[placement] ?? []).map((detail) => ({
+      ...detail,
+      placement,
+      placementLabel: placementLabels[placement]
+    }))
+  );
+}
+
+function formatScoreEntryLabel(entry: HonorScoreBreakdownEntry) {
+  const source = entry.sourceName ? `（来自 ${entry.sourceName}）` : '';
+  return `${entry.label || '-'} ${entry.placementLabel}${source}`;
+}
+
+function openScoreDialog(row: HonorSummaryRow) {
+  scoreDialogRow.value = {
+    ...row,
+    scoreBreakdown: getScoreBreakdown(row)
+  };
+  scoreDialogVisible.value = true;
 }
 </script>
 
@@ -440,30 +481,103 @@ function getScoreBreakdownNameFromCounts(counts: HonorSummaryCounts, fallbackNam
             <div class="honor-summary-tooltip honor-summary-tooltip--score">
               <div class="honor-summary-tooltip__title">荣誉分拆解</div>
               <div
-                v-for="item in getScoreBreakdown(row)"
-                :key="item.name"
-                class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+                v-for="group in getScoreBreakdown(row)"
+                :key="group.name"
+                class="honor-summary-tooltip__group"
               >
-                <span>{{ item.name }}</span>
-                <strong>{{ formatNumber(item.score, 2) }}</strong>
+                <div class="honor-summary-tooltip__item honor-summary-tooltip__item--split">
+                  <span>{{ group.name }}</span>
+                  <strong>{{ formatNumber(group.score, 2) }}</strong>
+                </div>
               </div>
               <div class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total">
                 <span>总计</span>
                 <strong>{{ formatNumber(row.honorScore, 2) }}</strong>
               </div>
+              <div class="honor-summary-tooltip__hint">点击分数查看逐届计算明细</div>
             </div>
           </template>
-          <span class="honor-count-cell is-hoverable">{{ formatNumber(row.honorScore, 2) }}</span>
+          <button class="honor-score-button" type="button" @click="openScoreDialog(row)">
+            {{ formatNumber(row.honorScore, 2) }}
+          </button>
         </el-tooltip>
         <span v-else class="honor-count-cell">{{ formatNumber(row.honorScore, 2) }}</span>
       </template>
     </el-table-column>
   </el-table>
+
+  <el-dialog
+    v-model="scoreDialogVisible"
+    :title="`${scoreDialogRow?.name ?? ''} 荣誉分明细`"
+    width="860px"
+    class="honor-score-dialog"
+  >
+    <div v-if="scoreDialogRow" class="honor-score-dialog__body">
+      <div class="honor-score-dialog__summary">
+        <span>总计</span>
+        <strong>{{ formatNumber(scoreDialogRow.honorScore, 2) }}</strong>
+      </div>
+
+      <div
+        v-for="group in scoreDialogRow.scoreBreakdown"
+        :key="group.name"
+        class="honor-score-dialog__group"
+      >
+        <div class="honor-score-dialog__group-head">
+          <strong>{{ group.name }}</strong>
+          <span>{{ formatNumber(group.score, 2) }}</span>
+        </div>
+
+        <el-table :data="group.entries" border size="small">
+          <el-table-column label="届次" min-width="150">
+            <template #default="{ row }">
+              {{ formatScoreEntryLabel(row) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="规则" min-width="160" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.ruleName || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="基础分" width="86" align="center">
+            <template #default="{ row }">{{ formatNumber(row.placementScore, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="质量系数" width="92" align="center">
+            <template #default="{ row }">{{ formatNumber(row.qualityCoefficient, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="换算系数" width="92" align="center">
+            <template #default="{ row }">{{ formatNumber(row.conversionCoefficient, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="得分" width="90" align="center">
+            <template #default="{ row }">
+              <strong>{{ formatNumber(row.score, 2) }}</strong>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
+    <template #footer>
+      <el-button @click="scoreDialogVisible = false">关闭</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">
 .honor-count-cell.is-hoverable {
   cursor: pointer;
+  transition: color 0.18s ease;
+
+  &:hover {
+    color: #15784b;
+  }
+}
+
+.honor-score-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
   transition: color 0.18s ease;
 
   &:hover {
@@ -516,6 +630,52 @@ function getScoreBreakdownNameFromCounts(counts: HonorSummaryCounts, fallbackNam
   &__item--split.is-total {
     padding-top: 4px;
     border-top: 1px solid rgb(21 120 75 / 14%);
+  }
+
+  &__hint {
+    color: #6b7d72;
+    font-size: 12px;
+  }
+}
+
+.honor-score-dialog__body {
+  display: grid;
+  gap: 14px;
+  max-height: 62vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.honor-score-dialog__summary,
+.honor-score-dialog__group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.honor-score-dialog__summary {
+  padding: 10px 12px;
+  border: 1px solid rgb(21 120 75 / 14%);
+  border-radius: 6px;
+  background: #f7fbf8;
+  color: #10291d;
+
+  strong {
+    font-size: 18px;
+  }
+}
+
+.honor-score-dialog__group {
+  display: grid;
+  gap: 8px;
+}
+
+.honor-score-dialog__group-head {
+  color: #10291d;
+
+  span {
+    color: #15784b;
+    font-weight: 800;
   }
 }
 </style>

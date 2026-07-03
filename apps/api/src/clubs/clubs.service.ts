@@ -127,6 +127,13 @@ type ClubHonorRecord = Prisma.CompetitionStandingGetPayload<{
 }>;
 type ClubHonorCompetition = ClubHonorRecord['edition']['competition'];
 type HonorSummaryRule = Prisma.HonorRuleGetPayload<{ include: { coefficients: true } }>;
+type HonorSummaryScoreDetail = {
+  score: number;
+  placementScore: number;
+  qualityCoefficient: number;
+  conversionCoefficient: number;
+  ruleName: string;
+};
 type HonorSummaryCounts = {
   totalCount: number;
   championCount: number;
@@ -145,6 +152,11 @@ type HonorSummaryCounts = {
       host: string | null;
       competitionId: string;
       competitionName: string;
+      score: number;
+      placementScore: number;
+      qualityCoefficient: number;
+      conversionCoefficient: number;
+      ruleName: string;
     }>
   >;
 };
@@ -665,7 +677,7 @@ export class ClubsService {
         continue;
       }
 
-      const score = this.resolveHonorSummaryScore(
+      const scoreDetail = this.resolveHonorSummaryScore(
         rules,
         record.edition.competition,
         record.placement,
@@ -673,12 +685,12 @@ export class ClubsService {
         record.edition.quantity
       );
 
-      if (score === null) {
+      if (scoreDetail === null) {
         continue;
       }
 
       const row = rowMap.get(record.clubId) ?? this.createClubHonorSummaryRow(club);
-      this.addHonorSummaryPlacement(row, record, score);
+      this.addHonorSummaryPlacement(row, record, scoreDetail);
       rowMap.set(record.clubId, row);
     }
 
@@ -851,7 +863,7 @@ export class ClubsService {
   private addHonorSummaryPlacement(
     row: ReturnType<typeof this.createClubHonorSummaryRow>,
     record: ClubHonorRecord,
-    score: number
+    scoreDetail: HonorSummaryScoreDetail
   ) {
     const competitionId = record.edition.competition.id;
     const placement = record.placement;
@@ -865,10 +877,15 @@ export class ClubsService {
       season: record.edition.season,
       host: record.edition.host,
       competitionId,
-      competitionName: record.edition.competition.name
+      competitionName: record.edition.competition.name,
+      score: scoreDetail.score,
+      placementScore: scoreDetail.placementScore,
+      qualityCoefficient: scoreDetail.qualityCoefficient,
+      conversionCoefficient: scoreDetail.conversionCoefficient,
+      ruleName: scoreDetail.ruleName
     });
-    counts.score = this.round(counts.score + score);
-    row.honorScore = this.round((row.honorScore ?? 0) + score);
+    counts.score = this.round(counts.score + scoreDetail.score);
+    row.honorScore = this.round((row.honorScore ?? 0) + scoreDetail.score);
     row.competitionStats[competitionId] = counts;
   }
 
@@ -889,6 +906,11 @@ export class ClubsService {
         host: string | null;
         competitionId: string;
         competitionName: string;
+        score: number;
+        placementScore: number;
+        qualityCoefficient: number;
+        conversionCoefficient: number;
+        ruleName: string;
       }>()
     };
   }
@@ -959,11 +981,21 @@ export class ClubsService {
       return null;
     }
 
-    return this.round(
-      placementScore *
-        this.resolveQualityCoefficient(rule, competition) *
-        this.resolveConversionCoefficient(rule, competition, year, quantity)
+    const qualityCoefficient = this.resolveQualityCoefficient(rule, competition);
+    const conversionCoefficient = this.resolveConversionCoefficient(
+      rule,
+      competition,
+      year,
+      quantity
     );
+
+    return {
+      score: this.round(placementScore * qualityCoefficient * conversionCoefficient),
+      placementScore,
+      qualityCoefficient: this.round(qualityCoefficient),
+      conversionCoefficient: this.round(conversionCoefficient),
+      ruleName: rule.name
+    };
   }
 
   private resolveHonorSummaryRule(
