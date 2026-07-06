@@ -1,56 +1,42 @@
 import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
-import { buildTopFourStandings, runCompetitionSeed } from './helpers/competition-seed.js';
+import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
+import {
+  buildCompetitionResultStandings,
+  type TopFourCompetitionResult
+} from './helpers/competition-results.js';
+import { CONFEDERATION_SEEDS, pickSeedCountries } from './helpers/seed-data.js';
 
 const prisma = new PrismaClient();
 
-const CONFEDERATIONS = [
-  { uid: '1', code: 'CAF', name: '非足联', sortOrder: 10 },
-  { uid: '2', code: 'AFC', name: '亚足联', sortOrder: 20 },
-  { uid: '3', code: 'UEFA', name: '欧足联', sortOrder: 30 },
-  { uid: '4', code: 'CONCACAF', name: '中北美足联', sortOrder: 40 },
-  { uid: '6', code: 'CONMEBOL', name: '南美足联', sortOrder: 60 }
-];
-
-const REQUIRED_COUNTRIES = [
-  { uid: '11', name: '喀麦隆', confederationCode: 'CAF' },
-  { uid: '24', name: '科特迪瓦', confederationCode: 'CAF' },
-  { uid: '38', name: '尼日利亚', confederationCode: 'CAF' },
-  { uid: '45', name: '南非', confederationCode: 'CAF' },
-  { uid: '116', name: '日本', confederationCode: 'AFC' },
-  { uid: '133', name: '沙特阿拉伯', confederationCode: 'AFC' },
-  { uid: '1435', name: '澳大利亚', confederationCode: 'AFC' },
-  { uid: '379', name: '墨西哥', confederationCode: 'CONCACAF' },
-  { uid: '390', name: '美国', confederationCode: 'CONCACAF' },
-  { uid: '763', name: '捷克', confederationCode: 'UEFA' },
-  { uid: '764', name: '丹麦', confederationCode: 'UEFA' },
-  { uid: '769', name: '法国', confederationCode: 'UEFA' },
-  { uid: '771', name: '德国', confederationCode: 'UEFA' },
-  { uid: '776', name: '意大利', confederationCode: 'UEFA' },
-  { uid: '788', name: '葡萄牙', confederationCode: 'UEFA' },
-  { uid: '791', name: '俄罗斯', confederationCode: 'UEFA' },
-  { uid: '796', name: '西班牙', confederationCode: 'UEFA' },
-  { uid: '799', name: '土耳其', confederationCode: 'UEFA' },
-  { uid: '1649', name: '阿根廷', confederationCode: 'CONMEBOL' },
-  { uid: '1651', name: '巴西', confederationCode: 'CONMEBOL' },
-  { uid: '1652', name: '智利', confederationCode: 'CONMEBOL' },
-  { uid: '1653', name: '哥伦比亚', confederationCode: 'CONMEBOL' },
-  { uid: '1657', name: '乌拉圭', confederationCode: 'CONMEBOL' }
-];
+const REQUIRED_COUNTRIES = pickSeedCountries([
+  '喀麦隆',
+  '科特迪瓦',
+  '尼日利亚',
+  '南非',
+  '日本',
+  '沙特阿拉伯',
+  '澳大利亚',
+  '墨西哥',
+  '美国',
+  '捷克',
+  '丹麦',
+  '法国',
+  '德国',
+  '意大利',
+  '葡萄牙',
+  '俄罗斯',
+  '西班牙',
+  '土耳其',
+  '阿根廷',
+  '巴西',
+  '智利',
+  '哥伦比亚',
+  '乌拉圭'
+]);
 
 const KING_FAHD_CUP_REMARK = '本届为国际足联联合会杯前身法赫德国王杯。';
 
-type ConfederationsCupResult = {
-  year: number;
-  host: string;
-  quantity: number;
-  remark?: string;
-  champion: string;
-  runnerUp: string;
-  thirdPlace: string;
-  fourthPlace: string;
-};
-
-const CONFEDERATIONS_CUP_RESULTS: ConfederationsCupResult[] = [
+const CONFEDERATIONS_CUP_RESULTS: TopFourCompetitionResult[] = [
   {
     year: 1992,
     host: '沙特阿拉伯',
@@ -148,7 +134,7 @@ const CONFEDERATIONS_CUP_RESULTS: ConfederationsCupResult[] = [
 async function main() {
   await runCompetitionSeed({
     prisma,
-    confederations: CONFEDERATIONS,
+    confederations: CONFEDERATION_SEEDS,
     countries: REQUIRED_COUNTRIES,
     competition: {
       code: 'FIFA_CONFEDERATIONS_CUP',
@@ -183,16 +169,13 @@ async function main() {
       }
     },
     editions: CONFEDERATIONS_CUP_RESULTS,
-    buildStandings: buildTopFourStandings,
+    buildStandings: buildCompetitionResultStandings,
+    expected: {
+      editions: 10,
+      standings: 40
+    },
     completedMessage: 'FIFA Confederations Cup seed completed.'
   });
 }
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+void runSeed(prisma, main);

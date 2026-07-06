@@ -702,6 +702,23 @@ h1 {
   }
 }
 
+.honor-entry-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.honor-entry-year {
+  color: #7a8a80;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.honor-entry-separator {
+  color: #a5b1aa;
+  font-size: 13px;
+}
+
 .page-stack {
   display: grid;
   gap: 18px;

@@ -1,44 +1,20 @@
 import {
   CompetitionEditionStandingMode,
   CompetitionScopeType,
-  CompetitionStandingPlacement,
   CompetitionTargetType,
   PrismaClient
 } from '@prisma/client';
+import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
+import {
+  buildCompetitionResultStandings,
+  type SemiFinalistCompetitionResult,
+  type TopFourCompetitionResult,
+  type TopThreeCompetitionResult,
+  withStandingMode
+} from './helpers/competition-results.js';
+import { CONFEDERATION_SEEDS, resolveSeedCountries } from './helpers/seed-data.js';
 
 const prisma = new PrismaClient();
-
-const CONFEDERATIONS = [
-  { uid: '2', code: 'AFC', name: '亚足联', sortOrder: 20 },
-  { uid: '4', code: 'CONCACAF', name: '中北美足联', sortOrder: 40 },
-  { uid: '6', code: 'CONMEBOL', name: '南美足联', sortOrder: 60 }
-];
-
-const REQUIRED_COUNTRIES = [
-  { uid: '364', name: '加拿大', confederationCode: 'CONCACAF' },
-  { uid: '366', name: '哥斯达黎加', confederationCode: 'CONCACAF' },
-  { uid: '367', name: '古巴', confederationCode: 'CONCACAF' },
-  { uid: '370', name: '萨尔瓦多', confederationCode: 'CONCACAF' },
-  { uid: '373', name: '危地马拉', confederationCode: 'CONCACAF' },
-  { uid: '375', name: '海地', confederationCode: 'CONCACAF' },
-  { uid: '376', name: '洪都拉斯', confederationCode: 'CONCACAF' },
-  { uid: '377', name: '牙买加', confederationCode: 'CONCACAF' },
-  { uid: '379', name: '墨西哥', confederationCode: 'CONCACAF' },
-  { uid: '380', name: '库拉索', confederationCode: 'CONCACAF' },
-  { uid: '382', name: '巴拿马', confederationCode: 'CONCACAF' },
-  { uid: '389', name: '特立尼达和多巴哥', confederationCode: 'CONCACAF' },
-  { uid: '390', name: '美国', confederationCode: 'CONCACAF' },
-  { uid: '135', name: '韩国', confederationCode: 'AFC' },
-  { uid: '132', name: '卡塔尔', confederationCode: 'AFC' },
-  { uid: '1651', name: '巴西', confederationCode: 'CONMEBOL' },
-  { uid: '1653', name: '哥伦比亚', confederationCode: 'CONMEBOL' },
-  { uid: '1656', name: '秘鲁', confederationCode: 'CONMEBOL' },
-  { uid: '-', name: '瓜德罗普', confederationCode: 'CONCACAF', visibleInCatalogForNew: false }
-];
-
-const HISTORICAL_COUNTRIES = [
-  { uid: '-', name: '荷属安的列斯', successorNames: ['库拉索'], redirectName: '库拉索' }
-];
 
 const PREDECESSOR_REMARK =
   '本届为中北美及加勒比海金杯赛前身 CONCACAF Championship，按最终排名录入冠亚季殿。';
@@ -48,37 +24,8 @@ const WORLD_CUP_QUALIFIER_TOP_THREE_REMARK =
   '本届为中北美及加勒比海金杯赛前身 CONCACAF Championship，同时作为世界杯预选赛最终阶段，最终阶段只有前三名，按前三录入。';
 const SHARED_THIRD_REMARK = '本届无三四名赛，哥斯达黎加和牙买加并列第三，按两个四强录入。';
 
-type BaseGoldCupResult = {
-  year: number;
-  host: string;
-  quantity: number;
-  remark?: string;
-};
-
-type TopFourGoldCupResult = BaseGoldCupResult & {
-  mode: typeof CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
-  champion: string;
-  runnerUp: string;
-  thirdPlace: string;
-  fourthPlace: string;
-};
-
-type TopThreeGoldCupResult = BaseGoldCupResult & {
-  mode: typeof CompetitionEditionStandingMode.LEAGUE_TOP_THREE;
-  champion: string;
-  runnerUp: string;
-  thirdPlace: string;
-};
-
-type SemiFinalistGoldCupResult = BaseGoldCupResult & {
-  mode: typeof CompetitionEditionStandingMode.SEMI_FINALISTS;
-  champion: string;
-  runnerUp: string;
-  semiFinalists: [string, string];
-};
-
 const GOLD_CUP_RESULTS: Array<
-  TopFourGoldCupResult | TopThreeGoldCupResult | SemiFinalistGoldCupResult
+  TopFourCompetitionResult | TopThreeCompetitionResult | SemiFinalistCompetitionResult
 > = [
   {
     year: 1963,
@@ -361,322 +308,50 @@ const GOLD_CUP_RESULTS: Array<
 ];
 
 async function main() {
-  const confederations = new Map<string, { id: string; name: string }>();
-  const countries = new Map<string, { id: string; name: string }>();
-
-  for (const confederationData of CONFEDERATIONS) {
-    const confederation = await prisma.confederation.upsert({
-      where: { uid: confederationData.uid },
-      create: confederationData,
-      update: {
-        code: confederationData.code,
-        name: confederationData.name,
-        sortOrder: confederationData.sortOrder
-      },
-      select: { id: true, code: true, name: true }
-    });
-    confederations.set(confederationData.code, confederation);
-  }
-
-  const concacaf = confederations.get('CONCACAF');
-
-  if (!concacaf) {
-    throw new Error('CONCACAF confederation not found.');
-  }
-
-  for (const countryData of REQUIRED_COUNTRIES) {
-    const confederation = confederations.get(countryData.confederationCode);
-
-    if (!confederation) {
-      throw new Error(`${countryData.confederationCode} confederation not found.`);
-    }
-
-    const country = await upsertCountry({
-      uid: countryData.uid,
-      name: countryData.name,
-      confederationId: confederation.id,
-      confederationName: confederation.name,
-      isHistorical: false,
-      visibleInCatalogForNew: countryData.visibleInCatalogForNew ?? false
-    });
-    countries.set(country.name, country);
-  }
-
-  for (const item of HISTORICAL_COUNTRIES) {
-    const country = await upsertCountry({
-      uid: item.uid,
-      name: item.name,
-      confederationId: concacaf.id,
-      confederationName: concacaf.name,
-      isHistorical: true,
-      visibleInCatalogForNew: false,
-      detailRedirectCountryId: item.redirectName ? countries.get(item.redirectName)?.id : null
-    });
-    countries.set(country.name, country);
-  }
-
-  for (const item of HISTORICAL_COUNTRIES) {
-    const historical = countries.get(item.name);
-
-    if (!historical) {
-      continue;
-    }
-
-    await prisma.countrySuccessor.deleteMany({
-      where: { historicalCountryId: historical.id }
-    });
-
-    for (const successorName of item.successorNames) {
-      const successor = countries.get(successorName);
-
-      if (!successor) {
-        continue;
-      }
-
-      await prisma.countrySuccessor.create({
-        data: {
-          historicalCountryId: historical.id,
-          successorCountryId: successor.id
-        }
-      });
-    }
-  }
-
-  const goldCup = await prisma.competition.upsert({
-    where: { code: 'CONCACAF_GOLD_CUP' },
-    create: {
+  await runCompetitionSeed({
+    prisma,
+    confederations: CONFEDERATION_SEEDS,
+    resolveCountries: resolveSeedCountries,
+    competition: {
       code: 'CONCACAF_GOLD_CUP',
-      name: '中北美及加勒比海金杯赛',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.CONFEDERATION,
-      category: '洲际',
-      level: '一级',
-      format: '杯赛',
-      description: '中北美洲及加勒比海地区男子国家队最高级别洲际杯赛。',
-      confederationId: concacaf.id,
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 40
-    },
-    update: {
-      name: '中北美及加勒比海金杯赛',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.CONFEDERATION,
-      category: '洲际',
-      level: '一级',
-      format: '杯赛',
-      confederationId: concacaf.id,
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 40
-    },
-    select: { id: true }
-  });
-
-  await prisma.competitionScopeConfederation.deleteMany({
-    where: {
-      competitionId: goldCup.id,
-      confederationId: { not: concacaf.id }
-    }
-  });
-
-  await prisma.competitionScopeConfederation.upsert({
-    where: {
-      competitionId_confederationId: {
-        competitionId: goldCup.id,
-        confederationId: concacaf.id
-      }
-    },
-    create: {
-      competitionId: goldCup.id,
-      confederationId: concacaf.id
-    },
-    update: {}
-  });
-
-  for (const result of GOLD_CUP_RESULTS) {
-    const editionName = `${result.year}年`;
-    const edition = await prisma.competitionEdition.upsert({
-      where: {
-        competitionId_name: {
-          competitionId: goldCup.id,
-          name: editionName
-        }
-      },
+      primaryConfederationCode: 'CONCACAF',
       create: {
-        competitionId: goldCup.id,
-        name: editionName,
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: result.mode,
-        remark: result.remark ?? null
+        code: 'CONCACAF_GOLD_CUP',
+        name: '中北美及加勒比海金杯赛',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.CONFEDERATION,
+        category: '洲际',
+        level: '一级',
+        format: '杯赛',
+        description: '中北美洲及加勒比海地区男子国家队最高级别洲际杯赛。',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 40
       },
       update: {
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: result.mode,
-        remark: result.remark ?? null
-      },
-      select: { id: true }
-    });
-
-    await prisma.competitionStanding.deleteMany({
-      where: { editionId: edition.id }
-    });
-
-    await prisma.competitionStanding.createMany({
-      data: buildStandings(result).flatMap(({ placement, countryName, standingOrder }) => {
-        const country = countries.get(countryName);
-
-        if (!country) {
-          console.warn(`Skip ${editionName} ${countryName}: country not found.`);
-          return [];
-        }
-
-        return [
-          {
-            editionId: edition.id,
-            placement,
-            countryId: country.id,
-            standingOrder
-          }
-        ];
-      })
-    });
-  }
-
-  console.log('CONCACAF Gold Cup seed completed.');
-}
-
-function buildStandings(
-  result: TopFourGoldCupResult | TopThreeGoldCupResult | SemiFinalistGoldCupResult
-) {
-  const standings: Array<{
-    placement: CompetitionStandingPlacement;
-    countryName: string;
-    standingOrder?: number;
-  }> = [
-    { placement: CompetitionStandingPlacement.CHAMPION, countryName: result.champion },
-    { placement: CompetitionStandingPlacement.RUNNER_UP, countryName: result.runnerUp }
-  ];
-
-  if (result.mode === CompetitionEditionStandingMode.THIRD_PLACE_MATCH) {
-    standings.push(
-      { placement: CompetitionStandingPlacement.THIRD_PLACE, countryName: result.thirdPlace },
-      { placement: CompetitionStandingPlacement.FOURTH_PLACE, countryName: result.fourthPlace }
-    );
-  } else if (result.mode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE) {
-    standings.push({
-      placement: CompetitionStandingPlacement.THIRD_PLACE,
-      countryName: result.thirdPlace
-    });
-  } else {
-    standings.push(
-      {
-        placement: CompetitionStandingPlacement.SEMI_FINALIST,
-        countryName: result.semiFinalists[0],
-        standingOrder: 1
-      },
-      {
-        placement: CompetitionStandingPlacement.SEMI_FINALIST,
-        countryName: result.semiFinalists[1],
-        standingOrder: 2
+        name: '中北美及加勒比海金杯赛',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.CONFEDERATION,
+        category: '洲际',
+        level: '一级',
+        format: '杯赛',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 40
       }
-    );
-  }
-
-  return standings;
-}
-
-async function upsertCountry(input: {
-  uid: string;
-  name: string;
-  confederationId: string | null;
-  confederationName: string | null;
-  isHistorical: boolean;
-  visibleInCatalogForNew: boolean;
-  detailRedirectCountryId?: string | null;
-}) {
-  const existing = await findExistingCountry(input.uid, input.name);
-  const uidSort = toUidSort(input.uid);
-
-  if (existing) {
-    return prisma.country.update({
-      where: { id: existing.id },
-      data: {
-        uid: existing.uid === '-' && input.uid !== '-' ? input.uid : existing.uid,
-        uidSort: existing.uid === '-' && input.uid !== '-' ? uidSort : existing.uidSort,
-        federationId: existing.federationId ?? input.confederationId,
-        federation: existing.federation ?? input.confederationName,
-        isHistorical: input.isHistorical,
-        visibleInCatalog: input.isHistorical ? false : existing.visibleInCatalog,
-        detailRedirectCountryId: input.detailRedirectCountryId ?? null
-      },
-      select: { id: true, name: true }
-    });
-  }
-
-  return prisma.country.create({
-    data: {
-      importKey: `seed:country:${input.uid === '-' ? input.name : input.uid}`,
-      uid: input.uid,
-      uidSort,
-      name: input.name,
-      federationId: input.confederationId,
-      federation: input.confederationName,
-      visibleInCatalog: input.visibleInCatalogForNew,
-      isHistorical: input.isHistorical,
-      detailRedirectCountryId: input.detailRedirectCountryId ?? null
     },
-    select: { id: true, name: true }
+    scope: {
+      confederationCodes: ['CONCACAF']
+    },
+    historicalCountryNames: ['荷属安的列斯'],
+    editions: withStandingMode(GOLD_CUP_RESULTS),
+    buildStandings: buildCompetitionResultStandings,
+    expected: {
+      editions: 28,
+      standings: 111
+    },
+    completedMessage: 'CONCACAF Gold Cup seed completed.'
   });
 }
 
-async function findExistingCountry(uid: string, name: string) {
-  if (uid !== '-') {
-    const byUid = await prisma.country.findFirst({
-      where: { uid },
-      select: {
-        id: true,
-        uid: true,
-        uidSort: true,
-        federationId: true,
-        federation: true,
-        visibleInCatalog: true
-      }
-    });
-
-    if (byUid) {
-      return byUid;
-    }
-  }
-
-  return prisma.country.findFirst({
-    where: { name },
-    select: {
-      id: true,
-      uid: true,
-      uidSort: true,
-      federationId: true,
-      federation: true,
-      visibleInCatalog: true
-    }
-  });
-}
-
-function toUidSort(uid: string) {
-  return /^\d+$/.test(uid) ? Number(uid) : null;
-}
-
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+void runSeed(prisma, main);

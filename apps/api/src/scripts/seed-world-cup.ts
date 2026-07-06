@@ -1,20 +1,18 @@
+import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
 import {
-  CompetitionScopeType,
-  CompetitionStandingPlacement,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
+  runCompetitionSeed,
+  runSeed,
+  type SeedCountry,
+  type SeedHistoricalCountry
+} from './helpers/competition-seed.js';
+import {
+  buildCompetitionResultStandings,
+  type TopFourCompetitionResult
+} from './helpers/competition-results.js';
+import { CONFEDERATION_SEEDS } from './helpers/seed-data.js';
 
 const prisma = new PrismaClient();
-
-const CONFEDERATIONS = [
-  { uid: '1', code: 'CAF', name: '非足联', sortOrder: 10 },
-  { uid: '2', code: 'AFC', name: '亚足联', sortOrder: 20 },
-  { uid: '3', code: 'UEFA', name: '欧足联', sortOrder: 30 },
-  { uid: '4', code: 'CONCACAF', name: '中北美足联', sortOrder: 40 },
-  { uid: '5', code: 'OFC', name: '大洋足联', sortOrder: 50 },
-  { uid: '6', code: 'CONMEBOL', name: '南美足联', sortOrder: 60 }
-];
+const CONFEDERATION_CODE_BY_UID = new Map(CONFEDERATION_SEEDS.map(({ uid, code }) => [uid, code]));
 
 const COUNTRY_ROWS = `
 1	5	阿尔及利亚
@@ -216,14 +214,42 @@ const COUNTRIES = COUNTRY_ROWS.trim()
   .split('\n')
   .map((row) => {
     const [confederationUid, uid, name] = row.split('\t');
-    return { uid, name, confederationUid };
+    const confederationCode = CONFEDERATION_CODE_BY_UID.get(confederationUid);
+
+    if (!confederationCode) {
+      throw new Error(`Unknown confederation uid: ${confederationUid}.`);
+    }
+
+    return { uid, name, confederationCode } satisfies SeedCountry;
   });
 
-const HISTORICAL_COUNTRIES = [
-  { uid: '583', name: '苏联', successorNames: ['俄罗斯'], redirectName: '俄罗斯' },
-  { uid: '584', name: '西德', successorNames: ['德国'], redirectName: '德国' },
-  { uid: '585', name: '捷克斯洛伐克', successorNames: ['捷克', '斯洛伐克'] },
-  { uid: '586', name: '南斯拉夫', successorNames: ['塞尔维亚'] }
+const HISTORICAL_COUNTRIES: SeedHistoricalCountry[] = [
+  {
+    uid: '583',
+    name: '苏联',
+    confederationCode: 'UEFA',
+    successorNames: ['俄罗斯'],
+    redirectName: '俄罗斯'
+  },
+  {
+    uid: '584',
+    name: '西德',
+    confederationCode: 'UEFA',
+    successorNames: ['德国'],
+    redirectName: '德国'
+  },
+  {
+    uid: '585',
+    name: '捷克斯洛伐克',
+    confederationCode: 'UEFA',
+    successorNames: ['捷克', '斯洛伐克']
+  },
+  {
+    uid: '586',
+    name: '南斯拉夫',
+    confederationCode: 'UEFA',
+    successorNames: ['塞尔维亚']
+  }
 ];
 
 const WORLD_CUP_RESULTS = [
@@ -252,256 +278,56 @@ const WORLD_CUP_RESULTS = [
 ] as const;
 
 async function main() {
-  const confederations = new Map<string, { id: string; name: string }>();
-  const countries = new Map<string, { id: string; name: string }>();
-
-  for (const item of CONFEDERATIONS) {
-    const confederation = await prisma.confederation.upsert({
-      where: { uid: item.uid },
-      create: item,
-      update: {
-        code: item.code,
-        name: item.name,
-        sortOrder: item.sortOrder
-      },
-      select: { id: true, uid: true, name: true }
-    });
-    confederations.set(confederation.uid, confederation);
-  }
-
-  for (const item of COUNTRIES) {
-    const country = await upsertCountry({
-      uid: item.uid,
-      name: item.name,
-      confederationId: confederations.get(item.confederationUid)?.id ?? null,
-      confederationName: confederations.get(item.confederationUid)?.name ?? null,
-      isHistorical: false,
-      visibleInCatalogForNew: false
-    });
-    countries.set(country.name, country);
-  }
-
-  for (const item of HISTORICAL_COUNTRIES) {
-    const country = await upsertCountry({
-      uid: item.uid,
-      name: item.name,
-      confederationId: confederations.get('3')?.id ?? null,
-      confederationName: confederations.get('3')?.name ?? null,
-      isHistorical: true,
-      visibleInCatalogForNew: false,
-      detailRedirectCountryId: item.redirectName ? countries.get(item.redirectName)?.id : null
-    });
-    countries.set(country.name, country);
-  }
-
-  for (const item of HISTORICAL_COUNTRIES) {
-    const historical = countries.get(item.name);
-
-    if (!historical) {
-      continue;
-    }
-
-    await prisma.countrySuccessor.deleteMany({
-      where: { historicalCountryId: historical.id }
-    });
-
-    for (const successorName of item.successorNames) {
-      const successor = countries.get(successorName);
-
-      if (!successor) {
-        continue;
-      }
-
-      await prisma.countrySuccessor.create({
-        data: {
-          historicalCountryId: historical.id,
-          successorCountryId: successor.id
-        }
-      });
-    }
-  }
-
-  const worldCup = await prisma.competition.upsert({
-    where: { code: 'FIFA_WORLD_CUP' },
-    create: {
+  await runCompetitionSeed({
+    prisma,
+    confederations: CONFEDERATION_SEEDS,
+    countries: COUNTRIES,
+    historicalCountries: HISTORICAL_COUNTRIES,
+    competition: {
       code: 'FIFA_WORLD_CUP',
-      name: '国际足联世界杯',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.GLOBAL,
-      category: '国际',
-      level: '一级',
-      format: '其他',
-      description: '国际足联主办的男子国家队最高级别赛事。',
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 10
-    },
-    update: {
-      name: '国际足联世界杯',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.GLOBAL,
-      category: '国际',
-      level: '一级',
-      format: '其他',
-      enabled: true,
-      includeInStats: true
-    },
-    select: { id: true }
-  });
-  const targetEditionNames = WORLD_CUP_RESULTS.map(([yearText]) => `${yearText}年`);
-
-  await prisma.competitionEdition.deleteMany({
-    where: {
-      competitionId: worldCup.id,
-      name: {
-        notIn: targetEditionNames
-      }
-    }
-  });
-
-  for (const [
-    yearText,
-    host,
-    champion,
-    runnerUp,
-    thirdPlace,
-    fourthPlace,
-    quantity
-  ] of WORLD_CUP_RESULTS) {
-    const year = Number(yearText);
-    const edition = await prisma.competitionEdition.upsert({
-      where: {
-        competitionId_name: {
-          competitionId: worldCup.id,
-          name: `${yearText}年`
-        }
-      },
       create: {
-        competitionId: worldCup.id,
-        name: `${yearText}年`,
-        year,
-        host,
-        quantity
+        code: 'FIFA_WORLD_CUP',
+        name: '国际足联世界杯',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.GLOBAL,
+        category: '国际',
+        level: '一级',
+        format: '其他',
+        description: '国际足联主办的男子国家队最高级别赛事。',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 10
       },
       update: {
-        year,
-        season: null,
-        host,
-        quantity
-      },
-      select: { id: true }
-    });
-
-    await prisma.competitionStanding.deleteMany({
-      where: { editionId: edition.id }
-    });
-
-    const standings: Array<{
-      placement: CompetitionStandingPlacement;
-      countryName: string;
-    }> = [
-      { placement: CompetitionStandingPlacement.CHAMPION, countryName: champion },
-      { placement: CompetitionStandingPlacement.RUNNER_UP, countryName: runnerUp },
-      { placement: CompetitionStandingPlacement.THIRD_PLACE, countryName: thirdPlace },
-      { placement: CompetitionStandingPlacement.FOURTH_PLACE, countryName: fourthPlace }
-    ];
-
-    await prisma.competitionStanding.createMany({
-      data: standings.flatMap(({ placement, countryName }) => {
-        const country = countries.get(countryName);
-        return country ? [{ editionId: edition.id, placement, countryId: country.id }] : [];
-      })
-    });
-  }
-
-  console.log('World Cup seed completed.');
-}
-
-async function upsertCountry(input: {
-  uid: string;
-  name: string;
-  confederationId: string | null;
-  confederationName: string | null;
-  isHistorical: boolean;
-  visibleInCatalogForNew: boolean;
-  detailRedirectCountryId?: string | null;
-}) {
-  const existing = await findExistingCountry(input.uid, input.name);
-  const uidSort = toUidSort(input.uid);
-
-  if (existing) {
-    return prisma.country.update({
-      where: { id: existing.id },
-      data: {
-        uid: existing.uid === '-' && input.uid !== '-' ? input.uid : existing.uid,
-        uidSort: existing.uid === '-' && input.uid !== '-' ? uidSort : existing.uidSort,
-        federationId: existing.federationId ?? input.confederationId,
-        federation: existing.federation ?? input.confederationName,
-        isHistorical: input.isHistorical,
-        visibleInCatalog: input.isHistorical ? false : existing.visibleInCatalog,
-        detailRedirectCountryId: input.detailRedirectCountryId ?? null
-      },
-      select: { id: true, name: true }
-    });
-  }
-
-  return prisma.country.create({
-    data: {
-      importKey: `seed:country:${input.uid === '-' ? input.name : input.uid}`,
-      uid: input.uid,
-      uidSort,
-      name: input.name,
-      federationId: input.confederationId,
-      federation: input.confederationName,
-      visibleInCatalog: input.visibleInCatalogForNew,
-      isHistorical: input.isHistorical,
-      detailRedirectCountryId: input.detailRedirectCountryId ?? null
-    },
-    select: { id: true, name: true }
-  });
-}
-
-async function findExistingCountry(uid: string, name: string) {
-  if (uid !== '-') {
-    const byUid = await prisma.country.findFirst({
-      where: { uid },
-      select: {
-        id: true,
-        uid: true,
-        uidSort: true,
-        federationId: true,
-        federation: true,
-        visibleInCatalog: true
+        name: '国际足联世界杯',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.GLOBAL,
+        category: '国际',
+        level: '一级',
+        format: '其他',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 10
       }
-    });
-
-    if (byUid) {
-      return byUid;
-    }
-  }
-
-  return prisma.country.findFirst({
-    where: { name },
-    select: {
-      id: true,
-      uid: true,
-      uidSort: true,
-      federationId: true,
-      federation: true,
-      visibleInCatalog: true
-    }
+    },
+    editions: WORLD_CUP_RESULTS.map<TopFourCompetitionResult>(
+      ([yearText, host, champion, runnerUp, thirdPlace, fourthPlace, quantity]) => ({
+        year: Number(yearText),
+        host,
+        quantity,
+        champion,
+        runnerUp,
+        thirdPlace,
+        fourthPlace
+      })
+    ),
+    buildStandings: buildCompetitionResultStandings,
+    expected: {
+      editions: 22,
+      standings: 88
+    },
+    completedMessage: 'World Cup seed completed.'
   });
 }
 
-function toUidSort(uid: string) {
-  return /^\d+$/.test(uid) ? Number(uid) : null;
-}
-
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+void runSeed(prisma, main);

@@ -1,78 +1,34 @@
 import {
   CompetitionEditionStandingMode,
   CompetitionScopeType,
-  CompetitionStandingPlacement,
   CompetitionTargetType,
   PrismaClient
 } from '@prisma/client';
+import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
+import {
+  FINAL_ROUND_TOP_FOUR_REMARK,
+  ROUND_ROBIN_TOP_FOUR_REMARK
+} from './helpers/competition-remarks.js';
+import {
+  buildCompetitionResultStandings,
+  type SemiFinalistCompetitionResult,
+  type TopFourCompetitionResult,
+  type TopThreeCompetitionResult,
+  withStandingMode
+} from './helpers/competition-results.js';
+import { CONFEDERATION_SEEDS, resolveSeedCountries } from './helpers/seed-data.js';
 
 const prisma = new PrismaClient();
 
-const CONFEDERATIONS = [
-  { uid: '4', code: 'CONCACAF', name: '中北美足联', sortOrder: 40 },
-  { uid: '6', code: 'CONMEBOL', name: '南美足联', sortOrder: 60 }
-];
-
-const REQUIRED_COUNTRIES = [
-  { uid: '364', name: '加拿大', confederationCode: 'CONCACAF' },
-  { uid: '376', name: '洪都拉斯', confederationCode: 'CONCACAF' },
-  { uid: '379', name: '墨西哥', confederationCode: 'CONCACAF' },
-  { uid: '390', name: '美国', confederationCode: 'CONCACAF' },
-  { uid: '1649', name: '阿根廷', confederationCode: 'CONMEBOL' },
-  { uid: '1650', name: '玻利维亚', confederationCode: 'CONMEBOL' },
-  { uid: '1651', name: '巴西', confederationCode: 'CONMEBOL' },
-  { uid: '1652', name: '智利', confederationCode: 'CONMEBOL' },
-  { uid: '1653', name: '哥伦比亚', confederationCode: 'CONMEBOL' },
-  { uid: '1654', name: '厄瓜多尔', confederationCode: 'CONMEBOL' },
-  { uid: '1655', name: '巴拉圭', confederationCode: 'CONMEBOL' },
-  { uid: '1656', name: '秘鲁', confederationCode: 'CONMEBOL' },
-  { uid: '1657', name: '乌拉圭', confederationCode: 'CONMEBOL' },
-  { uid: '1658', name: '委内瑞拉', confederationCode: 'CONMEBOL' }
-];
-
-const ROUND_ROBIN_REMARK = '本届为循环赛最终排名，按前四排名录入冠亚季殿；并非实际三四名赛。';
-const FINAL_ROUND_REMARK =
-  '本届为最终阶段循环赛排名，按前四排名录入冠亚季殿；并非实际决赛或三四名赛。';
-
-type BaseCopaAmericaResult = {
-  year: number;
-  name?: string;
-  host: string;
-  quantity: number;
-  remark?: string;
-};
-
-type TopFourCopaAmericaResult = BaseCopaAmericaResult & {
-  mode: typeof CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
-  champion: string;
-  runnerUp: string;
-  thirdPlace: string;
-  fourthPlace: string;
-};
-
-type TopThreeCopaAmericaResult = BaseCopaAmericaResult & {
-  mode: typeof CompetitionEditionStandingMode.LEAGUE_TOP_THREE;
-  champion: string;
-  runnerUp: string;
-  thirdPlace: string;
-};
-
-type SemiFinalistCopaAmericaResult = BaseCopaAmericaResult & {
-  mode: typeof CompetitionEditionStandingMode.SEMI_FINALISTS;
-  champion: string;
-  runnerUp: string;
-  semiFinalists: [string, string];
-};
-
 const COPA_AMERICA_RESULTS: Array<
-  TopFourCopaAmericaResult | TopThreeCopaAmericaResult | SemiFinalistCopaAmericaResult
+  TopFourCompetitionResult | TopThreeCompetitionResult | SemiFinalistCompetitionResult
 > = [
   {
     year: 1916,
     host: '阿根廷',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴西',
@@ -83,7 +39,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '乌拉圭',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴西',
@@ -94,7 +50,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '巴西',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '巴西',
     runnerUp: '乌拉圭',
     thirdPlace: '阿根廷',
@@ -105,7 +61,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '智利',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴西',
@@ -116,7 +72,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '阿根廷',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '乌拉圭',
@@ -127,7 +83,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '巴西',
     quantity: 5,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '巴西',
     runnerUp: '巴拉圭',
     thirdPlace: '乌拉圭',
@@ -138,7 +94,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '乌拉圭',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴拉圭',
@@ -149,7 +105,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '乌拉圭',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴拉圭',
@@ -170,7 +126,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '智利',
     quantity: 5,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '智利',
@@ -181,7 +137,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '秘鲁',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '乌拉圭',
     thirdPlace: '秘鲁',
@@ -192,7 +148,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '阿根廷',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴拉圭',
     thirdPlace: '乌拉圭',
@@ -203,7 +159,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '秘鲁',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '秘鲁',
@@ -214,7 +170,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '阿根廷',
     quantity: 6,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '乌拉圭',
@@ -225,7 +181,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '秘鲁',
     quantity: 5,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '秘鲁',
     runnerUp: '乌拉圭',
     thirdPlace: '巴拉圭',
@@ -236,7 +192,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '智利',
     quantity: 5,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '乌拉圭',
     thirdPlace: '智利',
@@ -247,7 +203,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '乌拉圭',
     quantity: 7,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴西',
@@ -258,7 +214,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '智利',
     quantity: 7,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '智利',
@@ -269,7 +225,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '阿根廷',
     quantity: 6,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '巴拉圭',
@@ -280,7 +236,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '厄瓜多尔',
     quantity: 8,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴拉圭',
     thirdPlace: '乌拉圭',
@@ -291,7 +247,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '巴西',
     quantity: 8,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '巴西',
     runnerUp: '巴拉圭',
     thirdPlace: '秘鲁',
@@ -302,7 +258,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '秘鲁',
     quantity: 7,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '巴拉圭',
     runnerUp: '巴西',
     thirdPlace: '乌拉圭',
@@ -313,7 +269,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '智利',
     quantity: 6,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '智利',
     thirdPlace: '秘鲁',
@@ -324,7 +280,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '乌拉圭',
     quantity: 6,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '智利',
     thirdPlace: '阿根廷',
@@ -335,7 +291,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '秘鲁',
     quantity: 7,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '乌拉圭',
@@ -347,7 +303,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '阿根廷',
     quantity: 7,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '巴拉圭',
@@ -359,7 +315,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '厄瓜多尔',
     quantity: 5,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '巴西',
@@ -370,7 +326,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '玻利维亚',
     quantity: 7,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '玻利维亚',
     runnerUp: '巴拉圭',
     thirdPlace: '阿根廷',
@@ -381,7 +337,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '乌拉圭',
     quantity: 6,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: ROUND_ROBIN_REMARK,
+    remark: ROUND_ROBIN_TOP_FOUR_REMARK,
     champion: '乌拉圭',
     runnerUp: '阿根廷',
     thirdPlace: '智利',
@@ -429,7 +385,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '巴西',
     quantity: 10,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: FINAL_ROUND_REMARK,
+    remark: FINAL_ROUND_TOP_FOUR_REMARK,
     champion: '巴西',
     runnerUp: '乌拉圭',
     thirdPlace: '阿根廷',
@@ -440,7 +396,7 @@ const COPA_AMERICA_RESULTS: Array<
     host: '智利',
     quantity: 10,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
-    remark: FINAL_ROUND_REMARK,
+    remark: FINAL_ROUND_TOP_FOUR_REMARK,
     champion: '阿根廷',
     runnerUp: '巴西',
     thirdPlace: '智利',
@@ -579,282 +535,49 @@ const COPA_AMERICA_RESULTS: Array<
 ];
 
 async function main() {
-  const countries = new Map<string, { id: string; name: string }>();
-  const confederations = new Map<string, { id: string; name: string }>();
-
-  for (const item of CONFEDERATIONS) {
-    const confederation = await prisma.confederation.upsert({
-      where: { uid: item.uid },
-      create: item,
-      update: {
-        code: item.code,
-        name: item.name,
-        sortOrder: item.sortOrder
-      },
-      select: { id: true, name: true }
-    });
-    confederations.set(item.code, confederation);
-  }
-
-  const conmebol = confederations.get('CONMEBOL');
-
-  if (!conmebol) {
-    throw new Error('CONMEBOL confederation not found.');
-  }
-
-  for (const countryData of REQUIRED_COUNTRIES) {
-    const confederation = confederations.get(countryData.confederationCode);
-
-    if (!confederation) {
-      throw new Error(`Confederation not found: ${countryData.confederationCode}.`);
-    }
-
-    const country = await upsertCountry({
-      uid: countryData.uid,
-      name: countryData.name,
-      confederationId: confederation.id,
-      confederationName: confederation.name,
-      isHistorical: false,
-      visibleInCatalogForNew: false
-    });
-    countries.set(country.name, country);
-  }
-
-  const copaAmerica = await prisma.competition.upsert({
-    where: { code: 'COPA_AMERICA' },
-    create: {
+  await runCompetitionSeed({
+    prisma,
+    confederations: CONFEDERATION_SEEDS,
+    resolveCountries: resolveSeedCountries,
+    competition: {
       code: 'COPA_AMERICA',
-      name: '美洲杯',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.CONFEDERATION,
-      category: '洲际',
-      level: '一级',
-      format: '杯赛',
-      description: '南美足联主办的男子国家队最高级别洲际杯赛。',
-      confederationId: conmebol.id,
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 25
-    },
-    update: {
-      name: '美洲杯',
-      targetType: CompetitionTargetType.COUNTRY,
-      scopeType: CompetitionScopeType.CONFEDERATION,
-      category: '洲际',
-      level: '一级',
-      format: '杯赛',
-      confederationId: conmebol.id,
-      enabled: true,
-      includeInStats: true,
-      sortOrder: 25
-    },
-    select: { id: true }
-  });
-
-  await prisma.competitionScopeConfederation.deleteMany({
-    where: {
-      competitionId: copaAmerica.id,
-      confederationId: { not: conmebol.id }
-    }
-  });
-
-  await prisma.competitionScopeConfederation.upsert({
-    where: {
-      competitionId_confederationId: {
-        competitionId: copaAmerica.id,
-        confederationId: conmebol.id
-      }
-    },
-    create: {
-      competitionId: copaAmerica.id,
-      confederationId: conmebol.id
-    },
-    update: {}
-  });
-
-  for (const result of COPA_AMERICA_RESULTS) {
-    const editionName = result.name ?? `${result.year}年`;
-    const edition = await prisma.competitionEdition.upsert({
-      where: {
-        competitionId_name: {
-          competitionId: copaAmerica.id,
-          name: editionName
-        }
-      },
+      primaryConfederationCode: 'CONMEBOL',
       create: {
-        competitionId: copaAmerica.id,
-        name: editionName,
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: result.mode,
-        remark: result.remark ?? null
+        code: 'COPA_AMERICA',
+        name: '美洲杯',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.CONFEDERATION,
+        category: '洲际',
+        level: '一级',
+        format: '杯赛',
+        description: '南美足联主办的男子国家队最高级别洲际杯赛。',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 25
       },
       update: {
-        year: result.year,
-        season: null,
-        host: result.host,
-        quantity: result.quantity,
-        standingMode: result.mode,
-        remark: result.remark ?? null
-      },
-      select: { id: true }
-    });
-
-    await prisma.competitionStanding.deleteMany({
-      where: { editionId: edition.id }
-    });
-
-    await prisma.competitionStanding.createMany({
-      data: buildStandings(result).flatMap(({ placement, countryName, standingOrder }) => {
-        const country = countries.get(countryName);
-
-        if (!country) {
-          console.warn(`Skip ${editionName} ${countryName}: country not found.`);
-          return [];
-        }
-
-        return [
-          {
-            editionId: edition.id,
-            placement,
-            countryId: country.id,
-            standingOrder
-          }
-        ];
-      })
-    });
-  }
-
-  console.log('Copa America seed completed.');
-}
-
-function buildStandings(
-  result: TopFourCopaAmericaResult | TopThreeCopaAmericaResult | SemiFinalistCopaAmericaResult
-) {
-  const standings: Array<{
-    placement: CompetitionStandingPlacement;
-    countryName: string;
-    standingOrder?: number;
-  }> = [
-    { placement: CompetitionStandingPlacement.CHAMPION, countryName: result.champion },
-    { placement: CompetitionStandingPlacement.RUNNER_UP, countryName: result.runnerUp }
-  ];
-
-  if (result.mode === CompetitionEditionStandingMode.THIRD_PLACE_MATCH) {
-    standings.push(
-      { placement: CompetitionStandingPlacement.THIRD_PLACE, countryName: result.thirdPlace },
-      { placement: CompetitionStandingPlacement.FOURTH_PLACE, countryName: result.fourthPlace }
-    );
-  } else if (result.mode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE) {
-    standings.push({
-      placement: CompetitionStandingPlacement.THIRD_PLACE,
-      countryName: result.thirdPlace
-    });
-  } else {
-    standings.push(
-      {
-        placement: CompetitionStandingPlacement.SEMI_FINALIST,
-        countryName: result.semiFinalists[0],
-        standingOrder: 1
-      },
-      {
-        placement: CompetitionStandingPlacement.SEMI_FINALIST,
-        countryName: result.semiFinalists[1],
-        standingOrder: 2
+        name: '美洲杯',
+        targetType: CompetitionTargetType.COUNTRY,
+        scopeType: CompetitionScopeType.CONFEDERATION,
+        category: '洲际',
+        level: '一级',
+        format: '杯赛',
+        enabled: true,
+        includeInStats: true,
+        sortOrder: 25
       }
-    );
-  }
-
-  return standings;
-}
-
-async function upsertCountry(input: {
-  uid: string;
-  name: string;
-  confederationId: string | null;
-  confederationName: string | null;
-  isHistorical: boolean;
-  visibleInCatalogForNew: boolean;
-  detailRedirectCountryId?: string | null;
-}) {
-  const existing = await findExistingCountry(input.uid, input.name);
-  const uidSort = toUidSort(input.uid);
-
-  if (existing) {
-    return prisma.country.update({
-      where: { id: existing.id },
-      data: {
-        uid: existing.uid === '-' && input.uid !== '-' ? input.uid : existing.uid,
-        uidSort: existing.uid === '-' && input.uid !== '-' ? uidSort : existing.uidSort,
-        federationId: existing.federationId ?? input.confederationId,
-        federation: existing.federation ?? input.confederationName,
-        isHistorical: input.isHistorical,
-        visibleInCatalog: input.isHistorical ? false : existing.visibleInCatalog,
-        detailRedirectCountryId: input.detailRedirectCountryId ?? null
-      },
-      select: { id: true, name: true }
-    });
-  }
-
-  return prisma.country.create({
-    data: {
-      importKey: `seed:country:${input.uid === '-' ? input.name : input.uid}`,
-      uid: input.uid,
-      uidSort,
-      name: input.name,
-      federationId: input.confederationId,
-      federation: input.confederationName,
-      visibleInCatalog: input.visibleInCatalogForNew,
-      isHistorical: input.isHistorical,
-      detailRedirectCountryId: input.detailRedirectCountryId ?? null
     },
-    select: { id: true, name: true }
+    scope: {
+      confederationCodes: ['CONMEBOL']
+    },
+    editions: withStandingMode(COPA_AMERICA_RESULTS),
+    buildStandings: buildCompetitionResultStandings,
+    expected: {
+      editions: 48,
+      standings: 191
+    },
+    completedMessage: 'Copa America seed completed.'
   });
 }
 
-async function findExistingCountry(uid: string, name: string) {
-  if (uid !== '-') {
-    const byUid = await prisma.country.findFirst({
-      where: { uid },
-      select: {
-        id: true,
-        uid: true,
-        uidSort: true,
-        federationId: true,
-        federation: true,
-        visibleInCatalog: true
-      }
-    });
-
-    if (byUid) {
-      return byUid;
-    }
-  }
-
-  return prisma.country.findFirst({
-    where: { name },
-    select: {
-      id: true,
-      uid: true,
-      uidSort: true,
-      federationId: true,
-      federation: true,
-      visibleInCatalog: true
-    }
-  });
-}
-
-function toUidSort(uid: string) {
-  return /^\d+$/.test(uid) ? Number(uid) : null;
-}
-
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+void runSeed(prisma, main);

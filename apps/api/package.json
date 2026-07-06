@@ -12,15 +12,7 @@
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema prisma/schema.prisma",
-    "seed:world-cup": "tsx src/scripts/seed-world-cup.ts",
-    "seed:euro": "tsx src/scripts/seed-euro.ts",
-    "seed:asian-cup": "tsx src/scripts/seed-asian-cup.ts",
-    "seed:copa-america": "tsx src/scripts/seed-copa-america.ts",
-    "seed:africa-cup": "tsx src/scripts/seed-africa-cup.ts",
-    "seed:gold-cup": "tsx src/scripts/seed-gold-cup.ts",
-    "seed:ofc-nations-cup": "tsx src/scripts/seed-ofc-nations-cup.ts",
-    "seed:confederations-cup": "tsx src/scripts/seed-confederations-cup.ts",
-    "seed:olympic-mens-football": "tsx src/scripts/seed-olympic-mens-football.ts"
+    "seed:competitions": "tsx src/scripts/seed-competitions.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

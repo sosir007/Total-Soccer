@@ -14,7 +14,8 @@ function getEntries(group: HonorGroupedRecord, placement: CompetitionStandingPla
 }
 
 function formatEntry(entry: HonorGroupedPlacementEntry) {
-  return entry.sourceName ? `${entry.label}（${entry.sourceName}）` : entry.label;
+  const label = entry.season || (entry.year ? String(entry.year) : entry.label.replace(/年$/, ''));
+  return entry.sourceName ? `${label}（${entry.sourceName}）` : label;
 }
 </script>
 
@@ -35,8 +36,14 @@ function formatEntry(entry: HonorGroupedPlacementEntry) {
           <div v-if="getEntries(group, placement.value).length" class="honor-group-placement">
             <HonorPlacementLabel :placement="placement.value" />
             <strong>({{ getEntries(group, placement.value).length }})：</strong>
-            <span>
-              {{ getEntries(group, placement.value).map(formatEntry).join('、') }}
+            <span class="honor-entry-list">
+              <template
+                v-for="(entry, index) in getEntries(group, placement.value)"
+                :key="`${entry.year ?? entry.season ?? entry.label}-${entry.sourceName ?? ''}-${index}`"
+              >
+                <span v-if="index > 0" class="honor-entry-separator">、</span>
+                <span class="honor-entry-year">{{ formatEntry(entry) }}</span>
+              </template>
             </span>
           </div>
         </template>

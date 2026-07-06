@@ -1,130 +1,75 @@
 import {
   CompetitionEditionStandingMode,
   CompetitionScopeType,
-  CompetitionStandingPlacement,
   CompetitionTargetType,
   PrismaClient
 } from '@prisma/client';
-import { runCompetitionSeed } from './helpers/competition-seed.js';
+import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
+import {
+  buildCompetitionResultStandings,
+  type DoubleThirdCompetitionResult,
+  type TopFourCompetitionResult,
+  withStandingMode
+} from './helpers/competition-results.js';
+import {
+  CONFEDERATION_SEEDS,
+  pickHistoricalCountries,
+  pickSeedCountries
+} from './helpers/seed-data.js';
 
 const prisma = new PrismaClient();
 
-const CONFEDERATIONS = [
-  { uid: '1', code: 'CAF', name: '非足联', sortOrder: 10 },
-  { uid: '2', code: 'AFC', name: '亚足联', sortOrder: 20 },
-  { uid: '3', code: 'UEFA', name: '欧足联', sortOrder: 30 },
-  { uid: '4', code: 'CONCACAF', name: '中北美足联', sortOrder: 40 },
-  { uid: '6', code: 'CONMEBOL', name: '南美足联', sortOrder: 60 }
-];
+const REQUIRED_COUNTRIES = pickSeedCountries([
+  '喀麦隆',
+  '埃及',
+  '加纳',
+  '摩洛哥',
+  '尼日利亚',
+  '印度',
+  '伊拉克',
+  '日本',
+  '韩国',
+  '澳大利亚',
+  '洪都拉斯',
+  '墨西哥',
+  '美国',
+  '奥地利',
+  '比利时',
+  '保加利亚',
+  '丹麦',
+  '芬兰',
+  '法国',
+  '德国',
+  '匈牙利',
+  '意大利',
+  '荷兰',
+  '挪威',
+  '波兰',
+  '葡萄牙',
+  '俄罗斯',
+  '西班牙',
+  '瑞典',
+  '瑞士',
+  '塞尔维亚',
+  '英国',
+  '阿根廷',
+  '巴西',
+  '智利',
+  '巴拉圭',
+  '乌拉圭'
+]);
 
-const REQUIRED_COUNTRIES = [
-  { uid: '11', name: '喀麦隆', confederationCode: 'CAF' },
-  { uid: '16', name: '埃及', confederationCode: 'CAF' },
-  { uid: '21', name: '加纳', confederationCode: 'CAF' },
-  { uid: '34', name: '摩洛哥', confederationCode: 'CAF' },
-  { uid: '38', name: '尼日利亚', confederationCode: 'CAF' },
-  { uid: '112', name: '印度', confederationCode: 'AFC' },
-  { uid: '115', name: '伊拉克', confederationCode: 'AFC' },
-  { uid: '116', name: '日本', confederationCode: 'AFC' },
-  { uid: '135', name: '韩国', confederationCode: 'AFC' },
-  { uid: '1435', name: '澳大利亚', confederationCode: 'AFC' },
-  { uid: '376', name: '洪都拉斯', confederationCode: 'CONCACAF' },
-  { uid: '379', name: '墨西哥', confederationCode: 'CONCACAF' },
-  { uid: '390', name: '美国', confederationCode: 'CONCACAF' },
-  { uid: '755', name: '奥地利', confederationCode: 'UEFA' },
-  { uid: '757', name: '比利时', confederationCode: 'UEFA' },
-  { uid: '760', name: '保加利亚', confederationCode: 'UEFA' },
-  { uid: '764', name: '丹麦', confederationCode: 'UEFA' },
-  { uid: '768', name: '芬兰', confederationCode: 'UEFA' },
-  { uid: '769', name: '法国', confederationCode: 'UEFA' },
-  { uid: '771', name: '德国', confederationCode: 'UEFA' },
-  { uid: '773', name: '匈牙利', confederationCode: 'UEFA' },
-  { uid: '776', name: '意大利', confederationCode: 'UEFA' },
-  { uid: '784', name: '荷兰', confederationCode: 'UEFA' },
-  { uid: '786', name: '挪威', confederationCode: 'UEFA' },
-  { uid: '787', name: '波兰', confederationCode: 'UEFA' },
-  { uid: '788', name: '葡萄牙', confederationCode: 'UEFA' },
-  { uid: '791', name: '俄罗斯', confederationCode: 'UEFA' },
-  { uid: '796', name: '西班牙', confederationCode: 'UEFA' },
-  { uid: '797', name: '瑞典', confederationCode: 'UEFA' },
-  { uid: '798', name: '瑞士', confederationCode: 'UEFA' },
-  { uid: '802', name: '塞尔维亚', confederationCode: 'UEFA' },
-  { uid: '-', name: '英国', confederationCode: 'UEFA', visibleInCatalogForNew: false },
-  { uid: '1649', name: '阿根廷', confederationCode: 'CONMEBOL' },
-  { uid: '1651', name: '巴西', confederationCode: 'CONMEBOL' },
-  { uid: '1652', name: '智利', confederationCode: 'CONMEBOL' },
-  { uid: '1655', name: '巴拉圭', confederationCode: 'CONMEBOL' },
-  { uid: '1657', name: '乌拉圭', confederationCode: 'CONMEBOL' }
-];
+const HISTORICAL_COUNTRIES = pickHistoricalCountries([
+  '苏联',
+  '西德',
+  '捷克斯洛伐克',
+  '南斯拉夫',
+  '东德',
+  '德国联队',
+  '阿拉伯联合共和国'
+]);
 
-const HISTORICAL_COUNTRIES = [
-  {
-    uid: '583',
-    name: '苏联',
-    confederationCode: 'UEFA',
-    successorNames: ['俄罗斯'],
-    redirectName: '俄罗斯'
-  },
-  {
-    uid: '584',
-    name: '西德',
-    confederationCode: 'UEFA',
-    successorNames: ['德国'],
-    redirectName: '德国'
-  },
-  {
-    uid: '585',
-    name: '捷克斯洛伐克',
-    confederationCode: 'UEFA',
-    successorNames: ['捷克', '斯洛伐克']
-  },
-  { uid: '586', name: '南斯拉夫', confederationCode: 'UEFA', successorNames: ['塞尔维亚'] },
-  {
-    uid: '-',
-    name: '东德',
-    confederationCode: 'UEFA',
-    successorNames: ['德国'],
-    redirectName: '德国'
-  },
-  {
-    uid: '-',
-    name: '德国联队',
-    confederationCode: 'UEFA',
-    successorNames: ['德国'],
-    redirectName: '德国'
-  },
-  {
-    uid: '-',
-    name: '阿拉伯联合共和国',
-    confederationCode: 'CAF',
-    successorNames: ['埃及'],
-    redirectName: '埃及'
-  }
-];
-
-type BaseOlympicResult = {
-  year: number;
-  host: string;
-  quantity: number;
-  remark?: string;
-};
-
-type TopFourOlympicResult = BaseOlympicResult & {
-  mode: typeof CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
-  champion: string;
-  runnerUp: string;
-  thirdPlace: string;
-  fourthPlace: string;
-};
-
-type DoubleThirdOlympicResult = BaseOlympicResult & {
-  mode: typeof CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE;
-  champion: string;
-  runnerUp: string;
-  thirdPlaces: [string, string];
-};
-
-const OLYMPIC_RESULTS: Array<TopFourOlympicResult | DoubleThirdOlympicResult> = [
+const OLYMPIC_RESULTS: Array<TopFourCompetitionResult | DoubleThirdCompetitionResult> = [
   {
     year: 1908,
     host: '英国',
@@ -393,7 +338,7 @@ const OLYMPIC_RESULTS: Array<TopFourOlympicResult | DoubleThirdOlympicResult> = 
 async function main() {
   await runCompetitionSeed({
     prisma,
-    confederations: CONFEDERATIONS,
+    confederations: CONFEDERATION_SEEDS,
     countries: REQUIRED_COUNTRIES,
     historicalCountries: HISTORICAL_COUNTRIES,
     competition: {
@@ -428,70 +373,14 @@ async function main() {
         sortOrder: 15
       }
     },
-    editions: OLYMPIC_RESULTS.map((result) => ({
-      ...result,
-      standingMode: result.mode
-    })),
-    buildStandings,
+    editions: withStandingMode(OLYMPIC_RESULTS),
+    buildStandings: buildCompetitionResultStandings,
+    expected: {
+      editions: 26,
+      standings: 104
+    },
     completedMessage: 'Olympic men football seed completed.'
   });
 }
 
-function buildStandings(result: TopFourOlympicResult | DoubleThirdOlympicResult) {
-  const standings: Array<{
-    placement: CompetitionStandingPlacement;
-    countryName: string;
-    standingOrder: number;
-  }> = [
-    {
-      placement: CompetitionStandingPlacement.CHAMPION,
-      countryName: result.champion,
-      standingOrder: 0
-    },
-    {
-      placement: CompetitionStandingPlacement.RUNNER_UP,
-      countryName: result.runnerUp,
-      standingOrder: 0
-    }
-  ];
-
-  if (result.mode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE) {
-    standings.push(
-      {
-        placement: CompetitionStandingPlacement.THIRD_PLACE,
-        countryName: result.thirdPlaces[0],
-        standingOrder: 1
-      },
-      {
-        placement: CompetitionStandingPlacement.THIRD_PLACE,
-        countryName: result.thirdPlaces[1],
-        standingOrder: 2
-      }
-    );
-    return standings;
-  }
-
-  standings.push(
-    {
-      placement: CompetitionStandingPlacement.THIRD_PLACE,
-      countryName: result.thirdPlace,
-      standingOrder: 0
-    },
-    {
-      placement: CompetitionStandingPlacement.FOURTH_PLACE,
-      countryName: result.fourthPlace,
-      standingOrder: 0
-    }
-  );
-
-  return standings;
-}
-
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+void runSeed(prisma, main);

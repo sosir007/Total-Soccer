@@ -5,21 +5,21 @@ import {
   PrismaClient
 } from '@prisma/client';
 
-type SeedConfederation = {
+export type SeedConfederation = {
   uid: string;
   code: string;
   name: string;
   sortOrder: number;
 };
 
-type SeedCountry = {
+export type SeedCountry = {
   uid: string;
   name: string;
   confederationCode: string;
   visibleInCatalogForNew?: boolean;
 };
 
-type SeedHistoricalCountry = SeedCountry & {
+export type SeedHistoricalCountry = SeedCountry & {
   successorNames: string[];
   redirectName?: string;
 };
@@ -29,7 +29,7 @@ type SeedCountryRef = {
   name: string;
 };
 
-type SeedStanding = {
+export type SeedStanding = {
   placement: CompetitionStandingPlacement;
   countryName?: string;
   clubName?: string;
@@ -37,7 +37,7 @@ type SeedStanding = {
   remark?: string | null;
 };
 
-type SeedEdition = {
+export type SeedEdition = {
   name?: string;
   year?: number;
   season?: string | null;
@@ -53,15 +53,26 @@ type CompetitionSeedOptions<T extends SeedEdition> = {
     code: string;
     create: Prisma.CompetitionUncheckedCreateInput;
     update: Prisma.CompetitionUncheckedUpdateInput;
+    primaryConfederationCode?: string;
+    primaryCountryName?: string;
   };
   confederations: SeedConfederation[];
   countries?: SeedCountry[];
   historicalCountries?: SeedHistoricalCountry[];
+  historicalCountryNames?: string[];
+  resolveCountries?: (names: string[]) => {
+    countries?: SeedCountry[];
+    historicalCountries?: SeedHistoricalCountry[];
+  };
   editions: T[];
   buildStandings: (edition: T) => SeedStanding[];
   scope?: {
     confederationCodes?: string[];
     countryNames?: string[];
+  };
+  expected?: {
+    editions: number;
+    standings: number;
   };
   completedMessage: string;
 };
@@ -72,15 +83,33 @@ export async function runCompetitionSeed<T extends SeedEdition>({
   confederations: confederationSeeds,
   countries: countrySeeds = [],
   historicalCountries = [],
+  historicalCountryNames = [],
+  resolveCountries,
   editions,
   buildStandings,
   scope,
+  expected,
   completedMessage
 }: CompetitionSeedOptions<T>) {
+  const editionStandings = editions.map((edition) => ({
+    edition,
+    standings: buildStandings(edition)
+  }));
+  const resolvedSeedCountries = resolveCountries
+    ? resolveCountries(collectStandingCountryNames(editionStandings, scope, historicalCountryNames))
+    : {};
+  const mergedCountrySeeds = uniqueSeedCountries([
+    ...countrySeeds,
+    ...(resolvedSeedCountries.countries ?? [])
+  ]);
+  const mergedHistoricalCountries = uniqueSeedCountries([
+    ...historicalCountries,
+    ...(resolvedSeedCountries.historicalCountries ?? [])
+  ]);
   const confederations = await upsertConfederations(prisma, confederationSeeds);
   const countries = new Map<string, SeedCountryRef>();
 
-  for (const countryData of countrySeeds) {
+  for (const countryData of mergedCountrySeeds) {
     const confederation = getConfederation(confederations, countryData.confederationCode);
     const country = await upsertCountry(prisma, {
       ...countryData,
@@ -91,7 +120,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     countries.set(country.name, country);
   }
 
-  for (const countryData of historicalCountries) {
+  for (const countryData of mergedHistoricalCountries) {
     const confederation = getConfederation(confederations, countryData.confederationCode);
     const country = await upsertCountry(prisma, {
       ...countryData,
@@ -106,19 +135,36 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     countries.set(country.name, country);
   }
 
-  await syncCountrySuccessors(prisma, countries, historicalCountries);
+  await syncCountrySuccessors(prisma, countries, mergedHistoricalCountries);
 
+  const primaryCompetitionRelations = resolvePrimaryCompetitionRelations(
+    confederations,
+    countries,
+    competition.primaryConfederationCode,
+    competition.primaryCountryName
+  );
   const seededCompetition = await prisma.competition.upsert({
     where: { code: competition.code },
-    create: competition.create,
-    update: competition.update,
+    create: {
+      ...competition.create,
+      ...primaryCompetitionRelations
+    },
+    update: {
+      ...competition.update,
+      ...primaryCompetitionRelations
+    },
     select: { id: true }
   });
 
   await syncCompetitionScopes(prisma, seededCompetition.id, confederations, countries, scope);
 
-  for (const editionData of editions) {
+  for (const { edition: editionData, standings } of editionStandings) {
     const editionName = editionData.name ?? formatEditionName(editionData);
+    const standingMode =
+      editionData.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
+
+    validateEditionStandings(competition.code, editionName, standingMode, standings);
+
     const edition = await prisma.competitionEdition.upsert({
       where: {
         competitionId_name: {
@@ -133,7 +179,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
         season: editionData.season ?? null,
         host: editionData.host ?? null,
         quantity: editionData.quantity ?? null,
-        standingMode: editionData.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
+        standingMode,
         remark: editionData.remark ?? null
       },
       update: {
@@ -141,7 +187,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
         season: editionData.season ?? null,
         host: editionData.host ?? null,
         quantity: editionData.quantity ?? null,
-        standingMode: editionData.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
+        standingMode,
         remark: editionData.remark ?? null
       },
       select: { id: true }
@@ -152,13 +198,10 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     });
 
     await prisma.competitionStanding.createMany({
-      data: buildStandings(editionData).flatMap((standing) => {
-        const country = standing.countryName ? countries.get(standing.countryName) : null;
-
-        if (standing.countryName && !country) {
-          console.warn(`Skip ${editionName} ${standing.countryName}: country not found.`);
-          return [];
-        }
+      data: standings.flatMap((standing) => {
+        const country = standing.countryName
+          ? getCountry(countries, standing.countryName, `${competition.code} ${editionName}`)
+          : null;
 
         return [
           {
@@ -173,6 +216,15 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     });
   }
 
+  await validateSeedResult(prisma, seededCompetition.id, competition.code, editions, expected);
+  printSeedSummary({
+    competitionCode: competition.code,
+    editions,
+    editionStandings,
+    countries: mergedCountrySeeds,
+    historicalCountries: mergedHistoricalCountries,
+    scope
+  });
   console.log(completedMessage);
 }
 
@@ -188,6 +240,79 @@ export function buildTopFourStandings(input: {
     { placement: CompetitionStandingPlacement.THIRD_PLACE, countryName: input.thirdPlace },
     { placement: CompetitionStandingPlacement.FOURTH_PLACE, countryName: input.fourthPlace }
   ];
+}
+
+export function buildTopThreeStandings(input: {
+  champion: string;
+  runnerUp: string;
+  thirdPlace: string;
+}) {
+  return [
+    { placement: CompetitionStandingPlacement.CHAMPION, countryName: input.champion },
+    { placement: CompetitionStandingPlacement.RUNNER_UP, countryName: input.runnerUp },
+    { placement: CompetitionStandingPlacement.THIRD_PLACE, countryName: input.thirdPlace }
+  ];
+}
+
+export function buildFinalOnlyStandings(input: { champion: string; runnerUp: string }) {
+  return [
+    { placement: CompetitionStandingPlacement.CHAMPION, countryName: input.champion },
+    { placement: CompetitionStandingPlacement.RUNNER_UP, countryName: input.runnerUp }
+  ];
+}
+
+export function buildSemiFinalistStandings(input: {
+  champion: string;
+  runnerUp: string;
+  semiFinalists: [string, string];
+}) {
+  return [
+    ...buildFinalOnlyStandings(input),
+    {
+      placement: CompetitionStandingPlacement.SEMI_FINALIST,
+      countryName: input.semiFinalists[0],
+      standingOrder: 1
+    },
+    {
+      placement: CompetitionStandingPlacement.SEMI_FINALIST,
+      countryName: input.semiFinalists[1],
+      standingOrder: 2
+    }
+  ];
+}
+
+export function buildDoubleThirdPlaceStandings(input: {
+  champion: string;
+  runnerUp: string;
+  thirdPlaces: [string, string];
+}) {
+  return [
+    ...buildFinalOnlyStandings(input),
+    {
+      placement: CompetitionStandingPlacement.THIRD_PLACE,
+      countryName: input.thirdPlaces[0],
+      standingOrder: 1
+    },
+    {
+      placement: CompetitionStandingPlacement.THIRD_PLACE,
+      countryName: input.thirdPlaces[1],
+      standingOrder: 2
+    }
+  ];
+}
+
+export async function runSeed(prisma: PrismaClient, callback: () => Promise<void>) {
+  const startedAt = Date.now();
+
+  try {
+    await callback();
+    console.log(`Seed completed in ${Date.now() - startedAt}ms.`);
+  } catch (error) {
+    console.error(error);
+    process.exitCode = 1;
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 async function upsertConfederations(prisma: PrismaClient, confederations: SeedConfederation[]) {
@@ -218,6 +343,16 @@ function getConfederation(confederations: Map<string, { id: string; name: string
   }
 
   return confederation;
+}
+
+function getCountry(countries: Map<string, SeedCountryRef>, name: string, context: string) {
+  const country = countries.get(name);
+
+  if (!country) {
+    throw new Error(`${context}: country ${name} not found.`);
+  }
+
+  return country;
 }
 
 async function upsertCountry(
@@ -314,11 +449,18 @@ async function syncCountrySuccessors(
         continue;
       }
 
-      await prisma.countrySuccessor.create({
-        data: {
+      await prisma.countrySuccessor.upsert({
+        where: {
+          historicalCountryId_successorCountryId: {
+            historicalCountryId: historical.id,
+            successorCountryId: successor.id
+          }
+        },
+        create: {
           historicalCountryId: historical.id,
           successorCountryId: successor.id
-        }
+        },
+        update: {}
       });
     }
   }
@@ -354,12 +496,7 @@ async function syncCompetitionScopes(
   }
 
   for (const name of scope.countryNames ?? []) {
-    const country = countries.get(name);
-
-    if (!country) {
-      console.warn(`Skip competition scope ${name}: country not found.`);
-      continue;
-    }
+    const country = getCountry(countries, name, `competition scope ${competitionId}`);
 
     await prisma.competitionScopeCountry.create({
       data: {
@@ -370,12 +507,198 @@ async function syncCompetitionScopes(
   }
 }
 
+function resolvePrimaryCompetitionRelations(
+  confederations: Map<string, { id: string; name: string }>,
+  countries: Map<string, SeedCountryRef>,
+  primaryConfederationCode?: string,
+  primaryCountryName?: string
+) {
+  return {
+    ...(primaryConfederationCode
+      ? { confederationId: getConfederation(confederations, primaryConfederationCode).id }
+      : {}),
+    ...(primaryCountryName
+      ? { countryId: getCountry(countries, primaryCountryName, 'primary competition country').id }
+      : {})
+  };
+}
+
+function validateEditionStandings(
+  competitionCode: string,
+  editionName: string,
+  mode: CompetitionEditionStandingMode,
+  standings: SeedStanding[]
+) {
+  const context = `${competitionCode} ${editionName}`;
+  const count = (placement: CompetitionStandingPlacement) =>
+    standings.filter((standing) => standing.placement === placement).length;
+  const counts = {
+    champion: count(CompetitionStandingPlacement.CHAMPION),
+    runnerUp: count(CompetitionStandingPlacement.RUNNER_UP),
+    thirdPlace: count(CompetitionStandingPlacement.THIRD_PLACE),
+    fourthPlace: count(CompetitionStandingPlacement.FOURTH_PLACE),
+    semiFinalist: count(CompetitionStandingPlacement.SEMI_FINALIST)
+  };
+
+  const assertCounts = (expected: typeof counts) => {
+    for (const [key, expectedCount] of Object.entries(expected)) {
+      const actualCount = counts[key as keyof typeof counts];
+
+      if (actualCount !== expectedCount) {
+        throw new Error(
+          `${context}: invalid standings for ${mode}. Expected ${key}=${expectedCount}, got ${actualCount}.`
+        );
+      }
+    }
+  };
+
+  switch (mode) {
+    case CompetitionEditionStandingMode.THIRD_PLACE_MATCH:
+      assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 1, fourthPlace: 1, semiFinalist: 0 });
+      break;
+    case CompetitionEditionStandingMode.SEMI_FINALISTS:
+      assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 0, fourthPlace: 0, semiFinalist: 2 });
+      break;
+    case CompetitionEditionStandingMode.FINAL_ONLY:
+      assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 0, fourthPlace: 0, semiFinalist: 0 });
+      break;
+    case CompetitionEditionStandingMode.LEAGUE_TOP_THREE:
+      assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 1, fourthPlace: 0, semiFinalist: 0 });
+      break;
+    case CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE:
+      assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 2, fourthPlace: 0, semiFinalist: 0 });
+      break;
+    default:
+      throw new Error(`${context}: unsupported standing mode ${mode}.`);
+  }
+}
+
+function collectStandingCountryNames<T extends SeedEdition>(
+  editionStandings: Array<{ edition: T; standings: SeedStanding[] }>,
+  scope: CompetitionSeedOptions<T>['scope'],
+  historicalCountryNames: string[]
+) {
+  const names = new Set<string>(historicalCountryNames);
+
+  for (const countryName of scope?.countryNames ?? []) {
+    names.add(countryName);
+  }
+
+  for (const { standings } of editionStandings) {
+    for (const standing of standings) {
+      if (standing.countryName) {
+        names.add(standing.countryName);
+      }
+    }
+  }
+
+  return [...names];
+}
+
+function uniqueSeedCountries<T extends SeedCountry>(countries: T[]) {
+  return [...new Map(countries.map((country) => [country.name, country])).values()];
+}
+
 function formatEditionName(edition: SeedEdition) {
   if (edition.year) {
     return `${edition.year}年`;
   }
 
   return edition.season ?? '未命名届次';
+}
+
+async function validateSeedResult(
+  prisma: PrismaClient,
+  competitionId: string,
+  competitionCode: string,
+  editions: SeedEdition[],
+  expected?: CompetitionSeedOptions<SeedEdition>['expected']
+) {
+  if (!expected) {
+    return;
+  }
+
+  const editionNames = editions.map((edition) => edition.name ?? formatEditionName(edition));
+  const seededEditions = await prisma.competitionEdition.findMany({
+    where: {
+      competitionId,
+      name: { in: editionNames }
+    },
+    select: {
+      id: true,
+      _count: {
+        select: { standings: true }
+      }
+    }
+  });
+  const standingCount = seededEditions.reduce(
+    (total, edition) => total + edition._count.standings,
+    0
+  );
+
+  console.log(
+    `${competitionCode}: ${seededEditions.length} target editions, ${standingCount} target standings`
+  );
+
+  if (seededEditions.length !== expected.editions || standingCount !== expected.standings) {
+    throw new Error(
+      `${competitionCode} seed count mismatch: expected ${expected.editions} editions / ${expected.standings} standings, got ${seededEditions.length} / ${standingCount}.`
+    );
+  }
+}
+
+function printSeedSummary<T extends SeedEdition>({
+  competitionCode,
+  editions,
+  editionStandings,
+  countries,
+  historicalCountries,
+  scope
+}: {
+  competitionCode: string;
+  editions: T[];
+  editionStandings: Array<{ edition: T; standings: SeedStanding[] }>;
+  countries: SeedCountry[];
+  historicalCountries: SeedHistoricalCountry[];
+  scope?: CompetitionSeedOptions<T>['scope'];
+}) {
+  const standingCount = editionStandings.reduce(
+    (total, { standings }) => total + standings.length,
+    0
+  );
+  const standingCountryCount = new Set(
+    editionStandings.flatMap(({ standings }) =>
+      standings.flatMap((standing) => (standing.countryName ? [standing.countryName] : []))
+    )
+  ).size;
+  const modeCounts = editions.reduce<Record<string, number>>((result, edition) => {
+    const mode = edition.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
+    result[mode] = (result[mode] ?? 0) + 1;
+    return result;
+  }, {});
+  const scopeParts = [
+    scope?.confederationCodes?.length ? `confederations=${scope.confederationCodes.join('/')}` : '',
+    scope?.countryNames?.length ? `countries=${scope.countryNames.join('/')}` : ''
+  ].filter(Boolean);
+
+  console.log(
+    [
+      `${competitionCode} summary:`,
+      `seedCountries=${countries.length}`,
+      `historicalCountries=${historicalCountries.length}`,
+      `standingCountries=${standingCountryCount}`,
+      `editions=${editions.length}`,
+      `standings=${standingCount}`,
+      `modes=${formatCountRecord(modeCounts)}`,
+      `scope=${scopeParts.length ? scopeParts.join(', ') : 'global'}`
+    ].join(' ')
+  );
+}
+
+function formatCountRecord(record: Record<string, number>) {
+  return Object.entries(record)
+    .map(([key, value]) => `${key}:${value}`)
+    .join(', ');
 }
 
 function toUidSort(uid: string) {
