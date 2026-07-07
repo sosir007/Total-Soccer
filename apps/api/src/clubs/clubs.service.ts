@@ -793,13 +793,7 @@ export class ClubsService {
         competition: group.competition,
         placements: group.placements
       }))
-      .sort((a, b) => {
-        if (a.competition.sortOrder !== b.competition.sortOrder) {
-          return a.competition.sortOrder - b.competition.sortOrder;
-        }
-
-        return a.competition.name.localeCompare(b.competition.name, 'zh-CN');
-      });
+      .sort((a, b) => this.compareCompetitionOrder(a.competition, b.competition));
   }
 
   private buildHonorSummaryCompetitions(
@@ -822,17 +816,35 @@ export class ClubsService {
       competitionMap.set(record.edition.competition.id, competition);
     }
 
-    return [...competitionMap.values()].sort((a, b) => {
-      if (a.sortOrder !== b.sortOrder) {
-        return a.sortOrder - b.sortOrder;
-      }
+    return [...competitionMap.values()].sort((a, b) => this.compareCompetitionOrder(a, b));
+  }
 
-      if ((a.level ?? '') !== (b.level ?? '')) {
-        return (a.level ?? '').localeCompare(b.level ?? '', 'zh-CN');
-      }
+  private compareCompetitionOrder(
+    a: { sortOrder: number; level?: string | null; name: string },
+    b: { sortOrder: number; level?: string | null; name: string }
+  ) {
+    if (a.sortOrder !== b.sortOrder) {
+      return a.sortOrder - b.sortOrder;
+    }
 
-      return a.name.localeCompare(b.name, 'zh-CN');
-    });
+    const levelDiff = this.competitionLevelWeight(a.level) - this.competitionLevelWeight(b.level);
+
+    if (levelDiff !== 0) {
+      return levelDiff;
+    }
+
+    return a.name.localeCompare(b.name, 'zh-CN');
+  }
+
+  private competitionLevelWeight(level?: string | null) {
+    const weights: Record<string, number> = {
+      一级: 1,
+      二级: 2,
+      三级: 3,
+      四级: 4
+    };
+
+    return weights[level ?? ''] ?? 99;
   }
 
   private createClubHonorSummaryRow(club: {

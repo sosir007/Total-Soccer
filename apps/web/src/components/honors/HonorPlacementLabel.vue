@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementLabels } from '@/utils/honor';
+import { getPlacementTextColor } from '@/utils/tag-theme';
 import championIcon from '@/assets/images/honor-icons/champion.svg';
 import runnerUpIcon from '@/assets/images/honor-icons/runner-up.svg';
 import thirdPlaceIcon from '@/assets/images/honor-icons/third-place.svg';
@@ -24,10 +26,14 @@ const props = withDefaults(
     compact: false
   }
 );
+
+const placementStyle = computed(() => ({
+  '--honor-placement-label-color': getPlacementTextColor(props.placement)
+}));
 </script>
 
 <template>
-  <span class="honor-placement-label" :class="{ compact: props.compact }">
+  <span class="honor-placement-label" :class="{ compact: props.compact }" :style="placementStyle">
     <img
       class="honor-placement-icon"
       :src="placementImageUrls[placement]"
@@ -44,6 +50,11 @@ const props = withDefaults(
   height: 30px;
   flex: 0 0 auto;
   object-fit: contain;
+}
+
+.honor-placement-label {
+  color: var(--honor-placement-label-color);
+  font-weight: 800;
 }
 
 .honor-placement-label.compact {

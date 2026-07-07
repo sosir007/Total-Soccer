@@ -32,7 +32,7 @@ async function main() {
         description: '国际足联主办的男子国家队最高级别赛事。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 0
       },
       update: {
         name: '国际足联世界杯',
@@ -43,7 +43,7 @@ async function main() {
         format: '其他',
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 0
       }
     },
     editions: WORLD_CUP_RESULTS.map<TopFourCompetitionResult>(

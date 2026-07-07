@@ -1,3 +1,5 @@
+import type { CompetitionStandingPlacement } from '@/services/types/competitions';
+
 export interface SemanticTagTheme {
   text: string;
   border: string;
@@ -41,7 +43,15 @@ export type SemanticTagVariant =
   | 'object-player'
   | 'object-competition'
   | 'object-award'
+  | PlacementTagVariant
   | AbilityTagVariant;
+
+export type PlacementTagVariant =
+  | 'placement-champion'
+  | 'placement-runner-up'
+  | 'placement-third-place'
+  | 'placement-fourth-place'
+  | 'placement-semi-finalist';
 
 export type AbilityTagVariant =
   | 'ability-legend'
@@ -93,6 +103,11 @@ export const semanticTagThemes: Record<SemanticTagVariant, SemanticTagTheme> = {
   'object-player': tagVars('object-player'),
   'object-competition': tagVars('object-competition'),
   'object-award': tagVars('object-award'),
+  'placement-champion': tagVars('placement-champion'),
+  'placement-runner-up': tagVars('placement-runner-up'),
+  'placement-third-place': tagVars('placement-third-place'),
+  'placement-fourth-place': tagVars('placement-fourth-place'),
+  'placement-semi-finalist': tagVars('placement-semi-finalist'),
   'ability-legend': tagVars('ability-legend'),
   'ability-elite': tagVars('ability-elite'),
   'ability-superstar': tagVars('ability-superstar'),
@@ -187,6 +202,24 @@ export function getCompetitionLevelVariant(value?: string | null): SemanticTagVa
   };
 
   return map[value ?? ''] ?? 'neutral';
+}
+
+export function getPlacementVariant(
+  placement?: CompetitionStandingPlacement | null
+): PlacementTagVariant {
+  const map: Record<CompetitionStandingPlacement, PlacementTagVariant> = {
+    CHAMPION: 'placement-champion',
+    RUNNER_UP: 'placement-runner-up',
+    THIRD_PLACE: 'placement-third-place',
+    FOURTH_PLACE: 'placement-fourth-place',
+    SEMI_FINALIST: 'placement-semi-finalist'
+  };
+
+  return placement ? map[placement] : 'placement-semi-finalist';
+}
+
+export function getPlacementTextColor(placement?: CompetitionStandingPlacement | null) {
+  return getSemanticTagStyle(getPlacementVariant(placement)).color;
 }
 
 export function getPlayerStatusVariant(player: {

@@ -114,6 +114,21 @@
   --tag-object-award-text: #c2410c;
   --tag-object-award-border: #fed7aa;
   --tag-object-award-bg: #fff7ed;
+  --tag-placement-champion-text: #d4a017;
+  --tag-placement-champion-border: #fde047;
+  --tag-placement-champion-bg: #fef9c3;
+  --tag-placement-runner-up-text: #64748b;
+  --tag-placement-runner-up-border: #cbd5e1;
+  --tag-placement-runner-up-bg: #f8fafc;
+  --tag-placement-third-place-text: #b87333;
+  --tag-placement-third-place-border: #fed7aa;
+  --tag-placement-third-place-bg: #fff7ed;
+  --tag-placement-fourth-place-text: #2f80c7;
+  --tag-placement-fourth-place-border: #bfdbfe;
+  --tag-placement-fourth-place-bg: #eff6ff;
+  --tag-placement-semi-finalist-text: #5b5f97;
+  --tag-placement-semi-finalist-border: #c7d2fe;
+  --tag-placement-semi-finalist-bg: #eef2ff;
   --tag-ability-legend-text: #9f1239;
   --tag-ability-legend-border: #fda4af;
   --tag-ability-legend-bg: #fff1f2;
@@ -642,6 +657,10 @@ h1 {
   .honor-count-cell {
     color: #3d4d43;
     font-weight: 800;
+
+    &.is-placement {
+      color: var(--honor-placement-color);
+    }
   }
 }
 
@@ -684,21 +703,29 @@ h1 {
 }
 
 .honor-group-placement {
+  --honor-placement-color: #3d4d43;
+
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
   gap: 4px 6px;
   align-items: center;
-  color: #3d4d43;
+  color: var(--honor-placement-color);
   line-height: 1.6;
 
   strong {
     display: inline-flex;
     align-items: center;
+    color: var(--honor-placement-color);
     font-weight: 800;
   }
 
   > span {
     min-width: 0;
+  }
+
+  .honor-entry-year {
+    color: var(--honor-placement-color);
+    font-weight: 780;
   }
 }
 
@@ -710,7 +737,7 @@ h1 {
 
 .honor-entry-year {
   color: #7a8a80;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
 }
 

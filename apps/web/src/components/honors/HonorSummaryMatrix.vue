@@ -11,7 +11,7 @@ import type {
 } from '@/services/types/catalog';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementLabels } from '@/utils/honor';
-import { getConfederationVariant } from '@/utils/tag-theme';
+import { getConfederationVariant, getPlacementTextColor } from '@/utils/tag-theme';
 import HonorPlacementLabel from './HonorPlacementLabel.vue';
 
 const placements = [
@@ -195,6 +195,14 @@ function addCounts(target: HonorSummaryCounts, source?: HonorSummaryCounts | nul
 
 function getPlacementValue(placement: PlacementStat) {
   return placement.value as CompetitionStandingPlacement;
+}
+
+function getPlacementStyle(placement: PlacementStat | CompetitionStandingPlacement) {
+  const value = typeof placement === 'string' ? placement : getPlacementValue(placement);
+
+  return {
+    '--honor-placement-color': getPlacementTextColor(value)
+  };
 }
 
 function formatConfederation(row: HonorSummaryRow) {
@@ -423,7 +431,9 @@ function openScoreDialog(row: HonorSummaryRow) {
                 <template #content>
                   <div class="honor-summary-tooltip">
                     <div class="honor-summary-tooltip__title">
-                      {{ placementLabels[placement.value] }}
+                      <span :style="getPlacementStyle(placement)">
+                        {{ placementLabels[placement.value] }}
+                      </span>
                     </div>
                     <div
                       v-for="group in getPlacementDetailGroups(row, competition, placement)"
@@ -443,11 +453,18 @@ function openScoreDialog(row: HonorSummaryRow) {
                     </div>
                   </div>
                 </template>
-                <span class="honor-count-cell is-hoverable">
+                <span
+                  class="honor-count-cell is-placement is-hoverable"
+                  :style="getPlacementStyle(placement)"
+                >
                   {{ formatCount(getDisplayCompetitionCounts(row, competition)[placement.key]) }}
                 </span>
               </el-tooltip>
-              <span v-else class="honor-count-cell">
+              <span
+                v-else
+                class="honor-count-cell is-placement"
+                :style="getPlacementStyle(placement)"
+              >
                 {{ formatCount(getDisplayCompetitionCounts(row, competition)[placement.key]) }}
               </span>
             </template>
@@ -567,7 +584,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   transition: color 0.18s ease;
 
   &:hover {
-    color: #15784b;
+    color: var(--honor-placement-color, #15784b);
   }
 }
 

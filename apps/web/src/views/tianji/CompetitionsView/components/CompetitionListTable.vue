@@ -76,38 +76,38 @@ function getRowSequence(page: number, pageSize: number, index: number) {
         <el-table-column label="适用范围" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">{{ formatScope(row) }}</template>
         </el-table-column>
-        <el-table-column label="分类" width="90">
+        <el-table-column label="分类" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <SemanticTag :variant="getCompetitionCategoryVariant(row.category)">
               {{ formatText(row.category) }}
             </SemanticTag>
           </template>
         </el-table-column>
-        <el-table-column label="级别" width="90">
+        <el-table-column label="级别" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <SemanticTag :variant="getCompetitionLevelVariant(row.level)">
               {{ formatText(row.level) }}
             </SemanticTag>
           </template>
         </el-table-column>
-        <el-table-column label="赛制" width="90">
+        <el-table-column label="赛制" width="90" align="center" header-align="center">
           <template #default="{ row }">{{ formatFormat(row) }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="90">
+        <el-table-column label="状态" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
             </SemanticTag>
           </template>
         </el-table-column>
-        <el-table-column label="统计" width="90">
+        <el-table-column label="统计" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <SemanticTag :variant="row.includeInStats ? 'status-included' : 'status-excluded'">
               {{ row.includeInStats ? '纳入' : '排除' }}
             </SemanticTag>
           </template>
         </el-table-column>
-        <el-table-column label="外链" width="86">
+        <el-table-column label="外链" width="86" align="center" header-align="center">
           <template #default="{ row }">
             <a
               v-if="row.externalUrl"
@@ -121,7 +121,7 @@ function getRowSequence(page: number, pageSize: number, index: number) {
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip>
+        <el-table-column prop="description" label="描述" min-width="240" show-overflow-tooltip>
           <template #default="{ row }">{{ formatText(row.description) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">

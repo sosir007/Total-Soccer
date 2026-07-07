@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import type { HonorGroupedPlacementEntry, HonorGroupedRecord } from '@/services/types/catalog';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementOptions } from '@/utils/honor';
+import { getCompetitionCategoryVariant, getPlacementTextColor } from '@/utils/tag-theme';
 import HonorPlacementLabel from './HonorPlacementLabel.vue';
 
 defineProps<{
@@ -17,6 +19,16 @@ function formatEntry(entry: HonorGroupedPlacementEntry) {
   const label = entry.season || (entry.year ? String(entry.year) : entry.label.replace(/年$/, ''));
   return entry.sourceName ? `${label}（${entry.sourceName}）` : label;
 }
+
+function getCompetitionTagText(group: HonorGroupedRecord) {
+  return group.competition.category || group.competition.level || group.competition.code;
+}
+
+function getPlacementStyle(placement: CompetitionStandingPlacement) {
+  return {
+    '--honor-placement-color': getPlacementTextColor(placement)
+  };
+}
 </script>
 
 <template>
@@ -26,14 +38,21 @@ function formatEntry(entry: HonorGroupedPlacementEntry) {
     <div v-for="group in groups" :key="group.competition.id" class="honor-group">
       <div class="honor-group-title">
         <EntityLink :id="group.competition.id" type="competition" :name="group.competition.name" />
-        <span>{{
-          group.competition.category || group.competition.level || group.competition.code
-        }}</span>
+        <SemanticTag
+          size="small"
+          :variant="getCompetitionCategoryVariant(group.competition.category)"
+        >
+          {{ getCompetitionTagText(group) }}
+        </SemanticTag>
       </div>
 
       <div class="honor-group-placements">
         <template v-for="placement in placementOptions" :key="placement.value">
-          <div v-if="getEntries(group, placement.value).length" class="honor-group-placement">
+          <div
+            v-if="getEntries(group, placement.value).length"
+            class="honor-group-placement"
+            :style="getPlacementStyle(placement.value)"
+          >
             <HonorPlacementLabel :placement="placement.value" />
             <strong>({{ getEntries(group, placement.value).length }})：</strong>
             <span class="honor-entry-list">

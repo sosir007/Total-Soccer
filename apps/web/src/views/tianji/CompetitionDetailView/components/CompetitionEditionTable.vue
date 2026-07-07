@@ -1,12 +1,38 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type {
   CompetitionEdition,
-  CompetitionEditionStandingMode
+  CompetitionEditionStandingMode,
+  CompetitionStanding,
+  CompetitionStandingPlacement
 } from '@/services/types/competitions';
 import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
+import { getPlacementTextColor } from '@/utils/tag-theme';
 import type { PlacementField } from './types';
+
+type StandingStatEntry = {
+  label: string;
+};
+
+type StandingStatRow = {
+  key: string;
+  id: string | null;
+  type: 'country' | 'club';
+  name: string;
+  counts: Record<CompetitionStandingPlacement, number>;
+  entries: Record<CompetitionStandingPlacement, StandingStatEntry[]>;
+  total: number;
+};
+
+const placementOrder: CompetitionStandingPlacement[] = [
+  'CHAMPION',
+  'RUNNER_UP',
+  'THIRD_PLACE',
+  'FOURTH_PLACE',
+  'SEMI_FINALIST'
+];
 
 const props = defineProps<{
   editions: CompetitionEdition[];
@@ -35,6 +61,159 @@ const emit = defineEmits<{
 function getStandingModeLabel(edition: CompetitionEdition) {
   return props.standingModeLabels[edition.standingMode] ?? '-';
 }
+
+const statisticsPlacementColumns = computed(() =>
+  placementOrder.filter((placement) =>
+    statisticsRows.value.some((row) => row.counts[placement] > 0)
+  )
+);
+const statisticsRows = computed(() => buildStatisticsRows(props.editions));
+
+function buildStatisticsRows(editions: CompetitionEdition[]) {
+  const rowMap = new Map<string, StandingStatRow>();
+
+  for (const edition of editions) {
+    for (const standing of edition.standings) {
+      const entity = getStandingStatEntity(standing);
+
+      if (!entity.name) {
+        continue;
+      }
+
+      const row = rowMap.get(entity.key) ?? {
+        key: entity.key,
+        id: entity.id,
+        type: entity.type,
+        name: entity.name,
+        counts: createEmptyPlacementCounts(),
+        entries: createEmptyPlacementEntries(),
+        total: 0
+      };
+
+      row.counts[standing.placement] += 1;
+      row.entries[standing.placement].push({ label: formatStatisticEditionLabel(edition) });
+      row.total += 1;
+      rowMap.set(entity.key, row);
+    }
+  }
+
+  return [...rowMap.values()]
+    .map((row) => ({
+      ...row,
+      entries: sortStatEntries(row.entries)
+    }))
+    .sort(compareStatisticRows);
+}
+
+function getStandingStatEntity(standing: CompetitionStanding) {
+  if (standing.country) {
+    const id = standing.country.isHistorical
+      ? (standing.country.detailRedirectCountryId ?? standing.country.id)
+      : standing.country.id;
+    const name = standing.country.isHistorical
+      ? (standing.country.detailRedirectCountry?.name ?? standing.country.name)
+      : standing.country.name;
+
+    return {
+      key: `country:${id}`,
+      id,
+      type: 'country' as const,
+      name
+    };
+  }
+
+  if (standing.club) {
+    return {
+      key: `club:${standing.club.id}`,
+      id: standing.club.id,
+      type: 'club' as const,
+      name: standing.club.name
+    };
+  }
+
+  return {
+    key: `empty:${standing.id}`,
+    id: null,
+    type: 'country' as const,
+    name: ''
+  };
+}
+
+function createEmptyPlacementCounts() {
+  return Object.fromEntries(placementOrder.map((placement) => [placement, 0])) as Record<
+    CompetitionStandingPlacement,
+    number
+  >;
+}
+
+function createEmptyPlacementEntries() {
+  return {
+    CHAMPION: [],
+    RUNNER_UP: [],
+    THIRD_PLACE: [],
+    FOURTH_PLACE: [],
+    SEMI_FINALIST: []
+  } satisfies Record<CompetitionStandingPlacement, StandingStatEntry[]>;
+}
+
+function sortStatEntries(entries: Record<CompetitionStandingPlacement, StandingStatEntry[]>) {
+  return Object.fromEntries(
+    placementOrder.map((placement) => [
+      placement,
+      [...entries[placement]].sort((a, b) => compareEditionLabel(a.label, b.label))
+    ])
+  ) as Record<CompetitionStandingPlacement, StandingStatEntry[]>;
+}
+
+function compareStatisticRows(a: StandingStatRow, b: StandingStatRow) {
+  if (a.counts.CHAMPION !== b.counts.CHAMPION) {
+    return b.counts.CHAMPION - a.counts.CHAMPION;
+  }
+
+  if (a.total !== b.total) {
+    return b.total - a.total;
+  }
+
+  for (const placement of placementOrder.slice(1)) {
+    if (a.counts[placement] !== b.counts[placement]) {
+      return b.counts[placement] - a.counts[placement];
+    }
+  }
+
+  return a.name.localeCompare(b.name, 'zh-CN');
+}
+
+function compareEditionLabel(a: string, b: string) {
+  const left = Number.parseInt(a, 10);
+  const right = Number.parseInt(b, 10);
+
+  if (Number.isFinite(left) && Number.isFinite(right)) {
+    return left - right;
+  }
+
+  return a.localeCompare(b, 'zh-CN');
+}
+
+function formatStatCell(row: StandingStatRow, placement: CompetitionStandingPlacement) {
+  const count = row.counts[placement];
+
+  if (!count) {
+    return '-';
+  }
+
+  return `${count}（${row.entries[placement].map((entry) => entry.label).join('、')}）`;
+}
+
+function formatStatisticEditionLabel(edition: CompetitionEdition) {
+  const label = props.formatEditionLabel(edition);
+  return label.endsWith('年') ? label.slice(0, -1) : label;
+}
+
+function getPlacementStyle(placement: CompetitionStandingPlacement) {
+  return {
+    '--edition-placement-color': getPlacementTextColor(placement)
+  };
+}
 </script>
 
 <template>
@@ -61,19 +240,24 @@ function getStandingModeLabel(edition: CompetitionEdition) {
     <div v-if="!editions.length" class="mini-empty">暂无年份结果</div>
 
     <el-table v-else :data="editions" border>
-      <el-table-column label="序号" width="72" align="center">
+      <el-table-column label="序号" width="60" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
       <el-table-column label="赛季" min-width="120">
-        <template #default="{ row }">{{ formatEditionLabel(row) }}</template>
+        <template #default="{ row }">{{ formatStatisticEditionLabel(row) }}</template>
       </el-table-column>
-      <el-table-column prop="host" label="举办地" min-width="120">
+      <el-table-column prop="host" label="举办地" min-width="120" show-overflow-tooltip>
         <template #default="{ row }">{{ row.host || '-' }}</template>
       </el-table-column>
       <el-table-column label="名次口径" width="120">
         <template #default="{ row }">{{ getStandingModeLabel(row) }}</template>
       </el-table-column>
-      <el-table-column v-for="field in placementFields" :key="field.key" width="132">
+      <el-table-column
+        v-for="field in placementFields"
+        :key="field.key"
+        min-width="140"
+        show-overflow-tooltip
+      >
         <template #header>
           <span class="edition-placement-head">
             <HonorPlacementLabel :placement="field.placement" />
@@ -92,38 +276,70 @@ function getStandingModeLabel(edition: CompetitionEdition) {
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column prop="quantity" label="数量" width="90">
+      <el-table-column prop="quantity" label="数量" width="60" align="center">
         <template #default="{ row }">{{ formatText(row.quantity) }}</template>
       </el-table-column>
-      <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip>
+      <el-table-column prop="remark" label="备注" min-width="240" show-overflow-tooltip>
         <template #default="{ row }">{{ row.remark || '-' }}</template>
       </el-table-column>
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
-          <div class="edition-actions">
-            <el-button link type="primary" @click="emit('edit', row)">
-              <IconFont name="edit" />
-              编辑
-            </el-button>
-            <el-button link type="danger" :loading="resultSaving" @click="emit('delete', row)">
-              <IconFont name="delete" />
-              删除
-            </el-button>
-          </div>
+          <el-button link type="primary" @click="emit('edit', row)">
+            <IconFont name="edit" />
+            编辑
+          </el-button>
+          <el-button link type="danger" :loading="resultSaving" @click="emit('delete', row)">
+            <IconFont name="delete" />
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <div class="edition-statistics">
+      <div class="edition-statistics__header">
+        <h4>荣誉统计</h4>
+        <p>按队伍汇总该赛事已录入年份或赛季的最终名次。</p>
+      </div>
+
+      <div v-if="!statisticsRows.length" class="mini-empty">暂无荣誉统计</div>
+
+      <el-table v-else :data="statisticsRows" border class="edition-statistics-table">
+        <el-table-column label="序号" width="60" align="center" fixed="left">
+          <template #default="{ $index }">{{ $index + 1 }}</template>
+        </el-table-column>
+        <el-table-column label="队伍" width="170" fixed="left">
+          <template #default="{ row }">
+            <EntityLink :id="row.id" :type="row.type" :name="row.name" />
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-for="placement in statisticsPlacementColumns"
+          :key="placement"
+          min-width="190"
+          align="center"
+          show-overflow-tooltip
+        >
+          <template #header>
+            <HonorPlacementLabel :placement="placement" />
+          </template>
+          <template #default="{ row }">
+            <span class="edition-stat-cell" :style="getPlacementStyle(placement)">
+              {{ formatStatCell(row, placement) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="总数" width="70" align="center">
+          <template #default="{ row }">
+            <strong>{{ row.total }}</strong>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.edition-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-}
-
 .edition-placement-head {
   display: inline-flex;
   align-items: center;
@@ -134,5 +350,40 @@ function getStandingModeLabel(edition: CompetitionEdition) {
 
 .edition-placement-order {
   flex: 0 0 auto;
+}
+
+.edition-statistics {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(31, 139, 85, 0.1);
+}
+
+.edition-statistics__header {
+  display: grid;
+  gap: 4px;
+
+  h4 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 850;
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 650;
+  }
+}
+
+.edition-statistics-table {
+  :deep(.edition-stat-cell) {
+    color: var(--edition-placement-color, #53645a);
+    font-size: 14px;
+    font-weight: 820;
+    line-height: 1.55;
+  }
 }
 </style>
