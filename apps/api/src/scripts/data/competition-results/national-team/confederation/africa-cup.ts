@@ -8,6 +8,45 @@ import {
   THREE_TEAM_TOP_THREE_REMARK,
   THREE_TEAM_ROUND_ROBIN_TOP_THREE_REMARK
 } from '../../../../helpers/competition-remarks.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const AFRICA_CUP_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'AFRICA_CUP',
+  name: '非洲国家杯',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'confederation',
+  sources: [
+    {
+      label: 'CAF Africa Cup of Nations',
+      url: 'https://www.cafonline.com/africa-cup-of-nations/',
+      remark: '用于确认非洲国家杯官方赛事归属和当前官方赛事页面。'
+    },
+    {
+      label: 'Africa Cup of Nations - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/Africa_Cup_of_Nations',
+      remark: '用于交叉核对历届主办地、冠军、亚军、季军/殿军、参赛队数量。'
+    },
+    {
+      label: 'Africa Cup of Nations records and statistics - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Africa_Cup_of_Nations_records_and_statistics',
+      remark: '用于交叉核对历届前四名和球队汇总统计。'
+    },
+    {
+      label: '2025 Africa Cup of Nations - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/2025_Africa_Cup_of_Nations',
+      remark: '用于核对 2025 届官方判罚口径和争议备注。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1957 为 3 队/特殊淘汰赛口径，只录冠军、亚军、季军。',
+    '1959 为 3 队循环赛，按最终前三排名录入。',
+    '1976 为最终阶段循环赛，按前四排名录入冠亚季殿，并在届次备注中说明不是实际决赛/三四名赛。',
+    '阿拉伯联合共和国继承到埃及；扎伊尔、刚果金沙萨继承到民主刚果。',
+    '2025 按当前 CAF 判罚后的官方冠军口径录入；若后续 CAS 或 CAF 再变更，需要单独修正该届数据和备注。'
+  ]
+};
 
 export const CAF_AWARDED_REMARK =
   '本届决赛原场上结果存在争议，当前按 CAF 判罚后的官方冠军口径录入。';

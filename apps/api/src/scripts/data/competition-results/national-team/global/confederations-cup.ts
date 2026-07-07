@@ -1,5 +1,37 @@
 import { type TopFourCompetitionResult } from '../../../../helpers/competition-results.js';
 import { pickSeedCountries } from '../../../../helpers/seed-data.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const CONFEDERATIONS_CUP_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'FIFA_CONFEDERATIONS_CUP',
+  name: '国际足联联合会杯',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'global',
+  sources: [
+    {
+      label: 'FIFA Confederations Cup - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
+      remark: '用于交叉核对历届主办地、冠军、亚军、季军/殿军、参赛队数量。'
+    },
+    {
+      label: '1992 King Fahd Cup - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/1992_King_Fahd_Cup',
+      remark: '用于核对联合会杯前身法赫德国王杯特殊备注。'
+    },
+    {
+      label: '1995 King Fahd Cup - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/1995_King_Fahd_Cup',
+      remark: '用于核对联合会杯前身法赫德国王杯特殊备注。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1992、1995 为法赫德国王杯，作为国际足联联合会杯前身录入，并在届次备注中说明。',
+    '1997-2017 按联合会杯正式届次录入冠军、亚军、季军、殿军。',
+    '本赛事已停办，seed 不包含 2017 之后未来届次。'
+  ]
+};
 
 export const REQUIRED_COUNTRIES = pickSeedCountries([
   '喀麦隆',

@@ -3,6 +3,39 @@ import {
   type TopFourCompetitionResult,
   type SemiFinalistCompetitionResult
 } from '../../../../helpers/competition-results.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const EURO_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'UEFA_EURO',
+  name: '欧洲足球锦标赛',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'confederation',
+  sources: [
+    {
+      label: 'UEFA EURO history',
+      url: 'https://www.uefa.com/euro/history/',
+      remark: '用于确认欧洲杯官方历史赛事归属和历届赛事入口。'
+    },
+    {
+      label: 'UEFA European Championship - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/UEFA_European_Championship',
+      remark: '用于交叉核对历届主办地、冠军、亚军、三四名赛或四强口径、参赛队数量。'
+    },
+    {
+      label: 'UEFA Euro 1984 - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/UEFA_Euro_1984',
+      remark: '用于核对 1984 起取消三四名赛后的四强录入口径。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1960-1980 有三四名赛，按冠军、亚军、季军、殿军录入。',
+    '1984 起取消三四名赛，按冠军、亚军、两个四强录入。',
+    '2020 届次保留赛事年份 2020，主办地按泛欧口径录入。',
+    '苏联、南斯拉夫、捷克斯洛伐克、西德等使用系统历史国家继承口径。'
+  ]
+};
 
 export const EURO_RESULTS: Array<TopFourCompetitionResult | SemiFinalistCompetitionResult> = [
   {

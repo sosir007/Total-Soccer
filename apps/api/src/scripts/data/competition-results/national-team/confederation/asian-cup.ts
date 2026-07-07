@@ -4,6 +4,39 @@ import {
   type SemiFinalistCompetitionResult
 } from '../../../../helpers/competition-results.js';
 import { ROUND_ROBIN_TOP_FOUR_REMARK } from '../../../../helpers/competition-remarks.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const ASIAN_CUP_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'AFC_ASIAN_CUP',
+  name: '亚足联亚洲杯',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'confederation',
+  sources: [
+    {
+      label: 'AFC Asian Cup - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/AFC_Asian_Cup',
+      remark: '用于交叉核对历届主办地、冠军、亚军、季军/殿军或四强、参赛队数量。'
+    },
+    {
+      label: 'AFC Asian Cup records and statistics - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/AFC_Asian_Cup_records_and_statistics',
+      remark: '用于交叉核对球队历届前四名与无三四名赛后的四强口径。'
+    },
+    {
+      label: 'AFC Asian Cup official competition page',
+      url: 'https://www.the-afc.com/en/national/afc_asian_cup.html',
+      remark: '用于确认赛事官方归属和当前赛事页面。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1956-1968 为单组循环赛，按最终前四排名录入冠亚季殿，并在届次备注中说明并非实际三四名赛。',
+    '2019、2023 无三四名赛，按冠军、亚军、两个四强录入。',
+    '台湾/中华台北按系统国家“中国台北”录入；高棉按“柬埔寨”录入；阿拉伯联合酋长国按“阿联酋”录入。',
+    '南越作为历史国家录入，并通过历史继承统计到越南。'
+  ]
+};
 
 export const ASIAN_CUP_RESULTS: Array<TopFourCompetitionResult | SemiFinalistCompetitionResult> = [
   {

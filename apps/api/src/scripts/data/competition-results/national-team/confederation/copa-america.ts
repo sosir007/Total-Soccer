@@ -8,6 +8,50 @@ import {
   ROUND_ROBIN_TOP_FOUR_REMARK,
   FINAL_ROUND_TOP_FOUR_REMARK
 } from '../../../../helpers/competition-remarks.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const COPA_AMERICA_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'COPA_AMERICA',
+  name: '美洲杯',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'confederation',
+  sources: [
+    {
+      label: 'Copa America - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica',
+      remark: '用于交叉核对历届主办地、冠军、亚军、季军/殿军或四强、参赛队数量。'
+    },
+    {
+      label: 'Copa America records and statistics - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica_records_and_statistics',
+      remark: '用于交叉核对历届前四名、卫冕冠军成绩和特殊赛制年份。'
+    },
+    {
+      label: '1975 Copa America - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/1975_Copa_Am%C3%A9rica',
+      remark: '用于核对无固定主办地、半决赛负者不设三四名赛的特殊届次。'
+    },
+    {
+      label: '1979 Copa America - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/1979_Copa_Am%C3%A9rica',
+      remark: '用于核对无固定主办地、半决赛负者不设三四名赛的特殊届次。'
+    },
+    {
+      label: '1983 Copa America - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/1983_Copa_Am%C3%A9rica',
+      remark: '用于核对无固定主办地、半决赛负者不设三四名赛的特殊届次。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1916-1967 多数为循环赛最终排名，按前四排名录入冠亚季殿，并在届次备注中说明并非实际三四名赛。',
+    '1925 只有 3 队，按联赛前三口径录入冠军、亚军、季军。',
+    '1975、1979、1983 无固定主办地且半决赛负者不打三四名赛，按冠军、亚军、两个四强录入。',
+    '1989、1991 为最终阶段循环赛排名，按冠亚季殿字段保存前四排名，并在届次备注中说明不是实际决赛/三四名赛。',
+    '美洲杯赛事本体归属南美足联；墨西哥、美国、加拿大、洪都拉斯等受邀球队按实际 standings 归属到对应国家。'
+  ]
+};
 
 export const COPA_AMERICA_RESULTS: Array<
   TopFourCompetitionResult | TopThreeCompetitionResult | SemiFinalistCompetitionResult

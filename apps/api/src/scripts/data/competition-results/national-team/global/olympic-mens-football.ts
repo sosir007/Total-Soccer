@@ -4,6 +4,40 @@ import {
   type DoubleThirdCompetitionResult
 } from '../../../../helpers/competition-results.js';
 import { pickSeedCountries, pickHistoricalCountries } from '../../../../helpers/seed-data.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const OLYMPIC_MENS_FOOTBALL_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'OLYMPIC_MENS_FOOTBALL',
+  name: '奥运会男子足球赛',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'global',
+  sources: [
+    {
+      label: 'Football at the Summer Olympics - Wikipedia men results table',
+      url: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
+      remark: '用于交叉核对 1908-2024 男足正式结果、奖牌/第四名、主办地和参赛队数量。'
+    },
+    {
+      label: 'Football at the 1972 Summer Olympics - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Football_at_the_1972_Summer_Olympics',
+      remark: '用于核对 1972 苏联与东德并列铜牌口径。'
+    },
+    {
+      label: '2024 Summer Olympics men tournament - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Football_at_the_2024_Summer_Olympics_%E2%80%93_Men%27s_tournament',
+      remark: '用于核对最近一届奥运男足名次。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '本 seed 从 1908 开始录入正式国家队/奥运代表队时代结果，不录入 1900、1904 俱乐部/混合代表队口径和 1932 未举办届次。',
+    '1972 使用并列季军口径，苏联与东德均按季军录入，不录殿军。',
+    '2020 届次保留年份 2020，并在届次备注中说明实际于 2021 年举办。',
+    '英国奥运队独立统计，不归并英格兰；东德、德国联队继承到德国；苏联、西德、捷克斯洛伐克、南斯拉夫、阿拉伯联合共和国沿用系统历史国家继承口径。',
+    '奥运荣誉分按 OLYMPIC_STAGE 年份阶段换算，不做频率/规模换算。'
+  ]
+};
 
 export const REQUIRED_COUNTRIES = pickSeedCountries([
   '喀麦隆',

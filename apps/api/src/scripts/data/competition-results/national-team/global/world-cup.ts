@@ -3,6 +3,39 @@ import {
   type SeedHistoricalCountry
 } from '../../../../helpers/competition-seed.js';
 import { CONFEDERATION_SEEDS } from '../../../../helpers/seed-data.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const WORLD_CUP_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'FIFA_WORLD_CUP',
+  name: '国际足联世界杯',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'global',
+  sources: [
+    {
+      label: 'FIFA World Cup tournaments',
+      url: 'https://www.fifa.com/en/tournaments/mens/worldcup',
+      remark: '用于确认世界杯官方赛事归属和历届赛事入口。'
+    },
+    {
+      label: 'FIFA World Cup - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/FIFA_World_Cup',
+      remark: '用于交叉核对历届主办地、冠军、亚军、季军/殿军、参赛队数量。'
+    },
+    {
+      label: 'FIFA World Cup records and statistics - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/FIFA_World_Cup_records_and_statistics',
+      remark: '用于交叉核对历届前四名和国家历史统计口径。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1930 没有实际三四名赛，按通用前四统计口径录入美国季军、南斯拉夫殿军。',
+    '1950 为最终循环赛决出名次，按最终前四排名录入冠亚季殿。',
+    '1934 起大多数届次有三四名赛，统一保存为冠军、亚军、季军、殿军。',
+    '西德继承到德国；苏联、南斯拉夫、捷克斯洛伐克等使用系统历史国家继承口径。'
+  ]
+};
 
 export const CONFEDERATION_CODE_BY_UID = new Map(
   CONFEDERATION_SEEDS.map(({ uid, code }) => [uid, code])

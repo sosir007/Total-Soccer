@@ -4,6 +4,45 @@ import {
   type TopThreeCompetitionResult,
   type SemiFinalistCompetitionResult
 } from '../../../../helpers/competition-results.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const GOLD_CUP_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'CONCACAF_GOLD_CUP',
+  name: '中北美及加勒比海金杯赛',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'confederation',
+  sources: [
+    {
+      label: 'Concacaf Gold Cup official site',
+      url: 'https://www.concacaf.com/gold-cup/',
+      remark: '用于确认金杯赛官方赛事归属和当前官方赛事页面。'
+    },
+    {
+      label: 'CONCACAF Gold Cup - Wikipedia results table',
+      url: 'https://en.wikipedia.org/wiki/CONCACAF_Gold_Cup',
+      remark: '用于交叉核对历届主办地、冠军、亚军、三四名赛或四强、参赛队数量。'
+    },
+    {
+      label: 'CONCACAF Gold Cup records and statistics - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/CONCACAF_Gold_Cup_records_and_statistics',
+      remark: '用于交叉核对球队历届表现和前身赛事统计。'
+    },
+    {
+      label: '2025 CONCACAF Gold Cup final - Wikipedia',
+      url: 'https://en.wikipedia.org/wiki/2025_CONCACAF_Gold_Cup_final',
+      remark: '用于核对最近一届决赛结果。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1963-1989 为金杯赛前身 CONCACAF Championship，按系统同一赛事口径录入，并在届次备注中说明。',
+    '1973、1977、1981、1985、1989 同时作为世界杯预选赛最终阶段，其中 1985 只录前三。',
+    '2000、2005、2007、2009、2011、2013、2017、2019、2021、2023、2025 无三四名赛，按冠军、亚军、两个四强录入。',
+    '2015 有三四名赛，按冠军、亚军、季军、殿军录入。',
+    '荷属安的列斯作为历史/特殊国家保留独立录入口径；受邀球队按实际 standings 归属到对应国家。'
+  ]
+};
 
 export const PREDECESSOR_REMARK =
   '本届为中北美及加勒比海金杯赛前身 CONCACAF Championship，按最终排名录入冠亚季殿。';

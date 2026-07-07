@@ -4,6 +4,40 @@ import {
   type SemiFinalistCompetitionResult
 } from '../../../../helpers/competition-results.js';
 import { TWO_LEG_SEMI_FINALIST_REMARK } from '../../../../helpers/competition-remarks.js';
+import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
+
+export const OFC_NATIONS_CUP_METADATA: CompetitionDataMetadata = {
+  competitionCode: 'OFC_NATIONS_CUP',
+  name: '大洋洲国家杯',
+  dataKind: 'competition-results',
+  target: 'national-team',
+  scope: 'confederation',
+  sources: [
+    {
+      label: 'OFC official competitions site',
+      url: 'https://www.oceaniafootball.com/competitions/',
+      remark: '用于确认大洋洲足联官方赛事归属和当前赛事入口。'
+    },
+    {
+      label: "OFC Men's Nations Cup - Wikipedia results table",
+      url: 'https://en.wikipedia.org/wiki/OFC_Men%27s_Nations_Cup',
+      remark: '用于交叉核对历届主办地、冠军、亚军、三四名赛或四强、参赛队数量。'
+    },
+    {
+      label: "2024 OFC Men's Nations Cup - Wikipedia",
+      url: 'https://en.wikipedia.org/wiki/2024_OFC_Men%27s_Nations_Cup',
+      remark: '用于核对最近一届 2024 年结果和新喀里多尼亚退赛后的参赛队数量。'
+    }
+  ],
+  lastVerifiedAt: '2026-07-07',
+  notes: [
+    '1973、1980 为大洋洲国家杯前身 Oceania Cup，按实际名次录入，并在届次备注中说明。',
+    '1996 为两回合淘汰赛口径，无三四名赛，按冠军、亚军、两个四强录入。',
+    '2004 为最终阶段循环赛后前两名再进行两回合决赛，季军、殿军按最终阶段排名录入。',
+    '2008 同时作为世界杯预选赛阶段，按最终循环赛排名录入冠亚季殿。',
+    '2020 因疫情取消，不录入；2024 新喀里多尼亚退赛，按 7 队实际完赛口径录入。'
+  ]
+};
 
 export const OCEANIA_CUP_REMARK = '本届为大洋洲国家杯前身 Oceania Cup，按实际名次录入。';
 export const FINAL_ROUND_REMARK =
