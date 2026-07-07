@@ -1,22 +1,11 @@
+import { CompetitionEditionStandingMode } from '@prisma/client';
 import {
-  CompetitionEditionStandingMode,
-  CompetitionScopeType,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
-import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
-import { ROUND_ROBIN_TOP_FOUR_REMARK } from './helpers/competition-remarks.js';
-import {
-  buildCompetitionResultStandings,
-  type SemiFinalistCompetitionResult,
   type TopFourCompetitionResult,
-  withStandingMode
-} from './helpers/competition-results.js';
-import { CONFEDERATION_SEEDS, resolveSeedCountries } from './helpers/seed-data.js';
+  type SemiFinalistCompetitionResult
+} from '../../../../helpers/competition-results.js';
+import { ROUND_ROBIN_TOP_FOUR_REMARK } from '../../../../helpers/competition-remarks.js';
 
-const prisma = new PrismaClient();
-
-const ASIAN_CUP_RESULTS: Array<TopFourCompetitionResult | SemiFinalistCompetitionResult> = [
+export const ASIAN_CUP_RESULTS: Array<TopFourCompetitionResult | SemiFinalistCompetitionResult> = [
   {
     year: 1956,
     host: '中国香港',
@@ -200,52 +189,3 @@ const ASIAN_CUP_RESULTS: Array<TopFourCompetitionResult | SemiFinalistCompetitio
     semiFinalists: ['伊朗', '韩国']
   }
 ];
-
-async function main() {
-  await runCompetitionSeed({
-    prisma,
-    confederations: CONFEDERATION_SEEDS,
-    resolveCountries: resolveSeedCountries,
-    competition: {
-      code: 'AFC_ASIAN_CUP',
-      primaryConfederationCode: 'AFC',
-      create: {
-        code: 'AFC_ASIAN_CUP',
-        name: '亚足联亚洲杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        description: '亚足联国家队最高级别洲际杯赛。',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 30
-      },
-      update: {
-        name: '亚足联亚洲杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 30
-      }
-    },
-    scope: {
-      confederationCodes: ['AFC']
-    },
-    historicalCountryNames: ['南越'],
-    editions: withStandingMode(ASIAN_CUP_RESULTS),
-    buildStandings: buildCompetitionResultStandings,
-    expected: {
-      editions: 18,
-      standings: 72
-    },
-    completedMessage: 'Asian Cup seed completed.'
-  });
-}
-
-void runSeed(prisma, main);

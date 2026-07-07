@@ -1,30 +1,19 @@
+import { CompetitionEditionStandingMode } from '@prisma/client';
 import {
-  CompetitionEditionStandingMode,
-  CompetitionScopeType,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
-import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
-import {
-  buildCompetitionResultStandings,
-  type SemiFinalistCompetitionResult,
   type TopFourCompetitionResult,
   type TopThreeCompetitionResult,
-  withStandingMode
-} from './helpers/competition-results.js';
-import { CONFEDERATION_SEEDS, resolveSeedCountries } from './helpers/seed-data.js';
+  type SemiFinalistCompetitionResult
+} from '../../../../helpers/competition-results.js';
 
-const prisma = new PrismaClient();
-
-const PREDECESSOR_REMARK =
+export const PREDECESSOR_REMARK =
   '本届为中北美及加勒比海金杯赛前身 CONCACAF Championship，按最终排名录入冠亚季殿。';
-const WORLD_CUP_QUALIFIER_REMARK =
+export const WORLD_CUP_QUALIFIER_REMARK =
   '本届为中北美及加勒比海金杯赛前身 CONCACAF Championship，同时作为世界杯预选赛最终阶段，按最终排名录入冠亚季殿。';
-const WORLD_CUP_QUALIFIER_TOP_THREE_REMARK =
+export const WORLD_CUP_QUALIFIER_TOP_THREE_REMARK =
   '本届为中北美及加勒比海金杯赛前身 CONCACAF Championship，同时作为世界杯预选赛最终阶段，最终阶段只有前三名，按前三录入。';
-const SHARED_THIRD_REMARK = '本届无三四名赛，哥斯达黎加和牙买加并列第三，按两个四强录入。';
+export const SHARED_THIRD_REMARK = '本届无三四名赛，哥斯达黎加和牙买加并列第三，按两个四强录入。';
 
-const GOLD_CUP_RESULTS: Array<
+export const GOLD_CUP_RESULTS: Array<
   TopFourCompetitionResult | TopThreeCompetitionResult | SemiFinalistCompetitionResult
 > = [
   {
@@ -306,52 +295,3 @@ const GOLD_CUP_RESULTS: Array<
     semiFinalists: ['危地马拉', '洪都拉斯']
   }
 ];
-
-async function main() {
-  await runCompetitionSeed({
-    prisma,
-    confederations: CONFEDERATION_SEEDS,
-    resolveCountries: resolveSeedCountries,
-    competition: {
-      code: 'CONCACAF_GOLD_CUP',
-      primaryConfederationCode: 'CONCACAF',
-      create: {
-        code: 'CONCACAF_GOLD_CUP',
-        name: '中北美及加勒比海金杯赛',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        description: '中北美洲及加勒比海地区男子国家队最高级别洲际杯赛。',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 40
-      },
-      update: {
-        name: '中北美及加勒比海金杯赛',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 40
-      }
-    },
-    scope: {
-      confederationCodes: ['CONCACAF']
-    },
-    historicalCountryNames: ['荷属安的列斯'],
-    editions: withStandingMode(GOLD_CUP_RESULTS),
-    buildStandings: buildCompetitionResultStandings,
-    expected: {
-      editions: 28,
-      standings: 111
-    },
-    completedMessage: 'CONCACAF Gold Cup seed completed.'
-  });
-}
-
-void runSeed(prisma, main);

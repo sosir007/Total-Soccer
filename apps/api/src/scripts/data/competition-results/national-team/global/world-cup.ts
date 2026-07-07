@@ -1,20 +1,14 @@
-import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
 import {
-  runCompetitionSeed,
-  runSeed,
   type SeedCountry,
   type SeedHistoricalCountry
-} from './helpers/competition-seed.js';
-import {
-  buildCompetitionResultStandings,
-  type TopFourCompetitionResult
-} from './helpers/competition-results.js';
-import { CONFEDERATION_SEEDS } from './helpers/seed-data.js';
+} from '../../../../helpers/competition-seed.js';
+import { CONFEDERATION_SEEDS } from '../../../../helpers/seed-data.js';
 
-const prisma = new PrismaClient();
-const CONFEDERATION_CODE_BY_UID = new Map(CONFEDERATION_SEEDS.map(({ uid, code }) => [uid, code]));
+export const CONFEDERATION_CODE_BY_UID = new Map(
+  CONFEDERATION_SEEDS.map(({ uid, code }) => [uid, code])
+);
 
-const COUNTRY_ROWS = `
+export const COUNTRY_ROWS = `
 1	5	阿尔及利亚
 1	6	安哥拉
 1	7	贝宁
@@ -210,7 +204,7 @@ const COUNTRY_ROWS = `
 4	129514	安圭拉
 `;
 
-const COUNTRIES = COUNTRY_ROWS.trim()
+export const COUNTRIES = COUNTRY_ROWS.trim()
   .split('\n')
   .map((row) => {
     const [confederationUid, uid, name] = row.split('\t');
@@ -223,7 +217,7 @@ const COUNTRIES = COUNTRY_ROWS.trim()
     return { uid, name, confederationCode } satisfies SeedCountry;
   });
 
-const HISTORICAL_COUNTRIES: SeedHistoricalCountry[] = [
+export const HISTORICAL_COUNTRIES: SeedHistoricalCountry[] = [
   {
     uid: '583',
     name: '苏联',
@@ -252,7 +246,7 @@ const HISTORICAL_COUNTRIES: SeedHistoricalCountry[] = [
   }
 ];
 
-const WORLD_CUP_RESULTS = [
+export const WORLD_CUP_RESULTS = [
   ['1930', '乌拉圭', '乌拉圭', '阿根廷', '美国', '南斯拉夫', 13],
   ['1934', '意大利', '意大利', '捷克斯洛伐克', '德国', '奥地利', 16],
   ['1938', '法国', '意大利', '匈牙利', '巴西', '瑞典', 15],
@@ -276,58 +270,3 @@ const WORLD_CUP_RESULTS = [
   ['2018', '俄罗斯', '法国', '克罗地亚', '比利时', '英格兰', 32],
   ['2022', '卡塔尔', '阿根廷', '法国', '克罗地亚', '摩洛哥', 32]
 ] as const;
-
-async function main() {
-  await runCompetitionSeed({
-    prisma,
-    confederations: CONFEDERATION_SEEDS,
-    countries: COUNTRIES,
-    historicalCountries: HISTORICAL_COUNTRIES,
-    competition: {
-      code: 'FIFA_WORLD_CUP',
-      create: {
-        code: 'FIFA_WORLD_CUP',
-        name: '国际足联世界杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.GLOBAL,
-        category: '国际',
-        level: '一级',
-        format: '其他',
-        description: '国际足联主办的男子国家队最高级别赛事。',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 10
-      },
-      update: {
-        name: '国际足联世界杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.GLOBAL,
-        category: '国际',
-        level: '一级',
-        format: '其他',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 10
-      }
-    },
-    editions: WORLD_CUP_RESULTS.map<TopFourCompetitionResult>(
-      ([yearText, host, champion, runnerUp, thirdPlace, fourthPlace, quantity]) => ({
-        year: Number(yearText),
-        host,
-        quantity,
-        champion,
-        runnerUp,
-        thirdPlace,
-        fourthPlace
-      })
-    ),
-    buildStandings: buildCompetitionResultStandings,
-    expected: {
-      editions: 22,
-      standings: 88
-    },
-    completedMessage: 'World Cup seed completed.'
-  });
-}
-
-void runSeed(prisma, main);

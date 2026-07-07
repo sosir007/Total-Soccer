@@ -1,25 +1,11 @@
+import { CompetitionEditionStandingMode } from '@prisma/client';
 import {
-  CompetitionEditionStandingMode,
-  CompetitionScopeType,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
-import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
-import {
-  buildCompetitionResultStandings,
-  type DoubleThirdCompetitionResult,
   type TopFourCompetitionResult,
-  withStandingMode
-} from './helpers/competition-results.js';
-import {
-  CONFEDERATION_SEEDS,
-  pickHistoricalCountries,
-  pickSeedCountries
-} from './helpers/seed-data.js';
+  type DoubleThirdCompetitionResult
+} from '../../../../helpers/competition-results.js';
+import { pickSeedCountries, pickHistoricalCountries } from '../../../../helpers/seed-data.js';
 
-const prisma = new PrismaClient();
-
-const REQUIRED_COUNTRIES = pickSeedCountries([
+export const REQUIRED_COUNTRIES = pickSeedCountries([
   '喀麦隆',
   '埃及',
   '加纳',
@@ -36,6 +22,7 @@ const REQUIRED_COUNTRIES = pickSeedCountries([
   '奥地利',
   '比利时',
   '保加利亚',
+  '捷克',
   '丹麦',
   '芬兰',
   '法国',
@@ -51,6 +38,7 @@ const REQUIRED_COUNTRIES = pickSeedCountries([
   '瑞典',
   '瑞士',
   '塞尔维亚',
+  '斯洛伐克',
   '英国',
   '阿根廷',
   '巴西',
@@ -59,7 +47,7 @@ const REQUIRED_COUNTRIES = pickSeedCountries([
   '乌拉圭'
 ]);
 
-const HISTORICAL_COUNTRIES = pickHistoricalCountries([
+export const HISTORICAL_COUNTRIES = pickHistoricalCountries([
   '苏联',
   '西德',
   '捷克斯洛伐克',
@@ -69,7 +57,7 @@ const HISTORICAL_COUNTRIES = pickHistoricalCountries([
   '阿拉伯联合共和国'
 ]);
 
-const OLYMPIC_RESULTS: Array<TopFourCompetitionResult | DoubleThirdCompetitionResult> = [
+export const OLYMPIC_RESULTS: Array<TopFourCompetitionResult | DoubleThirdCompetitionResult> = [
   {
     year: 1908,
     host: '英国',
@@ -334,53 +322,3 @@ const OLYMPIC_RESULTS: Array<TopFourCompetitionResult | DoubleThirdCompetitionRe
     fourthPlace: '埃及'
   }
 ];
-
-async function main() {
-  await runCompetitionSeed({
-    prisma,
-    confederations: CONFEDERATION_SEEDS,
-    countries: REQUIRED_COUNTRIES,
-    historicalCountries: HISTORICAL_COUNTRIES,
-    competition: {
-      code: 'OLYMPIC_MENS_FOOTBALL',
-      create: {
-        code: 'OLYMPIC_MENS_FOOTBALL',
-        name: '奥运会男子足球赛',
-        externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.GLOBAL,
-        category: '国际',
-        level: '三级',
-        format: '杯赛',
-        description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 15
-      },
-      update: {
-        name: '奥运会男子足球赛',
-        externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.GLOBAL,
-        category: '国际',
-        level: '三级',
-        format: '杯赛',
-        description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
-        confederationId: null,
-        countryId: null,
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 15
-      }
-    },
-    editions: withStandingMode(OLYMPIC_RESULTS),
-    buildStandings: buildCompetitionResultStandings,
-    expected: {
-      editions: 26,
-      standings: 104
-    },
-    completedMessage: 'Olympic men football seed completed.'
-  });
-}
-
-void runSeed(prisma, main);

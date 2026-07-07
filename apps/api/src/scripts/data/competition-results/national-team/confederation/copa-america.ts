@@ -1,26 +1,15 @@
+import { CompetitionEditionStandingMode } from '@prisma/client';
 import {
-  CompetitionEditionStandingMode,
-  CompetitionScopeType,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
-import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
-import {
-  FINAL_ROUND_TOP_FOUR_REMARK,
-  ROUND_ROBIN_TOP_FOUR_REMARK
-} from './helpers/competition-remarks.js';
-import {
-  buildCompetitionResultStandings,
-  type SemiFinalistCompetitionResult,
   type TopFourCompetitionResult,
   type TopThreeCompetitionResult,
-  withStandingMode
-} from './helpers/competition-results.js';
-import { CONFEDERATION_SEEDS, resolveSeedCountries } from './helpers/seed-data.js';
+  type SemiFinalistCompetitionResult
+} from '../../../../helpers/competition-results.js';
+import {
+  ROUND_ROBIN_TOP_FOUR_REMARK,
+  FINAL_ROUND_TOP_FOUR_REMARK
+} from '../../../../helpers/competition-remarks.js';
 
-const prisma = new PrismaClient();
-
-const COPA_AMERICA_RESULTS: Array<
+export const COPA_AMERICA_RESULTS: Array<
   TopFourCompetitionResult | TopThreeCompetitionResult | SemiFinalistCompetitionResult
 > = [
   {
@@ -533,51 +522,3 @@ const COPA_AMERICA_RESULTS: Array<
     fourthPlace: '加拿大'
   }
 ];
-
-async function main() {
-  await runCompetitionSeed({
-    prisma,
-    confederations: CONFEDERATION_SEEDS,
-    resolveCountries: resolveSeedCountries,
-    competition: {
-      code: 'COPA_AMERICA',
-      primaryConfederationCode: 'CONMEBOL',
-      create: {
-        code: 'COPA_AMERICA',
-        name: '美洲杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        description: '南美足联主办的男子国家队最高级别洲际杯赛。',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 25
-      },
-      update: {
-        name: '美洲杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 25
-      }
-    },
-    scope: {
-      confederationCodes: ['CONMEBOL']
-    },
-    editions: withStandingMode(COPA_AMERICA_RESULTS),
-    buildStandings: buildCompetitionResultStandings,
-    expected: {
-      editions: 48,
-      standings: 191
-    },
-    completedMessage: 'Copa America seed completed.'
-  });
-}
-
-void runSeed(prisma, main);

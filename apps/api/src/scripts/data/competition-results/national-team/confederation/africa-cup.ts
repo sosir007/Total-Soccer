@@ -1,28 +1,18 @@
+import { CompetitionEditionStandingMode } from '@prisma/client';
 import {
-  CompetitionEditionStandingMode,
-  CompetitionScopeType,
-  CompetitionTargetType,
-  PrismaClient
-} from '@prisma/client';
-import { runCompetitionSeed, runSeed } from './helpers/competition-seed.js';
+  type TopFourCompetitionResult,
+  type TopThreeCompetitionResult
+} from '../../../../helpers/competition-results.js';
 import {
   FINAL_ROUND_TOP_FOUR_REMARK,
-  THREE_TEAM_ROUND_ROBIN_TOP_THREE_REMARK,
-  THREE_TEAM_TOP_THREE_REMARK
-} from './helpers/competition-remarks.js';
-import {
-  buildCompetitionResultStandings,
-  type TopFourCompetitionResult,
-  type TopThreeCompetitionResult,
-  withStandingMode
-} from './helpers/competition-results.js';
-import { CONFEDERATION_SEEDS, resolveSeedCountries } from './helpers/seed-data.js';
+  THREE_TEAM_TOP_THREE_REMARK,
+  THREE_TEAM_ROUND_ROBIN_TOP_THREE_REMARK
+} from '../../../../helpers/competition-remarks.js';
 
-const prisma = new PrismaClient();
+export const CAF_AWARDED_REMARK =
+  '本届决赛原场上结果存在争议，当前按 CAF 判罚后的官方冠军口径录入。';
 
-const CAF_AWARDED_REMARK = '本届决赛原场上结果存在争议，当前按 CAF 判罚后的官方冠军口径录入。';
-
-const AFRICA_CUP_RESULTS: Array<TopFourCompetitionResult | TopThreeCompetitionResult> = [
+export const AFRICA_CUP_RESULTS: Array<TopFourCompetitionResult | TopThreeCompetitionResult> = [
   {
     year: 1957,
     host: '苏丹',
@@ -376,52 +366,3 @@ const AFRICA_CUP_RESULTS: Array<TopFourCompetitionResult | TopThreeCompetitionRe
     fourthPlace: '埃及'
   }
 ];
-
-async function main() {
-  await runCompetitionSeed({
-    prisma,
-    confederations: CONFEDERATION_SEEDS,
-    resolveCountries: resolveSeedCountries,
-    competition: {
-      code: 'AFRICA_CUP',
-      primaryConfederationCode: 'CAF',
-      create: {
-        code: 'AFRICA_CUP',
-        name: '非洲国家杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        description: '非洲足联主办的男子国家队最高级别洲际杯赛。',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 35
-      },
-      update: {
-        name: '非洲国家杯',
-        targetType: CompetitionTargetType.COUNTRY,
-        scopeType: CompetitionScopeType.CONFEDERATION,
-        category: '洲际',
-        level: '一级',
-        format: '杯赛',
-        enabled: true,
-        includeInStats: true,
-        sortOrder: 35
-      }
-    },
-    scope: {
-      confederationCodes: ['CAF']
-    },
-    historicalCountryNames: ['阿拉伯联合共和国', '刚果金沙萨', '扎伊尔'],
-    editions: withStandingMode(AFRICA_CUP_RESULTS),
-    buildStandings: buildCompetitionResultStandings,
-    expected: {
-      editions: 35,
-      standings: 138
-    },
-    completedMessage: 'Africa Cup seed completed.'
-  });
-}
-
-void runSeed(prisma, main);
