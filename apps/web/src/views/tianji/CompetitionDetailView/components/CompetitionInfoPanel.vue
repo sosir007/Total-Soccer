@@ -70,9 +70,9 @@ defineProps<{
   gap: 8px;
   min-height: 78px;
   padding: 14px;
-  border: 1px solid rgba(31, 139, 85, 0.12);
+  border: 1px solid var(--color-border-brand-subtle);
   border-radius: 8px;
-  background: #fbfdf9;
+  background: var(--color-surface-muted);
 
   span {
     color: var(--text-color-secondary);

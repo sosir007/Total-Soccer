@@ -621,7 +621,11 @@ async function submit() {
     gap: 10px;
     padding: 16px 0 0;
     border-top: 1px solid var(--color-border-default);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), #fff);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-surface-default) 76%, transparent),
+      var(--color-surface-default)
+    );
   }
 
   &-grid {
@@ -648,7 +652,7 @@ async function submit() {
     padding: 12px;
     border: 1px solid var(--color-border-default);
     border-radius: 8px;
-    background: #f8fbf7;
+    background: var(--color-surface-subtle);
 
     div:first-child {
       display: grid;
@@ -675,7 +679,7 @@ async function submit() {
   padding: 12px;
   border: 1px solid var(--color-border-default);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-surface-default);
 
   &-title {
     display: flex;

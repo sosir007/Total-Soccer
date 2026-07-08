@@ -1,0 +1,326 @@
+:root {
+  /* 基础 UI：页面、文字、边框、底色。 */
+  --color-page-background: #f7faf6;
+  --text-color-primary: #222222;
+  --text-color-regular: #666666;
+  --text-color-secondary: #999999;
+  --text-color-white: #ffffff;
+  --color-border-default: #e2eae1;
+  --color-border-muted: #dfe8df;
+  --color-border-subtle: #eef3ed;
+  --color-border-brand-subtle: rgba(31, 139, 85, 0.12);
+  --color-border-brand-hover: rgba(31, 139, 85, 0.28);
+  --color-surface-default: #ffffff;
+  --color-surface-muted: #fbfdf9;
+  --color-surface-soft: #f7fbf7;
+  --color-surface-subtle: #f8fbf7;
+  --color-surface-brand-soft: #edf8f1;
+  --color-surface-warm-soft: #faf7ec;
+
+  /* 品牌与全局强调色。 */
+  --color-brand-primary: #1f8b55;
+  --color-accent-gold: #c89436;
+
+  /* 图表色：用于 ECharts series，不用于业务标签。 */
+  --chart-series-blue: #5470c6;
+  --chart-series-green: #91cc75;
+  --chart-series-gold: #fac858;
+  --chart-series-coral: #ee6666;
+  --chart-series-sky: #73c0de;
+  --chart-series-emerald: #3ba272;
+  --chart-series-orange: #fc8452;
+  --chart-series-violet: #9a60b4;
+  --chart-series-pink: #ea7ccc;
+  --chart-series-mauve: #6e7079;
+
+  /* 业务标签：中性兜底。 */
+  --tag-neutral-text: #64748b;
+  --tag-neutral-border: #cbd5e1;
+  --tag-neutral-bg: #f8fafc;
+
+  /* 业务标签：六大足联。 */
+  --tag-confed-afc-text: #b45309;
+  --tag-confed-afc-border: #fed7aa;
+  --tag-confed-afc-bg: #fff7ed;
+  --tag-confed-uefa-text: #1d4ed8;
+  --tag-confed-uefa-border: #bfdbfe;
+  --tag-confed-uefa-bg: #eff6ff;
+  --tag-confed-conmebol-text: #047857;
+  --tag-confed-conmebol-border: #a7f3d0;
+  --tag-confed-conmebol-bg: #ecfdf5;
+  --tag-confed-caf-text: #be123c;
+  --tag-confed-caf-border: #fecdd3;
+  --tag-confed-caf-bg: #fff1f2;
+  --tag-confed-concacaf-text: #0e7490;
+  --tag-confed-concacaf-border: #a5f3fc;
+  --tag-confed-concacaf-bg: #ecfeff;
+  --tag-confed-ofc-text: #7e22ce;
+  --tag-confed-ofc-border: #e9d5ff;
+  --tag-confed-ofc-bg: #faf5ff;
+
+  /* 业务标签：位置大类。 */
+  --tag-position-forward-text: #dc2626;
+  --tag-position-forward-border: #fecaca;
+  --tag-position-forward-bg: #fef2f2;
+  --tag-position-midfield-text: #15803d;
+  --tag-position-midfield-border: #bbf7d0;
+  --tag-position-midfield-bg: #f0fdf4;
+  --tag-position-backfield-text: #2563eb;
+  --tag-position-backfield-border: #bfdbfe;
+  --tag-position-backfield-bg: #eff6ff;
+  --tag-position-goalkeeper-text: #7e22ce;
+  --tag-position-goalkeeper-border: #e9d5ff;
+  --tag-position-goalkeeper-bg: #faf5ff;
+
+  /* 业务标签：具体位置。 */
+  --tag-position-st-text: #b91c1c;
+  --tag-position-st-border: #fecaca;
+  --tag-position-st-bg: #fef2f2;
+  --tag-position-aml-text: #db2777;
+  --tag-position-aml-border: #fbcfe8;
+  --tag-position-aml-bg: #fdf2f8;
+  --tag-position-amr-text: #ea580c;
+  --tag-position-amr-border: #fed7aa;
+  --tag-position-amr-bg: #fff7ed;
+  --tag-position-amc-text: #b45309;
+  --tag-position-amc-border: #fed7aa;
+  --tag-position-amc-bg: #fff7ed;
+  --tag-position-mc-text: #16a34a;
+  --tag-position-mc-border: #bbf7d0;
+  --tag-position-mc-bg: #f0fdf4;
+  --tag-position-dmc-text: #047857;
+  --tag-position-dmc-border: #a7f3d0;
+  --tag-position-dmc-bg: #ecfdf5;
+  --tag-position-ml-text: #65a30d;
+  --tag-position-ml-border: #d9f99d;
+  --tag-position-ml-bg: #f7fee7;
+  --tag-position-mr-text: #0e7490;
+  --tag-position-mr-border: #a5f3fc;
+  --tag-position-mr-bg: #ecfeff;
+  --tag-position-wbl-text: #0f766e;
+  --tag-position-wbl-border: #99f6e4;
+  --tag-position-wbl-bg: #f0fdfa;
+  --tag-position-wbr-text: #0369a1;
+  --tag-position-wbr-border: #bae6fd;
+  --tag-position-wbr-bg: #f0f9ff;
+  --tag-position-dl-text: #1d4ed8;
+  --tag-position-dl-border: #bfdbfe;
+  --tag-position-dl-bg: #eff6ff;
+  --tag-position-dc-text: #3730a3;
+  --tag-position-dc-border: #c7d2fe;
+  --tag-position-dc-bg: #eef2ff;
+  --tag-position-dr-text: #0284c7;
+  --tag-position-dr-border: #bae6fd;
+  --tag-position-dr-bg: #f0f9ff;
+  --tag-position-gk-text: #6d28d9;
+  --tag-position-gk-border: #e9d5ff;
+  --tag-position-gk-bg: #faf5ff;
+
+  /* 业务标签：赛事分类。 */
+  --tag-competition-category-international-text: #9f1239;
+  --tag-competition-category-international-border: #fda4af;
+  --tag-competition-category-international-bg: #fff1f2;
+  --tag-competition-category-continental-text: #581c87;
+  --tag-competition-category-continental-border: #d8b4fe;
+  --tag-competition-category-continental-bg: #faf5ff;
+  --tag-competition-category-domestic-text: #1e3a8a;
+  --tag-competition-category-domestic-border: #bfdbfe;
+  --tag-competition-category-domestic-bg: #eff6ff;
+  --tag-competition-category-other-text: #334155;
+  --tag-competition-category-other-border: #cbd5e1;
+  --tag-competition-category-other-bg: #f8fafc;
+
+  /* 业务标签：赛事级别。 */
+  --tag-competition-level-primary-text: #b91c1c;
+  --tag-competition-level-primary-border: #fecaca;
+  --tag-competition-level-primary-bg: #fef2f2;
+  --tag-competition-level-secondary-text: #c2410c;
+  --tag-competition-level-secondary-border: #fed7aa;
+  --tag-competition-level-secondary-bg: #fff7ed;
+  --tag-competition-level-tertiary-text: #0369a1;
+  --tag-competition-level-tertiary-border: #bae6fd;
+  --tag-competition-level-tertiary-bg: #f0f9ff;
+  --tag-competition-level-quaternary-text: #64748b;
+  --tag-competition-level-quaternary-border: #cbd5e1;
+  --tag-competition-level-quaternary-bg: #f8fafc;
+
+  /* 业务标签：状态。 */
+  --tag-status-enabled-text: #7c3aed;
+  --tag-status-enabled-border: #ddd6fe;
+  --tag-status-enabled-bg: #f5f3ff;
+  --tag-status-disabled-text: #d97706;
+  --tag-status-disabled-border: #fde68a;
+  --tag-status-disabled-bg: #fffbeb;
+  --tag-status-included-text: #0f766e;
+  --tag-status-included-border: #99f6e4;
+  --tag-status-included-bg: #f0fdfa;
+  --tag-status-excluded-text: #64748b;
+  --tag-status-excluded-border: #cbd5e1;
+  --tag-status-excluded-bg: #f8fafc;
+  --tag-status-active-text: #2563eb;
+  --tag-status-active-border: #bfdbfe;
+  --tag-status-active-bg: #eff6ff;
+  --tag-status-retired-text: #ea580c;
+  --tag-status-retired-border: #fed7aa;
+  --tag-status-retired-bg: #fff7ed;
+  --tag-status-living-text: #be185d;
+  --tag-status-living-border: #fbcfe8;
+  --tag-status-living-bg: #fdf2f8;
+  --tag-status-deceased-text: #475569;
+  --tag-status-deceased-border: #cbd5e1;
+  --tag-status-deceased-bg: #f8fafc;
+  --tag-status-success-text: #15803d;
+  --tag-status-success-border: #bbf7d0;
+  --tag-status-success-bg: #f0fdf4;
+  --tag-status-failed-text: #b91c1c;
+  --tag-status-failed-border: #fecaca;
+  --tag-status-failed-bg: #fef2f2;
+  --tag-status-representative-text: #0e7490;
+  --tag-status-representative-border: #a5f3fc;
+  --tag-status-representative-bg: #ecfeff;
+  --tag-status-legend-text: #a16207;
+  --tag-status-legend-border: #fde68a;
+  --tag-status-legend-bg: #fefce8;
+  --tag-status-top-award-text: #a16207;
+  --tag-status-top-award-border: #fde68a;
+  --tag-status-top-award-bg: #fefce8;
+
+  /* 业务标签：对象类型。 */
+  --tag-object-country-text: #0f766e;
+  --tag-object-country-border: #99f6e4;
+  --tag-object-country-bg: #f0fdfa;
+  --tag-object-club-text: #7e22ce;
+  --tag-object-club-border: #e9d5ff;
+  --tag-object-club-bg: #faf5ff;
+  --tag-object-player-text: #1d4ed8;
+  --tag-object-player-border: #bfdbfe;
+  --tag-object-player-bg: #eff6ff;
+  --tag-object-competition-text: #a16207;
+  --tag-object-competition-border: #fde68a;
+  --tag-object-competition-bg: #fefce8;
+  --tag-object-award-text: #c2410c;
+  --tag-object-award-border: #fed7aa;
+  --tag-object-award-bg: #fff7ed;
+
+  /* 业务标签：名次。 */
+  --tag-placement-champion-text: #d4a017;
+  --tag-placement-champion-border: #fde047;
+  --tag-placement-champion-bg: #fef9c3;
+  --tag-placement-runner-up-text: #64748b;
+  --tag-placement-runner-up-border: #cbd5e1;
+  --tag-placement-runner-up-bg: #f8fafc;
+  --tag-placement-third-place-text: #b87333;
+  --tag-placement-third-place-border: #fed7aa;
+  --tag-placement-third-place-bg: #fff7ed;
+  --tag-placement-fourth-place-text: #2f80c7;
+  --tag-placement-fourth-place-border: #bfdbfe;
+  --tag-placement-fourth-place-bg: #eff6ff;
+  --tag-placement-semi-finalist-text: #5b5f97;
+  --tag-placement-semi-finalist-border: #c7d2fe;
+  --tag-placement-semi-finalist-bg: #eef2ff;
+
+  /* 业务标签：PA / CA 能力分级。 */
+  --tag-ability-legend-text: #f53f3f;
+  --tag-ability-legend-border: #fdcdc5;
+  --tag-ability-legend-bg: #ffece8;
+  --tag-ability-elite-text: #d91ad9;
+  --tag-ability-elite-border: #f7baef;
+  --tag-ability-elite-bg: #ffe8fb;
+  --tag-ability-superstar-text: #722ed1;
+  --tag-ability-superstar-border: #ddbef6;
+  --tag-ability-superstar-bg: #f5e8ff;
+  --tag-ability-first-class-text: #165dff;
+  --tag-ability-first-class-border: #bedaff;
+  --tag-ability-first-class-bg: #e8f3ff;
+  --tag-ability-excellent-text: #3491fa;
+  --tag-ability-excellent-border: #c3e7fe;
+  --tag-ability-excellent-bg: #e8f7ff;
+  --tag-ability-starter-text: #14c9c9;
+  --tag-ability-starter-border: #b7f4ec;
+  --tag-ability-starter-bg: #e8fffb;
+  --tag-ability-rotation-text: #00b42a;
+  --tag-ability-rotation-border: #aff0b5;
+  --tag-ability-rotation-bg: #e8ffea;
+  --tag-ability-prospect-text: #7bc616;
+  --tag-ability-prospect-border: #e8f7ba;
+  --tag-ability-prospect-bg: #fcffe8;
+  --tag-ability-normal-text: #d99904;
+  --tag-ability-normal-border: #fdf4bf;
+  --tag-ability-normal-bg: #fffce8;
+  --tag-ability-basic-text: #d25f00;
+  --tag-ability-basic-border: #ffe4ba;
+  --tag-ability-basic-bg: #fff7e8;
+  --tag-ability-muted-text: #4e5969;
+  --tag-ability-muted-border: #c9cdd4;
+  --tag-ability-muted-bg: #f7f8fa;
+
+  /* 兼容别名：旧组件里仍按足联/位置读取简短变量。 */
+  --confed-afc: var(--tag-confed-afc-text);
+  --confed-afc-bg: var(--tag-confed-afc-bg);
+  --confed-uefa: var(--tag-confed-uefa-text);
+  --confed-uefa-bg: var(--tag-confed-uefa-bg);
+  --confed-conmebol: var(--tag-confed-conmebol-text);
+  --confed-conmebol-bg: var(--tag-confed-conmebol-bg);
+  --confed-caf: var(--tag-confed-caf-text);
+  --confed-caf-bg: var(--tag-confed-caf-bg);
+  --confed-concacaf: var(--tag-confed-concacaf-text);
+  --confed-concacaf-bg: var(--tag-confed-concacaf-bg);
+  --confed-ofc: var(--tag-confed-ofc-text);
+  --confed-ofc-bg: var(--tag-confed-ofc-bg);
+  --confed-default: var(--tag-neutral-text);
+  --position-forward: var(--tag-position-forward-text);
+  --position-forward-bg: var(--tag-position-forward-bg);
+  --position-midfield: var(--tag-position-midfield-text);
+  --position-midfield-bg: var(--tag-position-midfield-bg);
+  --position-backfield: var(--tag-position-backfield-text);
+  --position-backfield-bg: var(--tag-position-backfield-bg);
+  --position-goalkeeper: var(--tag-position-goalkeeper-text);
+  --position-goalkeeper-bg: var(--tag-position-goalkeeper-bg);
+  --position-st: var(--tag-position-st-text);
+  --position-st-bg: var(--tag-position-st-bg);
+  --position-aml: var(--tag-position-aml-text);
+  --position-aml-bg: var(--tag-position-aml-bg);
+  --position-amr: var(--tag-position-amr-text);
+  --position-amr-bg: var(--tag-position-amr-bg);
+  --position-amc: var(--tag-position-amc-text);
+  --position-amc-bg: var(--tag-position-amc-bg);
+  --position-mc: var(--tag-position-mc-text);
+  --position-mc-bg: var(--tag-position-mc-bg);
+  --position-dmc: var(--tag-position-dmc-text);
+  --position-dmc-bg: var(--tag-position-dmc-bg);
+  --position-ml: var(--tag-position-ml-text);
+  --position-ml-bg: var(--tag-position-ml-bg);
+  --position-mr: var(--tag-position-mr-text);
+  --position-mr-bg: var(--tag-position-mr-bg);
+  --position-wbl: var(--tag-position-wbl-text);
+  --position-wbl-bg: var(--tag-position-wbl-bg);
+  --position-wbr: var(--tag-position-wbr-text);
+  --position-wbr-bg: var(--tag-position-wbr-bg);
+  --position-dl: var(--tag-position-dl-text);
+  --position-dl-bg: var(--tag-position-dl-bg);
+  --position-dc: var(--tag-position-dc-text);
+  --position-dc-bg: var(--tag-position-dc-bg);
+  --position-dr: var(--tag-position-dr-text);
+  --position-dr-bg: var(--tag-position-dr-bg);
+  --position-gk: var(--tag-position-gk-text);
+  --position-gk-bg: var(--tag-position-gk-bg);
+  --position-default: var(--tag-neutral-text);
+
+  /* Element Plus 主题接入。 */
+  --el-text-color-primary: var(--text-color-primary);
+  --el-text-color-regular: var(--text-color-regular);
+  --el-text-color-secondary: var(--text-color-secondary);
+  --el-color-primary: var(--color-brand-primary);
+  --el-color-primary-light-3: #58a87b;
+  --el-color-primary-light-5: #8bc8a5;
+  --el-color-primary-light-7: #c4e5d1;
+  --el-color-primary-light-8: #d8efdf;
+  --el-color-primary-light-9: #ecf7ef;
+  --el-color-primary-dark-2: #14683f;
+
+  /* 阴影。 */
+  --shadow-elevated: 0 20px 52px rgba(27, 67, 45, 0.1);
+  --shadow-soft: 0 10px 28px rgba(25, 66, 43, 0.08);
+  --shadow-dropdown: 0 20px 48px rgba(22, 64, 47, 0.14);
+  --shadow-focus-brand: 0 8px 20px rgba(31, 139, 85, 0.1);
+}

@@ -117,7 +117,7 @@ function renderCharts() {
   });
 
   positionChart?.setOption({
-    color: chartPalette.gold,
+    color: chartPalette.accent,
     grid: { top: 12, right: 18, bottom: 20, left: 72 },
     tooltip: { trigger: 'axis' },
     xAxis: { type: 'value' },

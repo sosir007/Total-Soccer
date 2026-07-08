@@ -1,0 +1,132 @@
+.honor-placement-label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  white-space: nowrap;
+
+  &.compact {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+.honor-summary-table {
+  color: var(--text-color-regular);
+
+  .entity-link {
+    font-weight: 800;
+  }
+
+  .el-table__header .cell {
+    color: var(--text-color-secondary);
+    font-weight: 850;
+  }
+
+  .el-table__body .cell {
+    color: var(--text-color-regular);
+  }
+
+  .el-table__cell {
+    background: var(--color-surface-default);
+  }
+
+  thead.is-group th.el-table__cell {
+    background: #fbfcfb;
+  }
+
+  .honor-placement-label.compact {
+    justify-content: center;
+  }
+
+  .honor-count-cell {
+    color: var(--text-color-primary);
+    font-weight: 800;
+
+    &.is-placement {
+      color: var(--honor-placement-color);
+    }
+  }
+}
+
+.honor-group-list {
+  display: grid;
+  gap: 18px;
+}
+
+.honor-group {
+  display: grid;
+  gap: 10px;
+  padding: 2px 0 12px;
+  border-bottom: 1px solid rgba(31, 139, 85, 0.1);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.honor-group-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--color-brand-primary);
+  font-size: 16px;
+  font-weight: 850;
+
+  > span {
+    color: var(--text-color-secondary);
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.honor-group-placements {
+  display: grid;
+  gap: 8px;
+  padding-left: 18px;
+}
+
+.honor-group-placement {
+  --honor-placement-color: var(--text-color-primary);
+
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 4px 6px;
+  align-items: center;
+  color: var(--honor-placement-color);
+  line-height: 1.6;
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    color: var(--honor-placement-color);
+    font-weight: 800;
+  }
+
+  > span {
+    min-width: 0;
+  }
+
+  .honor-entry-year {
+    color: var(--honor-placement-color);
+    font-weight: 780;
+  }
+}
+
+.honor-entry-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.honor-entry-year {
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.honor-entry-separator {
+  color: var(--text-color-secondary);
+  font-size: 13px;
+}
+

@@ -2,23 +2,37 @@
 import { computed, onMounted, ref } from 'vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
+  chartColorGroups,
   semanticColorGroups,
+  type ChartColorToken,
   type SemanticColorToken,
   type SemanticTagTheme
 } from '@/utils/tag-theme';
 
-type ColorGroupKey = 'all' | (typeof semanticColorGroups)[number]['key'];
+type ColorGroupKey = 'all' | string;
+type ColorRowKind = 'semantic' | 'chart';
+
+interface ColorSystemRow {
+  name: string;
+  variant: string;
+  description: string;
+  groupLabel: string;
+  kind: ColorRowKind;
+  vars: SemanticTagTheme;
+}
 
 const activeGroup = ref<ColorGroupKey>('all');
 const resolvedColors = ref<Record<string, SemanticTagTheme>>({});
+
+const colorGroups = [...semanticColorGroups, ...chartColorGroups];
 
 const colorTabs = computed(() => [
   {
     key: 'all' as const,
     label: '全部',
-    description: '查看项目当前全部业务语义颜色。'
+    description: '查看项目当前全部业务语义颜色和图表色。'
   },
-  ...semanticColorGroups.map((group) => ({
+  ...colorGroups.map((group) => ({
     key: group.key,
     label: group.label,
     description: group.description
@@ -31,24 +45,20 @@ const activeTab = computed(
 
 const colorRows = computed(() => {
   if (activeGroup.value === 'all') {
-    return semanticColorGroups.flatMap((group) =>
-      group.colors.map((color) => ({
-        ...color,
-        groupLabel: group.label
-      }))
+    return colorGroups.flatMap((group) =>
+      group.colors.map((color) => normalizeColorRow(color, group.label, group.key))
     );
   }
 
-  const group = semanticColorGroups.find((item) => item.key === activeGroup.value);
+  const group = colorGroups.find((item) => item.key === activeGroup.value);
 
-  return (group?.colors ?? []).map((color) => ({
-    ...color,
-    groupLabel: group?.label ?? '-'
-  }));
+  return (group?.colors ?? []).map((color) =>
+    normalizeColorRow(color, group?.label ?? '-', group?.key ?? '')
+  );
 });
 
 const totalColorCount = computed(() =>
-  semanticColorGroups.reduce((total, group) => total + group.colors.length, 0)
+  colorGroups.reduce((total, group) => total + group.colors.length, 0)
 );
 
 function resolveCssVar(name: string) {
@@ -62,25 +72,56 @@ function resolveCssVar(name: string) {
 
 function refreshResolvedColors() {
   resolvedColors.value = Object.fromEntries(
-    semanticColorGroups.flatMap((group) =>
-      group.colors.map((color) => [
-        color.variant,
-        {
-          text: resolveCssVar(color.vars.text),
-          border: resolveCssVar(color.vars.border),
-          background: resolveCssVar(color.vars.background)
-        }
-      ])
-    )
+    colorRowsForResolve().map((color) => [
+      color.variant,
+      {
+        text: resolveCssVar(color.vars.text),
+        border: color.vars.border ? resolveCssVar(color.vars.border) : '-',
+        background: color.vars.background ? resolveCssVar(color.vars.background) : '-'
+      }
+    ])
   );
 }
 
-function getResolvedColor(row: SemanticColorToken, type: keyof SemanticTagTheme) {
+function getResolvedColor(row: ColorSystemRow, type: keyof SemanticTagTheme) {
   return resolvedColors.value[row.variant]?.[type] ?? '-';
 }
 
 function isValidColor(value: string) {
   return value !== '-';
+}
+
+function normalizeColorRow(
+  color: SemanticColorToken | ChartColorToken,
+  groupLabel: string,
+  groupKey: string
+): ColorSystemRow {
+  if ('variant' in color) {
+    return {
+      ...color,
+      groupLabel,
+      kind: 'semantic'
+    };
+  }
+
+  return {
+    name: color.name,
+    variant: color.key,
+    description: color.description,
+    groupLabel,
+    kind: groupKey === 'chart' ? 'chart' : 'semantic',
+    vars: {
+      text: color.varName,
+      border: '',
+      background: ''
+    }
+  };
+}
+
+function colorRowsForResolve() {
+  return colorGroups.flatMap((group) =>
+    group.colors.map((color) => normalizeColorRow(color, group.label, group.key))
+  );
 }
 
 onMounted(() => {
@@ -94,7 +135,7 @@ onMounted(() => {
       <div class="panel-header">
         <div>
           <h2>色彩体系</h2>
-          <p>集中查看项目当前业务标签、名次和能力值的前端颜色配置。</p>
+          <p>集中查看项目当前业务标签、名次、能力值和图表色的前端颜色配置。</p>
         </div>
         <span class="status-pill">{{ totalColorCount }} 项颜色</span>
       </div>
@@ -143,10 +184,20 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="预览" width="120" align="center">
           <template #default="{ row }">
-            <SemanticTag :variant="row.variant">{{ row.name }}</SemanticTag>
+            <SemanticTag v-if="row.kind === 'semantic'" :variant="row.variant">
+              {{ row.name }}
+            </SemanticTag>
+            <span v-else class="chart-color-preview">
+              <i :style="{ background: getResolvedColor(row, 'text') }" />
+              <em>{{ row.name }}</em>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="文字色" min-width="180" show-overflow-tooltip>
+        <el-table-column
+          :label="activeGroup === 'chart' ? '图表色' : '文字色'"
+          min-width="180"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             <span class="color-token-cell">
               <i
@@ -161,7 +212,12 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="边框色" min-width="180" show-overflow-tooltip>
+        <el-table-column
+          v-if="activeGroup !== 'chart'"
+          label="边框色"
+          min-width="180"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             <span class="color-token-cell">
               <i
@@ -176,7 +232,12 @@ onMounted(() => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="背景色" min-width="180" show-overflow-tooltip>
+        <el-table-column
+          v-if="activeGroup !== 'chart'"
+          label="背景色"
+          min-width="180"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             <span class="color-token-cell">
               <i
@@ -254,17 +315,45 @@ onMounted(() => {
   }
 }
 
+.chart-color-preview {
+  display: inline-grid;
+  gap: 5px;
+  justify-items: center;
+  color: var(--text-color-secondary);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+
+  i {
+    width: 54px;
+    height: 10px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-color-white) 42%, transparent);
+  }
+
+  em {
+    font-style: normal;
+  }
+}
+
 .color-swatch {
   width: 28px;
   height: 28px;
   flex: 0 0 auto;
-  border: 1px solid rgba(15, 37, 27, 0.12);
+  border: 1px solid var(--color-border-default);
   border-radius: 7px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-surface-default) 45%, transparent);
 
   &.is-empty {
     background:
-      linear-gradient(45deg, transparent 47%, #cbd5e1 47%, #cbd5e1 53%, transparent 53%), #f8fafc !important;
+      linear-gradient(
+        45deg,
+        transparent 47%,
+        var(--tag-neutral-border) 47%,
+        var(--tag-neutral-border) 53%,
+        transparent 53%
+      ),
+      var(--tag-neutral-bg) !important;
   }
 }
 </style>

@@ -646,7 +646,7 @@ function openScoreDialog(row: HonorSummaryRow) {
 
   &__item--split.is-total {
     padding-top: 4px;
-    border-top: 1px solid rgb(21 120 75 / 14%);
+    border-top: 1px solid var(--color-border-brand-subtle);
   }
 
   &__hint {
@@ -672,9 +672,9 @@ function openScoreDialog(row: HonorSummaryRow) {
 
 .honor-score-dialog__summary {
   padding: 10px 12px;
-  border: 1px solid rgb(21 120 75 / 14%);
+  border: 1px solid var(--color-border-brand-subtle);
   border-radius: 6px;
-  background: #f7fbf8;
+  background: var(--color-surface-soft);
   color: var(--text-color-primary);
 
   strong {

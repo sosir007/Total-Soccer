@@ -318,9 +318,9 @@ onMounted(() => {
   display: block;
   padding: 12px 14px;
   overflow-x: auto;
-  border: 1px solid rgb(15 118 110 / 14%);
+  border: 1px solid var(--color-border-brand-subtle);
   border-radius: 8px;
-  background: rgb(240 253 244 / 80%);
+  background: color-mix(in srgb, var(--color-surface-brand-soft) 80%, var(--color-surface-default));
   color: var(--color-brand-primary);
   font-size: 13px;
   line-height: 1.6;

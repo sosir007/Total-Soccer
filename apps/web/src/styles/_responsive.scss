@@ -1,0 +1,61 @@
+@media (max-width: 980px) {
+  .app-shell,
+  .hero-panel,
+  .detail-grid,
+  .filter-grid,
+  .metric-grid,
+  .dashboard-grid,
+  .rank-grid,
+  .competition-layout,
+  .competition-form-grid,
+  .standing-row,
+  .summit-hero,
+  .summit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summit-pitch {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .summit-row {
+    flex-wrap: wrap;
+  }
+
+  .timeline-block,
+  .lineup-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .nav {
+    overflow: visible;
+  }
+
+  .topbar {
+    position: static;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topbar-actions,
+  .import-actions,
+  .search-box {
+    width: 100%;
+  }
+
+  .import-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    justify-content: flex-start;
+  }
+}

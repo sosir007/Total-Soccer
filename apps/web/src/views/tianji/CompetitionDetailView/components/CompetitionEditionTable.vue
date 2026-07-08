@@ -357,7 +357,7 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
   gap: 12px;
   margin-top: 22px;
   padding-top: 20px;
-  border-top: 1px solid rgba(31, 139, 85, 0.1);
+  border-top: 1px solid var(--color-border-brand-subtle);
 }
 
 .edition-statistics__header {

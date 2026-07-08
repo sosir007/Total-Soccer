@@ -16,11 +16,18 @@ const appStore = useAppStore();
 const player = ref<PlayerDetail | null>(null);
 const loading = ref(false);
 const errorMessage = ref('');
+const isStarFormRoute = computed(
+  () => route.name === 'stars-new' || route.name === 'stars-edit-id'
+);
 const playerId = computed(() => String(route.params.id ?? ''));
 const isEdit = computed(() => Boolean(playerId.value));
 const pageTitle = computed(() => (isEdit.value ? '编辑球员' : '新增球员'));
 
 async function loadPlayer() {
+  if (!isStarFormRoute.value) {
+    return;
+  }
+
   if (!playerId.value) {
     player.value = null;
     routeTabsStore.setTitle(route.fullPath, '新增球员');
@@ -55,7 +62,7 @@ function handleSaved() {
   goBack(true);
 }
 
-watch(playerId, () => {
+watch([isStarFormRoute, playerId], () => {
   void loadPlayer();
 });
 

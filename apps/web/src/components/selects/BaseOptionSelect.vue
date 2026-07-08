@@ -155,14 +155,14 @@ function isConfederation(value?: string | null) {
       background 0.18s ease;
 
     &:hover {
-      box-shadow: 0 0 0 1px rgba(31, 139, 85, 0.38) inset;
+      box-shadow: 0 0 0 1px var(--color-border-brand-hover) inset;
     }
 
     &.is-focused {
-      background: #fff;
+      background: var(--color-surface-default);
       box-shadow:
         0 0 0 1px var(--color-brand-primary) inset,
-        0 8px 20px rgba(31, 139, 85, 0.1);
+        var(--shadow-focus-brand);
     }
   }
 
@@ -241,12 +241,12 @@ function isConfederation(value?: string | null) {
 
 :global(.common-select-popper.el-popper) {
   overflow: hidden;
-  border: 1px solid #dfe8df;
+  border: 1px solid var(--color-border-muted);
   border-radius: 12px;
-  box-shadow: 0 20px 48px rgba(22, 64, 47, 0.14);
+  box-shadow: var(--shadow-dropdown);
 
   :global(.el-popper__arrow::before) {
-    border-color: #dfe8df;
+    border-color: var(--color-border-muted);
   }
 
   :global(.el-select-dropdown) {
@@ -278,11 +278,11 @@ function isConfederation(value?: string | null) {
 
 :global(.common-select-popper .el-select-dropdown__item.hover),
 :global(.common-select-popper .el-select-dropdown__item:hover) {
-  background: #faf7ec;
+  background: var(--color-surface-warm-soft);
 }
 
 :global(.common-select-popper .el-select-dropdown__item.selected) {
-  background: #edf8f1;
+  background: var(--color-surface-brand-soft);
   color: var(--text-color-primary);
   font-weight: 400;
 }

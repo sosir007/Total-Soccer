@@ -1,0 +1,52 @@
+.competition-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.competition-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 14px;
+}
+
+.competition-form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+
+.form-wide {
+  grid-column: 1 / -1;
+}
+
+.standing-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.standing-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.standing-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.7fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-default);
+}
+
+.award-recipient-row {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(80px, 0.4fr) minmax(130px, 0.7fr);
+}
+
+.competition-result-strip {
+  margin-top: 14px;
+  margin-bottom: 0;
+}

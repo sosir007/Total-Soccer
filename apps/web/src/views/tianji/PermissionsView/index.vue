@@ -348,9 +348,9 @@ onMounted(() => {
   flex-direction: column;
   gap: 6px;
   padding: 14px;
-  border: 1px solid rgb(15 118 110 / 14%);
+  border: 1px solid var(--color-border-brand-subtle);
   border-radius: 8px;
-  background: rgb(240 253 244 / 58%);
+  background: color-mix(in srgb, var(--color-surface-brand-soft) 58%, var(--color-surface-default));
 }
 
 .safety-card {

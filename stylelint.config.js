@@ -14,6 +14,12 @@ export default {
   ],
   rules: {
     'selector-class-pattern': null,
+    'at-rule-no-unknown': [
+      true,
+      {
+        ignoreAtRules: ['use', 'forward']
+      }
+    ],
     'custom-property-pattern': null,
     'no-descending-specificity': null,
     'font-family-name-quotes': null,

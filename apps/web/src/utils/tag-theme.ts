@@ -20,6 +20,21 @@ export interface SemanticColorGroup {
   colors: SemanticColorToken[];
 }
 
+export interface ChartColorToken {
+  key: string;
+  name: string;
+  value: string;
+  varName: string;
+  description: string;
+}
+
+export interface ChartColorGroup {
+  key: string;
+  label: string;
+  description: string;
+  colors: ChartColorToken[];
+}
+
 export type SemanticTagVariant =
   | 'neutral'
   | 'confed-afc'
@@ -313,11 +328,34 @@ export const semanticColorGroups: SemanticColorGroup[] = [
   }
 ];
 
+export const chartColorGroups: ChartColorGroup[] = [
+  {
+    key: 'chart',
+    label: '图表',
+    description: 'ECharts series 调色板，用于折线、柱状、饼图等数据可视化。',
+    colors: [
+      chartColorToken('chart-series-blue', '鲜蓝', '#5470c6', '默认主序列、核心指标。'),
+      chartColorToken('chart-series-green', '明绿', '#91cc75', '第二序列、正向或增长数据。'),
+      chartColorToken('chart-series-gold', '亮金', '#fac858', '第三序列、重点对比数据。'),
+      chartColorToken('chart-series-coral', '珊瑚', '#ee6666', '第四序列、变化或警示数据。'),
+      chartColorToken('chart-series-sky', '天蓝', '#73c0de', '第五序列、结构分布。'),
+      chartColorToken('chart-series-emerald', '翠绿', '#3ba272', '第六序列、补充分类。'),
+      chartColorToken('chart-series-orange', '橙色', '#fc8452', '第七序列、暖色补充。'),
+      chartColorToken('chart-series-violet', '紫色', '#9a60b4', '第八序列、多分类补充。'),
+      chartColorToken('chart-series-pink', '粉紫', '#ea7ccc', '第九序列、醒目补充。'),
+      chartColorToken('chart-series-mauve', '灰紫', '#6e7079', '第十序列、中性数据。')
+    ]
+  }
+];
+
+const chartCategoricalPalette = chartColorGroups[0].colors.map((color) => color.value);
+
 export const chartPalette = {
-  primary: ['#1f8b55'],
-  gold: ['#c89436'],
-  categorical: ['#1f8b55', '#c89436', '#2563eb', '#dc2626', '#7c3aed', '#0e7490', '#a16207'],
-  compactCategorical: ['#1f8b55', '#c89436', '#2563eb', '#dc2626', '#7c3aed']
+  primary: ['#5470c6'],
+  accent: ['#fac858'],
+  categorical: chartCategoricalPalette,
+  compactCategorical: chartCategoricalPalette.slice(0, 5),
+  neutral: ['#6e7079']
 };
 
 export function getSemanticTagStyle(variant?: string | null) {
@@ -519,5 +557,20 @@ function colorToken(
       border: `--tag-${variant}-border`,
       background: `--tag-${variant}-bg`
     }
+  };
+}
+
+function chartColorToken(
+  key: string,
+  name: string,
+  value: string,
+  description: string
+): ChartColorToken {
+  return {
+    key,
+    name,
+    value,
+    description,
+    varName: `--${key}`
   };
 }
