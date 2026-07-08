@@ -272,7 +272,7 @@ onMounted(() => {
 
       <template v-else>
         <el-table :data="logs" border>
-          <el-table-column label="序号" width="76" fixed>
+          <el-table-column label="序号" width="60" align="center" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
           <el-table-column label="时间" width="170" fixed>
@@ -355,7 +355,7 @@ onMounted(() => {
 
 .safety-card {
   span {
-    color: var(--color-text-muted);
+    color: var(--text-color-secondary);
     font-size: 13px;
     line-height: 1.6;
   }
@@ -366,7 +366,7 @@ onMounted(() => {
   gap: 10px;
 
   span {
-    color: var(--color-text-muted);
+    color: var(--text-color-secondary);
     font-size: 13px;
     line-height: 1.6;
   }

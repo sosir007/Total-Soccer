@@ -357,7 +357,7 @@ function openScoreDialog(row: HonorSummaryRow) {
 
 <template>
   <el-table :data="rows" border class="honor-summary-table">
-    <el-table-column label="序号" width="72" fixed align="center">
+    <el-table-column label="序号" width="60" fixed align="center">
       <template #default="{ $index }">
         {{ rowIndex($index) }}
       </template>
@@ -584,7 +584,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   transition: color 0.18s ease;
 
   &:hover {
-    color: var(--honor-placement-color, #15784b);
+    color: var(--honor-placement-color, var(--color-brand-primary));
   }
 }
 
@@ -598,7 +598,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   transition: color 0.18s ease;
 
   &:hover {
-    color: #15784b;
+    color: var(--color-brand-primary);
   }
 }
 
@@ -608,12 +608,12 @@ function openScoreDialog(row: HonorSummaryRow) {
   max-width: 320px;
   max-height: 260px;
   overflow: auto;
-  color: #2f4338;
+  color: var(--text-color-regular);
   font-size: 13px;
   line-height: 1.45;
 
   &__title {
-    color: #10291d;
+    color: var(--text-color-primary);
     font-weight: 800;
   }
 
@@ -623,7 +623,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   }
 
   &__group-title {
-    color: #15784b;
+    color: var(--color-brand-primary);
     font-weight: 800;
     white-space: nowrap;
   }
@@ -640,7 +640,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   }
 
   &__item--split strong {
-    color: #10291d;
+    color: var(--text-color-primary);
     font-weight: 800;
   }
 
@@ -650,7 +650,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   }
 
   &__hint {
-    color: #6b7d72;
+    color: var(--text-color-secondary);
     font-size: 12px;
   }
 }
@@ -675,7 +675,7 @@ function openScoreDialog(row: HonorSummaryRow) {
   border: 1px solid rgb(21 120 75 / 14%);
   border-radius: 6px;
   background: #f7fbf8;
-  color: #10291d;
+  color: var(--text-color-primary);
 
   strong {
     font-size: 18px;
@@ -688,10 +688,10 @@ function openScoreDialog(row: HonorSummaryRow) {
 }
 
 .honor-score-dialog__group-head {
-  color: #10291d;
+  color: var(--text-color-primary);
 
   span {
-    color: #15784b;
+    color: var(--color-brand-primary);
     font-weight: 800;
   }
 }

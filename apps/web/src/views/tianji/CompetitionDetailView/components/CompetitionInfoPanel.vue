@@ -75,13 +75,13 @@ defineProps<{
   background: #fbfdf9;
 
   span {
-    color: #6b7b70;
+    color: var(--text-color-secondary);
     font-size: 13px;
     font-weight: 750;
   }
 
   strong {
-    color: #193426;
+    color: var(--text-color-primary);
     font-size: 16px;
     line-height: 1.45;
   }

@@ -161,7 +161,7 @@ const emit = defineEmits<{
 
 <style scoped lang="scss">
 .form-help {
-  color: #66756d;
+  color: var(--text-color-secondary);
   font-size: 13px;
   line-height: 1.7;
 }

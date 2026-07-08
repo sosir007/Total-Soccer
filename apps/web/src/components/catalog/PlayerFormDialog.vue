@@ -620,7 +620,7 @@ async function submit() {
     justify-content: flex-end;
     gap: 10px;
     padding: 16px 0 0;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--color-border-default);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), #fff);
   }
 
@@ -646,7 +646,7 @@ async function submit() {
     align-items: center;
     justify-content: space-between;
     padding: 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--color-border-default);
     border-radius: 8px;
     background: #f8fbf7;
 
@@ -656,7 +656,7 @@ async function submit() {
     }
 
     span {
-      color: var(--muted);
+      color: var(--text-color-secondary);
       font-size: 12px;
     }
   }
@@ -673,7 +673,7 @@ async function submit() {
   display: grid;
   gap: 12px;
   padding: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border-default);
   border-radius: 8px;
   background: #fff;
 
@@ -681,7 +681,7 @@ async function submit() {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--muted);
+    color: var(--text-color-secondary);
     font-size: 12px;
   }
 

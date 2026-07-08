@@ -366,21 +366,21 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
 
   h4 {
     margin: 0;
-    color: var(--ink);
+    color: var(--text-color-primary);
     font-size: 18px;
     font-weight: 850;
   }
 
   p {
     margin: 0;
-    color: var(--muted);
+    color: var(--text-color-secondary);
     font-weight: 650;
   }
 }
 
 .edition-statistics-table {
   :deep(.edition-stat-cell) {
-    color: var(--edition-placement-color, #53645a);
+    color: var(--edition-placement-color, var(--text-color-regular));
     font-size: 14px;
     font-weight: 820;
     line-height: 1.55;

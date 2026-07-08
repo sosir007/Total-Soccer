@@ -130,7 +130,7 @@ function parsePositionSegment(item: string): PositionSegment[] {
 .position-tags__extra {
   min-width: 0;
   overflow: hidden;
-  color: #94a3b8;
+  color: var(--text-color-secondary);
   font-size: 12px;
   font-weight: 720;
   text-overflow: ellipsis;

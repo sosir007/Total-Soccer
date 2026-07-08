@@ -65,7 +65,7 @@ function getTargetTypeVariant(row: CompetitionListItem): SemanticTagVariant {
 
     <template v-else>
       <el-table :data="competitions" border>
-        <el-table-column label="序号" width="76" fixed="left">
+        <el-table-column label="序号" width="60" align="center" fixed="left">
           <template #default="{ $index }">{{ getRowSequence(page, pageSize, $index) }}</template>
         </el-table-column>
         <el-table-column label="赛事" min-width="220" fixed="left">

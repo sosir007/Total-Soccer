@@ -195,7 +195,7 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dd>{{ formatNumber(country.playerCount) }}</dd>
         </div>
         <div>
-          <dt>平均荣誉分</dt>
+          <dt>球员平均荣誉分</dt>
           <dd>{{ formatNumber(country.averageHonorScore, 2) }}</dd>
         </div>
       </dl>

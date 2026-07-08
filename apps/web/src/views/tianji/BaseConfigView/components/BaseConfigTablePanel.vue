@@ -45,7 +45,7 @@ const filters = toRef(props, 'filters');
 
     <template v-else>
       <el-table class="base-config-table" :data="items" border>
-        <el-table-column prop="sortOrder" label="排序" width="72" />
+        <el-table-column prop="sortOrder" label="排序" width="60" align="center" />
         <el-table-column v-if="isConfederation || isCity" prop="uid" label="UID" width="96" />
         <el-table-column v-if="!isCity" prop="code" label="编码" min-width="96">
           <template #default="{ row }">{{ row.code || '-' }}</template>

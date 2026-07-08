@@ -7,6 +7,12 @@ import type {
 } from '@/services/types/honor-rules';
 import IconFont from '@/components/IconFont.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
+import {
+  getCompetitionCategoryVariant,
+  getCompetitionLevelVariant,
+  getPlacementTextColor,
+  type SemanticTagVariant
+} from '@/utils/tag-theme';
 
 defineProps<{
   title: string;
@@ -109,6 +115,18 @@ function getPlacementScopeLabel(value: HonorRulePlacementScope) {
 function getConversionTypeLabel(value: HonorRuleConversionType) {
   return conversionTypeLabels[value] ?? value;
 }
+
+function getTargetTypeVariant(value: CompetitionTargetType): SemanticTagVariant {
+  return value === 'CLUB' ? 'object-club' : 'object-country';
+}
+
+function getScoreStyle(
+  placement: 'CHAMPION' | 'RUNNER_UP' | 'THIRD_PLACE' | 'FOURTH_PLACE' | 'SEMI_FINALIST'
+) {
+  return {
+    color: getPlacementTextColor(placement)
+  };
+}
 </script>
 
 <template>
@@ -130,19 +148,35 @@ function getConversionTypeLabel(value: HonorRuleConversionType) {
 
     <div v-else class="honor-rule-table-wrap">
       <el-table :data="items" border>
-        <el-table-column label="序号" width="72" align="center">
+        <el-table-column label="序号" width="60" align="center">
           <template #default="{ $index }">
             <span class="rule-index">{{ $index + 1 }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="name" label="规则名称" min-width="180" show-overflow-tooltip />
-        <el-table-column label="对象" width="92" align="center">
-          <template #default="{ row }">{{ getTargetTypeLabel(row.targetType) }}</template>
+        <el-table-column label="对象" width="90" align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getTargetTypeVariant(row.targetType)">
+              {{ getTargetTypeLabel(row.targetType) }}
+            </SemanticTag>
+          </template>
         </el-table-column>
-        <el-table-column prop="category" label="分类" width="86" align="center" />
-        <el-table-column prop="level" label="级别" width="86" align="center" />
-        <el-table-column prop="format" label="赛制" width="86" align="center" />
-        <el-table-column label="适用范围" width="110" align="center">
+        <el-table-column label="分类" width="90" align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getCompetitionCategoryVariant(row.category)">
+              {{ row.category || '-' }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="级别" width="90" align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getCompetitionLevelVariant(row.level)">
+              {{ row.level || '-' }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="format" label="赛制" width="90" align="center" />
+        <el-table-column label="适用范围" width="90" align="center">
           <template #default="{ row }">{{ formatScope(row) }}</template>
         </el-table-column>
         <el-table-column label="典型命中赛事" min-width="160" show-overflow-tooltip>
@@ -151,29 +185,49 @@ function getConversionTypeLabel(value: HonorRuleConversionType) {
         <el-table-column label="基础分" width="86" align="center">
           <template #default="{ row }">{{ formatNumber(row.baseScore) }}</template>
         </el-table-column>
-        <el-table-column label="质量系数" min-width="180" show-overflow-tooltip>
+        <el-table-column label="质量系数" min-width="240" show-overflow-tooltip>
           <template #default="{ row }">{{ formatCoefficients(row) }}</template>
         </el-table-column>
         <el-table-column label="换算方式" min-width="150" show-overflow-tooltip>
           <template #default="{ row }">{{ getConversionTypeLabel(row.conversionType) }}</template>
         </el-table-column>
-        <el-table-column label="名次范围" width="110" align="center">
+        <el-table-column label="名次范围" width="120" align="center">
           <template #default="{ row }">{{ getPlacementScopeLabel(row.placementScope) }}</template>
         </el-table-column>
-        <el-table-column label="冠军分" width="92" align="center">
-          <template #default="{ row }">{{ formatNumber(row.championScore) }}</template>
+        <el-table-column label="冠军分" width="90" align="center">
+          <template #default="{ row }">
+            <span class="placement-score" :style="getScoreStyle('CHAMPION')">
+              {{ formatNumber(row.championScore) }}
+            </span>
+          </template>
         </el-table-column>
-        <el-table-column label="亚军分" width="92" align="center">
-          <template #default="{ row }">{{ formatNumber(row.runnerUpScore) }}</template>
+        <el-table-column label="亚军分" width="90" align="center">
+          <template #default="{ row }">
+            <span class="placement-score" :style="getScoreStyle('RUNNER_UP')">
+              {{ formatNumber(row.runnerUpScore) }}
+            </span>
+          </template>
         </el-table-column>
-        <el-table-column label="季军分" width="92" align="center">
-          <template #default="{ row }">{{ formatNumber(row.thirdPlaceScore) }}</template>
+        <el-table-column label="季军分" width="90" align="center">
+          <template #default="{ row }">
+            <span class="placement-score" :style="getScoreStyle('THIRD_PLACE')">
+              {{ formatNumber(row.thirdPlaceScore) }}
+            </span>
+          </template>
         </el-table-column>
-        <el-table-column label="殿军分" width="92" align="center">
-          <template #default="{ row }">{{ formatNumber(row.fourthPlaceScore) }}</template>
+        <el-table-column label="殿军分" width="90" align="center">
+          <template #default="{ row }">
+            <span class="placement-score" :style="getScoreStyle('FOURTH_PLACE')">
+              {{ formatNumber(row.fourthPlaceScore) }}
+            </span>
+          </template>
         </el-table-column>
-        <el-table-column label="四强分" width="92" align="center">
-          <template #default="{ row }">{{ formatNumber(row.semiFinalistScore) }}</template>
+        <el-table-column label="四强分" width="90" align="center">
+          <template #default="{ row }">
+            <span class="placement-score" :style="getScoreStyle('SEMI_FINALIST')">
+              {{ formatNumber(row.semiFinalistScore) }}
+            </span>
+          </template>
         </el-table-column>
         <el-table-column label="状态" width="84" align="center">
           <template #default="{ row }">
@@ -182,7 +236,7 @@ function getConversionTypeLabel(value: HonorRuleConversionType) {
             </SemanticTag>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip>
+        <el-table-column prop="remark" label="备注" min-width="240" show-overflow-tooltip>
           <template #default="{ row }">{{ row.remark || '-' }}</template>
         </el-table-column>
         <el-table-column label="操作" width="92" fixed="right" align="center">
@@ -216,8 +270,12 @@ function getConversionTypeLabel(value: HonorRuleConversionType) {
 }
 
 .rule-index {
-  color: var(--muted);
+  color: var(--text-color-secondary);
   font-size: 13px;
   font-weight: 600;
+}
+
+.placement-score {
+  font-weight: 800;
 }
 </style>

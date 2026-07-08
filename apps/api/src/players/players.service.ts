@@ -137,6 +137,14 @@ const PLAYER_AWARD_RECIPIENT_INCLUDE = {
   }
 } satisfies Prisma.AwardRecipientInclude;
 
+const CLUB_NAME_REF_SELECT = {
+  id: true,
+  uid: true,
+  name: true,
+  externalUrl: true,
+  exists: true
+} satisfies Prisma.ClubSelect;
+
 const PLAYER_DETAIL_INCLUDE = {
   ...PLAYER_LIST_INCLUDE,
   ethnicityRef: {
@@ -188,8 +196,10 @@ export class PlayersService {
       this.prisma.player.count({ where })
     ]);
 
+    const listItems = items.map((item) => this.attachCareerSummaries(item));
+
     return {
-      items: items.map((item) => this.attachCareerSummaries(item)),
+      items: await this.attachInitialClubRefs(listItems),
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -729,6 +739,42 @@ export class PlayersService {
           ? [player.clubs]
           : []
     };
+  }
+
+  private async attachInitialClubRefs<T extends { initialClub?: string | null }>(players: T[]) {
+    const initialClubNames = Array.from(
+      new Set(
+        players
+          .map((player) => player.initialClub?.trim())
+          .filter((name): name is string => Boolean(name))
+      )
+    );
+
+    if (initialClubNames.length === 0) {
+      return players.map((player) => ({
+        ...player,
+        initialClubRef: null
+      }));
+    }
+
+    const clubs = await this.prisma.club.findMany({
+      where: {
+        name: {
+          in: initialClubNames
+        },
+        exists: true
+      },
+      select: CLUB_NAME_REF_SELECT,
+      orderBy: [{ name: 'asc' }, { uid: 'asc' }]
+    });
+    const clubByName = new Map(clubs.map((club) => [club.name, club]));
+
+    return players.map((player) => ({
+      ...player,
+      initialClubRef: player.initialClub
+        ? (clubByName.get(player.initialClub.trim()) ?? null)
+        : null
+    }));
   }
 
   private attachPersonalHonors<

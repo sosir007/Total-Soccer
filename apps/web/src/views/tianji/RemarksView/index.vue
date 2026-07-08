@@ -231,7 +231,7 @@ onMounted(() => {
 
       <template v-else>
         <el-table :data="remarks" border>
-          <el-table-column label="序号" width="76" fixed>
+          <el-table-column label="序号" width="60" align="center" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
           <el-table-column label="对象" min-width="220" fixed>
@@ -309,7 +309,7 @@ onMounted(() => {
 .backup-panel {
   p {
     margin: 0;
-    color: var(--color-text-muted);
+    color: var(--text-color-secondary);
     line-height: 1.8;
   }
 }
@@ -321,7 +321,7 @@ onMounted(() => {
   border: 1px solid rgb(15 118 110 / 14%);
   border-radius: 8px;
   background: rgb(240 253 244 / 80%);
-  color: #14532d;
+  color: var(--color-brand-primary);
   font-size: 13px;
   line-height: 1.6;
   white-space: nowrap;

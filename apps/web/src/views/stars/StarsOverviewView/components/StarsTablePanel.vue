@@ -128,6 +128,18 @@ function formatRepresentativeClubUid(player: PlayerListItem) {
   return club?.uid ?? player.clubUid ?? '-';
 }
 
+function getInitialClub(player: PlayerListItem) {
+  return player.initialClubRef?.exists === false ? null : player.initialClubRef;
+}
+
+function formatInitialClubName(player: PlayerListItem) {
+  return getInitialClub(player)?.name ?? formatText(player.initialClub);
+}
+
+function formatInitialClubUid(player: PlayerListItem) {
+  return getInitialClub(player)?.uid ?? '-';
+}
+
 function formatProfileClubs(player: PlayerListItem) {
   return player.profileClubNames?.length
     ? player.profileClubNames.join('、')
@@ -236,7 +248,7 @@ function formatMarketValue(value?: number | null) {
         <el-table-column label="左右脚" width="80" align="center" show-overflow-tooltip>
           <template #default="{ row }">{{ formatFoot(row) }}</template>
         </el-table-column>
-        <el-table-column label="足联" min-width="120">
+        <el-table-column label="足联" width="100">
           <template #default="{ row }">
             <SemanticTag
               v-if="formatConfederation(row.confederationRef)"
@@ -247,22 +259,22 @@ function formatMarketValue(value?: number | null) {
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="代表国籍" min-width="150">
+        <el-table-column label="代表国籍" min-width="160">
           <template #default="{ row }">
-            <EntityLink
+            <EntityNameCell
               v-if="row.country"
               :id="row.country.id"
               type="country"
-              :name="row.country.name"
-              class="table-ref-card"
-            >
-              <strong>{{ row.country.name }}</strong>
-              <span>UID {{ row.country.uid || row.countryUid || '-' }}</span>
-            </EntityLink>
-            <div v-else class="table-ref-card">
-              <strong>{{ row.representedCountry || '-' }}</strong>
-              <span>UID {{ row.countryUid || '-' }}</span>
-            </div>
+              :title="row.country.name"
+              :subtitle="`UID ${row.country.uid || row.countryUid || '-'}`"
+            />
+            <EntityNameCell
+              v-else
+              type="country"
+              :title="row.representedCountry || '-'"
+              :subtitle="`UID ${row.countryUid || '-'}`"
+              muted
+            />
           </template>
         </el-table-column>
         <el-table-column label="国籍" min-width="160" show-overflow-tooltip>
@@ -281,36 +293,45 @@ function formatMarketValue(value?: number | null) {
         </el-table-column>
         <el-table-column label="出生城市" min-width="220" show-overflow-tooltip>
           <template #default="{ row }">
-            <div class="table-ref-card">
-              <strong>{{ formatBirthCity(row) }}</strong>
-              <span>UID {{ formatBirthCityUid(row) }}</span>
-            </div>
+            <EntityNameCell
+              type="country"
+              :title="formatBirthCity(row)"
+              :subtitle="`UID ${formatBirthCityUid(row)}`"
+              class="plain-name-cell"
+              muted
+            />
           </template>
         </el-table-column>
         <el-table-column label="代表球队" min-width="170" show-overflow-tooltip>
           <template #default="{ row }">
-            <EntityLink
+            <EntityNameCell
               v-if="getRepresentativeClub(row)"
               :id="getRepresentativeClub(row)?.id"
               type="club"
-              :name="formatRepresentativeClubName(row)"
-              class="table-ref-card"
-            >
-              <strong>{{ formatRepresentativeClubName(row) }}</strong>
-              <span>UID {{ formatRepresentativeClubUid(row) }}</span>
-            </EntityLink>
-            <div v-else class="table-ref-card">
-              <strong>{{ formatRepresentativeClubName(row) }}</strong>
-              <span>UID {{ formatRepresentativeClubUid(row) }}</span>
-            </div>
+              :title="formatRepresentativeClubName(row)"
+              :subtitle="`UID ${formatRepresentativeClubUid(row)}`"
+            />
+            <EntityNameCell
+              v-else
+              type="club"
+              :title="formatRepresentativeClubName(row)"
+              :subtitle="`UID ${formatRepresentativeClubUid(row)}`"
+              muted
+            />
           </template>
         </el-table-column>
-        <el-table-column
-          prop="initialClub"
-          label="初始球队"
-          min-width="150"
-          show-overflow-tooltip
-        />
+        <el-table-column prop="initialClub" label="初始球队" min-width="150" show-overflow-tooltip>
+          <template #default="{ row }">
+            <EntityNameCell
+              v-if="getInitialClub(row)"
+              :id="getInitialClub(row)?.id"
+              type="club"
+              :title="formatInitialClubName(row)"
+              :subtitle="`UID ${formatInitialClubUid(row)}`"
+            />
+            <EntityNameCell v-else type="club" :title="formatInitialClubName(row)" muted />
+          </template>
+        </el-table-column>
         <el-table-column label="球队经历" min-width="260" show-overflow-tooltip>
           <template #default="{ row }">{{ formatProfileClubs(row) }}</template>
         </el-table-column>
@@ -407,21 +428,21 @@ function formatMarketValue(value?: number | null) {
   span {
     min-width: 0;
     overflow: hidden;
-    color: #94a3b8;
+    color: var(--text-color-secondary);
     font-weight: 720;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   strong {
-    color: #334155;
+    color: var(--text-color-regular);
     font-weight: 820;
   }
 }
 
 .life-date-cell__age {
   min-width: 24px;
-  color: #64748b;
+  color: var(--text-color-primary);
   font-size: 13px;
   font-weight: 820;
   text-align: right;

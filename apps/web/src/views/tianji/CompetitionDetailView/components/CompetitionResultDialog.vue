@@ -174,13 +174,13 @@ function hasPlacementField(row: EditionRow, field: PlacementField) {
 }
 
 .edition-editor-head {
-  color: #51665b;
+  color: var(--text-color-regular);
   font-size: 13px;
   font-weight: 850;
 }
 
 .edition-editor-index {
-  color: #738278;
+  color: var(--text-color-secondary);
   font-weight: 800;
   text-align: center;
 }
@@ -201,6 +201,6 @@ function hasPlacementField(row: EditionRow, field: PlacementField) {
   align-items: center;
   justify-content: center;
   height: 32px;
-  color: var(--muted);
+  color: var(--text-color-secondary);
 }
 </style>

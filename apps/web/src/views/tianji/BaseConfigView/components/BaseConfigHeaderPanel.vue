@@ -96,10 +96,10 @@ const filters = toRef(props, 'filters');
   gap: 10px;
   align-items: center;
   margin: 2px 0 16px;
-  color: var(--muted);
+  color: var(--text-color-secondary);
 
   strong {
-    color: var(--green);
+    color: var(--color-brand-primary);
   }
 }
 

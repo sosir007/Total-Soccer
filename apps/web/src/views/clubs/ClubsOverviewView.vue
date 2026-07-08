@@ -6,7 +6,6 @@ import type { ClubDetail, ClubListItem } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import ClubFormDialog from '@/components/catalog/ClubFormDialog.vue';
-import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
@@ -227,7 +226,7 @@ onMounted(() => {
           :default-sort="{ prop: 'totalPa', order: 'descending' }"
           @sort-change="handleSortChange"
         >
-          <el-table-column label="序号" width="76" fixed>
+          <el-table-column label="序号" width="60" align="center" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
           <el-table-column prop="name" label="俱乐部" min-width="170" fixed>
@@ -240,16 +239,17 @@ onMounted(() => {
               />
             </template>
           </el-table-column>
-          <el-table-column label="国家" min-width="120">
+          <el-table-column label="国家" min-width="160">
             <template #default="{ row }">
-              <EntityLink
+              <EntityNameCell
                 :id="row.countryRef?.id"
                 type="country"
-                :name="formatRef(row.countryRef)"
+                :title="formatRef(row.countryRef)"
+                :subtitle="`UID ${row.countryRef?.uid || '-'}`"
               />
             </template>
           </el-table-column>
-          <el-table-column label="足联" min-width="120">
+          <el-table-column label="足联" width="100">
             <template #default="{ row }">
               <SemanticTag
                 v-if="formatConfederation(row.federationRef)"

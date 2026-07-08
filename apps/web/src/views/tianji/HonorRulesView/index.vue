@@ -718,7 +718,7 @@ onMounted(() => {
 
 .rule-count-hint {
   margin: 0;
-  color: var(--muted);
+  color: var(--text-color-secondary);
   font-size: 13px;
 }
 

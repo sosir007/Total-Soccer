@@ -149,7 +149,7 @@ function isConfederation(value?: string | null) {
   :deep(.el-select__wrapper) {
     min-height: 38px;
     border-radius: 8px;
-    box-shadow: 0 0 0 1px var(--line) inset;
+    box-shadow: 0 0 0 1px var(--color-border-default) inset;
     transition:
       box-shadow 0.18s ease,
       background 0.18s ease;
@@ -161,19 +161,19 @@ function isConfederation(value?: string | null) {
     &.is-focused {
       background: #fff;
       box-shadow:
-        0 0 0 1px var(--green) inset,
+        0 0 0 1px var(--color-brand-primary) inset,
         0 8px 20px rgba(31, 139, 85, 0.1);
     }
   }
 
   :deep(.el-select__placeholder),
   :deep(.el-select__selected-item) {
-    color: #263f32;
+    color: var(--text-color-regular);
   }
 }
 
 .select-option {
-  --option-accent-color: var(--green);
+  --option-accent-color: var(--color-brand-primary);
 
   display: flex;
   gap: 12px;
@@ -209,7 +209,7 @@ function isConfederation(value?: string | null) {
 
   strong {
     overflow: hidden;
-    color: #14382a;
+    color: var(--text-color-primary);
     font-size: 14px;
     font-weight: 760;
     text-overflow: ellipsis;
@@ -218,7 +218,7 @@ function isConfederation(value?: string | null) {
 
   span {
     overflow: hidden;
-    color: var(--muted);
+    color: var(--text-color-secondary);
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -268,7 +268,7 @@ function isConfederation(value?: string | null) {
   padding: 0;
   margin-bottom: 4px;
   border-radius: 8px;
-  color: var(--ink);
+  color: var(--text-color-regular);
   line-height: normal;
 }
 
@@ -283,12 +283,12 @@ function isConfederation(value?: string | null) {
 
 :global(.common-select-popper .el-select-dropdown__item.selected) {
   background: #edf8f1;
-  color: var(--ink);
+  color: var(--text-color-primary);
   font-weight: 400;
 }
 
 :global(.common-select-popper .el-select-dropdown__item.selected::after) {
   right: 14px;
-  color: var(--green);
+  color: var(--color-brand-primary);
 }
 </style>

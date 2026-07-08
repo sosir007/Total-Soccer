@@ -239,10 +239,10 @@ onMounted(() => {
           :default-sort="{ prop: 'totalPa', order: 'descending' }"
           @sort-change="handleSortChange"
         >
-          <el-table-column label="序号" width="76" fixed>
+          <el-table-column label="序号" width="60" align="center" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
-          <el-table-column label="足联" width="120" fixed>
+          <el-table-column label="足联" width="100" fixed>
             <template #default="{ row }">
               <SemanticTag
                 v-if="formatConfederation(row.federationRef)"
@@ -253,7 +253,7 @@ onMounted(() => {
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column prop="name" label="国家" min-width="140" fixed>
+          <el-table-column prop="name" label="国家" min-width="160" fixed>
             <template #default="{ row }">
               <EntityNameCell
                 :id="row.id"
@@ -263,14 +263,14 @@ onMounted(() => {
               />
             </template>
           </el-table-column>
-          <el-table-column prop="playerCount" label="球员数" width="100" sortable />
-          <el-table-column prop="totalPa" label="总 PA" width="110" sortable="custom" />
-          <el-table-column prop="averagePa" label="平均 PA" width="110" sortable="custom">
+          <el-table-column prop="playerCount" label="球员数" min-width="120" sortable />
+          <el-table-column prop="totalPa" label="总 PA" min-width="120" sortable="custom" />
+          <el-table-column prop="averagePa" label="平均 PA" min-width="120" sortable="custom">
             <template #default="{ row }">{{ formatNumber(row.averagePa, 2) }}</template>
           </el-table-column>
-          <el-table-column prop="medalCount" label="奖牌数" width="100" sortable="custom" />
-          <el-table-column prop="championCount" label="冠军数" width="100" sortable="custom" />
-          <el-table-column prop="honorScore" label="荣誉分" width="120" sortable="custom">
+          <el-table-column prop="medalCount" label="奖牌数" min-width="120" sortable="custom" />
+          <el-table-column prop="championCount" label="冠军数" min-width="120" sortable="custom" />
+          <el-table-column prop="honorScore" label="荣誉分" min-width="120" sortable="custom">
             <template #default="{ row }">{{ formatNumber(row.honorScore, 2) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">

@@ -205,6 +205,7 @@ export interface PlayerListItem {
     country: NamedRef;
   }>;
   club?: (NamedRef & { exists: boolean }) | null;
+  initialClubRef?: (NamedRef & { exists: boolean }) | null;
   confederationRef?: NamedRef | null;
   playerTypeRef?: NamedRef | null;
   ethnicityRef?: NamedRef | null;

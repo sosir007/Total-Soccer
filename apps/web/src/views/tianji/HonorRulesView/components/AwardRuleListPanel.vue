@@ -39,7 +39,7 @@ const emit = defineEmits<{
 
     <template v-else>
       <el-table :data="items" border>
-        <el-table-column prop="sortOrder" label="排序" width="72" />
+        <el-table-column prop="sortOrder" label="排序" width="60" align="center" />
         <el-table-column prop="code" label="编码" min-width="130" show-overflow-tooltip />
         <el-table-column prop="name" label="规则名称" min-width="160" show-overflow-tooltip />
         <el-table-column label="范围" width="100">

@@ -128,7 +128,7 @@ const form = toRef(props, 'form');
   line-height: 1.35;
 
   span {
-    color: var(--muted);
+    color: var(--text-color-secondary);
     font-size: 12px;
   }
 }

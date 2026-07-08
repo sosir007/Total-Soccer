@@ -173,22 +173,22 @@ function formatScope(rule: HonorRuleItem) {
   > div {
     min-width: 0;
     padding: 10px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--color-border-default);
     border-radius: 8px;
-    background: var(--surface-soft);
+    background: var(--color-surface-soft);
   }
 
   span {
     display: block;
     margin-bottom: 4px;
-    color: var(--muted);
+    color: var(--text-color-secondary);
     font-size: 12px;
   }
 
   strong {
     display: block;
     overflow: hidden;
-    color: var(--text);
+    color: var(--text-color-primary);
     font-size: 14px;
     font-weight: 700;
     text-overflow: ellipsis;

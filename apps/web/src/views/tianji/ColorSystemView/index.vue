@@ -210,16 +210,16 @@ onMounted(() => {
   gap: 10px;
   align-items: center;
   margin: 2px 0 0;
-  color: var(--muted);
+  color: var(--text-color-secondary);
 
   strong {
-    color: var(--green);
+    color: var(--color-brand-primary);
   }
 }
 
 .color-system-table {
   code {
-    color: #3d4d43;
+    color: var(--text-color-primary);
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
     font-size: 12px;
     font-weight: 760;
@@ -238,14 +238,14 @@ onMounted(() => {
   }
 
   strong {
-    color: #334155;
+    color: var(--text-color-primary);
     font-size: 13px;
     font-weight: 820;
   }
 
   em {
     overflow: hidden;
-    color: #8a9890;
+    color: var(--text-color-secondary);
     font-size: 12px;
     font-style: normal;
     font-weight: 650;
