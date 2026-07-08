@@ -3,6 +3,7 @@ import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import OverflowTooltip from '@/components/OverflowTooltip.vue';
+import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type {
   CareerProfileLine,
@@ -11,6 +12,7 @@ import type {
 } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   country: CountryDetail;
@@ -144,11 +146,15 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
         </div>
         <div>
           <dt>足联</dt>
-          <dd>{{ formatRef(country.federationRef) }}</dd>
-        </div>
-        <div>
-          <dt>原始足联</dt>
-          <dd>{{ formatText(country.federation) }}</dd>
+          <dd>
+            <SemanticTag
+              v-if="formatRef(country.federationRef) !== '-'"
+              :variant="getConfederationVariant(formatRef(country.federationRef))"
+            >
+              {{ formatRef(country.federationRef) }}
+            </SemanticTag>
+            <span v-else>-</span>
+          </dd>
         </div>
         <div>
           <dt>外部链接</dt>
@@ -246,7 +252,9 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
 
     <div v-else class="lineup-board">
       <div v-for="group in country.lineupByPosition" :key="group.position" class="lineup-row">
-        <div class="lineup-position">{{ group.position }}</div>
+        <div class="lineup-position">
+          <PositionTags :value="group.position" />
+        </div>
         <div v-if="!group.items.length" class="lineup-empty">-</div>
         <div v-else class="lineup-players">
           <button

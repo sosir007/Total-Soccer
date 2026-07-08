@@ -4,11 +4,20 @@ import AbilityBadge from '@/components/AbilityBadge.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
+import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import { getPlayerStatusLabel, getPlayerStatusVariant } from '@/utils/tag-theme';
+import {
+  getCareerStatusLabel,
+  getCareerStatusVariant,
+  getConfederationVariant,
+  getLifeStatusLabel,
+  getLifeStatusVariant,
+  getPlayerStatusLabel,
+  getPlayerStatusVariant
+} from '@/utils/tag-theme';
 
 const props = defineProps<{
   player: PlayerDetail;
@@ -68,18 +77,6 @@ function formatBirthCity() {
 
 function formatFoot() {
   return formatText(props.player.foot || props.player.preferredFootRef?.name);
-}
-
-function formatBoolean(value?: boolean | null) {
-  if (value === true) {
-    return '是';
-  }
-
-  if (value === false) {
-    return '否';
-  }
-
-  return '-';
 }
 
 function playerExternalUrl() {
@@ -237,16 +234,6 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
         </div>
         <dl class="detail-list">
           <div>
-            <dt>国家</dt>
-            <dd>
-              <EntityLink
-                :id="player.country?.id"
-                type="country"
-                :name="formatRef(player.country)"
-              />
-            </dd>
-          </div>
-          <div>
             <dt>代表国籍</dt>
             <dd>
               <EntityLink
@@ -269,6 +256,18 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
                 />
               </div>
               <span v-else>{{ formatNationality() }}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>足联</dt>
+            <dd>
+              <SemanticTag
+                v-if="formatRef(player.confederationRef) !== '-'"
+                :variant="getConfederationVariant(formatRef(player.confederationRef))"
+              >
+                {{ formatRef(player.confederationRef) }}
+              </SemanticTag>
+              <span v-else>-</span>
             </dd>
           </div>
           <div>
@@ -307,20 +306,16 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
         </div>
         <dl class="detail-list">
           <div>
+            <dt>代表位置</dt>
+            <dd>
+              <PositionTags :value="player.primaryRole" />
+            </dd>
+          </div>
+          <div>
             <dt>位置</dt>
-            <dd>{{ formatText(player.positions) }}</dd>
-          </div>
-          <div>
-            <dt>荣誉分</dt>
-            <dd>{{ formatText(player.honorScore) }}</dd>
-          </div>
-          <div>
-            <dt>奖项数</dt>
-            <dd>{{ formatText(player.awardCount) }}</dd>
-          </div>
-          <div>
-            <dt>顶级奖项</dt>
-            <dd>{{ formatText(player.topAwardCount) }}</dd>
+            <dd>
+              <PositionTags :value="player.positions" />
+            </dd>
           </div>
           <div>
             <dt>左右脚</dt>
@@ -356,12 +351,30 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
             <dd>{{ formatText(player.clubs) }}</dd>
           </div>
           <div>
-            <dt>是否退役</dt>
-            <dd>{{ formatBoolean(player.retired) }}</dd>
+            <dt>生涯</dt>
+            <dd>
+              <SemanticTag
+                v-if="player.retired !== null && player.retired !== undefined"
+                :variant="getCareerStatusVariant(player.retired)"
+                size="small"
+              >
+                {{ getCareerStatusLabel(player.retired) }}
+              </SemanticTag>
+              <span v-else>-</span>
+            </dd>
           </div>
           <div>
-            <dt>是否去世</dt>
-            <dd>{{ formatBoolean(player.deceased) }}</dd>
+            <dt>生命</dt>
+            <dd>
+              <SemanticTag
+                v-if="player.deceased !== null && player.deceased !== undefined"
+                :variant="getLifeStatusVariant(player.deceased)"
+                size="small"
+              >
+                {{ getLifeStatusLabel(player.deceased) }}
+              </SemanticTag>
+              <span v-else>-</span>
+            </dd>
           </div>
           <div>
             <dt>成就</dt>

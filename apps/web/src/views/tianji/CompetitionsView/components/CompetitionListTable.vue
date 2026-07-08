@@ -3,7 +3,11 @@ import type { CompetitionListItem } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
-import { getCompetitionCategoryVariant, getCompetitionLevelVariant } from '@/utils/tag-theme';
+import {
+  getCompetitionCategoryVariant,
+  getCompetitionLevelVariant,
+  type SemanticTagVariant
+} from '@/utils/tag-theme';
 
 defineProps<{
   competitions: CompetitionListItem[];
@@ -32,6 +36,10 @@ const emit = defineEmits<{
 
 function getRowSequence(page: number, pageSize: number, index: number) {
   return (page - 1) * pageSize + index + 1;
+}
+
+function getTargetTypeVariant(row: CompetitionListItem): SemanticTagVariant {
+  return row.targetType === 'CLUB' ? 'object-club' : 'object-country';
 }
 </script>
 
@@ -70,8 +78,12 @@ function getRowSequence(page: number, pageSize: number, index: number) {
             />
           </template>
         </el-table-column>
-        <el-table-column label="对象" width="92">
-          <template #default="{ row }">{{ formatTargetType(row) }}</template>
+        <el-table-column label="对象" width="92" align="center" header-align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getTargetTypeVariant(row)">
+              {{ formatTargetType(row) }}
+            </SemanticTag>
+          </template>
         </el-table-column>
         <el-table-column label="适用范围" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">{{ formatScope(row) }}</template>

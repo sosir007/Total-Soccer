@@ -7,6 +7,7 @@ import type { CompetitionListItem } from '@/services/types/competitions';
 import { fetchClubs, fetchCountries } from '@/services/modules/catalog';
 import type { ClubListItem, CountryListItem } from '@/services/types/catalog';
 import type { PaginationResult } from '@/services/types/common';
+import { getPositionVariant } from '@/utils/tag-theme';
 
 export interface SelectOption {
   id: string;
@@ -380,8 +381,8 @@ function positionToOption(item: BaseConfigItem): SelectOption {
     description: item.description,
     group,
     meta: [code].filter(Boolean) as string[],
-    chipLabel: group,
-    chipTheme: `position-${groupThemeKey(group)}`
+    chipLabel: code || group,
+    chipTheme: getPositionVariant(code || group)
   };
 }
 
@@ -491,17 +492,6 @@ function resolvePositionGroup(item: BaseConfigItem, code: string) {
   };
 
   return groupMap[code] ?? item.group ?? '';
-}
-
-function groupThemeKey(group?: string | null) {
-  const map: Record<string, string> = {
-    前场: 'forward',
-    中场: 'midfield',
-    后场: 'backfield',
-    门将: 'goalkeeper'
-  };
-
-  return map[group ?? ''] ?? 'default';
 }
 
 function normalizeType(type: OptionType | BaseConfigType): OptionType {

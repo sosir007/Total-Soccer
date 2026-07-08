@@ -19,6 +19,7 @@ import CompetitionDetailView from '@/views/tianji/CompetitionDetailView/index.vu
 import AwardsView from '@/views/tianji/AwardsView/index.vue';
 import DataImportView from '@/views/tianji/DataImportView/index.vue';
 import BaseConfigView from '@/views/tianji/BaseConfigView/index.vue';
+import ColorSystemView from '@/views/tianji/ColorSystemView/index.vue';
 import RemarksView from '@/views/tianji/RemarksView/index.vue';
 import PermissionsView from '@/views/tianji/PermissionsView/index.vue';
 
@@ -167,6 +168,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'tianji-base',
         component: BaseConfigView,
         meta: { title: '基础配置' }
+      },
+      {
+        path: 'tianji/colors',
+        name: 'tianji-colors',
+        component: ColorSystemView,
+        meta: { title: '色彩体系' }
       },
       {
         path: 'tianji/remarks',

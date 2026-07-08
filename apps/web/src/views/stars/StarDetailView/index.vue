@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { fetchPlayerDetail } from '@/services/modules/catalog';
@@ -19,9 +19,24 @@ const loading = ref(false);
 const errorMessage = ref('');
 const player = ref<PlayerDetail | null>(null);
 const playerId = computed(() => String(route.params.id ?? ''));
+let requestSeq = 0;
+let disposed = false;
+
+function isActiveRequest(requestId: number, requestedPlayerId: string, requestedPath: string) {
+  return (
+    !disposed &&
+    requestId === requestSeq &&
+    playerId.value === requestedPlayerId &&
+    route.fullPath === requestedPath
+  );
+}
 
 async function loadPlayer() {
-  if (!playerId.value) {
+  const requestId = ++requestSeq;
+  const requestedPlayerId = playerId.value;
+  const requestedPath = route.fullPath;
+
+  if (!requestedPlayerId) {
     player.value = null;
     return;
   }
@@ -30,14 +45,25 @@ async function loadPlayer() {
   errorMessage.value = '';
 
   try {
-    const loadedPlayer = await fetchPlayerDetail(playerId.value);
+    const loadedPlayer = await fetchPlayerDetail(requestedPlayerId);
+
+    if (!isActiveRequest(requestId, requestedPlayerId, requestedPath)) {
+      return;
+    }
+
     player.value = loadedPlayer;
     routeTabsStore.setTitle(route.fullPath, loadedPlayer.chineseName);
   } catch (error) {
+    if (!isActiveRequest(requestId, requestedPlayerId, requestedPath)) {
+      return;
+    }
+
     errorMessage.value = error instanceof Error ? error.message : '巨星详情加载失败。';
     ElMessage.error(errorMessage.value);
   } finally {
-    loading.value = false;
+    if (isActiveRequest(requestId, requestedPlayerId, requestedPath)) {
+      loading.value = false;
+    }
   }
 }
 
@@ -64,6 +90,11 @@ watch(playerId, () => {
 
 onMounted(() => {
   void loadPlayer();
+});
+
+onBeforeUnmount(() => {
+  disposed = true;
+  requestSeq += 1;
 });
 </script>
 

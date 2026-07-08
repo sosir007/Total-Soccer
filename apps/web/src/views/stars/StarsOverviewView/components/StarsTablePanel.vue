@@ -5,11 +5,16 @@ import IconFont from '@/components/IconFont.vue';
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerListItem } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import {
+  getCareerStatusLabel,
+  getCareerStatusVariant,
   getConfederationVariant,
+  getLifeStatusLabel,
+  getLifeStatusVariant,
   getPlayerStatusLabel,
   getPlayerStatusVariant
 } from '@/utils/tag-theme';
@@ -47,6 +52,23 @@ function formatConfederation(ref?: NamedRef | null) {
 
 function formatDate(value?: string | number | null) {
   return value ? dayjs(value).format('YYYY-MM-DD') : '-';
+}
+
+function formatBirthDecade(value?: string | number | null) {
+  if (!value) {
+    return '-';
+  }
+
+  const birthDate = dayjs(value);
+
+  if (!birthDate.isValid()) {
+    return '-';
+  }
+
+  const decadeStart = Math.floor(birthDate.year() / 10) * 10;
+  const decadeEnd = String(decadeStart + 9).slice(-2);
+
+  return `${decadeStart}-${decadeEnd}`;
 }
 
 function formatAge(player: PlayerListItem) {
@@ -120,18 +142,6 @@ function formatEthnicity(player: PlayerListItem) {
   return formatText(player.ethnicityRef?.name || player.ethnicity);
 }
 
-function formatBoolean(value?: boolean | null) {
-  if (value === true) {
-    return '是';
-  }
-
-  if (value === false) {
-    return '否';
-  }
-
-  return '-';
-}
-
 function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
@@ -163,11 +173,17 @@ function formatMarketValue(value?: number | null) {
 
     <template v-else>
       <el-table :data="players" border>
-        <el-table-column label="序号" width="76" fixed>
+        <el-table-column label="序号" width="60" align="center" fixed>
           <template #default="{ $index }">{{ rowIndex($index) }}</template>
         </el-table-column>
         <el-table-column prop="uid" label="UID" width="110" fixed />
-        <el-table-column prop="chineseName" label="球员" min-width="170" fixed>
+        <el-table-column
+          prop="chineseName"
+          label="球员"
+          min-width="170"
+          show-overflow-tooltip
+          fixed
+        >
           <template #default="{ row }">
             <EntityNameCell
               :id="row.id"
@@ -177,7 +193,7 @@ function formatMarketValue(value?: number | null) {
             />
           </template>
         </el-table-column>
-        <el-table-column prop="pa" label="PA" width="90" sortable>
+        <el-table-column prop="pa" label="PA" width="80" align="center" sortable>
           <template #default="{ row }">
             <AbilityBadge type="PA" :value="row.pa" size="small" />
           </template>
@@ -185,26 +201,39 @@ function formatMarketValue(value?: number | null) {
         <el-table-column prop="honorScore" label="荣誉分" width="100" sortable>
           <template #default="{ row }">{{ formatText(row.honorScore) }}</template>
         </el-table-column>
-        <el-table-column prop="birthDate" label="生日" width="120" sortable>
-          <template #default="{ row }">{{ formatDate(row.birthDate) }}</template>
+        <el-table-column prop="birthDate" label="年代" width="90" align="center" sortable>
+          <template #default="{ row }">{{ formatBirthDecade(row.birthDate) }}</template>
         </el-table-column>
-        <el-table-column label="过世" width="120">
-          <template #default="{ row }">{{ formatDate(row.deathDate) }}</template>
+        <el-table-column prop="birthDate" label="生卒年龄" width="150" sortable>
+          <template #default="{ row }">
+            <div class="life-date-cell">
+              <div class="life-date-cell__dates">
+                <strong>{{ formatDate(row.birthDate) }}</strong>
+                <span>{{ formatDate(row.deathDate) }}</span>
+              </div>
+              <span class="life-date-cell__age">{{ formatAge(row) }}</span>
+            </div>
+          </template>
         </el-table-column>
-        <el-table-column label="年龄" width="80">
-          <template #default="{ row }">{{ formatAge(row) }}</template>
+        <el-table-column prop="primaryRole" label="代表位置" width="90" align="center">
+          <template #default="{ row }">
+            <PositionTags :value="row.primaryRole" />
+          </template>
         </el-table-column>
-        <el-table-column prop="primaryRole" label="代表位置" width="110" />
-        <el-table-column prop="positions" label="位置" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="height" label="身高" width="80" sortable />
-        <el-table-column prop="weight" label="体重" width="80" sortable />
-        <el-table-column prop="shirtNumber" label="球衣" width="80" />
-        <el-table-column prop="skinTone" label="肤色" width="90" />
-        <el-table-column prop="hairColor" label="发色" width="100" show-overflow-tooltip />
-        <el-table-column label="种族" width="90" show-overflow-tooltip>
+        <el-table-column prop="positions" label="位置" min-width="270">
+          <template #default="{ row }">
+            <PositionTags :value="row.positions" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="height" label="身高" width="80" align="center" sortable />
+        <el-table-column prop="weight" label="体重" width="80" align="center" sortable />
+        <el-table-column prop="shirtNumber" label="球衣" width="80" align="center" />
+        <el-table-column prop="skinTone" label="肤色" width="80" align="center" />
+        <el-table-column prop="hairColor" label="发色" width="80" show-overflow-tooltip />
+        <el-table-column label="种族" width="132" show-overflow-tooltip>
           <template #default="{ row }">{{ formatEthnicity(row) }}</template>
         </el-table-column>
-        <el-table-column label="左右脚" width="100" show-overflow-tooltip>
+        <el-table-column label="左右脚" width="80" align="center" show-overflow-tooltip>
           <template #default="{ row }">{{ formatFoot(row) }}</template>
         </el-table-column>
         <el-table-column label="足联" min-width="120">
@@ -291,11 +320,29 @@ function formatMarketValue(value?: number | null) {
         <el-table-column label="市场价值" width="120">
           <template #default="{ row }">{{ formatMarketValue(row.marketValue) }}</template>
         </el-table-column>
-        <el-table-column label="是否退役" width="100">
-          <template #default="{ row }">{{ formatBoolean(row.retired) }}</template>
+        <el-table-column label="生涯" width="80" align="center">
+          <template #default="{ row }">
+            <SemanticTag
+              v-if="row.retired !== null && row.retired !== undefined"
+              :variant="getCareerStatusVariant(row.retired)"
+              size="small"
+            >
+              {{ getCareerStatusLabel(row.retired) }}
+            </SemanticTag>
+            <span v-else>-</span>
+          </template>
         </el-table-column>
-        <el-table-column label="是否去世" width="100">
-          <template #default="{ row }">{{ formatBoolean(row.deceased) }}</template>
+        <el-table-column label="生命" width="80" align="center">
+          <template #default="{ row }">
+            <SemanticTag
+              v-if="row.deceased !== null && row.deceased !== undefined"
+              :variant="getLifeStatusVariant(row.deceased)"
+              size="small"
+            >
+              {{ getLifeStatusLabel(row.deceased) }}
+            </SemanticTag>
+            <span v-else>-</span>
+          </template>
         </el-table-column>
         <el-table-column prop="databaseSource" label="数据库" width="100" />
         <el-table-column
@@ -305,10 +352,10 @@ function formatMarketValue(value?: number | null) {
           show-overflow-tooltip
         />
         <el-table-column prop="achievement" label="成就" min-width="240" show-overflow-tooltip />
-        <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
-        <el-table-column label="状态" width="120">
+        <el-table-column prop="remark" label="备注" min-width="240" show-overflow-tooltip />
+        <el-table-column label="状态" width="80" align="center">
           <template #default="{ row }">
-            <SemanticTag :variant="getPlayerStatusVariant(row)">
+            <SemanticTag :variant="getPlayerStatusVariant(row)" size="small">
               {{ getPlayerStatusLabel(row) }}
             </SemanticTag>
           </template>
@@ -339,3 +386,45 @@ function formatMarketValue(value?: number | null) {
     </template>
   </div>
 </template>
+
+<style scoped lang="scss">
+.life-date-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.life-date-cell__dates {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.45;
+
+  strong,
+  span {
+    min-width: 0;
+    overflow: hidden;
+    color: #94a3b8;
+    font-weight: 720;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: #334155;
+    font-weight: 820;
+  }
+}
+
+.life-date-cell__age {
+  min-width: 24px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 820;
+  text-align: right;
+  white-space: nowrap;
+}
+</style>
