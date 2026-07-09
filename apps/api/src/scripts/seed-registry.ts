@@ -104,6 +104,24 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'fifa-intercontinental-cup',
+    label: '国际足联洲际杯',
+    file: 'src/scripts/seeds/competitions/club/global/seed-fifa-intercontinental-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/global/fifa-intercontinental-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'global'
+  },
+  {
+    key: 'european-south-american-cup',
+    label: '欧洲/南美洲杯',
+    file: 'src/scripts/seeds/competitions/club/global/seed-european-south-american-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/global/european-south-american-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'global'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',
