@@ -95,6 +95,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'fifa-club-world-cup',
+    label: '国际足联俱乐部世界杯',
+    file: 'src/scripts/seeds/competitions/club/global/seed-fifa-club-world-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/global/fifa-club-world-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'global'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',

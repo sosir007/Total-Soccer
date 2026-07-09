@@ -309,7 +309,7 @@ function clubToOption(club: ClubListItem): SelectOption {
     label: club.name,
     uid: club.uid,
     description: country,
-    meta: [formatUid(club.uid), country].filter(Boolean) as string[],
+    meta: [formatUid(club.uid), country, club.formerName, club.alias].filter(Boolean) as string[],
     chipLabel: confederation,
     confederationName: confederation
   };

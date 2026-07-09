@@ -1,25 +1,38 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import BaseOptionSelect from './BaseOptionSelect.vue';
 import { useOptionStore } from '@/stores/options';
 
 const model = defineModel<string | string[]>({ default: '' });
-withDefaults(
+const props = withDefaults(
   defineProps<{
     placeholder?: string;
     clearable?: boolean;
     disabled?: boolean;
     multiple?: boolean;
+    onlyVisibleInCatalog?: boolean;
   }>(),
   {
     placeholder: '全部俱乐部',
     clearable: true,
     disabled: false,
-    multiple: false
+    multiple: false,
+    onlyVisibleInCatalog: false
   }
 );
 
 const optionStore = useOptionStore();
+const localOptions = computed(() => {
+  if (!props.onlyVisibleInCatalog) {
+    return optionStore.clubOptions;
+  }
+
+  const visibleClubIds = new Set(
+    optionStore.clubs.filter((club) => club.visibleInCatalog !== false).map((club) => club.id)
+  );
+
+  return optionStore.clubOptions.filter((option) => visibleClubIds.has(option.id));
+});
 
 onMounted(() => {
   void optionStore.ensureClubs();
@@ -29,7 +42,7 @@ onMounted(() => {
 <template>
   <BaseOptionSelect
     v-model="model"
-    :options="optionStore.clubOptions"
+    :options="localOptions"
     :loading="optionStore.loading.clubs"
     :placeholder="placeholder"
     :clearable="clearable"

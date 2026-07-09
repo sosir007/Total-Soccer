@@ -197,7 +197,7 @@ onMounted(() => {
             :model-value="filters.includeHidden ? 'all' : 'default'"
             :options="[
               { label: '默认国家', value: 'default' },
-              { label: '全部普通国家', value: 'all' }
+              { label: '全部国家', value: 'all' }
             ]"
             @change="changeListMode($event === 'all')"
           />

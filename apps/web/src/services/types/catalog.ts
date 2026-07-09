@@ -283,9 +283,12 @@ export interface ClubListItem {
   id: string;
   uid: string;
   name: string;
+  formerName?: string | null;
+  alias?: string | null;
   externalUrl?: string | null;
   remark?: string | null;
   exists: boolean;
+  visibleInCatalog: boolean;
   country?: string | null;
   federation?: string | null;
   playerCount?: number | null;
@@ -405,9 +408,12 @@ export interface CountryPayload {
 export interface ClubPayload {
   uid: string;
   name: string;
+  formerName?: string;
+  alias?: string;
   countryId?: string;
   confederationId?: string;
   exists: boolean;
+  visibleInCatalog: boolean;
   externalUrl?: string;
   remark?: string;
 }

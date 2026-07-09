@@ -275,9 +275,12 @@ model Club {
   importKey          String                @unique
   uid                String
   name               String
+  formerName         String?
+  alias              String?
   externalUrl        String?
   remark             String?
   exists             Boolean               @default(true)
+  visibleInCatalog   Boolean               @default(true)
   countryUid         String?
   countryId          String?
   country            String?
@@ -303,6 +306,7 @@ model Club {
   @@index([country])
   @@index([federation])
   @@index([federationId])
+  @@index([visibleInCatalog])
 }
 
 model PlayerCareer {

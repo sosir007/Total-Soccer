@@ -32,7 +32,7 @@ export class DashboardService {
     ] = await this.prisma.$transaction([
       this.prisma.player.count(),
       this.prisma.country.count(),
-      this.prisma.club.count({ where: { exists: true } }),
+      this.prisma.club.count({ where: { visibleInCatalog: true } }),
       this.prisma.honorRule.count(),
       this.prisma.player.aggregate({
         _avg: { pa: true },
@@ -86,7 +86,7 @@ export class DashboardService {
       }),
       this.prisma.club.findMany({
         where: {
-          exists: true,
+          visibleInCatalog: true,
           honorScore: {
             not: null
           }

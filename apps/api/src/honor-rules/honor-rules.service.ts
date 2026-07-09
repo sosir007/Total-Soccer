@@ -60,7 +60,10 @@ const EMPTY_TARGET_STATS: RecalculateTargetStats = {
   honorScore: 0
 };
 
-const DEPRECATED_RULE_CODES = ['CLUB_INTERNATIONAL_LEVEL_2_OTHER'];
+const DEPRECATED_RULE_CODES = [
+  'CLUB_INTERNATIONAL_LEVEL_2_OTHER',
+  'CLUB_INTERNATIONAL_LEVEL_3_CUP'
+];
 
 const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
   {
@@ -159,11 +162,11 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     level: '一级',
     format: '杯赛',
     scopeType: CompetitionScopeType.GLOBAL,
-    baseScore: 12,
+    baseScore: 16,
     placementScope: HonorRulePlacementScope.TOP_FOUR,
     conversionType: HonorRuleConversionType.CLUB_WORLD_CUP_STAGE,
     sortOrder: 110,
-    remark: '2025 后新世俱杯等俱乐部国际一级杯赛。'
+    remark: '世俱杯等俱乐部国际一级杯赛；2025 前按阶段换算为 8 分，2025 起为 16 分。'
   },
   {
     code: 'CLUB_INTERNATIONAL_LEVEL_2_CUP',
@@ -173,24 +176,10 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     level: '二级',
     format: '杯赛',
     scopeType: CompetitionScopeType.GLOBAL,
-    baseScore: 8,
-    placementScope: HonorRulePlacementScope.TOP_TWO,
-    conversionType: HonorRuleConversionType.CLUB_WORLD_CUP_STAGE,
-    sortOrder: 120,
-    remark: '旧世俱杯等俱乐部国际二级杯赛。'
-  },
-  {
-    code: 'CLUB_INTERNATIONAL_LEVEL_3_CUP',
-    name: '俱乐部国际三级杯赛',
-    targetType: CompetitionTargetType.CLUB,
-    category: '国际',
-    level: '三级',
-    format: '杯赛',
-    scopeType: CompetitionScopeType.GLOBAL,
     baseScore: 6,
     placementScope: HonorRulePlacementScope.TOP_TWO,
     conversionType: HonorRuleConversionType.NONE,
-    sortOrder: 130,
+    sortOrder: 120,
     remark: '丰田杯、洲际杯等单场世界冠军杯。'
   },
   {
@@ -918,6 +907,11 @@ export class HonorRulesService {
       if (year <= 1980) return 4 / 3;
       if (year <= 1988) return 1;
       return 2 / 3;
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {
+      if (!year) return 1;
+      return year < 2025 ? 0.5 : 1;
     }
 
     return 1;

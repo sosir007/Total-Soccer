@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type {
@@ -376,9 +375,14 @@ function openScoreDialog(row: HonorSummaryRow) {
       </template>
     </el-table-column>
 
-    <el-table-column v-if="entityType === 'club'" label="国家" width="120" fixed>
+    <el-table-column v-if="entityType === 'club'" label="国家" width="160" fixed>
       <template #default="{ row }">
-        <EntityLink :id="row.countryRef?.id" type="country" :name="row.countryRef?.name" />
+        <EntityNameCell
+          :id="row.countryRef?.id"
+          type="country"
+          :title="row.countryRef?.name"
+          :subtitle="`UID ${row.countryRef?.uid || '-'}`"
+        />
       </template>
     </el-table-column>
 
@@ -393,15 +397,14 @@ function openScoreDialog(row: HonorSummaryRow) {
       </template>
     </el-table-column>
 
-    <el-table-column v-if="entityType === 'club'" label="UID" width="92" fixed>
-      <template #default="{ row }">
-        {{ row.uid || '-' }}
-      </template>
-    </el-table-column>
-
     <el-table-column v-if="entityType === 'club'" label="俱乐部" width="180" fixed>
       <template #default="{ row }">
-        <EntityLink :id="row.id" :type="entityType" :name="row.name" />
+        <EntityNameCell
+          :id="row.id"
+          type="club"
+          :title="row.name"
+          :subtitle="`UID ${row.uid || '-'}`"
+        />
       </template>
     </el-table-column>
 

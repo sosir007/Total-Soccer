@@ -33,11 +33,19 @@ type SeedCountryRef = {
 export type SeedClub = {
   uid?: string;
   name: string;
+  formerName?: string | null;
+  alias?: string | null;
   countryName?: string;
   confederationCode?: string;
   externalUrl?: string | null;
   remark?: string | null;
   exists?: boolean;
+  visibleInCatalog?: boolean;
+  forceUid?: boolean;
+  forceName?: boolean;
+  forceProfileFields?: boolean;
+  forceExists?: boolean;
+  forceVisibleInCatalog?: boolean;
 };
 
 type SeedClubRef = {
@@ -91,6 +99,7 @@ type CompetitionSeedOptions<T extends SeedEdition> = {
     editions: number;
     standings: number;
   };
+  allowPartialStandings?: boolean;
   validateOnly?: boolean;
   completedMessage: string;
 };
@@ -128,6 +137,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
   buildStandings,
   scope,
   expected,
+  allowPartialStandings = false,
   validateOnly = isValidateOnlyRequested(),
   completedMessage
 }: CompetitionSeedOptions<T>) {
@@ -157,7 +167,8 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     editions,
     editionStandings,
     scope,
-    expected
+    expected,
+    allowPartialStandings
   });
 
   if (validateOnly) {
@@ -232,7 +243,13 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     const standingMode =
       editionData.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
 
-    validateEditionStandings(competition.code, editionName, standingMode, standings);
+    validateEditionStandings(
+      competition.code,
+      editionName,
+      standingMode,
+      standings,
+      allowPartialStandings
+    );
 
     const edition = await prisma.competitionEdition.upsert({
       where: {
@@ -532,6 +549,7 @@ async function upsertSeedClubs(
       federationId: confederation?.id ?? null,
       federation: confederation?.name ?? null
     });
+    clubs.set(clubData.name, club);
     clubs.set(club.name, club);
   }
 
@@ -594,14 +612,22 @@ async function upsertClub(
   const existing = await findExistingClub(prisma, uid, input.name);
 
   if (existing) {
+    const profileValue = <T>(nextValue: T | undefined, currentValue: T) =>
+      input.forceProfileFields && nextValue !== undefined ? nextValue : currentValue;
+
     return prisma.club.update({
       where: { id: existing.id },
       data: {
-        uid: existing.uid === '-' && uid !== '-' ? uid : existing.uid,
-        name: input.name,
-        externalUrl: input.externalUrl ?? existing.externalUrl,
-        remark: input.remark ?? existing.remark,
-        exists: input.exists ?? existing.exists,
+        uid: input.forceUid ? uid : existing.uid,
+        name: input.forceName ? input.name : existing.name,
+        formerName: profileValue(input.formerName, existing.formerName),
+        alias: profileValue(input.alias, existing.alias),
+        externalUrl: profileValue(input.externalUrl, existing.externalUrl),
+        remark: profileValue(input.remark, existing.remark),
+        exists: input.forceExists ? (input.exists ?? existing.exists) : existing.exists,
+        visibleInCatalog: input.forceVisibleInCatalog
+          ? (input.visibleInCatalog ?? existing.visibleInCatalog)
+          : existing.visibleInCatalog,
         countryId: existing.countryId ?? input.countryId,
         country: existing.country ?? input.countryName ?? null,
         federationId: existing.federationId ?? input.federationId,
@@ -616,9 +642,12 @@ async function upsertClub(
       importKey: `seed:club:${uid === '-' ? input.name : uid}`,
       uid,
       name: input.name,
+      formerName: input.formerName ?? null,
+      alias: input.alias ?? null,
       externalUrl: input.externalUrl ?? null,
       remark: input.remark ?? null,
       exists: input.exists ?? true,
+      visibleInCatalog: input.visibleInCatalog ?? true,
       countryId: input.countryId,
       country: input.countryName ?? null,
       federationId: input.federationId,
@@ -659,9 +688,13 @@ async function findExistingClub(prisma: PrismaClient, uid: string, name: string)
   const select = {
     id: true,
     uid: true,
+    name: true,
+    formerName: true,
+    alias: true,
     externalUrl: true,
     remark: true,
     exists: true,
+    visibleInCatalog: true,
     countryId: true,
     country: true,
     federationId: true,
@@ -786,7 +819,8 @@ function validateEditionStandings(
   competitionCode: string,
   editionName: string,
   mode: CompetitionEditionStandingMode,
-  standings: SeedStanding[]
+  standings: SeedStanding[],
+  allowPartial = false
 ) {
   const context = `${competitionCode} ${editionName}`;
   const count = (placement: CompetitionStandingPlacement) =>
@@ -802,6 +836,15 @@ function validateEditionStandings(
   const assertCounts = (expected: typeof counts) => {
     for (const [key, expectedCount] of Object.entries(expected)) {
       const actualCount = counts[key as keyof typeof counts];
+
+      if (allowPartial) {
+        if (actualCount > expectedCount) {
+          throw new Error(
+            `${context}: invalid partial standings for ${mode}. Expected ${key}<=${expectedCount}, got ${actualCount}.`
+          );
+        }
+        continue;
+      }
 
       if (actualCount !== expectedCount) {
         throw new Error(
@@ -866,7 +909,8 @@ function validateSeedInput<T extends SeedEdition>({
   editions,
   editionStandings,
   scope,
-  expected
+  expected,
+  allowPartialStandings
 }: {
   competitionCode: string;
   targetType: CompetitionTargetType;
@@ -878,6 +922,7 @@ function validateSeedInput<T extends SeedEdition>({
   editionStandings: Array<{ edition: T; standings: SeedStanding[] }>;
   scope?: CompetitionSeedOptions<T>['scope'];
   expected?: CompetitionSeedOptions<T>['expected'];
+  allowPartialStandings?: boolean;
 }) {
   const editionNames = editions.map((edition) => edition.name ?? formatEditionName(edition));
   const duplicateEditionNames = findDuplicates(editionNames);
@@ -891,7 +936,13 @@ function validateSeedInput<T extends SeedEdition>({
   for (const { edition, standings } of editionStandings) {
     const editionName = edition.name ?? formatEditionName(edition);
     const standingMode = edition.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH;
-    validateEditionStandings(competitionCode, editionName, standingMode, standings);
+    validateEditionStandings(
+      competitionCode,
+      editionName,
+      standingMode,
+      standings,
+      allowPartialStandings
+    );
     validateStandingTargets(`${competitionCode} ${editionName}`, targetType, standings);
   }
 

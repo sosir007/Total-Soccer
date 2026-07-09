@@ -25,6 +25,7 @@ const filters = reactive({
   keyword: '',
   confederationId: '',
   countryId: '',
+  includeHidden: false,
   sortBy: 'totalPa',
   sortOrder: 'desc' as 'asc' | 'desc'
 });
@@ -42,6 +43,7 @@ async function loadClubs() {
       keyword: filters.keyword || undefined,
       confederationId: filters.confederationId || undefined,
       countryId: filters.countryId || undefined,
+      includeHidden: filters.includeHidden,
       sortBy: filters.sortBy,
       sortOrder: filters.sortOrder
     });
@@ -65,7 +67,13 @@ function resetFilters() {
   filters.keyword = '';
   filters.confederationId = '';
   filters.countryId = '';
+  filters.includeHidden = false;
   void loadClubs();
+}
+
+function changeListMode(includeHidden: boolean) {
+  filters.includeHidden = includeHidden;
+  submitFilters();
 }
 
 function openCreateDialog() {
@@ -188,6 +196,16 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="国家">
           <CountrySelect v-model="filters.countryId" />
+        </el-form-item>
+        <el-form-item label="列表范围">
+          <el-segmented
+            :model-value="filters.includeHidden ? 'all' : 'default'"
+            :options="[
+              { label: '默认球队', value: 'default' },
+              { label: '全部球队', value: 'all' }
+            ]"
+            @change="changeListMode($event === 'all')"
+          />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">

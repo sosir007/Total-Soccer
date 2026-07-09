@@ -347,11 +347,13 @@ export class ClubsService {
     const keyword = query.keyword?.trim();
 
     return {
-      ...(query.includeHidden === 'true' ? {} : { exists: true }),
+      ...(query.includeHidden === 'true' ? {} : { visibleInCatalog: true }),
       ...(keyword
         ? {
             OR: [
               { name: { contains: keyword, mode: 'insensitive' } },
+              { formerName: { contains: keyword, mode: 'insensitive' } },
+              { alias: { contains: keyword, mode: 'insensitive' } },
               { uid: { contains: keyword, mode: 'insensitive' } },
               { country: { contains: keyword, mode: 'insensitive' } },
               { federation: { contains: keyword, mode: 'insensitive' } }
@@ -370,9 +372,12 @@ export class ClubsService {
       Prisma.ClubUncheckedCreateInput,
       | 'uid'
       | 'name'
+      | 'formerName'
+      | 'alias'
       | 'externalUrl'
       | 'remark'
       | 'exists'
+      | 'visibleInCatalog'
       | 'country'
       | 'countryId'
       | 'countryUid'
@@ -388,9 +393,12 @@ export class ClubsService {
     return {
       uid,
       name,
+      formerName: this.optionalText(body.formerName),
+      alias: this.optionalText(body.alias),
       externalUrl: this.optionalText(body.externalUrl),
       remark: this.optionalText(body.remark),
       exists: body.exists ?? true,
+      visibleInCatalog: body.visibleInCatalog ?? true,
       country: country?.name ?? null,
       countryId: country?.id ?? null,
       countryUid: country?.uid ?? null,
@@ -656,8 +664,7 @@ export class ClubsService {
       ? await this.attachComputedStats(
           await this.prisma.club.findMany({
             where: {
-              id: { in: clubIds },
-              exists: true
+              id: { in: clubIds }
             },
             include: CLUB_INCLUDE
           })
@@ -1128,6 +1135,11 @@ export class ClubsService {
       if (year <= 1988) return 1;
 
       return 2 / 3;
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {
+      if (!year) return 1;
+      return year < 2025 ? 0.5 : 1;
     }
 
     return 1;

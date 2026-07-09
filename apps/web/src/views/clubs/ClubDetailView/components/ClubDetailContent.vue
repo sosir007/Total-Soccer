@@ -137,8 +137,20 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dd>{{ club.uid }}</dd>
         </div>
         <div>
-          <dt>是否展示</dt>
+          <dt>曾用名</dt>
+          <dd>{{ formatText(club.formerName) }}</dd>
+        </div>
+        <div>
+          <dt>别名</dt>
+          <dd>{{ formatText(club.alias) }}</dd>
+        </div>
+        <div>
+          <dt>是否存在</dt>
           <dd>{{ club.exists ? '是' : '否' }}</dd>
+        </div>
+        <div>
+          <dt>列表展示</dt>
+          <dd>{{ club.visibleInCatalog ? '是' : '否' }}</dd>
         </div>
         <div>
           <dt>荣誉分</dt>
