@@ -20,10 +20,27 @@ import type {
 const COMPETITION_CATEGORIES = ['国际', '洲际', '国内', '其他'] as const;
 const COMPETITION_LEVELS = ['一级', '二级', '三级', '四级'] as const;
 const COMPETITION_FORMATS = ['联赛', '杯赛', '其他'] as const;
+const COMPETITION_TARGET_ORDER: Record<CompetitionTargetType, number> = {
+  COUNTRY: 10,
+  CLUB: 20
+};
+const COMPETITION_SCOPE_ORDER: Record<CompetitionScopeType, number> = {
+  GLOBAL: 10,
+  CONFEDERATION: 20,
+  COUNTRY: 30,
+  CUSTOM: 40
+};
+const COMPETITION_CATEGORY_ORDER: Map<string, number> = new Map(
+  COMPETITION_CATEGORIES.map((category, index) => [category, index + 1])
+);
+const COMPETITION_LEVEL_ORDER: Map<string, number> = new Map(
+  COMPETITION_LEVELS.map((level, index) => [level, index + 1])
+);
 
 const COUNTRY_REF_SELECT = {
   id: true,
   uid: true,
+  uidSort: true,
   name: true,
   externalUrl: true,
   visibleInCatalog: true,
@@ -33,6 +50,7 @@ const COUNTRY_REF_SELECT = {
     select: {
       id: true,
       uid: true,
+      uidSort: true,
       name: true,
       externalUrl: true
     }
@@ -45,7 +63,8 @@ const COMPETITION_INCLUDE = {
       id: true,
       uid: true,
       code: true,
-      name: true
+      name: true,
+      sortOrder: true
     }
   },
   country: {
@@ -58,7 +77,8 @@ const COMPETITION_INCLUDE = {
           id: true,
           uid: true,
           code: true,
-          name: true
+          name: true,
+          sortOrder: true
         }
       }
     }
@@ -76,6 +96,76 @@ const COMPETITION_INCLUDE = {
     }
   }
 } satisfies Prisma.CompetitionInclude;
+
+type CompetitionListItem = Prisma.CompetitionGetPayload<{
+  include: typeof COMPETITION_INCLUDE;
+}>;
+
+function compareCompetitionListItems(a: CompetitionListItem, b: CompetitionListItem) {
+  return (
+    compareNumber(targetRank(a), targetRank(b)) ||
+    compareNumber(scopeRank(a), scopeRank(b)) ||
+    compareNumber(categoryRank(a), categoryRank(b)) ||
+    compareNumber(levelRank(a), levelRank(b)) ||
+    compareNumber(confederationRank(a), confederationRank(b)) ||
+    compareNumber(countryRank(a), countryRank(b)) ||
+    compareNumber(a.sortOrder, b.sortOrder) ||
+    a.name.localeCompare(b.name, 'zh-Hans-CN')
+  );
+}
+
+function compareNumber(a: number, b: number) {
+  return a - b;
+}
+
+function targetRank(competition: CompetitionListItem) {
+  return COMPETITION_TARGET_ORDER[competition.targetType] ?? 9999;
+}
+
+function scopeRank(competition: CompetitionListItem) {
+  return COMPETITION_SCOPE_ORDER[competition.scopeType] ?? 9999;
+}
+
+function categoryRank(competition: CompetitionListItem) {
+  return competition.category
+    ? (COMPETITION_CATEGORY_ORDER.get(competition.category) ?? 9999)
+    : 9999;
+}
+
+function levelRank(competition: CompetitionListItem) {
+  return competition.level ? (COMPETITION_LEVEL_ORDER.get(competition.level) ?? 9999) : 9999;
+}
+
+function confederationRank(competition: CompetitionListItem) {
+  const ranks = [
+    competition.confederation?.sortOrder,
+    ...competition.scopeConfederations.map((scope) => scope.confederation.sortOrder)
+  ].filter((rank): rank is number => Number.isFinite(rank));
+
+  return ranks.length ? Math.min(...ranks) : 9999;
+}
+
+function countryRank(competition: CompetitionListItem) {
+  const ranks = [
+    countrySortValue(competition.country),
+    ...competition.scopeCountries.map((scope) => countrySortValue(scope.country))
+  ].filter((rank): rank is number => Number.isFinite(rank));
+
+  return ranks.length ? Math.min(...ranks) : 9999;
+}
+
+function countrySortValue(country?: CompetitionListItem['country']) {
+  if (!country) {
+    return undefined;
+  }
+
+  if (Number.isFinite(country.uidSort)) {
+    return country.uidSort;
+  }
+
+  const numericUid = Number(country.uid);
+  return Number.isFinite(numericUid) ? numericUid : undefined;
+}
 
 const COMPETITION_DETAIL_INCLUDE = {
   ...COMPETITION_INCLUDE,
@@ -151,16 +241,16 @@ export class CompetitionsService {
         ? {}
         : { includeInStats: query.includeInStats === 'true' })
     };
-    const [items, total] = await this.prisma.$transaction([
+    const [allItems, total] = await this.prisma.$transaction([
       this.prisma.competition.findMany({
         where,
-        include: COMPETITION_INCLUDE,
-        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-        skip: pagination.skip,
-        take: pagination.take
+        include: COMPETITION_INCLUDE
       }),
       this.prisma.competition.count({ where })
     ]);
+    const items = allItems
+      .sort(compareCompetitionListItems)
+      .slice(pagination.skip, pagination.skip + pagination.take);
 
     return {
       items,

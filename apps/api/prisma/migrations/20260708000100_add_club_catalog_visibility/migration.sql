@@ -5,7 +5,7 @@ CREATE INDEX "Club_visibleInCatalog_idx" ON "Club"("visibleInCatalog");
 
 WITH seed_clubs("countryName", "clubName", "uid", "remark") AS (
   VALUES
-    ('巴西', '科林蒂安', '316', NULL),
+    ('巴西', '科林蒂安', '319', NULL),
     ('巴西', '瓦斯科达伽马', '339', NULL),
     ('沙特阿拉伯', '吉达联合', '106063', NULL),
     ('巴西', '巴西国际', '326', NULL),

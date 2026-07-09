@@ -173,6 +173,10 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dt>备注</dt>
           <dd>{{ formatText(country.remark) }}</dd>
         </div>
+        <div>
+          <dt>列表展示</dt>
+          <dd>{{ country.visibleInCatalog === false ? '否' : '是' }}</dd>
+        </div>
       </dl>
     </div>
 
@@ -195,8 +199,24 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dd>{{ formatNumber(country.playerCount) }}</dd>
         </div>
         <div>
+          <dt>平均 PA</dt>
+          <dd>{{ formatNumber(country.averagePa, 2) }}</dd>
+        </div>
+        <div>
+          <dt>总 PA</dt>
+          <dd>{{ formatNumber(country.totalPa) }}</dd>
+        </div>
+        <div>
           <dt>球员平均荣誉分</dt>
           <dd>{{ formatNumber(country.averageHonorScore, 2) }}</dd>
+        </div>
+        <div>
+          <dt>荣誉分</dt>
+          <dd>{{ formatNumber(country.honorScore, 2) }}</dd>
+        </div>
+        <div>
+          <dt>冠军数</dt>
+          <dd>{{ formatNumber(country.championCount) }}</dd>
         </div>
       </dl>
     </div>

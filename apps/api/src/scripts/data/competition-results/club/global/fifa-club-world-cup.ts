@@ -209,7 +209,7 @@ export const FIFA_CLUB_WORLD_CUP_REQUIRED_CLUBS: SeedClub[] = [
     countryName: '阿联酋',
     confederationCode: 'AFC'
   },
-  { uid: '93', name: '河床竞技', countryName: '阿根廷', confederationCode: 'CONMEBOL' },
+  { uid: '94', name: '河床竞技', countryName: '阿根廷', confederationCode: 'CONMEBOL' },
   { uid: '324', name: '格雷米奥', countryName: '巴西', confederationCode: 'CONMEBOL' },
   { uid: '322', name: '弗拉门戈', countryName: '巴西', confederationCode: 'CONMEBOL' },
   { uid: '329', name: '帕尔梅拉斯', countryName: '巴西', confederationCode: 'CONMEBOL' },
@@ -222,7 +222,7 @@ export const FIFA_CLUB_WORLD_CUP_REQUIRED_CLUBS: SeedClub[] = [
   },
   { uid: '679', name: '曼城', countryName: '英格兰', confederationCode: 'UEFA' },
   { uid: '868', name: '巴黎圣日耳曼', countryName: '法国', confederationCode: 'UEFA' },
-  { uid: '316', name: '科林蒂安', countryName: '巴西', confederationCode: 'CONMEBOL' },
+  { uid: '319', name: '科林蒂安', countryName: '巴西', confederationCode: 'CONMEBOL' },
   { uid: '339', name: '瓦斯科达伽马', countryName: '巴西', confederationCode: 'CONMEBOL' },
   { uid: '106063', name: '吉达联合', countryName: '沙特阿拉伯', confederationCode: 'AFC' },
   { uid: '326', name: '巴西国际', countryName: '巴西', confederationCode: 'CONMEBOL' },

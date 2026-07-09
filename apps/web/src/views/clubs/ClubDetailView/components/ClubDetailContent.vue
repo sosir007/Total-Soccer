@@ -7,6 +7,7 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import type { CareerProfileLine, ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   club: ClubDetail;
@@ -145,16 +146,20 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dd>{{ formatText(club.alias) }}</dd>
         </div>
         <div>
-          <dt>是否存在</dt>
-          <dd>{{ club.exists ? '是' : '否' }}</dd>
+          <dt>国家</dt>
+          <dd>{{ formatRef(club.countryRef) }}</dd>
         </div>
         <div>
-          <dt>列表展示</dt>
-          <dd>{{ club.visibleInCatalog ? '是' : '否' }}</dd>
-        </div>
-        <div>
-          <dt>荣誉分</dt>
-          <dd>{{ formatNumber(club.honorScore, 2) }}</dd>
+          <dt>足联</dt>
+          <dd>
+            <SemanticTag
+              v-if="formatRef(club.federationRef) !== '-'"
+              :variant="getConfederationVariant(formatRef(club.federationRef))"
+            >
+              {{ formatRef(club.federationRef) }}
+            </SemanticTag>
+            <span v-else>-</span>
+          </dd>
         </div>
         <div>
           <dt>外部链接</dt>
@@ -178,25 +183,45 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
 
     <div class="panel">
       <div class="panel-header">
-        <h3>关联信息</h3>
+        <h3>资料库关联</h3>
         <span class="status-pill">真实数据</span>
       </div>
       <dl class="detail-list">
         <div>
-          <dt>国家</dt>
-          <dd>{{ formatRef(club.countryRef) }}</dd>
+          <dt>关联球员</dt>
+          <dd>{{ formatNumber(club._count?.players ?? club.playerCount) }}</dd>
         </div>
         <div>
-          <dt>原始国家</dt>
-          <dd>{{ formatText(club.country) }}</dd>
+          <dt>统计球员数</dt>
+          <dd>{{ formatNumber(club.playerCount) }}</dd>
         </div>
         <div>
-          <dt>足联</dt>
-          <dd>{{ formatRef(club.federationRef) }}</dd>
+          <dt>球员平均 PA</dt>
+          <dd>{{ formatNumber(club.averagePa, 2) }}</dd>
         </div>
         <div>
-          <dt>原始足联</dt>
-          <dd>{{ formatText(club.federation) }}</dd>
+          <dt>总 PA</dt>
+          <dd>{{ formatNumber(club.totalPa) }}</dd>
+        </div>
+        <div>
+          <dt>荣誉分</dt>
+          <dd>{{ formatNumber(club.honorScore, 2) }}</dd>
+        </div>
+        <div>
+          <dt>奖杯数</dt>
+          <dd>{{ formatNumber(club.trophyCount) }}</dd>
+        </div>
+        <div>
+          <dt>冠军数</dt>
+          <dd>{{ formatNumber(club.championCount) }}</dd>
+        </div>
+        <div>
+          <dt>是否存在</dt>
+          <dd>{{ club.exists ? '是' : '否' }}</dd>
+        </div>
+        <div>
+          <dt>列表展示</dt>
+          <dd>{{ club.visibleInCatalog ? '是' : '否' }}</dd>
         </div>
       </dl>
     </div>
