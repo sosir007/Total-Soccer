@@ -20,6 +20,8 @@ async function main() {
       create: {
         code: 'AFRICA_CUP',
         name: '非洲国家杯',
+        alias: '非洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/Africa_Cup_of_Nations',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',
@@ -32,6 +34,8 @@ async function main() {
       },
       update: {
         name: '非洲国家杯',
+        alias: '非洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/Africa_Cup_of_Nations',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',

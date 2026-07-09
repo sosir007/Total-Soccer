@@ -27,6 +27,10 @@ defineProps<{
         <strong>{{ competition.name }}</strong>
       </div>
       <div class="competition-info-item">
+        <span>别名</span>
+        <strong>{{ formatText(competition.alias) }}</strong>
+      </div>
+      <div class="competition-info-item">
         <span>对象</span>
         <strong>{{ targetTypeLabels[competition.targetType] }}</strong>
       </div>

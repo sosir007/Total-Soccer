@@ -17,7 +17,6 @@ import type {
   CompetitionTargetType
 } from '@/services/types/competitions';
 import { useOptionStore } from '@/stores/options';
-import { buildExternalUrl } from '@/utils/external-link';
 import CompetitionCreateDialog from './components/CompetitionCreateDialog.vue';
 import CompetitionFilterPanel from './components/CompetitionFilterPanel.vue';
 import CompetitionListTable from './components/CompetitionListTable.vue';
@@ -78,6 +77,7 @@ const filters = reactive({
 const competitionForm = reactive({
   code: '',
   name: '',
+  alias: '',
   externalUrl: '',
   targetType: 'COUNTRY' as CompetitionTargetType,
   scopeType: 'GLOBAL' as CompetitionScopeType,
@@ -145,6 +145,7 @@ function openEditCompetitionDialog(row: CompetitionListItem) {
   editingId.value = row.id;
   competitionForm.code = row.code;
   competitionForm.name = row.name;
+  competitionForm.alias = row.alias ?? '';
   competitionForm.externalUrl = row.externalUrl ?? '';
   competitionForm.targetType = row.targetType;
   competitionForm.scopeType = row.scopeType;
@@ -259,6 +260,7 @@ function buildCompetitionPayload() {
   return {
     code: competitionForm.code.trim(),
     name: competitionForm.name.trim(),
+    alias: competitionForm.alias.trim() || undefined,
     externalUrl: competitionForm.externalUrl.trim() || undefined,
     targetType: competitionForm.targetType,
     scopeType: competitionForm.scopeType,
@@ -290,6 +292,7 @@ function shouldUseCompetitionFormat(form: {
 function resetCompetitionForm() {
   competitionForm.code = '';
   competitionForm.name = '';
+  competitionForm.alias = '';
   competitionForm.externalUrl = '';
   competitionForm.targetType = 'COUNTRY';
   competitionForm.scopeType = 'GLOBAL';
@@ -336,10 +339,6 @@ function formatText(value?: string | number | null) {
 
 function formatFormat(competition: CompetitionListItem) {
   return shouldUseCompetitionFormat(competition) ? competition.format || '-' : '-';
-}
-
-function competitionExternalUrl(competition: CompetitionListItem) {
-  return buildExternalUrl(competition.externalUrl, competition.name);
 }
 
 watch(
@@ -418,7 +417,6 @@ onActivated(() => {
       :format-scope="formatScope"
       :format-text="formatText"
       :format-format="formatFormat"
-      :competition-external-url="competitionExternalUrl"
       @create="openCreateCompetitionDialog"
       @edit="openEditCompetitionDialog"
       @open="openCompetitionDetail"

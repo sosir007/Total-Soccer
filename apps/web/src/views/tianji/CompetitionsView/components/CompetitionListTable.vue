@@ -22,7 +22,6 @@ defineProps<{
   formatScope: (competition: CompetitionListItem) => string;
   formatText: (value?: string | number | null) => string | number;
   formatFormat: (competition: CompetitionListItem) => string;
-  competitionExternalUrl: (competition: CompetitionListItem) => string;
 }>();
 
 const emit = defineEmits<{
@@ -40,6 +39,18 @@ function getRowSequence(page: number, pageSize: number, index: number) {
 
 function getTargetTypeVariant(row: CompetitionListItem): SemanticTagVariant {
   return row.targetType === 'CLUB' ? 'object-club' : 'object-country';
+}
+
+function formatCompetitionSubtitle(row: CompetitionListItem) {
+  return row.alias ? `${row.code} · ${row.alias}` : row.code;
+}
+
+function openExternalLink(row: CompetitionListItem) {
+  if (!row.externalUrl) {
+    return;
+  }
+
+  window.open(row.externalUrl, '_blank');
 }
 </script>
 
@@ -74,7 +85,7 @@ function getTargetTypeVariant(row: CompetitionListItem): SemanticTagVariant {
               :id="row.id"
               type="competition"
               :title="row.name"
-              :subtitle="row.code"
+              :subtitle="formatCompetitionSubtitle(row)"
             />
           </template>
         </el-table-column>
@@ -124,9 +135,10 @@ function getTargetTypeVariant(row: CompetitionListItem): SemanticTagVariant {
             <a
               v-if="row.externalUrl"
               class="external-text-link"
-              :href="competitionExternalUrl(row)"
+              :href="row.externalUrl"
               target="_blank"
               rel="noopener noreferrer"
+              @click.prevent.stop="openExternalLink(row)"
             >
               打开
             </a>

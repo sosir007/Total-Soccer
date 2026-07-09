@@ -60,10 +60,7 @@ const EMPTY_TARGET_STATS: RecalculateTargetStats = {
   honorScore: 0
 };
 
-const DEPRECATED_RULE_CODES = [
-  'CLUB_INTERNATIONAL_LEVEL_2_OTHER',
-  'CLUB_INTERNATIONAL_LEVEL_3_CUP'
-];
+const DEPRECATED_RULE_CODES = ['CLUB_INTERNATIONAL_LEVEL_2_OTHER'];
 
 const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
   {
@@ -180,7 +177,21 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     placementScope: HonorRulePlacementScope.TOP_TWO,
     conversionType: HonorRuleConversionType.NONE,
     sortOrder: 120,
-    remark: '丰田杯、洲际杯等单场世界冠军杯。'
+    remark: '国际足联洲际杯等各足联冠军参与的俱乐部国际二级赛事。'
+  },
+  {
+    code: 'CLUB_INTERNATIONAL_LEVEL_3_CUP',
+    name: '俱乐部国际三级杯赛',
+    targetType: CompetitionTargetType.CLUB,
+    category: '国际',
+    level: '三级',
+    format: '杯赛',
+    scopeType: CompetitionScopeType.GLOBAL,
+    baseScore: 4,
+    placementScope: HonorRulePlacementScope.TOP_TWO,
+    conversionType: HonorRuleConversionType.NONE,
+    sortOrder: 130,
+    remark: '丰田杯、旧洲际杯等欧冠冠军与南美冠军之间的单场世界冠军杯。'
   },
   {
     code: 'CLUB_CONTINENTAL_LEVEL_1_CUP',

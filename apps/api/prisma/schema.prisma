@@ -518,6 +518,7 @@ model Competition {
   id                  String                          @id @default(cuid())
   code                String                          @unique
   name                String
+  alias               String?
   externalUrl         String?
   targetType          CompetitionTargetType
   scopeType           CompetitionScopeType            @default(GLOBAL)
@@ -540,6 +541,7 @@ model Competition {
   updatedAt           DateTime                        @updatedAt
 
   @@index([targetType])
+  @@index([alias])
   @@index([scopeType])
   @@index([category])
   @@index([level])

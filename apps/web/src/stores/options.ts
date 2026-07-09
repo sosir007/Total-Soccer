@@ -324,6 +324,9 @@ function competitionToOption(competition: CompetitionListItem): SelectOption {
     description: [competition.category, competition.level, competition.format]
       .filter(Boolean)
       .join(' / '),
+    meta: [competition.code, competition.alias, competition.description].filter(
+      Boolean
+    ) as string[],
     targetType: competition.targetType
   };
 }

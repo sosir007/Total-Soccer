@@ -20,6 +20,8 @@ async function main() {
       create: {
         code: 'OFC_NATIONS_CUP',
         name: '大洋洲国家杯',
+        alias: '大洋洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/OFC_Men%27s_Nations_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',
@@ -32,6 +34,8 @@ async function main() {
       },
       update: {
         name: '大洋洲国家杯',
+        alias: '大洋洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/OFC_Men%27s_Nations_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',

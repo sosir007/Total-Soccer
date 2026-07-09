@@ -33,6 +33,7 @@ export interface CompetitionListItem {
   id: string;
   code: string;
   name: string;
+  alias?: string | null;
   externalUrl?: string | null;
   targetType: CompetitionTargetType;
   scopeType: CompetitionScopeType;
@@ -91,6 +92,7 @@ export interface CompetitionDetail extends CompetitionListItem {
 export interface CreateCompetitionPayload {
   code: string;
   name: string;
+  alias?: string;
   externalUrl?: string;
   targetType: CompetitionTargetType;
   scopeType: CompetitionScopeType;

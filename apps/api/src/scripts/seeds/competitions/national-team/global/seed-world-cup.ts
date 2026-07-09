@@ -24,6 +24,8 @@ async function main() {
       create: {
         code: 'FIFA_WORLD_CUP',
         name: '国际足联世界杯',
+        alias: '世界杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/FIFA_World_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.GLOBAL,
         category: '国际',
@@ -36,6 +38,8 @@ async function main() {
       },
       update: {
         name: '国际足联世界杯',
+        alias: '世界杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/FIFA_World_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.GLOBAL,
         category: '国际',

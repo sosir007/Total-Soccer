@@ -20,6 +20,8 @@ async function main() {
       create: {
         code: 'AFC_ASIAN_CUP',
         name: '亚足联亚洲杯',
+        alias: '亚洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/AFC_Asian_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',
@@ -32,6 +34,8 @@ async function main() {
       },
       update: {
         name: '亚足联亚洲杯',
+        alias: '亚洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/AFC_Asian_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',

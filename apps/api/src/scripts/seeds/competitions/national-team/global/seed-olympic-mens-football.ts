@@ -24,6 +24,7 @@ async function main() {
       create: {
         code: 'OLYMPIC_MENS_FOOTBALL',
         name: '奥运会男子足球赛',
+        alias: '奥运男足',
         externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.GLOBAL,
@@ -37,6 +38,7 @@ async function main() {
       },
       update: {
         name: '奥运会男子足球赛',
+        alias: '奥运男足',
         externalUrl: 'https://en.wikipedia.org/wiki/Football_at_the_Summer_Olympics',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.GLOBAL,

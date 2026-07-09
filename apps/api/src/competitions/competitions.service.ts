@@ -206,6 +206,7 @@ export class CompetitionsService {
         OR: [
           { code: { contains: keyword, mode: 'insensitive' } },
           { name: { contains: keyword, mode: 'insensitive' } },
+          { alias: { contains: keyword, mode: 'insensitive' } },
           { category: { contains: keyword, mode: 'insensitive' } },
           { level: { contains: keyword, mode: 'insensitive' } },
           { format: { contains: keyword, mode: 'insensitive' } },
@@ -457,6 +458,7 @@ export class CompetitionsService {
       data: {
         code,
         name,
+        alias: this.toNullableString(body.alias),
         targetType,
         scopeType,
         category: this.parseStandardText(body.category, COMPETITION_CATEGORIES, '赛事分类'),

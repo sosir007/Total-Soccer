@@ -20,6 +20,8 @@ async function main() {
       create: {
         code: 'CONCACAF_GOLD_CUP',
         name: '中北美及加勒比海金杯赛',
+        alias: '金杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/CONCACAF_Gold_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',
@@ -32,6 +34,8 @@ async function main() {
       },
       update: {
         name: '中北美及加勒比海金杯赛',
+        alias: '金杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/CONCACAF_Gold_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',

@@ -109,6 +109,7 @@ const competitionId = computed(() => String(route.params.id ?? ''));
 const detailForm = reactive({
   code: '',
   name: '',
+  alias: '',
   externalUrl: '',
   targetType: 'COUNTRY' as CompetitionTargetType,
   scopeType: 'GLOBAL' as CompetitionScopeType,
@@ -330,6 +331,7 @@ function populateDetailForm() {
 
   detailForm.code = competition.value.code;
   detailForm.name = competition.value.name;
+  detailForm.alias = competition.value.alias ?? '';
   detailForm.externalUrl = competition.value.externalUrl ?? '';
   detailForm.targetType = competition.value.targetType;
   detailForm.scopeType = competition.value.scopeType;
@@ -380,6 +382,7 @@ function buildCompetitionPayload() {
   return {
     code: detailForm.code.trim(),
     name: detailForm.name.trim(),
+    alias: detailForm.alias.trim() || undefined,
     externalUrl: detailForm.externalUrl.trim() || undefined,
     targetType: detailForm.targetType,
     scopeType: detailForm.scopeType,

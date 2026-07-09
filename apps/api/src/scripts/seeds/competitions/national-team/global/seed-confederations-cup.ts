@@ -19,6 +19,7 @@ async function main() {
       create: {
         code: 'FIFA_CONFEDERATIONS_CUP',
         name: '国际足联联合会杯',
+        alias: '联合会杯',
         externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.GLOBAL,
@@ -32,6 +33,7 @@ async function main() {
       },
       update: {
         name: '国际足联联合会杯',
+        alias: '联合会杯',
         externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.GLOBAL,

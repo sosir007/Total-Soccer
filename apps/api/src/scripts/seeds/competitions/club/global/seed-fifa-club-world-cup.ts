@@ -43,6 +43,7 @@ async function main() {
       create: {
         code: 'FIFA_CLUB_WORLD_CUP',
         name: '国际足联俱乐部世界杯',
+        alias: '世俱杯',
         externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Club_World_Cup',
         targetType: CompetitionTargetType.CLUB,
         scopeType: CompetitionScopeType.GLOBAL,
@@ -57,6 +58,7 @@ async function main() {
       },
       update: {
         name: '国际足联俱乐部世界杯',
+        alias: '世俱杯',
         externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Club_World_Cup',
         targetType: CompetitionTargetType.CLUB,
         scopeType: CompetitionScopeType.GLOBAL,

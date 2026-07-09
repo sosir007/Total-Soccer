@@ -39,6 +39,9 @@ const emit = defineEmits<{
       <el-form-item label="赛事名称">
         <el-input v-model="form.name" />
       </el-form-item>
+      <el-form-item label="别名">
+        <el-input v-model="form.alias" placeholder="世界杯" />
+      </el-form-item>
       <el-form-item label="对象">
         <el-select v-model="form.targetType">
           <el-option

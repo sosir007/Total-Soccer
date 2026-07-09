@@ -20,6 +20,8 @@ async function main() {
       create: {
         code: 'UEFA_EURO',
         name: '欧洲足球锦标赛',
+        alias: '欧洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/UEFA_European_Championship',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',
@@ -32,6 +34,8 @@ async function main() {
       },
       update: {
         name: '欧洲足球锦标赛',
+        alias: '欧洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/UEFA_European_Championship',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',

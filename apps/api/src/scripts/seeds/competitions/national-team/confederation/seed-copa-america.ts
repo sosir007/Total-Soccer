@@ -19,7 +19,9 @@ async function main() {
       primaryConfederationCode: 'CONMEBOL',
       create: {
         code: 'COPA_AMERICA',
-        name: '美洲杯',
+        name: '南美足联美洲杯',
+        alias: '美洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',
@@ -31,7 +33,9 @@ async function main() {
         sortOrder: 25
       },
       update: {
-        name: '美洲杯',
+        name: '南美足联美洲杯',
+        alias: '美洲杯',
+        externalUrl: 'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica',
         targetType: CompetitionTargetType.COUNTRY,
         scopeType: CompetitionScopeType.CONFEDERATION,
         category: '洲际',

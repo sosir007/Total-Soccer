@@ -1,7 +1,3 @@
-DELETE FROM "HonorRule"
-WHERE "code" = 'CLUB_INTERNATIONAL_LEVEL_3_CUP'
-  AND "isSystem" = true;
-
 UPDATE "HonorRule"
 SET
   "name" = '俱乐部国际一级杯赛',
@@ -45,7 +41,83 @@ SET
   "placementScope" = 'TOP_TWO',
   "conversionType" = 'NONE',
   "sortOrder" = 120,
-  "remark" = '丰田杯、洲际杯等单场世界冠军杯。',
+  "remark" = '国际足联洲际杯等各足联冠军参与的俱乐部国际二级赛事。',
   "updatedAt" = CURRENT_TIMESTAMP
 WHERE "code" = 'CLUB_INTERNATIONAL_LEVEL_2_CUP'
   AND "isSystem" = true;
+
+INSERT INTO "HonorRule" (
+  "id",
+  "code",
+  "name",
+  "targetType",
+  "category",
+  "level",
+  "format",
+  "scopeType",
+  "baseScore",
+  "championScore",
+  "runnerUpScore",
+  "thirdPlaceScore",
+  "fourthPlaceScore",
+  "semiFinalistScore",
+  "coefficient",
+  "qualityCoefficient",
+  "placementScope",
+  "conversionType",
+  "isSystem",
+  "enabled",
+  "sortOrder",
+  "remark",
+  "createdAt",
+  "updatedAt"
+)
+VALUES (
+  'system_club_international_level_3_cup',
+  'CLUB_INTERNATIONAL_LEVEL_3_CUP',
+  '俱乐部国际三级杯赛',
+  'CLUB',
+  '国际',
+  '三级',
+  '杯赛',
+  'GLOBAL',
+  4,
+  4,
+  2,
+  NULL,
+  NULL,
+  NULL,
+  1,
+  1,
+  'TOP_TWO',
+  'NONE',
+  true,
+  true,
+  130,
+  '丰田杯、旧洲际杯等欧冠冠军与南美冠军之间的单场世界冠军杯。',
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP
+)
+ON CONFLICT ("code") DO UPDATE
+SET
+  "name" = EXCLUDED."name",
+  "targetType" = EXCLUDED."targetType",
+  "category" = EXCLUDED."category",
+  "level" = EXCLUDED."level",
+  "format" = EXCLUDED."format",
+  "scopeType" = EXCLUDED."scopeType",
+  "baseScore" = EXCLUDED."baseScore",
+  "championScore" = EXCLUDED."championScore",
+  "runnerUpScore" = EXCLUDED."runnerUpScore",
+  "thirdPlaceScore" = EXCLUDED."thirdPlaceScore",
+  "fourthPlaceScore" = EXCLUDED."fourthPlaceScore",
+  "semiFinalistScore" = EXCLUDED."semiFinalistScore",
+  "coefficient" = EXCLUDED."coefficient",
+  "qualityCoefficient" = EXCLUDED."qualityCoefficient",
+  "placementScope" = EXCLUDED."placementScope",
+  "conversionType" = EXCLUDED."conversionType",
+  "isSystem" = EXCLUDED."isSystem",
+  "enabled" = EXCLUDED."enabled",
+  "sortOrder" = EXCLUDED."sortOrder",
+  "remark" = EXCLUDED."remark",
+  "updatedAt" = CURRENT_TIMESTAMP;
