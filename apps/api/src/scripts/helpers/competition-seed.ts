@@ -79,6 +79,7 @@ type CompetitionSeedOptions<T extends SeedEdition> = {
     update: Prisma.CompetitionUncheckedUpdateInput;
     primaryConfederationCode?: string;
     primaryCountryName?: string;
+    forceProfileFields?: boolean;
   };
   confederations: SeedConfederation[];
   countries?: SeedCountry[];
@@ -229,10 +230,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
       ...competition.create,
       ...primaryCompetitionRelations
     },
-    update: {
-      ...competition.update,
-      ...primaryCompetitionRelations
-    },
+    update: buildCompetitionUpdateData(competition, primaryCompetitionRelations),
     select: { id: true }
   });
 
@@ -812,6 +810,34 @@ function resolvePrimaryCompetitionRelations(
     ...(primaryCountryName
       ? { countryId: getCountry(countries, primaryCountryName, 'primary competition country').id }
       : {})
+  };
+}
+
+function buildCompetitionUpdateData<T extends SeedEdition>(
+  competition: CompetitionSeedOptions<T>['competition'],
+  primaryCompetitionRelations: Prisma.CompetitionUncheckedUpdateInput
+): Prisma.CompetitionUncheckedUpdateInput {
+  if (competition.forceProfileFields) {
+    return {
+      ...competition.update,
+      ...primaryCompetitionRelations
+    };
+  }
+
+  const structuralUpdate: Prisma.CompetitionUncheckedUpdateInput = {};
+  const update = competition.update;
+
+  if ('targetType' in update) structuralUpdate.targetType = update.targetType;
+  if ('scopeType' in update) structuralUpdate.scopeType = update.scopeType;
+  if ('category' in update) structuralUpdate.category = update.category;
+  if ('level' in update) structuralUpdate.level = update.level;
+  if ('format' in update) structuralUpdate.format = update.format;
+  if ('confederationId' in update) structuralUpdate.confederationId = update.confederationId;
+  if ('countryId' in update) structuralUpdate.countryId = update.countryId;
+
+  return {
+    ...structuralUpdate,
+    ...primaryCompetitionRelations
   };
 }
 

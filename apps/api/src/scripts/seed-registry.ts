@@ -122,6 +122,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'uefa-champions-league',
+    label: '欧洲冠军联赛',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-champions-league.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/uefa-champions-league.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',
