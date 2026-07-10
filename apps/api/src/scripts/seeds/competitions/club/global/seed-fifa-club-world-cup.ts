@@ -54,7 +54,7 @@ async function main() {
           '国际足联主办的俱乐部世界冠军赛事；2001-2004 未举办，2025 起改为 32 队新赛制。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 0
       },
       update: {
         name: '国际足联俱乐部世界杯',
@@ -71,7 +71,7 @@ async function main() {
         countryId: null,
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 0
       }
     },
     editions: FIFA_CLUB_WORLD_CUP_RESULTS,

@@ -29,7 +29,7 @@ async function main() {
         description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 1
       },
       update: {
         name: '国际足联联合会杯',
@@ -45,7 +45,7 @@ async function main() {
         countryId: null,
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 1
       }
     },
     editions: CONFEDERATIONS_CUP_RESULTS,

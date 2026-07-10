@@ -31,7 +31,7 @@ async function main() {
         description: '国际足联主办的年度俱乐部世界冠军赛事，2024 年起由各足联冠军参与。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 20
+        sortOrder: 1
       },
       update: {
         name: '国际足联洲际杯',
@@ -47,7 +47,7 @@ async function main() {
         countryId: null,
         enabled: true,
         includeInStats: true,
-        sortOrder: 20
+        sortOrder: 1
       }
     },
     editions: withStandingMode(FIFA_INTERCONTINENTAL_CUP_RESULTS),

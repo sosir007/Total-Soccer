@@ -34,7 +34,7 @@ async function main() {
         description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 15
+        sortOrder: 2
       },
       update: {
         name: '奥运会男子足球赛',
@@ -50,7 +50,7 @@ async function main() {
         countryId: null,
         enabled: true,
         includeInStats: true,
-        sortOrder: 15
+        sortOrder: 2
       }
     },
     editions: withStandingMode(OLYMPIC_RESULTS),

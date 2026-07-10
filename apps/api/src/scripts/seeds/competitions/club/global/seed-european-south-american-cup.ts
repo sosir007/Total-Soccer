@@ -52,7 +52,7 @@ async function main() {
           '欧冠冠军与南美解放者杯冠军之间的世界俱乐部冠军赛事，1980-2004 为丰田杯赞助阶段。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 30
+        sortOrder: 2
       },
       update: {
         name: '欧洲/南美洲杯',
@@ -69,7 +69,7 @@ async function main() {
         countryId: null,
         enabled: true,
         includeInStats: true,
-        sortOrder: 30
+        sortOrder: 2
       }
     },
     editions: withStandingMode(EUROPEAN_SOUTH_AMERICAN_CUP_RESULTS),

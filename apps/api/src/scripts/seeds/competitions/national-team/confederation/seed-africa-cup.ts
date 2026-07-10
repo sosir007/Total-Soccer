@@ -30,7 +30,7 @@ async function main() {
         description: '非洲足联主办的男子国家队最高级别洲际杯赛。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 35
+        sortOrder: 10
       },
       update: {
         name: '非洲国家杯',
@@ -43,7 +43,7 @@ async function main() {
         format: '杯赛',
         enabled: true,
         includeInStats: true,
-        sortOrder: 35
+        sortOrder: 10
       }
     },
     scope: {

@@ -30,7 +30,7 @@ async function main() {
         description: '欧足联国家队最高级别洲际杯赛。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 20
+        sortOrder: 30
       },
       update: {
         name: '欧洲足球锦标赛',
@@ -43,7 +43,7 @@ async function main() {
         format: '杯赛',
         enabled: true,
         includeInStats: true,
-        sortOrder: 20
+        sortOrder: 30
       }
     },
     scope: {

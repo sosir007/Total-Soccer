@@ -62,9 +62,9 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
       if (!continentalCupColumn) {
         continentalCupColumn = {
           ...competition,
-          id: '__country_continental_cup__',
-          code: 'COUNTRY_CONTINENTAL_CUP',
-          name: '洲际杯',
+          id: getContinentalCupColumnId(),
+          code: getContinentalCupColumnCode(),
+          name: getContinentalCupColumnName(),
           sourceCompetitionIds: [],
           counts: createEmptyCounts()
         };
@@ -210,12 +210,25 @@ function formatConfederation(row: HonorSummaryRow) {
 
 function shouldMergeAsContinentalCup(competition: HonorSummaryCompetition) {
   return (
-    props.entityType === 'country' &&
-    competition.targetType === 'COUNTRY' &&
+    competition.targetType === (props.entityType === 'country' ? 'COUNTRY' : 'CLUB') &&
     competition.category === '洲际' &&
     competition.level === '一级' &&
     competition.format === '杯赛'
   );
+}
+
+function getContinentalCupColumnId() {
+  return props.entityType === 'country'
+    ? '__country_continental_cup__'
+    : '__club_continental_level_one__';
+}
+
+function getContinentalCupColumnCode() {
+  return props.entityType === 'country' ? 'COUNTRY_CONTINENTAL_CUP' : 'CLUB_CONTINENTAL_LEVEL_ONE';
+}
+
+function getContinentalCupColumnName() {
+  return props.entityType === 'country' ? '洲际杯' : '洲际一级';
 }
 
 const placementValues = placements.map(

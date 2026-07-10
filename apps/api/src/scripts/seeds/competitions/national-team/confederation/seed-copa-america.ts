@@ -30,7 +30,7 @@ async function main() {
         description: '南美足联主办的男子国家队最高级别洲际杯赛。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 25
+        sortOrder: 60
       },
       update: {
         name: '南美足联美洲杯',
@@ -43,7 +43,7 @@ async function main() {
         format: '杯赛',
         enabled: true,
         includeInStats: true,
-        sortOrder: 25
+        sortOrder: 60
       }
     },
     scope: {

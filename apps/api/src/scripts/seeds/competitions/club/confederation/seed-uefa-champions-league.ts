@@ -49,7 +49,7 @@ async function main() {
         description: '欧足联最高级别俱乐部杯赛，前身为欧洲冠军杯。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 30
       },
       update: {
         name: '欧洲冠军联赛',
@@ -64,7 +64,7 @@ async function main() {
         countryId: null,
         enabled: true,
         includeInStats: true,
-        sortOrder: 10
+        sortOrder: 30
       }
     },
     scope: {

@@ -30,7 +30,7 @@ async function main() {
         description: '亚足联国家队最高级别洲际杯赛。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 30
+        sortOrder: 20
       },
       update: {
         name: '亚足联亚洲杯',
@@ -43,7 +43,7 @@ async function main() {
         format: '杯赛',
         enabled: true,
         includeInStats: true,
-        sortOrder: 30
+        sortOrder: 20
       }
     },
     scope: {
