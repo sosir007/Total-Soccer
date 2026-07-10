@@ -131,6 +131,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'conmebol-libertadores',
+    label: '南美解放者杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-conmebol-libertadores.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/conmebol-libertadores.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',
