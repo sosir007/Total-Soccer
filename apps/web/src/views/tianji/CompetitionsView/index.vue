@@ -8,6 +8,7 @@ import {
   fetchCompetitions,
   updateCompetition
 } from '@/services/modules/competitions';
+import { fetchHonorRules } from '@/services/modules/honor-rules';
 import type {
   CompetitionCategory,
   CompetitionFormat,
@@ -16,6 +17,7 @@ import type {
   CompetitionScopeType,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import type { HonorRuleItem } from '@/services/types/honor-rules';
 import { useOptionStore } from '@/stores/options';
 import CompetitionCreateDialog from './components/CompetitionCreateDialog.vue';
 import CompetitionFilterPanel from './components/CompetitionFilterPanel.vue';
@@ -55,6 +57,18 @@ const scopeTypeLabels = Object.fromEntries(
   scopeTypeOptions.map((scopeType) => [scopeType.value, scopeType.label])
 ) as Record<CompetitionScopeType, string>;
 
+interface HonorRuleOption {
+  value: string;
+  label: string;
+  targetType: CompetitionTargetType;
+  scopeType: CompetitionScopeType;
+  category: CompetitionCategory;
+  level: CompetitionLevel;
+  format: CompetitionFormat;
+  sortOrder: number;
+  description: string;
+}
+
 const router = useRouter();
 const optionStore = useOptionStore();
 const loading = ref(false);
@@ -64,6 +78,7 @@ const deletingId = ref('');
 const createDialogVisible = ref(false);
 const errorMessage = ref('');
 const competitions = ref<CompetitionListItem[]>([]);
+const honorRuleOptions = ref<HonorRuleOption[]>([]);
 const total = ref(0);
 const hasLoaded = ref(false);
 
@@ -78,6 +93,7 @@ const competitionForm = reactive({
   code: '',
   name: '',
   alias: '',
+  honorRuleId: '',
   externalUrl: '',
   targetType: 'COUNTRY' as CompetitionTargetType,
   scopeType: 'GLOBAL' as CompetitionScopeType,
@@ -95,7 +111,9 @@ const competitionForm = reactive({
 });
 
 const hasRows = computed(() => competitions.value.length > 0);
-const showCreateFormatField = computed(() => shouldUseCompetitionFormat(competitionForm));
+const showCreateFormatField = computed(
+  () => Boolean(competitionForm.honorRuleId) || shouldUseCompetitionFormat(competitionForm)
+);
 const competitionDialogTitle = computed(() => (editingId.value ? '编辑赛事' : '创建赛事'));
 const competitionDialogSubmitText = computed(() => (editingId.value ? '保存赛事' : '创建赛事'));
 
@@ -122,6 +140,52 @@ async function loadCompetitions() {
   }
 }
 
+async function loadHonorRuleOptions() {
+  try {
+    const result = await fetchHonorRules({
+      page: 1,
+      pageSize: 200,
+      enabled: 'true'
+    });
+    honorRuleOptions.value = result.items
+      .map((rule) => buildHonorRuleOption(rule))
+      .filter((rule): rule is HonorRuleOption => Boolean(rule))
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, 'zh-CN'));
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '荣誉规则选项加载失败。');
+  }
+}
+
+function buildHonorRuleOption(rule: HonorRuleItem): HonorRuleOption | null {
+  const targetType = rule.targetType;
+  const category = normalizeCompetitionCategory(rule.category);
+  const level = normalizeCompetitionLevel(rule.level);
+  const format = normalizeCompetitionFormat(rule.format);
+  const scopeType = normalizeCompetitionScope(rule.scopeType, category);
+
+  if (!category || !level || !format || !scopeType) {
+    return null;
+  }
+
+  return {
+    value: rule.id,
+    label: rule.name,
+    targetType,
+    scopeType,
+    category,
+    level,
+    format,
+    sortOrder: rule.sortOrder,
+    description: [
+      targetTypeLabels[targetType],
+      scopeTypeLabels[scopeType],
+      category,
+      level,
+      format
+    ].join(' / ')
+  };
+}
+
 function submitFilters() {
   filters.page = 1;
   void loadCompetitions();
@@ -141,11 +205,16 @@ function openCreateCompetitionDialog() {
   createDialogVisible.value = true;
 }
 
-function openEditCompetitionDialog(row: CompetitionListItem) {
+async function openEditCompetitionDialog(row: CompetitionListItem) {
+  if (!honorRuleOptions.value.length) {
+    await loadHonorRuleOptions();
+  }
+
   editingId.value = row.id;
   competitionForm.code = row.code;
   competitionForm.name = row.name;
   competitionForm.alias = row.alias ?? '';
+  competitionForm.honorRuleId = resolveHonorRuleOptionId(row);
   competitionForm.externalUrl = row.externalUrl ?? '';
   competitionForm.targetType = row.targetType;
   competitionForm.scopeType = row.scopeType;
@@ -266,7 +335,7 @@ function buildCompetitionPayload() {
     scopeType: competitionForm.scopeType,
     category: competitionForm.category.trim() || undefined,
     level: competitionForm.level.trim() || undefined,
-    format: shouldUseCompetitionFormat(competitionForm) ? competitionForm.format || '其他' : '其他',
+    format: showCreateFormatField.value ? competitionForm.format || '其他' : '其他',
     description: competitionForm.description.trim() || undefined,
     confederationId:
       competitionForm.scopeType === 'CONFEDERATION'
@@ -293,6 +362,7 @@ function resetCompetitionForm() {
   competitionForm.code = '';
   competitionForm.name = '';
   competitionForm.alias = '';
+  competitionForm.honorRuleId = '';
   competitionForm.externalUrl = '';
   competitionForm.targetType = 'COUNTRY';
   competitionForm.scopeType = 'GLOBAL';
@@ -307,6 +377,155 @@ function resetCompetitionForm() {
   competitionForm.enabled = true;
   competitionForm.includeInStats = true;
   competitionForm.sortOrder = 0;
+}
+
+function normalizeCompetitionCategory(value?: string | null): CompetitionCategory | null {
+  return categoryOptions.some((option) => option.value === value)
+    ? (value as CompetitionCategory)
+    : null;
+}
+
+function normalizeCompetitionLevel(value?: string | null): CompetitionLevel | null {
+  return levelOptions.some((option) => option.value === value) ? (value as CompetitionLevel) : null;
+}
+
+function normalizeCompetitionFormat(value?: string | null): CompetitionFormat | null {
+  return formatOptions.some((option) => option.value === value)
+    ? (value as CompetitionFormat)
+    : null;
+}
+
+function normalizeCompetitionScope(
+  value: CompetitionScopeType | null | undefined,
+  category: CompetitionCategory | null
+): CompetitionScopeType | null {
+  if (scopeTypeOptions.some((option) => option.value === value)) {
+    return value as CompetitionScopeType;
+  }
+
+  if (category === '国际') return 'GLOBAL';
+  if (category === '洲际') return 'CONFEDERATION';
+  if (category === '国内') return 'COUNTRY';
+  if (category === '其他') return 'CUSTOM';
+  return null;
+}
+
+function resolveHonorRuleOptionId(row: CompetitionListItem) {
+  const matchedRules = honorRuleOptions.value.filter(
+    (rule) =>
+      rule.targetType === row.targetType &&
+      rule.scopeType === row.scopeType &&
+      rule.category === row.category &&
+      rule.level === row.level
+  );
+
+  return (
+    matchedRules.find((rule) => rule.format === row.format)?.value ?? matchedRules[0]?.value ?? ''
+  );
+}
+
+function applyHonorRuleOption(ruleId: string) {
+  const rule = honorRuleOptions.value.find((item) => item.value === ruleId);
+
+  if (!rule) {
+    return;
+  }
+
+  competitionForm.targetType = rule.targetType;
+  competitionForm.scopeType = rule.scopeType;
+  competitionForm.category = rule.category;
+  competitionForm.level = rule.level;
+  competitionForm.format = rule.format;
+
+  if (rule.scopeType !== 'CONFEDERATION') {
+    competitionForm.confederationId = '';
+    competitionForm.confederationIds = [];
+  }
+
+  if (rule.scopeType !== 'COUNTRY') {
+    competitionForm.countryId = '';
+    competitionForm.countryIds = [];
+  }
+
+  updateSuggestedCompetitionSort();
+}
+
+function updateSuggestedCompetitionSort() {
+  if (editingId.value || !competitionForm.honorRuleId) {
+    return;
+  }
+
+  const rule = honorRuleOptions.value.find((item) => item.value === competitionForm.honorRuleId);
+
+  if (!rule) {
+    return;
+  }
+
+  competitionForm.sortOrder = suggestCompetitionSort(rule);
+}
+
+function suggestCompetitionSort(rule: HonorRuleOption) {
+  if (rule.scopeType === 'CONFEDERATION') {
+    const confederationBase = getSelectedConfederationSortBase();
+    return confederationBase + getRuleLevelOffset(rule);
+  }
+
+  if (rule.scopeType === 'COUNTRY') {
+    const countryBase = getSelectedCountrySortBase();
+    return countryBase + getDomesticRuleOffset(rule);
+  }
+
+  if (rule.scopeType === 'GLOBAL') {
+    return getRuleLevelOffset(rule);
+  }
+
+  return rule.targetType === 'COUNTRY'
+    ? 70 + getRuleLevelOffset(rule)
+    : 100 + getRuleLevelOffset(rule);
+}
+
+function getSelectedConfederationSortBase() {
+  const values = competitionForm.confederationIds
+    .map((id) => optionStore.confederations.find((item) => item.id === id))
+    .map((item) => toNumericSortValue(item?.uid) ?? item?.sortOrder)
+    .filter((value): value is number => Number.isFinite(value));
+
+  return values.length ? Math.min(...values) * 10 : 100;
+}
+
+function getSelectedCountrySortBase() {
+  const values = competitionForm.countryIds
+    .map((id) => optionStore.countries.find((item) => item.id === id))
+    .map((item) => toNumericSortValue(item?.uid))
+    .filter((value): value is number => Number.isFinite(value));
+
+  return values.length ? Math.min(...values) * 10 : 100;
+}
+
+function toNumericSortValue(value?: string | number | null) {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : undefined;
+}
+
+function getRuleLevelOffset(rule: Pick<HonorRuleOption, 'level'>) {
+  return Math.max(
+    0,
+    levelOptions.findIndex((option) => option.value === rule.level)
+  );
+}
+
+function getDomesticRuleOffset(rule: HonorRuleOption) {
+  const levelOffset = getRuleLevelOffset(rule) * 10;
+
+  if (rule.format === '联赛') {
+    return levelOffset;
+  }
+
+  if (rule.format === '杯赛') {
+    return levelOffset + 1;
+  }
+
+  return levelOffset + 9;
 }
 
 function formatScope(competition: CompetitionListItem) {
@@ -362,9 +581,25 @@ watch(
 watch(
   () => [competitionForm.scopeType, competitionForm.category],
   () => {
-    if (!shouldUseCompetitionFormat(competitionForm)) {
+    if (!showCreateFormatField.value) {
       competitionForm.format = '其他';
     }
+  }
+);
+
+watch(
+  () => competitionForm.honorRuleId,
+  (ruleId) => {
+    if (ruleId) {
+      applyHonorRuleOption(ruleId);
+    }
+  }
+);
+
+watch(
+  () => [competitionForm.confederationIds.join(','), competitionForm.countryIds.join(',')],
+  () => {
+    updateSuggestedCompetitionSort();
   }
 );
 
@@ -380,6 +615,9 @@ watch(
 
 onMounted(() => {
   void loadCompetitions();
+  void loadHonorRuleOptions();
+  void optionStore.ensureConfederations();
+  void optionStore.ensureCountries();
 });
 
 onActivated(() => {
@@ -437,6 +675,7 @@ onActivated(() => {
       :category-options="categoryOptions"
       :level-options="levelOptions"
       :format-options="formatOptions"
+      :honor-rule-options="honorRuleOptions"
       @submit="submitCompetition"
     />
   </section>

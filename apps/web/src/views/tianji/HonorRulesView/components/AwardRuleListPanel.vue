@@ -4,16 +4,24 @@ import type { AwardRuleItem } from '@/services/types/award-rules';
 import IconFont from '@/components/IconFont.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 
-defineProps<{
-  items: AwardRuleItem[];
-  total: number;
-  loading: boolean;
-  hasRows: boolean;
-  page: number;
-  pageSize: number;
-  getAwardScopeLabel: (value?: AwardScopeType | null) => string;
-  formatAwardRuleScore: (row: AwardRuleItem) => string;
-}>();
+withDefaults(
+  defineProps<{
+    title?: string;
+    description?: string;
+    items: AwardRuleItem[];
+    total: number;
+    loading: boolean;
+    hasRows: boolean;
+    page: number;
+    pageSize: number;
+    getAwardScopeLabel: (value?: AwardScopeType | null) => string;
+    formatAwardRuleScore: (row: AwardRuleItem) => string;
+  }>(),
+  {
+    title: '奖项规则列表',
+    description: ''
+  }
+);
 
 const emit = defineEmits<{
   edit: [row: AwardRuleItem];
@@ -26,7 +34,10 @@ const emit = defineEmits<{
 <template>
   <div class="panel">
     <div class="panel-header">
-      <h3>奖项规则列表</h3>
+      <div>
+        <h3>{{ title }}</h3>
+        <p v-if="description">{{ description }}</p>
+      </div>
       <span class="status-pill">{{ total }} 条</span>
     </div>
 
@@ -34,7 +45,7 @@ const emit = defineEmits<{
 
     <div v-else-if="!hasRows" class="empty-panel">
       <h3>暂无球员奖项规则</h3>
-      <p>先新增个人奖项评分规则，再录入奖项获奖人并手动重算球员荣誉分。</p>
+      <p>系统会自动补齐默认奖项评分规则；如仍为空，请刷新或检查接口状态。</p>
     </div>
 
     <template v-else>

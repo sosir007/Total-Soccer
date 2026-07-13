@@ -8,7 +8,6 @@ import {
 } from '@/services/modules/honor-rules';
 import type { HonorRuleItem, HonorRulePayload } from '@/services/types/honor-rules';
 import {
-  createAwardRule,
   fetchAwardRules,
   recalculateAwardScores,
   updateAwardRule
@@ -44,6 +43,44 @@ const targetTypeLabels = Object.fromEntries(
 const awardScopeLabels = Object.fromEntries(
   awardScopeOptions.map((item) => [item.value, item.label])
 ) as Record<AwardScopeType, string>;
+const defaultAwardCategoryScores: Record<string, string> = {
+  国际一级综合奖: '6.00 / 3.00 / 1.80',
+  国际二级阵容奖: '6.00',
+  国际二级门将专项奖: '6.00 / 3.00 / 1.80',
+  国际三级补充奖: '3.00 / 1.50 / 0.90',
+  世界杯一级综合奖: '6.00 / 3.00 / 1.80',
+  世界杯二级阵容奖: '6.00',
+  世界杯二级专项奖: '6.00 / 3.00 / 1.80',
+  世界杯二级门将专项奖: '6.00 / 3.00 / 1.80',
+  世界杯三级补充奖: '3.00 / 1.50 / 0.90',
+  洲际杯一级综合奖: '5.00 / 2.50 / 1.50',
+  洲际杯二级阵容奖: '5.00',
+  洲际杯二级专项奖: '5.00 / 2.50 / 1.50',
+  洲际杯三级补充奖: '2.50 / 1.25 / 0.75',
+  俱乐部国际赛事一级综合奖: '4.00 / 2.00 / 1.20',
+  俱乐部国际赛事二级阵容奖: '4.00',
+  俱乐部国际赛事二级专项奖: '4.00 / 2.00 / 1.20',
+  俱乐部国际赛事三级补充奖: '2.00 / 1.00 / 0.60',
+  洲际一级综合奖: '4.00 / 2.00 / 1.20',
+  洲际二级阵容奖: '4.00',
+  洲际二级门将专项奖: '4.00 / 2.00 / 1.20',
+  洲际三级补充奖: '2.00 / 1.00 / 0.60',
+  洲联一级综合奖: '4.00 / 2.00 / 1.20',
+  洲联二级阵容奖: '4.00',
+  洲联二级专项奖: '4.00 / 2.00 / 1.20',
+  洲联三级补充奖: '2.00 / 1.00 / 0.60',
+  国联一级综合奖: '3.00 / 1.50 / 0.90',
+  国联二级阵容奖: '2.00',
+  国联二级专项奖: '2.00 / 1.00 / 0.60',
+  国联三级补充奖: '1.00 / 0.50 / 0.30',
+  国家一级综合奖: '2.00 / 1.00 / 0.60',
+  二级国联一级综合奖: '1.00 / 0.50 / 0.30',
+  二级国联二级阵容奖: '1.00',
+  二级国联二级专项奖: '1.00 / 0.50 / 0.30',
+  二级国联三级补充奖: '0.50 / 0.25 / 0.15',
+  国杯一级奖: '1.00 / 0.50 / 0.30',
+  附加分: '1.00'
+};
 
 const activeTab = ref<'competition' | 'player-award'>('competition');
 const loading = ref(false);
@@ -83,11 +120,12 @@ const awardDialogVisible = ref(false);
 const awardEditingItem = ref<AwardRuleItem | null>(null);
 const awardErrorMessage = ref('');
 const awardItems = ref<AwardRuleItem[]>([]);
+const awardSummaryItems = ref<AwardRuleItem[]>([]);
 const awardTotal = ref(0);
 const lastAwardRecalculateSummary = ref('');
 const awardFilters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   scopeType: '' as '' | AwardScopeType,
   enabled: ''
@@ -108,8 +146,211 @@ const awardForm = reactive<AwardRulePayload>({
 });
 const hasAwardRows = computed(() => awardItems.value.length > 0);
 const awardDialogTitle = computed(() =>
-  awardEditingItem.value ? '编辑球员奖项规则' : '新增球员奖项规则'
+  awardEditingItem.value ? '编辑球员奖项规则' : '球员奖项规则'
 );
+const awardRuleSummaryGroups = computed(() => [
+  {
+    title: '世界与国家队大赛规则',
+    description: '国际年度奖、世界杯和洲际杯按球员个人奖项最高层级展示。',
+    rows: [
+      summaryRow({
+        name: '国际年度奖',
+        scopeType: 'WORLD',
+        overall: { category: '国际一级综合奖', typical: '金球奖 / 世界足球先生 / The Best' },
+        lineup: { category: '国际二级阵容奖', typical: 'FIFPRO World 11 / FIFA 年度最佳阵容' },
+        specialty: { category: '国际二级门将专项奖', typical: '雅辛奖 / FIFA 年度最佳门将' },
+        supplement: { category: '国际三级补充奖', typical: '普斯卡什奖 / 金童奖' },
+        topAward: '一级综合第一名',
+        reduction: '门将专项 + 年度最佳阵容时，门将专项折半'
+      }),
+      summaryRow({
+        name: '世界杯个人奖',
+        scopeType: 'WORLD',
+        overall: { category: '世界杯一级综合奖', typical: '金球奖 / 银球奖 / 铜球奖' },
+        lineup: { category: '世界杯二级阵容奖', typical: '世界杯最佳阵容' },
+        specialty: [
+          { category: '世界杯二级专项奖', typical: '金靴奖 / 银靴奖 / 铜靴奖' },
+          { category: '世界杯二级门将专项奖', typical: '金手套奖 / 雅辛奖' }
+        ],
+        supplement: { category: '世界杯三级补充奖', typical: '最佳年轻球员' },
+        topAward: '不计入',
+        reduction: '金靴 / 金手套 + 世界杯最佳阵容时，专项奖折半'
+      }),
+      summaryRow({
+        name: '洲际杯个人奖',
+        scopeType: 'CONFEDERATION',
+        overall: { category: '洲际杯一级综合奖', typical: '赛事最佳球员 / 金球奖 / MVP' },
+        lineup: { category: '洲际杯二级阵容奖', typical: '赛事最佳阵容 / 最佳十一人' },
+        specialty: { category: '洲际杯二级专项奖', typical: '最佳射手 / 金靴 / 最佳门将' },
+        supplement: { category: '洲际杯三级补充奖', typical: '最佳年轻球员 / 最佳进球' },
+        topAward: '不计入',
+        reduction: '最佳射手 / 最佳门将 + 赛事最佳阵容时，专项奖折半'
+      })
+    ]
+  },
+  {
+    title: '洲际年度与俱乐部赛事规则',
+    description: '洲际年度奖、全球俱乐部赛事和洲际俱乐部赛事按 4 / 2 梯度展示。',
+    rows: [
+      summaryRow({
+        name: '俱乐部国际赛事',
+        scopeType: 'CLUB',
+        overall: { category: '俱乐部国际赛事一级综合奖', typical: '世俱杯金球奖 / 赛事最佳球员' },
+        lineup: { category: '俱乐部国际赛事二级阵容奖', typical: '世俱杯最佳阵容' },
+        specialty: { category: '俱乐部国际赛事二级专项奖', typical: '世俱杯金靴 / 最佳门将' },
+        supplement: { category: '俱乐部国际赛事三级补充奖', typical: '最佳年轻球员 / 最佳进球' },
+        topAward: '不计入',
+        reduction: '专项奖 + 赛事最佳阵容时，专项奖折半'
+      }),
+      summaryRow({
+        name: '洲际年度奖',
+        scopeType: 'CONFEDERATION',
+        overall: {
+          category: '洲际一级综合奖',
+          typical: '欧洲足球先生 / 亚洲足球先生 / 非洲足球先生'
+        },
+        lineup: { category: '洲际二级阵容奖', typical: '洲际年度最佳阵容' },
+        specialty: { category: '洲际二级门将专项奖', typical: '洲际年度最佳门将' },
+        supplement: { category: '洲际三级补充奖', typical: '最佳新人 / 年度最佳进球' },
+        topAward: '不计入',
+        reduction: '门将专项 + 洲际最佳阵容时，门将专项折半'
+      }),
+      summaryRow({
+        name: '洲联个人奖',
+        scopeType: 'CLUB',
+        overall: { category: '洲联一级综合奖', typical: '欧冠赛季最佳球员 / 解放者杯最佳球员' },
+        lineup: { category: '洲联二级阵容奖', typical: '欧冠最佳阵容 / 解放者杯最佳阵容' },
+        specialty: { category: '洲联二级专项奖', typical: '最佳射手 / 最佳门将 / 位置最佳球员' },
+        supplement: { category: '洲联三级补充奖', typical: '最佳年轻球员 / 赛事最佳进球' },
+        topAward: '不计入',
+        reduction: '专项奖 + 赛事最佳阵容时，专项奖折半'
+      })
+    ]
+  },
+  {
+    title: '联赛、国内与补充规则',
+    description: '国内联赛、二级联赛、国内杯赛和白名单补充奖按低权重展示。',
+    rows: [
+      summaryRow({
+        name: '国联个人奖',
+        scopeType: 'LEAGUE',
+        overall: { category: '国联一级综合奖', typical: '联赛赛季最佳球员 / MVP' },
+        lineup: { category: '国联二级阵容奖', typical: '联赛赛季最佳阵容' },
+        specialty: { category: '国联二级专项奖', typical: '金靴 / 金手套 / 助攻王' },
+        supplement: { category: '国联三级补充奖', typical: '最佳年轻球员 / 最佳新人' },
+        topAward: '不计入',
+        reduction: '金靴 / 金手套 / 助攻王 + 最佳阵容时，专项奖折半'
+      }),
+      summaryRow({
+        name: '国家年度奖',
+        scopeType: 'COUNTRY',
+        overall: { category: '国家一级综合奖', typical: '国家足球先生 / 国家年度最佳球员' },
+        topAward: '不计入',
+        reduction: '暂无组合折减'
+      }),
+      summaryRow({
+        name: '二级国联个人奖',
+        scopeType: 'LEAGUE',
+        overall: { category: '二级国联一级综合奖', typical: '二级联赛赛季最佳球员' },
+        lineup: { category: '二级国联二级阵容奖', typical: '二级联赛赛季最佳阵容' },
+        specialty: { category: '二级国联二级专项奖', typical: '二级联赛金靴 / 最佳门将' },
+        supplement: { category: '二级国联三级补充奖', typical: '最佳年轻球员 / 最佳新人' },
+        topAward: '不计入',
+        reduction: '专项奖 + 最佳阵容时，专项奖折半'
+      }),
+      summaryRow({
+        name: '国杯个人奖',
+        scopeType: 'CLUB',
+        overall: { category: '国杯一级奖', typical: '杯赛最佳球员 / 杯赛最佳射手' },
+        topAward: '不计入',
+        reduction: '只收杯赛最佳球员 / 最佳射手'
+      }),
+      summaryRow({
+        name: '附加分',
+        scopeType: 'MEDIA',
+        overall: { category: '附加分', typical: '白名单权威补充奖' },
+        topAward: '不计入',
+        reduction: '仅白名单权威补充奖'
+      })
+    ]
+  }
+]);
+
+interface AwardSummaryRowOptions {
+  name: string;
+  scopeType: AwardScopeType;
+  overall?: AwardSummaryScoreSource;
+  lineup?: AwardSummaryScoreSource;
+  specialty?: AwardSummaryScoreSource;
+  supplement?: AwardSummaryScoreSource;
+  topAward: string;
+  reduction: string;
+}
+
+interface AwardSummaryScoreItem {
+  category: string;
+  typical: string;
+}
+
+type AwardSummaryScoreSource = AwardSummaryScoreItem | AwardSummaryScoreItem[];
+
+function summaryRow(options: AwardSummaryRowOptions) {
+  const overall = formatSummaryScore(options.overall);
+  const lineup = formatSummaryScore(options.lineup);
+  const specialty = formatSummaryScore(options.specialty);
+  const supplement = formatSummaryScore(options.supplement);
+
+  return {
+    name: options.name,
+    scopeType: options.scopeType,
+    overallTypical: overall.typical,
+    overallScore: overall.score,
+    lineupTypical: lineup.typical,
+    lineupScore: lineup.score,
+    specialtyTypical: specialty.typical,
+    specialtyScore: specialty.score,
+    supplementTypical: supplement.typical,
+    supplementScore: supplement.score,
+    topAward: options.topAward,
+    reduction: options.reduction
+  };
+}
+
+function formatSummaryScore(source?: AwardSummaryScoreSource) {
+  if (!source) {
+    return { typical: '-', score: '-' };
+  }
+
+  const items = Array.isArray(source) ? source : [source];
+
+  return {
+    typical: items.map((item) => item.typical).join('；'),
+    score: items.map((item) => formatCategoryScore(item.category)).join('；')
+  };
+}
+
+function formatCategoryScore(categoryName: string) {
+  const categoryRules = awardSummaryItems.value.filter((rule) => rule.category === categoryName);
+
+  if (!categoryRules.length) {
+    return defaultAwardCategoryScores[categoryName] ?? '-';
+  }
+
+  const rankedRules = [1, 2, 3]
+    .map((rank) => categoryRules.find((rule) => rule.rank === rank))
+    .filter(Boolean) as AwardRuleItem[];
+
+  if (rankedRules.length > 1) {
+    return rankedRules.map((rule) => formatAwardRuleScore(rule)).join(' / ');
+  }
+
+  const selectedRule =
+    categoryRules.find((rule) => rule.rank === null || rule.rank === undefined) ??
+    rankedRules[0] ??
+    categoryRules[0];
+
+  return formatAwardRuleScore(selectedRule);
+}
 
 async function loadRules() {
   loading.value = true;
@@ -281,6 +522,18 @@ async function loadAwardRules() {
   }
 }
 
+async function loadAwardRuleSummaries() {
+  try {
+    const result = await fetchAwardRules({
+      page: 1,
+      pageSize: 200
+    });
+    awardSummaryItems.value = result.items;
+  } catch (error) {
+    awardErrorMessage.value = error instanceof Error ? error.message : '球员奖项规则加载失败。';
+  }
+}
+
 function submitAwardFilters() {
   awardFilters.page = 1;
   void loadAwardRules();
@@ -292,27 +545,6 @@ function resetAwardFilters() {
   awardFilters.scopeType = '';
   awardFilters.enabled = '';
   void loadAwardRules();
-}
-
-function resetAwardForm() {
-  awardForm.code = '';
-  awardForm.name = '';
-  awardForm.scopeType = null;
-  awardForm.category = '';
-  awardForm.placement = '';
-  awardForm.rank = null;
-  awardForm.baseScore = 0;
-  awardForm.coefficient = 1;
-  awardForm.topAward = false;
-  awardForm.enabled = true;
-  awardForm.sortOrder = 0;
-  awardForm.remark = '';
-}
-
-function openCreateAwardDialog() {
-  awardEditingItem.value = null;
-  resetAwardForm();
-  awardDialogVisible.value = true;
 }
 
 function openEditAwardDialog(row: AwardRuleItem) {
@@ -387,21 +619,20 @@ async function saveAwardRule() {
     return;
   }
 
+  if (!awardEditingItem.value) {
+    return;
+  }
+
   awardSubmitting.value = true;
 
   try {
     const payload = buildAwardPayload();
 
-    if (awardEditingItem.value) {
-      await updateAwardRule(awardEditingItem.value.id, payload);
-      ElMessage.success('球员奖项规则已更新。');
-    } else {
-      await createAwardRule(payload);
-      ElMessage.success('球员奖项规则已创建。');
-    }
+    await updateAwardRule(awardEditingItem.value.id, payload);
+    ElMessage.success('球员奖项规则已更新。');
 
     awardDialogVisible.value = false;
-    await loadAwardRules();
+    await Promise.all([loadAwardRules(), loadAwardRuleSummaries()]);
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '保存球员奖项规则失败。');
   } finally {
@@ -428,7 +659,7 @@ async function toggleAwardRule(row: AwardRuleItem) {
       remark: row.remark ?? undefined
     });
     ElMessage.success(row.enabled ? '规则已停用。' : '规则已启用。');
-    await loadAwardRules();
+    await Promise.all([loadAwardRules(), loadAwardRuleSummaries()]);
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '切换球员奖项规则失败。');
   } finally {
@@ -478,6 +709,7 @@ watch(
 onMounted(() => {
   void loadRules();
   void loadAwardRules();
+  void loadAwardRuleSummaries();
 });
 </script>
 
@@ -578,20 +810,6 @@ onMounted(() => {
               <h2>球员奖项规则</h2>
               <p>按奖项范围、分类、名次文本或排名配置评分规则，手动触发后更新球员荣誉分。</p>
             </div>
-            <div class="header-actions">
-              <el-button
-                type="warning"
-                :loading="awardRecalculating"
-                @click="recalculatePlayerAwardScores"
-              >
-                <IconFont name="refresh" />
-                重新计算球员荣誉分
-              </el-button>
-              <el-button type="success" :disabled="awardLoading" @click="openCreateAwardDialog">
-                <IconFont name="add" />
-                新增奖项规则
-              </el-button>
-            </div>
           </div>
 
           <el-form
@@ -639,6 +857,17 @@ onMounted(() => {
             </div>
           </el-form>
 
+          <div class="rule-toolbar">
+            <el-button
+              type="warning"
+              :loading="awardRecalculating"
+              @click="recalculatePlayerAwardScores"
+            >
+              <IconFont name="refresh" />
+              重新计算球员荣誉分
+            </el-button>
+          </div>
+
           <el-alert
             v-if="lastAwardRecalculateSummary"
             class="recalculate-alert"
@@ -653,7 +882,130 @@ onMounted(() => {
           <el-alert type="error" :title="awardErrorMessage" show-icon :closable="false" />
         </div>
 
+        <div v-for="group in awardRuleSummaryGroups" :key="group.title" class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>{{ group.title }}</h3>
+              <p>{{ group.description }}</p>
+            </div>
+          </div>
+
+          <el-table :data="group.rows" border>
+            <el-table-column type="index" label="序号" width="60" align="center" fixed="left" />
+            <el-table-column
+              prop="name"
+              label="规则名称"
+              width="180"
+              fixed="left"
+              show-overflow-tooltip
+            />
+            <el-table-column label="范围" width="90" align="center">
+              <template #default="{ row }">{{ getAwardScopeLabel(row.scopeType) }}</template>
+            </el-table-column>
+            <el-table-column
+              prop="overallTypical"
+              label="综合奖项"
+              min-width="300"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.overallTypical }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="overallScore"
+              label="综合分"
+              width="150"
+              align="center"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.overallScore }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="lineupTypical"
+              label="阵容奖项"
+              min-width="280"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.lineupTypical }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="lineupScore"
+              label="阵容分"
+              width="110"
+              align="center"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.lineupScore }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="specialtyTypical"
+              label="专项奖项"
+              min-width="340"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.specialtyTypical }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="specialtyScore"
+              label="专项分"
+              width="170"
+              align="center"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.specialtyScore }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="supplementTypical"
+              label="补充奖项"
+              min-width="240"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.supplementTypical }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="supplementScore"
+              label="补充分"
+              width="150"
+              align="center"
+              show-overflow-tooltip
+            >
+              <template #default="{ row }">
+                <span class="award-score-cell">{{ row.supplementScore }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="topAward" label="顶级奖项数" width="130" />
+            <el-table-column
+              prop="reduction"
+              label="组合折减"
+              min-width="260"
+              show-overflow-tooltip
+            />
+          </el-table>
+        </div>
+
+        <div class="panel rule-detail-guide">
+          <div>
+            <h3>评分明细规则</h3>
+            <p>下面这张表是实际参与球员荣誉分计算的底层规则，可编辑分值、系数、启停和备注。</p>
+          </div>
+        </div>
+
         <AwardRuleListPanel
+          title="评分明细规则"
+          description="以下为系统用于匹配 AwardRecipient 的底层评分规则；通常只需要编辑分值、系数、启停或备注。具体奖项请在奖项管理中维护。"
           :items="awardItems"
           :total="awardTotal"
           :loading="awardLoading"
@@ -712,6 +1064,37 @@ onMounted(() => {
   grid-template-columns: minmax(240px, 1fr) 220px auto;
 }
 
+.award-rule-filter {
+  grid-template-columns: minmax(240px, 360px) 280px 220px auto;
+}
+
+.rule-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.rule-detail-guide {
+  h3 {
+    margin: 0 0 6px;
+    color: var(--text-color-primary);
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-color-secondary);
+    font-size: 13px;
+  }
+}
+
+.award-score-cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .recalculate-alert {
   margin-top: 16px;
 }
@@ -726,10 +1109,15 @@ onMounted(() => {
   .honor-rule-filter {
     grid-template-columns: repeat(2, minmax(220px, 1fr));
   }
+
+  .award-rule-filter {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
-  .honor-rule-filter {
+  .honor-rule-filter,
+  .award-rule-filter {
     grid-template-columns: 1fr;
   }
 }

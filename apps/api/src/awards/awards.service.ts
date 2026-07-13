@@ -221,6 +221,34 @@ export class AwardsService {
     });
   }
 
+  async remove(id: string) {
+    const award = await this.prisma.award.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            editions: true
+          }
+        }
+      }
+    });
+
+    if (!award) {
+      throw new NotFoundException('奖项不存在。');
+    }
+
+    if (award._count.editions > 0) {
+      throw new BadRequestException('奖项已有届次或获奖人，不能直接删除。');
+    }
+
+    await this.prisma.award.delete({
+      where: { id }
+    });
+
+    return { id };
+  }
+
   async createEdition(awardId: string, body: CreateAwardEditionBody) {
     await this.assertAwardExists(awardId);
 

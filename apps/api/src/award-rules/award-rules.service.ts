@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { AwardScopeType, type AwardRule, type Prisma } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { DEFAULT_AWARD_RULES, type AwardRuleDefaultDefinition } from './default-award-rules.js';
 import type { AwardRuleListQuery, AwardRulePayload } from './award-rules.types.js';
 
 interface PlayerAwardStats {
@@ -10,13 +11,26 @@ interface PlayerAwardStats {
   honorScore: number;
 }
 
-const TOP_AWARD_PATTERN = /冠军|第一|第\s*1\s*名|金球奖|金奖/i;
+type AwardRuleMatchTarget = {
+  scopeType: AwardScopeType;
+  category: string | null;
+  placement: string | null;
+  rank: number | null;
+};
+
+type ScoredAwardRecipient = {
+  playerId: string;
+  groupKey: string;
+  rule: AwardRule;
+  score: number;
+};
 
 @Injectable()
 export class AwardRulesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: AwardRuleListQuery) {
+    await this.ensureDefaultRules();
     const pagination = resolvePagination(query);
     const where = this.buildWhere(query);
     const [items, total] = await this.prisma.$transaction([
@@ -55,7 +69,12 @@ export class AwardRulesService {
     });
   }
 
+  async initializeDefaults() {
+    return this.ensureDefaultRules({ reset: true });
+  }
+
   async recalculate() {
+    await this.ensureDefaultRules();
     const [players, rules, recipients] = await Promise.all([
       this.prisma.player.findMany({ select: { id: true } }),
       this.prisma.awardRule.findMany({
@@ -68,8 +87,11 @@ export class AwardRulesService {
             include: {
               award: {
                 select: {
+                  id: true,
                   scopeType: true,
-                  category: true
+                  category: true,
+                  confederationId: true,
+                  countryId: true
                 }
               }
             }
@@ -79,6 +101,8 @@ export class AwardRulesService {
     ]);
     const sortedRules = this.sortRulesBySpecificity(rules);
     const statsByPlayer = new Map<string, PlayerAwardStats>();
+    const scoredRecipients: ScoredAwardRecipient[] = [];
+    const lineupGroups = new Set<string>();
 
     for (const recipient of recipients) {
       const stats = statsByPlayer.get(recipient.playerId) ?? this.emptyStats();
@@ -90,13 +114,42 @@ export class AwardRulesService {
       });
 
       stats.awardCount += 1;
-      if (this.isTopAward(recipient.rank, recipient.placement)) {
+      if (rule?.topAward) {
         stats.topAwardCount += 1;
       }
       if (rule) {
-        stats.honorScore += rule.baseScore * rule.coefficient;
+        const scoredRecipient = {
+          playerId: recipient.playerId,
+          groupKey: this.buildCombinationGroupKey({
+            playerId: recipient.playerId,
+            period: this.resolveEditionPeriod(recipient.edition),
+            scopeType: recipient.edition.award.scopeType,
+            confederationId: recipient.edition.award.confederationId,
+            countryId: recipient.edition.award.countryId,
+            category: rule.category
+          }),
+          rule,
+          score: rule.baseScore * rule.coefficient
+        };
+
+        scoredRecipients.push(scoredRecipient);
+
+        if (this.isLineupRule(rule)) {
+          lineupGroups.add(scoredRecipient.groupKey);
+        }
       }
 
+      statsByPlayer.set(recipient.playerId, stats);
+    }
+
+    for (const recipient of scoredRecipients) {
+      const stats = statsByPlayer.get(recipient.playerId) ?? this.emptyStats();
+      const score =
+        this.isSpecialtyRule(recipient.rule) && lineupGroups.has(recipient.groupKey)
+          ? recipient.score * 0.5
+          : recipient.score;
+
+      stats.honorScore += score;
       statsByPlayer.set(recipient.playerId, stats);
     }
 
@@ -122,6 +175,34 @@ export class AwardRulesService {
       recipientCount: recipients.length,
       enabledRuleCount: rules.length,
       scoredPlayerCount: [...statsByPlayer.values()].filter((stats) => stats.honorScore > 0).length
+    };
+  }
+
+  private async ensureDefaultRules({ reset = false }: { reset?: boolean } = {}) {
+    const existingRules = await this.prisma.awardRule.findMany({
+      where: {
+        code: {
+          in: DEFAULT_AWARD_RULES.map((rule) => rule.code)
+        }
+      },
+      select: { code: true }
+    });
+    const existingCodes = new Set(existingRules.map((rule) => rule.code));
+
+    for (const definition of DEFAULT_AWARD_RULES) {
+      await this.prisma.awardRule.upsert({
+        where: { code: definition.code },
+        create: this.defaultRuleData(definition),
+        update: reset
+          ? this.defaultRuleResetData(definition)
+          : this.defaultRuleStructuralUpdateData(definition)
+      });
+    }
+
+    return {
+      total: DEFAULT_AWARD_RULES.length,
+      created: DEFAULT_AWARD_RULES.filter((rule) => !existingCodes.has(rule.code)).length,
+      updated: DEFAULT_AWARD_RULES.filter((rule) => existingCodes.has(rule.code)).length
     };
   }
 
@@ -198,15 +279,7 @@ export class AwardRulesService {
     });
   }
 
-  private findMatchingRule(
-    rules: AwardRule[],
-    recipient: {
-      scopeType: AwardScopeType;
-      category: string | null;
-      placement: string | null;
-      rank: number | null;
-    }
-  ) {
+  private findMatchingRule(rules: AwardRule[], recipient: AwardRuleMatchTarget) {
     return rules.find((rule) => {
       if (rule.scopeType && rule.scopeType !== recipient.scopeType) {
         return false;
@@ -239,8 +312,97 @@ export class AwardRulesService {
     ).length;
   }
 
-  private isTopAward(rank: number | null, placement: string | null) {
-    return rank === 1 || TOP_AWARD_PATTERN.test(placement ?? '');
+  private defaultRuleData(definition: AwardRuleDefaultDefinition) {
+    return {
+      code: definition.code,
+      name: definition.name,
+      scopeType: definition.scopeType,
+      category: definition.category,
+      placement: definition.placement ?? null,
+      rank: definition.rank ?? null,
+      baseScore: definition.baseScore,
+      coefficient: definition.coefficient,
+      topAward: definition.topAward,
+      enabled: definition.enabled,
+      sortOrder: definition.sortOrder,
+      remark: definition.remark ?? null
+    } satisfies Prisma.AwardRuleUncheckedCreateInput;
+  }
+
+  private defaultRuleStructuralUpdateData(definition: AwardRuleDefaultDefinition) {
+    return {
+      name: definition.name,
+      scopeType: definition.scopeType,
+      category: definition.category,
+      placement: definition.placement ?? null,
+      rank: definition.rank ?? null,
+      sortOrder: definition.sortOrder
+    } satisfies Prisma.AwardRuleUncheckedUpdateInput;
+  }
+
+  private defaultRuleResetData(definition: AwardRuleDefaultDefinition) {
+    return {
+      name: definition.name,
+      scopeType: definition.scopeType,
+      category: definition.category,
+      placement: definition.placement ?? null,
+      rank: definition.rank ?? null,
+      baseScore: definition.baseScore,
+      coefficient: definition.coefficient,
+      topAward: definition.topAward,
+      enabled: definition.enabled,
+      sortOrder: definition.sortOrder,
+      remark: definition.remark ?? null
+    } satisfies Prisma.AwardRuleUncheckedUpdateInput;
+  }
+
+  private resolveEditionPeriod(edition: {
+    year: number | null;
+    season: string | null;
+    name: string;
+  }) {
+    return edition.year?.toString() ?? edition.season ?? edition.name;
+  }
+
+  private buildCombinationGroupKey({
+    playerId,
+    period,
+    scopeType,
+    confederationId,
+    countryId,
+    category
+  }: {
+    playerId: string;
+    period: string;
+    scopeType: AwardScopeType;
+    confederationId: string | null;
+    countryId: string | null;
+    category: string | null;
+  }) {
+    return [
+      playerId,
+      period,
+      scopeType,
+      confederationId ?? '',
+      countryId ?? '',
+      this.categoryFamily(category)
+    ].join('|');
+  }
+
+  private categoryFamily(category: string | null) {
+    return this.normalize(category)
+      .replace(/一级综合奖|二级阵容奖|二级门将专项奖|二级专项奖|三级补充奖|一级奖/g, '')
+      .replace(/\s+/g, '');
+  }
+
+  private isLineupRule(rule: AwardRule) {
+    return this.normalize(rule.category).includes('阵容奖');
+  }
+
+  private isSpecialtyRule(rule: AwardRule) {
+    const category = this.normalize(rule.category);
+
+    return category.includes('专项奖') || category.includes('门将专项奖');
   }
 
   private parseScopeType(value: AwardScopeType) {

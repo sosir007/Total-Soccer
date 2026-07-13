@@ -1,25 +1,29 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { useRoute, useRouter } from 'vue-router';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   createAward,
   createAwardEdition,
+  deleteAward,
   fetchAwardDetail,
   fetchAwards,
   saveAwardRecipients,
   updateAward,
   updateAwardEdition
 } from '@/services/modules/awards';
+import { fetchAwardRules } from '@/services/modules/award-rules';
 import type {
   AwardDetail,
   AwardEdition,
   AwardListItem,
   AwardScopeType
 } from '@/services/types/awards';
+import type { AwardRuleItem } from '@/services/types/award-rules';
 import { fetchPlayers } from '@/services/modules/catalog';
 import type { PlayerListItem } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
+import IconFont from '@/components/IconFont.vue';
 import AwardCreateDialog from './components/AwardCreateDialog.vue';
 import AwardDetailFormPanel from './components/AwardDetailFormPanel.vue';
 import AwardDetailHero from './components/AwardDetailHero.vue';
@@ -36,6 +40,16 @@ interface RecipientFormRow {
   remark: string;
 }
 
+interface AwardRuleCategoryOption {
+  value: string;
+  label: string;
+  scopeType: AwardScopeType;
+  category: string;
+  level: string;
+  sortOrder: number;
+  description: string;
+}
+
 const scopeTypeOptions: Array<{ label: string; value: AwardScopeType }> = [
   { label: '世界', value: 'WORLD' },
   { label: '洲际', value: 'CONFEDERATION' },
@@ -47,10 +61,14 @@ const scopeTypeOptions: Array<{ label: string; value: AwardScopeType }> = [
 const scopeTypeLabels = Object.fromEntries(
   scopeTypeOptions.map((scopeType) => [scopeType.value, scopeType.label])
 ) as Record<AwardScopeType, string>;
+const awardLevelOptions = ['综合奖项', '阵容奖项', '专项奖项', '补充奖项'];
 
 const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const creating = ref(false);
+const editingAwardId = ref('');
+const deletingId = ref('');
 const detailLoading = ref(false);
 const savingDetail = ref(false);
 const editionSaving = ref(false);
@@ -62,6 +80,7 @@ const awards = ref<AwardListItem[]>([]);
 const selectedAward = ref<AwardDetail | null>(null);
 const editingEdition = ref<AwardEdition | null>(null);
 const playerOptions = ref<PlayerListItem[]>([]);
+const awardRuleOptions = ref<AwardRuleCategoryOption[]>([]);
 const total = ref(0);
 
 const filters = reactive({
@@ -84,7 +103,10 @@ const editionForm = reactive({
 const hasRows = computed(() => awards.value.length > 0);
 const editionDialogTitle = computed(() => (editingEdition.value ? '编辑奖项年份' : '新增奖项年份'));
 const sortedEditions = computed(() => selectedAward.value?.editions ?? []);
-const queryAwardId = computed(() => String(route.query.awardId ?? ''));
+const routeAwardId = computed(() => String(route.params.id ?? ''));
+const isDetailPage = computed(() => Boolean(routeAwardId.value));
+const awardDialogTitle = computed(() => (editingAwardId.value ? '编辑奖项' : '创建奖项'));
+const awardDialogSubmitText = computed(() => (editingAwardId.value ? '保存奖项' : '创建奖项'));
 
 async function loadAwards() {
   loading.value = true;
@@ -99,14 +121,6 @@ async function loadAwards() {
     });
     awards.value = result.items;
     total.value = result.total;
-
-    const targetAward = result.items.find((item) => item.id === queryAwardId.value);
-
-    if (targetAward) {
-      await openAward(targetAward);
-    } else if (!selectedAward.value && result.items[0]) {
-      await openAward(result.items[0]);
-    }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '奖项列表加载失败。';
     ElMessage.error(errorMessage.value);
@@ -134,21 +148,91 @@ async function loadPlayerOptions(keyword = '') {
   }
 }
 
-function searchPlayerOptions(keyword: string) {
-  void loadPlayerOptions(keyword);
+async function loadAwardRuleOptions() {
+  try {
+    const result = await fetchAwardRules({
+      page: 1,
+      pageSize: 200,
+      enabled: 'true'
+    });
+    awardRuleOptions.value = buildAwardRuleOptions(result.items);
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '奖项规则选项加载失败。');
+  }
 }
 
-async function openAward(award: AwardListItem) {
-  detailLoading.value = true;
+function buildAwardRuleOptions(rules: AwardRuleItem[]) {
+  const categoryMap = new Map<string, AwardRuleCategoryOption>();
 
-  try {
-    selectedAward.value = await fetchAwardDetail(award.id);
-    populateDetailForm();
-  } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '奖项详情加载失败。');
-  } finally {
-    detailLoading.value = false;
+  for (const rule of rules) {
+    if (!rule.scopeType || !rule.category) {
+      continue;
+    }
+
+    const key = awardRuleKey(rule.scopeType, rule.category);
+    const existing = categoryMap.get(key);
+    const sortOrder = existing ? Math.min(existing.sortOrder, rule.sortOrder) : rule.sortOrder;
+
+    categoryMap.set(key, {
+      value: key,
+      label: rule.category,
+      scopeType: rule.scopeType,
+      category: rule.category,
+      level: resolveAwardRuleLevel(rule.category),
+      sortOrder,
+      description: [scopeTypeLabels[rule.scopeType], resolveAwardRuleLevel(rule.category)]
+        .filter(Boolean)
+        .join(' / ')
+    });
   }
+
+  return [...categoryMap.values()].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, 'zh-CN')
+  );
+}
+
+function awardRuleKey(scopeType: AwardScopeType, category: string) {
+  return `${scopeType}::${category}`;
+}
+
+function resolveAwardRuleLevel(category: string) {
+  if (category.includes('综合')) return '综合奖项';
+  if (category.includes('阵容')) return '阵容奖项';
+  if (category.includes('专项') || category.includes('门将')) return '专项奖项';
+  if (category.includes('补充') || category.includes('附加')) return '补充奖项';
+  if (category.includes('国杯')) return '综合奖项';
+  return '';
+}
+
+function applyAwardRuleOption(
+  form: ReturnType<typeof createEmptyAwardForm>,
+  optionValue: string,
+  { resetScopeRefs = true }: { resetScopeRefs?: boolean } = {}
+) {
+  const option = awardRuleOptions.value.find((item) => item.value === optionValue);
+
+  if (!option) {
+    return;
+  }
+
+  form.ruleCategoryKey = option.value;
+  form.scopeType = option.scopeType;
+  form.category = option.category;
+  form.level = option.level;
+
+  if (resetScopeRefs) {
+    if (option.scopeType !== 'CONFEDERATION') {
+      form.confederationId = '';
+    }
+
+    if (option.scopeType !== 'COUNTRY') {
+      form.countryId = '';
+    }
+  }
+}
+
+function searchPlayerOptions(keyword: string) {
+  void loadPlayerOptions(keyword);
 }
 
 async function openAwardById(id: string) {
@@ -168,6 +252,12 @@ async function openAwardById(id: string) {
   }
 }
 
+function goBackToAwards() {
+  void router.push({
+    name: 'tianji-awards'
+  });
+}
+
 function submitFilters() {
   filters.page = 1;
   void loadAwards();
@@ -181,7 +271,18 @@ function resetFilters() {
 }
 
 function openCreateAwardDialog() {
+  editingAwardId.value = '';
   Object.assign(awardForm, createEmptyAwardForm());
+  createDialogVisible.value = true;
+}
+
+async function openEditAwardDialog(row: AwardListItem) {
+  if (!awardRuleOptions.value.length) {
+    await loadAwardRuleOptions();
+  }
+
+  editingAwardId.value = row.id;
+  populateAwardForm(row, awardForm);
   createDialogVisible.value = true;
 }
 
@@ -193,16 +294,59 @@ async function submitAward() {
   creating.value = true;
 
   try {
-    const created = await createAward(buildAwardPayload(awardForm));
-    ElMessage.success('奖项创建成功。');
+    if (editingAwardId.value) {
+      await updateAward(editingAwardId.value, buildAwardPayload(awardForm));
+      ElMessage.success('奖项已更新。');
+      await loadAwards();
+    } else {
+      const created = await createAward(buildAwardPayload(awardForm));
+      ElMessage.success('奖项创建成功。');
+      await router.push({
+        name: 'tianji-award-detail-id',
+        params: { id: created.id }
+      });
+    }
+
     createDialogVisible.value = false;
     Object.assign(awardForm, createEmptyAwardForm());
-    await loadAwards();
-    await openAward(created);
+    editingAwardId.value = '';
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '奖项创建失败。');
+    ElMessage.error(error instanceof Error ? error.message : '奖项保存失败。');
   } finally {
     creating.value = false;
+  }
+}
+
+async function confirmDeleteAward(row: AwardListItem) {
+  try {
+    await ElMessageBox.confirm(
+      `确定删除奖项「${row.name}」吗？已有届次或获奖人的奖项会被后端阻止删除。`,
+      '删除奖项',
+      {
+        type: 'warning',
+        confirmButtonText: '删除',
+        cancelButtonText: '取消'
+      }
+    );
+  } catch {
+    return;
+  }
+
+  deletingId.value = row.id;
+
+  try {
+    await deleteAward(row.id);
+    ElMessage.success('奖项已删除。');
+
+    if (awards.value.length === 1 && filters.page > 1) {
+      filters.page -= 1;
+    }
+
+    await loadAwards();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '奖项删除失败。');
+  } finally {
+    deletingId.value = '';
   }
 }
 
@@ -326,22 +470,35 @@ function populateDetailForm() {
     return;
   }
 
-  detailForm.code = selectedAward.value.code;
-  detailForm.name = selectedAward.value.name;
-  detailForm.externalUrl = selectedAward.value.externalUrl ?? '';
-  detailForm.scopeType = selectedAward.value.scopeType;
-  detailForm.category = selectedAward.value.category ?? '';
-  detailForm.level = selectedAward.value.level ?? '';
-  detailForm.description = selectedAward.value.description ?? '';
-  detailForm.confederationId = selectedAward.value.confederationId ?? '';
-  detailForm.countryId = selectedAward.value.countryId ?? '';
-  detailForm.enabled = selectedAward.value.enabled;
-  detailForm.sortOrder = selectedAward.value.sortOrder;
+  populateAwardForm(selectedAward.value, detailForm);
+}
+
+function populateAwardForm(
+  award: AwardListItem | AwardDetail,
+  form: ReturnType<typeof createEmptyAwardForm>
+) {
+  form.code = award.code;
+  form.name = award.name;
+  form.externalUrl = award.externalUrl ?? '';
+  form.scopeType = award.scopeType;
+  form.category = award.category ?? '';
+  form.level = award.level ?? '';
+  form.ruleCategoryKey = award.category ? awardRuleKey(award.scopeType, award.category) : '';
+  form.description = award.description ?? '';
+  form.confederationId = award.confederationId ?? '';
+  form.countryId = award.countryId ?? '';
+  form.enabled = award.enabled;
+  form.sortOrder = award.sortOrder;
 }
 
 function validateAwardForm(form: ReturnType<typeof createEmptyAwardForm>) {
   if (!form.code.trim() || !form.name.trim()) {
     ElMessage.warning('请填写奖项编码和奖项名称。');
+    return false;
+  }
+
+  if (!form.ruleCategoryKey) {
+    ElMessage.warning('请选择评分规则。');
     return false;
   }
 
@@ -382,6 +539,7 @@ function createEmptyAwardForm() {
     scopeType: 'WORLD' as AwardScopeType,
     category: '',
     level: '',
+    ruleCategoryKey: '',
     description: '',
     confederationId: '',
     countryId: '',
@@ -461,12 +619,19 @@ function playerOptionMeta(player: PlayerListItem) {
 watch(
   () => [filters.page, filters.pageSize],
   () => {
-    void loadAwards();
+    if (!isDetailPage.value) {
+      void loadAwards();
+    }
   }
 );
 
-watch(queryAwardId, (id) => {
-  void openAwardById(id);
+watch(routeAwardId, (id) => {
+  if (id) {
+    void openAwardById(id);
+  } else {
+    selectedAward.value = null;
+    void loadAwards();
+  }
 });
 
 watch(
@@ -477,87 +642,132 @@ watch(
   }
 );
 
+watch(
+  () => awardForm.ruleCategoryKey,
+  (value) => {
+    if (value) {
+      applyAwardRuleOption(awardForm, value);
+    } else {
+      awardForm.category = '';
+    }
+  }
+);
+
+watch(
+  () => detailForm.ruleCategoryKey,
+  (value) => {
+    if (value) {
+      applyAwardRuleOption(detailForm, value);
+    } else {
+      detailForm.category = '';
+    }
+  }
+);
+
 onMounted(() => {
-  void loadAwards();
   void loadPlayerOptions();
+  void loadAwardRuleOptions();
+
+  if (isDetailPage.value) {
+    void openAwardById(routeAwardId.value);
+  } else {
+    void loadAwards();
+  }
 });
 </script>
 
 <template>
   <section class="page-stack">
-    <AwardFilterPanel
-      :filters="filters"
-      :loading="loading"
-      :scope-type-options="scopeTypeOptions"
-      @submit="submitFilters"
-      @reset="resetFilters"
-    />
+    <template v-if="!isDetailPage">
+      <AwardFilterPanel
+        :filters="filters"
+        :loading="loading"
+        :scope-type-options="scopeTypeOptions"
+        @submit="submitFilters"
+        @reset="resetFilters"
+      />
 
-    <div v-if="errorMessage" class="panel">
-      <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
-    </div>
+      <div v-if="errorMessage" class="panel">
+        <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
+      </div>
 
-    <div class="competition-layout">
-      <div class="page-stack">
-        <AwardListPanel
-          :awards="awards"
-          :total="total"
-          :loading="loading"
-          :has-rows="hasRows"
-          :page="filters.page"
-          :page-size="filters.pageSize"
+      <AwardListPanel
+        :awards="awards"
+        :total="total"
+        :loading="loading"
+        :has-rows="hasRows"
+        :deleting-id="deletingId"
+        :page="filters.page"
+        :page-size="filters.pageSize"
+        :format-scope="formatScope"
+        @create="openCreateAwardDialog"
+        @edit="openEditAwardDialog"
+        @delete="confirmDeleteAward"
+        @update:page="filters.page = $event"
+        @update:page-size="filters.pageSize = $event"
+      />
+
+      <AwardCreateDialog
+        v-model:visible="createDialogVisible"
+        :title="awardDialogTitle"
+        :submit-text="awardDialogSubmitText"
+        :form="awardForm"
+        :creating="creating"
+        :scope-type-options="scopeTypeOptions"
+        :award-rule-options="awardRuleOptions"
+        :award-level-options="awardLevelOptions"
+        @submit="submitAward"
+      />
+    </template>
+
+    <template v-else>
+      <div class="panel detail-back-panel">
+        <el-button @click="goBackToAwards">
+          <IconFont name="back" />
+          返回奖项管理
+        </el-button>
+      </div>
+
+      <div v-if="errorMessage" class="panel">
+        <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
+      </div>
+
+      <div v-if="detailLoading" class="panel">
+        <el-skeleton :rows="10" animated />
+      </div>
+
+      <div v-else-if="!selectedAward" class="panel empty-panel">
+        <h3>奖项不存在</h3>
+        <p>可以返回奖项管理重新选择。</p>
+      </div>
+
+      <template v-else>
+        <AwardDetailHero
+          :award="selectedAward"
+          :scope-type-labels="scopeTypeLabels"
           :format-scope="formatScope"
-          @create="openCreateAwardDialog"
-          @open="openAward"
-          @update:page="filters.page = $event"
-          @update:page-size="filters.pageSize = $event"
+          :external-url="awardExternalUrl()"
         />
 
-        <AwardCreateDialog
-          v-model:visible="createDialogVisible"
-          :form="awardForm"
-          :creating="creating"
+        <AwardDetailFormPanel
+          :form="detailForm"
+          :award="selectedAward"
+          :saving="savingDetail"
           :scope-type-options="scopeTypeOptions"
-          @submit="submitAward"
+          :award-rule-options="awardRuleOptions"
+          :award-level-options="awardLevelOptions"
+          @save="saveAwardDetail"
         />
-      </div>
 
-      <div class="page-stack">
-        <div v-if="!selectedAward" class="panel empty-panel">
-          <h3>请选择奖项</h3>
-          <p>选择左侧奖项后，可以维护基础资料和每年获奖球员。</p>
-        </div>
-
-        <div v-else-if="detailLoading" class="panel">
-          <el-skeleton :rows="10" animated />
-        </div>
-
-        <template v-else>
-          <AwardDetailHero
-            :award="selectedAward"
-            :scope-type-labels="scopeTypeLabels"
-            :format-scope="formatScope"
-            :external-url="awardExternalUrl()"
-          />
-
-          <AwardDetailFormPanel
-            :form="detailForm"
-            :award="selectedAward"
-            :saving="savingDetail"
-            :scope-type-options="scopeTypeOptions"
-            @save="saveAwardDetail"
-          />
-
-          <AwardEditionsPanel
-            :editions="sortedEditions"
-            :format-edition-recipients="formatEditionRecipients"
-            :format-recipient-placement="formatRecipientPlacement"
-            @create="openCreateEditionDialog"
-            @edit="openEditEditionDialog"
-          />
-        </template>
-      </div>
-    </div>
+        <AwardEditionsPanel
+          :editions="sortedEditions"
+          :format-edition-recipients="formatEditionRecipients"
+          :format-recipient-placement="formatRecipientPlacement"
+          @create="openCreateEditionDialog"
+          @edit="openEditEditionDialog"
+        />
+      </template>
+    </template>
 
     <AwardEditionDialog
       v-model:visible="editionDialogVisible"

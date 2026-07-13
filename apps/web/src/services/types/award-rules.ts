@@ -47,3 +47,9 @@ export interface AwardRecalculateResult {
   enabledRuleCount: number;
   scoredPlayerCount: number;
 }
+
+export interface AwardRuleDefaultsResult {
+  total: number;
+  created: number;
+  updated: number;
+}

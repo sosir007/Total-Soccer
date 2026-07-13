@@ -52,7 +52,7 @@ function openDetail() {
     return;
   }
 
-  void router.push({ name: 'tianji-awards', query: { awardId: navigationId.value } });
+  void router.push({ name: 'tianji-award-detail-id', params: { id: navigationId.value } });
 }
 </script>
 

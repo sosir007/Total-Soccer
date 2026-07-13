@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AwardsService } from './awards.service.js';
 import type {
@@ -44,6 +44,12 @@ export class AwardsController {
   @ApiOperation({ summary: '编辑奖项' })
   update(@Param('id') id: string, @Body() body: UpdateAwardBody) {
     return this.awardsService.update(id, body);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除奖项' })
+  remove(@Param('id') id: string) {
+    return this.awardsService.remove(id);
   }
 
   @Post(':id/editions')

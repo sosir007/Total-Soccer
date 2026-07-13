@@ -2,12 +2,14 @@
 import type { AwardListItem } from '@/services/types/awards';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 
 defineProps<{
   awards: AwardListItem[];
   total: number;
   loading: boolean;
   hasRows: boolean;
+  deletingId: string;
   page: number;
   pageSize: number;
   formatScope: (award: AwardListItem) => string;
@@ -15,10 +17,27 @@ defineProps<{
 
 const emit = defineEmits<{
   create: [];
-  open: [award: AwardListItem];
+  edit: [row: AwardListItem];
+  delete: [row: AwardListItem];
   'update:page': [value: number];
   'update:pageSize': [value: number];
 }>();
+
+function getRowSequence(page: number, pageSize: number, index: number) {
+  return (page - 1) * pageSize + index + 1;
+}
+
+function formatText(value?: string | number | null) {
+  return value === null || value === undefined || value === '' ? '-' : value;
+}
+
+function openExternalLink(row: AwardListItem) {
+  if (!row.externalUrl) {
+    return;
+  }
+
+  window.open(row.externalUrl, '_blank');
+}
 </script>
 
 <template>
@@ -42,20 +61,69 @@ const emit = defineEmits<{
     </div>
 
     <template v-else>
-      <el-table :data="awards" border highlight-current-row @row-click="emit('open', $event)">
-        <el-table-column label="奖项" min-width="190">
+      <el-table :data="awards" border>
+        <el-table-column label="序号" width="60" align="center" fixed="left">
+          <template #default="{ $index }">{{ getRowSequence(page, pageSize, $index) }}</template>
+        </el-table-column>
+        <el-table-column label="奖项" min-width="220" fixed="left">
           <template #default="{ row }">
             <EntityNameCell :id="row.id" type="award" :title="row.name" :subtitle="row.code" />
           </template>
         </el-table-column>
-        <el-table-column label="范围" width="110">
+        <el-table-column label="范围" width="100" align="center" header-align="center">
           <template #default="{ row }">{{ formatScope(row) }}</template>
         </el-table-column>
-        <el-table-column label="分类" min-width="120">
-          <template #default="{ row }">{{ row.category || '-' }}</template>
+        <el-table-column label="规则分类" min-width="170" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatText(row.category) }}</template>
         </el-table-column>
-        <el-table-column label="年份" width="82">
+        <el-table-column label="奖项类型" width="110" align="center" header-align="center">
+          <template #default="{ row }">{{ formatText(row.level) }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="90" align="center" header-align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
+              {{ row.enabled ? '启用' : '停用' }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="年份" width="82" align="center" header-align="center">
           <template #default="{ row }">{{ row._count?.editions ?? 0 }}</template>
+        </el-table-column>
+        <el-table-column label="外链" width="86" align="center" header-align="center">
+          <template #default="{ row }">
+            <a
+              v-if="row.externalUrl"
+              class="external-text-link"
+              :href="row.externalUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click.prevent.stop="openExternalLink(row)"
+            >
+              打开
+            </a>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="sortOrder" label="排序" width="80" align="center" />
+        <el-table-column prop="description" label="描述" min-width="240" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatText(row.description) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="150" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click.stop="emit('edit', row)">
+              <IconFont name="edit" />
+              编辑
+            </el-button>
+            <el-button
+              link
+              type="danger"
+              :loading="deletingId === row.id"
+              @click.stop="emit('delete', row)"
+            >
+              <IconFont name="delete" />
+              删除
+            </el-button>
+          </template>
         </el-table-column>
       </el-table>
 

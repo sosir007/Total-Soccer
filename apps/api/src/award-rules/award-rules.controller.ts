@@ -20,6 +20,12 @@ export class AwardRulesController {
     return this.awardRulesService.create(body);
   }
 
+  @Post('defaults')
+  @ApiOperation({ summary: '初始化默认球员奖项评分规则' })
+  initializeDefaults() {
+    return this.awardRulesService.initializeDefaults();
+  }
+
   @Put(':id')
   @ApiOperation({ summary: '编辑球员奖项评分规则' })
   update(@Param('id') id: string, @Body() body: AwardRulePayload) {

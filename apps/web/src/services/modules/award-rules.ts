@@ -1,6 +1,7 @@
 import { ApiPrefix } from '../api-prefix';
 import { api } from '../api';
 import type {
+  AwardRuleDefaultsResult,
   AwardRecalculateResult,
   AwardRuleItem,
   AwardRuleListParams,
@@ -13,6 +14,7 @@ const prefix = ApiPrefix.AWARD_RULES;
 const API = {
   LIST: prefix,
   DETAIL: (id: string) => `${prefix}/${id}`,
+  DEFAULTS: `${prefix}/defaults`,
   RECALCULATE: `${prefix}/recalculate`
 } as const;
 
@@ -32,6 +34,12 @@ export async function createAwardRule(payload: AwardRulePayload) {
 
 export async function updateAwardRule(id: string, payload: AwardRulePayload) {
   const response = await api.put<AwardRuleItem>(API.DETAIL(id), payload);
+
+  return response;
+}
+
+export async function initializeDefaultAwardRules() {
+  const response = await api.post<AwardRuleDefaultsResult>(API.DEFAULTS);
 
   return response;
 }

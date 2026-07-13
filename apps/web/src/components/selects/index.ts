@@ -1,3 +1,4 @@
+export { default as AwardSelect } from './AwardSelect.vue';
 export { default as ClubSelect } from './ClubSelect.vue';
 export { default as CitySelect } from './CitySelect.vue';
 export { default as CompetitionSelect } from './CompetitionSelect.vue';

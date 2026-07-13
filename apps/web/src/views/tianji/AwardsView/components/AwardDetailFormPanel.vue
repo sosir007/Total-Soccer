@@ -10,6 +10,7 @@ const props = defineProps<{
     code: string;
     name: string;
     externalUrl: string;
+    ruleCategoryKey: string;
     scopeType: AwardScopeType;
     category: string;
     level: string;
@@ -21,6 +22,15 @@ const props = defineProps<{
   };
   saving: boolean;
   scopeTypeOptions: Array<{ label: string; value: AwardScopeType }>;
+  awardLevelOptions: string[];
+  awardRuleOptions: Array<{
+    value: string;
+    label: string;
+    scopeType: AwardScopeType;
+    category: string;
+    level: string;
+    description: string;
+  }>;
 }>();
 
 const form = toRef(props, 'form');
@@ -43,8 +53,28 @@ const emit = defineEmits<{
       <el-form-item label="奖项名称">
         <el-input v-model="form.name" />
       </el-form-item>
+      <el-form-item label="评分规则">
+        <el-select
+          v-model="form.ruleCategoryKey"
+          filterable
+          clearable
+          placeholder="选择奖项所属的评分规则"
+        >
+          <el-option
+            v-for="option in awardRuleOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          >
+            <div class="option-row">
+              <span>{{ option.label }}</span>
+              <span>{{ option.description }}</span>
+            </div>
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="范围">
-        <el-select v-model="form.scopeType">
+        <el-select v-model="form.scopeType" disabled>
           <el-option
             v-for="scopeType in scopeTypeOptions"
             :key="scopeType.value"
@@ -63,17 +93,26 @@ const emit = defineEmits<{
       <el-form-item v-if="form.scopeType === 'COUNTRY'" label="国家">
         <CountrySelect v-model="form.countryId" placeholder="选择国家" :clearable="false" />
       </el-form-item>
-      <el-form-item label="分类">
-        <el-input v-model="form.category" />
-      </el-form-item>
-      <el-form-item label="级别">
-        <el-input v-model="form.level" />
+      <el-form-item label="奖项类型">
+        <el-select v-model="form.level" clearable placeholder="选择奖项类型">
+          <el-option
+            v-for="option in awardLevelOptions"
+            :key="option"
+            :label="option"
+            :value="option"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="外链">
         <el-input v-model="form.externalUrl" placeholder="https://..." />
       </el-form-item>
       <el-form-item label="排序">
-        <el-input-number v-model="form.sortOrder" :min="0" :controls="false" />
+        <el-input-number
+          v-model="form.sortOrder"
+          :min="0"
+          :controls="false"
+          placeholder="奖项列表展示顺序"
+        />
       </el-form-item>
       <el-form-item label="描述" class="form-wide">
         <el-input
@@ -95,3 +134,21 @@ const emit = defineEmits<{
     </el-form>
   </div>
 </template>
+
+<style scoped lang="scss">
+.option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  span:first-child {
+    color: var(--text-color-primary);
+  }
+
+  span:last-child {
+    color: var(--text-color-secondary);
+    font-size: 12px;
+  }
+}
+</style>

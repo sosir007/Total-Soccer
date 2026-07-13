@@ -59,6 +59,12 @@ export async function updateAward(id: string, payload: CreateAwardPayload) {
   return response;
 }
 
+export async function deleteAward(id: string) {
+  const response = await api.delete<{ id: string }>(API.DETAIL(id));
+
+  return response;
+}
+
 export async function createAwardEdition(id: string, payload: CreateAwardEditionPayload) {
   const response = await api.post<AwardEdition>(API.EDITIONS(id), payload);
 

@@ -16,6 +16,7 @@ const props = defineProps<{
     code: string;
     name: string;
     alias: string;
+    honorRuleId: string;
     externalUrl: string;
     targetType: CompetitionTargetType;
     scopeType: CompetitionScopeType;
@@ -38,6 +39,11 @@ const props = defineProps<{
   categoryOptions: Array<{ label: string; value: CompetitionCategory }>;
   levelOptions: Array<{ label: string; value: CompetitionLevel }>;
   formatOptions: Array<{ label: string; value: CompetitionFormat }>;
+  honorRuleOptions: Array<{
+    value: string;
+    label: string;
+    description: string;
+  }>;
 }>();
 
 const visible = defineModel<boolean>('visible', { required: true });
@@ -60,8 +66,29 @@ const emit = defineEmits<{
       <el-form-item label="别名">
         <el-input v-model="form.alias" placeholder="世界杯" />
       </el-form-item>
+      <el-form-item label="荣誉规则">
+        <el-select
+          v-model="form.honorRuleId"
+          filterable
+          clearable
+          placeholder="选择赛事命中的荣誉规则"
+          popper-class="competition-rule-select-popper"
+        >
+          <el-option
+            v-for="rule in honorRuleOptions"
+            :key="rule.value"
+            :label="rule.label"
+            :value="rule.value"
+          >
+            <div class="option-row">
+              <span>{{ rule.label }}</span>
+              <span>{{ rule.description }}</span>
+            </div>
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="对象">
-        <el-select v-model="form.targetType">
+        <el-select v-model="form.targetType" :disabled="Boolean(form.honorRuleId)">
           <el-option
             v-for="targetType in targetTypeOptions"
             :key="targetType.value"
@@ -71,7 +98,7 @@ const emit = defineEmits<{
         </el-select>
       </el-form-item>
       <el-form-item label="适用范围">
-        <el-select v-model="form.scopeType">
+        <el-select v-model="form.scopeType" :disabled="Boolean(form.honorRuleId)">
           <el-option
             v-for="scopeType in scopeTypeOptions"
             :key="scopeType.value"
@@ -97,7 +124,12 @@ const emit = defineEmits<{
         />
       </el-form-item>
       <el-form-item label="分类">
-        <el-select v-model="form.category" clearable placeholder="选择分类">
+        <el-select
+          v-model="form.category"
+          clearable
+          placeholder="选择分类"
+          :disabled="Boolean(form.honorRuleId)"
+        >
           <el-option
             v-for="category in categoryOptions"
             :key="category.value"
@@ -107,7 +139,12 @@ const emit = defineEmits<{
         </el-select>
       </el-form-item>
       <el-form-item label="级别">
-        <el-select v-model="form.level" clearable placeholder="选择级别">
+        <el-select
+          v-model="form.level"
+          clearable
+          placeholder="选择级别"
+          :disabled="Boolean(form.honorRuleId)"
+        >
           <el-option
             v-for="level in levelOptions"
             :key="level.value"
@@ -117,7 +154,12 @@ const emit = defineEmits<{
         </el-select>
       </el-form-item>
       <el-form-item v-if="showFormatField" label="赛制">
-        <el-select v-model="form.format" clearable placeholder="选择赛制">
+        <el-select
+          v-model="form.format"
+          clearable
+          placeholder="选择赛制"
+          :disabled="Boolean(form.honorRuleId)"
+        >
           <el-option
             v-for="format in formatOptions"
             :key="format.value"
@@ -168,5 +210,42 @@ const emit = defineEmits<{
   color: var(--text-color-secondary);
   font-size: 13px;
   line-height: 1.7;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+
+  span:first-child {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-color-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-color-secondary);
+    font-size: 12px;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+:global(.competition-rule-select-popper.el-popper) {
+  max-width: min(720px, calc(100vw - 32px));
+}
+
+:global(.competition-rule-select-popper .el-select-dropdown__item) {
+  overflow: hidden;
 }
 </style>

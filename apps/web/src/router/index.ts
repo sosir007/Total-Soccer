@@ -158,6 +158,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: '奖项管理' }
       },
       {
+        path: 'tianji/awards/:id',
+        name: 'tianji-award-detail-id',
+        component: AwardsView,
+        meta: { title: '奖项详情' }
+      },
+      {
         path: 'tianji/import',
         name: 'tianji-import',
         component: DataImportView,

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import { fetchAwards } from '@/services/modules/awards';
 import { fetchBaseConfigs } from '@/services/modules/base-config';
+import type { AwardListItem } from '@/services/types/awards';
 import type { BaseConfigItem, BaseConfigType } from '@/services/types/base-config';
 import { fetchCompetitions } from '@/services/modules/competitions';
 import type { CompetitionListItem } from '@/services/types/competitions';
@@ -28,6 +30,7 @@ type OptionType =
   | 'countries'
   | 'clubs'
   | 'competitions'
+  | 'awards'
   | 'confederations'
   | 'positions'
   | 'playerTypes'
@@ -50,6 +53,7 @@ export const useOptionStore = defineStore('options', () => {
   const countries = ref<CountryListItem[]>([]);
   const clubs = ref<ClubListItem[]>([]);
   const competitions = ref<CompetitionListItem[]>([]);
+  const awards = ref<AwardListItem[]>([]);
   const confederations = ref<BaseConfigItem[]>([]);
   const positions = ref<BaseConfigItem[]>([]);
   const playerTypes = ref<BaseConfigItem[]>([]);
@@ -61,6 +65,7 @@ export const useOptionStore = defineStore('options', () => {
     countries: false,
     clubs: false,
     competitions: false,
+    awards: false,
     confederations: false,
     positions: false,
     playerTypes: false,
@@ -73,6 +78,7 @@ export const useOptionStore = defineStore('options', () => {
     countries: false,
     clubs: false,
     competitions: false,
+    awards: false,
     confederations: false,
     positions: false,
     playerTypes: false,
@@ -91,6 +97,7 @@ export const useOptionStore = defineStore('options', () => {
   );
   const clubOptions = computed(() => [...clubs.value].sort(compareClubs).map(clubToOption));
   const competitionOptions = computed(() => competitions.value.map(competitionToOption));
+  const awardOptions = computed(() => [...awards.value].sort(compareAwards).map(awardToOption));
   const confederationOptions = computed(() =>
     confederations.value.map((confederation) => confederationToOption(confederation))
   );
@@ -133,6 +140,12 @@ export const useOptionStore = defineStore('options', () => {
   async function ensureCompetitions() {
     await ensure('competitions', async () => {
       competitions.value = await fetchAll(fetchCompetitions, {});
+    });
+  }
+
+  async function ensureAwards() {
+    await ensure('awards', async () => {
+      awards.value = await fetchAll(fetchAwards, {});
     });
   }
 
@@ -181,6 +194,7 @@ export const useOptionStore = defineStore('options', () => {
       countries: ensureCountries,
       clubs: ensureClubs,
       competitions: ensureCompetitions,
+      awards: ensureAwards,
       confederations: ensureConfederations,
       positions: ensurePositions,
       playerTypes: ensurePlayerTypes,
@@ -229,6 +243,7 @@ export const useOptionStore = defineStore('options', () => {
     countries,
     clubs,
     competitions,
+    awards,
     confederations,
     positions,
     playerTypes,
@@ -240,6 +255,7 @@ export const useOptionStore = defineStore('options', () => {
     countryOptions,
     clubOptions,
     competitionOptions,
+    awardOptions,
     confederationOptions,
     positionOptions,
     playerTypeOptions,
@@ -250,6 +266,7 @@ export const useOptionStore = defineStore('options', () => {
     ensureCountries,
     ensureClubs,
     ensureCompetitions,
+    ensureAwards,
     ensureConfederations,
     ensurePositions,
     ensurePlayerTypes,
@@ -331,6 +348,22 @@ function competitionToOption(competition: CompetitionListItem): SelectOption {
   };
 }
 
+function awardToOption(award: AwardListItem): SelectOption {
+  const scopeLabel = formatAwardScope(award);
+
+  return {
+    id: award.id,
+    value: award.id,
+    label: award.name,
+    code: award.code,
+    description: [scopeLabel, award.category, award.level].filter(Boolean).join(' / '),
+    meta: [award.code, award.description, award.confederation?.name, award.country?.name].filter(
+      Boolean
+    ) as string[],
+    chipLabel: scopeLabel
+  };
+}
+
 function baseConfigToOption(item: BaseConfigItem, value = item.id): SelectOption {
   return {
     id: item.id,
@@ -397,6 +430,17 @@ function compareClubs(a: ClubListItem, b: ClubListItem) {
   return compareUidThenName(a.uid, a.name, b.uid, b.name, 'en');
 }
 
+function compareAwards(a: AwardListItem, b: AwardListItem) {
+  if (a.sortOrder !== b.sortOrder) {
+    return a.sortOrder - b.sortOrder;
+  }
+
+  return a.name.localeCompare(b.name, 'zh-Hans-CN', {
+    numeric: true,
+    sensitivity: 'base'
+  });
+}
+
 function compareUidThenName(
   uidAValue: string | null | undefined,
   nameA: string,
@@ -439,6 +483,27 @@ function uidSortValue(uid?: string | null) {
 
 function formatUid(uid?: string | null) {
   return uid ? `UID ${uid}` : '';
+}
+
+function formatAwardScope(award: AwardListItem) {
+  if (award.country?.name) {
+    return award.country.name;
+  }
+
+  if (award.confederation?.name) {
+    return award.confederation.name;
+  }
+
+  const scopeMap: Record<string, string> = {
+    WORLD: '世界',
+    CONFEDERATION: '洲际',
+    COUNTRY: '国家',
+    LEAGUE: '联赛',
+    CLUB: '俱乐部',
+    MEDIA: '媒体'
+  };
+
+  return scopeMap[award.scopeType] ?? award.scopeType;
 }
 
 function resolvePositionCode(item: BaseConfigItem) {
@@ -502,6 +567,7 @@ function normalizeType(type: OptionType | BaseConfigType): OptionType {
     countries: 'countries',
     clubs: 'clubs',
     competitions: 'competitions',
+    awards: 'awards',
     confederations: 'confederations',
     positions: 'positions',
     'player-types': 'playerTypes',

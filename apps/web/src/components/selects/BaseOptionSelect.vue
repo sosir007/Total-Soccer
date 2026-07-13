@@ -243,6 +243,7 @@ function isConfederation(value?: string | null) {
   overflow: hidden;
   border: 1px solid var(--color-border-muted);
   border-radius: 12px;
+  max-width: min(720px, calc(100vw - 32px));
   box-shadow: var(--shadow-dropdown);
 
   :global(.el-popper__arrow::before) {
@@ -267,6 +268,7 @@ function isConfederation(value?: string | null) {
   min-height: 50px;
   padding: 0;
   margin-bottom: 4px;
+  overflow: hidden;
   border-radius: 8px;
   color: var(--text-color-regular);
   line-height: normal;
