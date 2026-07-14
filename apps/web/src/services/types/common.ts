@@ -5,6 +5,8 @@ export interface PaginationResult<T> {
   total: number;
 }
 
+export type LifecycleStatus = 'CURRENT' | 'DISCONTINUED';
+
 export interface NamedRef {
   id: string;
   uid?: string;

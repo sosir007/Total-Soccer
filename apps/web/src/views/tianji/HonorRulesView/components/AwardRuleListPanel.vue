@@ -3,6 +3,7 @@ import type { AwardScopeType } from '@/services/types/awards';
 import type { AwardRuleItem } from '@/services/types/award-rules';
 import IconFont from '@/components/IconFont.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
+import { getBooleanLabel, getBooleanVariant } from '@/utils/tag-theme';
 
 withDefaults(
   defineProps<{
@@ -72,8 +73,8 @@ const emit = defineEmits<{
         </el-table-column>
         <el-table-column label="顶级奖" width="86">
           <template #default="{ row }">
-            <SemanticTag :variant="row.topAward ? 'status-top-award' : 'status-disabled'">
-              {{ row.topAward ? '是' : '否' }}
+            <SemanticTag :variant="getBooleanVariant(row.topAward)">
+              {{ getBooleanLabel(row.topAward) }}
             </SemanticTag>
           </template>
         </el-table-column>

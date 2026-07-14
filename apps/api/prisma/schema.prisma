@@ -49,6 +49,11 @@ enum AwardScopeType {
   MEDIA
 }
 
+enum LifecycleStatus {
+  CURRENT
+  DISCONTINUED
+}
+
 enum PlayerTeamHonorSourceType {
   MANUAL
   CAREER_MATCH
@@ -568,6 +573,7 @@ model Competition {
   description         String?
   confederationId     String?
   countryId           String?
+  lifecycleStatus     LifecycleStatus                 @default(CURRENT)
   enabled             Boolean                         @default(true)
   includeInStats      Boolean                         @default(true)
   sortOrder           Int                             @default(0)
@@ -588,6 +594,7 @@ model Competition {
   @@index([format])
   @@index([confederationId])
   @@index([countryId])
+  @@index([lifecycleStatus])
   @@index([enabled])
   @@index([includeInStats])
 }
@@ -625,6 +632,7 @@ model Award {
   description     String?
   confederationId String?
   countryId       String?
+  lifecycleStatus LifecycleStatus @default(CURRENT)
   enabled         Boolean        @default(true)
   sortOrder       Int            @default(0)
   confederation   Confederation? @relation("AwardScopeConfederation", fields: [confederationId], references: [id])
@@ -637,6 +645,7 @@ model Award {
   @@index([category])
   @@index([confederationId])
   @@index([countryId])
+  @@index([lifecycleStatus])
   @@index([enabled])
 }
 

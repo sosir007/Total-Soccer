@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { AwardDetail, AwardListItem, AwardScopeType } from '@/services/types/awards';
-import { getCompetitionCategoryVariant, getCompetitionLevelVariant } from '@/utils/tag-theme';
+import {
+  getCompetitionCategoryVariant,
+  getCompetitionLevelVariant,
+  getLifecycleStatusLabel,
+  getLifecycleStatusVariant
+} from '@/utils/tag-theme';
 
 defineProps<{
   award: AwardDetail;
@@ -25,6 +30,9 @@ defineProps<{
         </SemanticTag>
         <SemanticTag :variant="getCompetitionLevelVariant(award.level)">
           {{ award.level || '未分级' }}
+        </SemanticTag>
+        <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
+          {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
         </SemanticTag>
         <SemanticTag variant="status-legend">{{ award.editions.length }} 个年份</SemanticTag>
       </div>

@@ -12,7 +12,7 @@ import type {
 } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import { getConfederationVariant } from '@/utils/tag-theme';
+import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   country: CountryDetail;
@@ -175,7 +175,11 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
         </div>
         <div>
           <dt>列表展示</dt>
-          <dd>{{ country.visibleInCatalog === false ? '否' : '是' }}</dd>
+          <dd>
+            <SemanticTag :variant="getBooleanVariant(country.visibleInCatalog !== false)">
+              {{ getBooleanLabel(country.visibleInCatalog !== false) }}
+            </SemanticTag>
+          </dd>
         </div>
       </dl>
     </div>

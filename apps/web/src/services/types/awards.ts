@@ -1,3 +1,5 @@
+import type { LifecycleStatus } from './common';
+
 export interface AwardNamedRef {
   id: string;
   uid?: string;
@@ -16,6 +18,7 @@ export interface AwardListParams {
   scopeType?: AwardScopeType;
   confederationId?: string;
   countryId?: string;
+  lifecycleStatus?: LifecycleStatus;
   enabled?: boolean;
 }
 
@@ -41,6 +44,7 @@ export interface AwardListItem {
   description?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
+  lifecycleStatus: LifecycleStatus;
   enabled: boolean;
   sortOrder: number;
   confederation?: AwardNamedRef | null;
@@ -103,6 +107,7 @@ export interface CreateAwardPayload {
   description?: string;
   confederationId?: string;
   countryId?: string;
+  lifecycleStatus?: LifecycleStatus;
   enabled?: boolean;
   sortOrder?: number;
 }

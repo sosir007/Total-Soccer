@@ -19,6 +19,7 @@ import type {
   AwardListItem,
   AwardScopeType
 } from '@/services/types/awards';
+import type { LifecycleStatus } from '@/services/types/common';
 import type { AwardRuleItem } from '@/services/types/award-rules';
 import { fetchPlayers } from '@/services/modules/catalog';
 import type { PlayerListItem } from '@/services/types/catalog';
@@ -62,6 +63,10 @@ const scopeTypeLabels = Object.fromEntries(
   scopeTypeOptions.map((scopeType) => [scopeType.value, scopeType.label])
 ) as Record<AwardScopeType, string>;
 const awardLevelOptions = ['综合奖项', '阵容奖项', '专项奖项', '补充奖项'];
+const lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }> = [
+  { label: '现行', value: 'CURRENT' },
+  { label: '停办', value: 'DISCONTINUED' }
+];
 
 const route = useRoute();
 const router = useRouter();
@@ -87,7 +92,8 @@ const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
-  scopeType: '' as '' | AwardScopeType
+  scopeType: '' as '' | AwardScopeType,
+  lifecycleStatus: '' as '' | LifecycleStatus
 });
 const awardForm = reactive(createEmptyAwardForm());
 const detailForm = reactive(createEmptyAwardForm());
@@ -117,7 +123,8 @@ async function loadAwards() {
       page: filters.page,
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
-      scopeType: filters.scopeType || undefined
+      scopeType: filters.scopeType || undefined,
+      lifecycleStatus: filters.lifecycleStatus || undefined
     });
     awards.value = result.items;
     total.value = result.total;
@@ -267,6 +274,7 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.scopeType = '';
+  filters.lifecycleStatus = '';
   void loadAwards();
 }
 
@@ -487,6 +495,7 @@ function populateAwardForm(
   form.description = award.description ?? '';
   form.confederationId = award.confederationId ?? '';
   form.countryId = award.countryId ?? '';
+  form.lifecycleStatus = award.lifecycleStatus;
   form.enabled = award.enabled;
   form.sortOrder = award.sortOrder;
 }
@@ -526,6 +535,7 @@ function buildAwardPayload(form: ReturnType<typeof createEmptyAwardForm>) {
     description: form.description.trim() || undefined,
     confederationId: form.scopeType === 'CONFEDERATION' ? form.confederationId : undefined,
     countryId: form.scopeType === 'COUNTRY' ? form.countryId : undefined,
+    lifecycleStatus: form.lifecycleStatus,
     enabled: form.enabled,
     sortOrder: form.sortOrder
   };
@@ -543,6 +553,7 @@ function createEmptyAwardForm() {
     description: '',
     confederationId: '',
     countryId: '',
+    lifecycleStatus: 'CURRENT' as LifecycleStatus,
     enabled: true,
     sortOrder: 0
   };
@@ -683,6 +694,7 @@ onMounted(() => {
         :filters="filters"
         :loading="loading"
         :scope-type-options="scopeTypeOptions"
+        :lifecycle-status-options="lifecycleStatusOptions"
         @submit="submitFilters"
         @reset="resetFilters"
       />
@@ -714,6 +726,7 @@ onMounted(() => {
         :form="awardForm"
         :creating="creating"
         :scope-type-options="scopeTypeOptions"
+        :lifecycle-status-options="lifecycleStatusOptions"
         :award-rule-options="awardRuleOptions"
         :award-level-options="awardLevelOptions"
         @submit="submitAward"
@@ -754,6 +767,7 @@ onMounted(() => {
           :award="selectedAward"
           :saving="savingDetail"
           :scope-type-options="scopeTypeOptions"
+          :lifecycle-status-options="lifecycleStatusOptions"
           :award-rule-options="awardRuleOptions"
           :award-level-options="awardLevelOptions"
           @save="saveAwardDetail"

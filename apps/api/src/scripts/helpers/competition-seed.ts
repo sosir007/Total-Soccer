@@ -832,6 +832,7 @@ function buildCompetitionUpdateData<T extends SeedEdition>(
   if ('category' in update) structuralUpdate.category = update.category;
   if ('level' in update) structuralUpdate.level = update.level;
   if ('format' in update) structuralUpdate.format = update.format;
+  if ('lifecycleStatus' in update) structuralUpdate.lifecycleStatus = update.lifecycleStatus;
   if ('confederationId' in update) structuralUpdate.confederationId = update.confederationId;
   if ('countryId' in update) structuralUpdate.countryId = update.countryId;
 

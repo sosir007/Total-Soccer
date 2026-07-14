@@ -17,6 +17,7 @@ import type {
   CompetitionScopeType,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 import type { HonorRuleItem } from '@/services/types/honor-rules';
 import { useOptionStore } from '@/stores/options';
 import CompetitionCreateDialog from './components/CompetitionCreateDialog.vue';
@@ -49,6 +50,10 @@ const formatOptions: Array<{ label: string; value: CompetitionFormat }> = [
   { label: '联赛', value: '联赛' },
   { label: '杯赛', value: '杯赛' },
   { label: '其他', value: '其他' }
+];
+const lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }> = [
+  { label: '现行', value: 'CURRENT' },
+  { label: '停办', value: 'DISCONTINUED' }
 ];
 const targetTypeLabels = Object.fromEntries(
   targetTypeOptions.map((targetType) => [targetType.value, targetType.label])
@@ -87,7 +92,8 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   targetType: '' as '' | CompetitionTargetType,
-  scopeType: '' as '' | CompetitionScopeType
+  scopeType: '' as '' | CompetitionScopeType,
+  lifecycleStatus: '' as '' | LifecycleStatus
 });
 const competitionForm = reactive({
   code: '',
@@ -105,6 +111,7 @@ const competitionForm = reactive({
   confederationIds: [] as string[],
   countryId: '',
   countryIds: [] as string[],
+  lifecycleStatus: 'CURRENT' as LifecycleStatus,
   enabled: true,
   includeInStats: true,
   sortOrder: 0
@@ -127,7 +134,8 @@ async function loadCompetitions() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       targetType: filters.targetType || undefined,
-      scopeType: filters.scopeType || undefined
+      scopeType: filters.scopeType || undefined,
+      lifecycleStatus: filters.lifecycleStatus || undefined
     });
     competitions.value = result.items;
     total.value = result.total;
@@ -196,6 +204,7 @@ function resetFilters() {
   filters.keyword = '';
   filters.targetType = '';
   filters.scopeType = '';
+  filters.lifecycleStatus = '';
   void loadCompetitions();
 }
 
@@ -228,6 +237,7 @@ async function openEditCompetitionDialog(row: CompetitionListItem) {
   );
   competitionForm.countryId = row.countryId ?? '';
   competitionForm.countryIds = (row.scopeCountries ?? []).map((scope) => scope.country.id);
+  competitionForm.lifecycleStatus = row.lifecycleStatus;
   competitionForm.enabled = row.enabled;
   competitionForm.includeInStats = row.includeInStats;
   competitionForm.sortOrder = row.sortOrder;
@@ -345,6 +355,7 @@ function buildCompetitionPayload() {
       competitionForm.scopeType === 'CONFEDERATION' ? competitionForm.confederationIds : [],
     countryId: competitionForm.scopeType === 'COUNTRY' ? competitionForm.countryIds[0] : undefined,
     countryIds: competitionForm.scopeType === 'COUNTRY' ? competitionForm.countryIds : [],
+    lifecycleStatus: competitionForm.lifecycleStatus,
     enabled: competitionForm.enabled,
     includeInStats: competitionForm.includeInStats,
     sortOrder: competitionForm.sortOrder
@@ -374,6 +385,7 @@ function resetCompetitionForm() {
   competitionForm.confederationIds = [];
   competitionForm.countryId = '';
   competitionForm.countryIds = [];
+  competitionForm.lifecycleStatus = 'CURRENT';
   competitionForm.enabled = true;
   competitionForm.includeInStats = true;
   competitionForm.sortOrder = 0;
@@ -634,6 +646,7 @@ onActivated(() => {
       :loading="loading"
       :target-type-options="targetTypeOptions"
       :scope-type-options="scopeTypeOptions"
+      :lifecycle-status-options="lifecycleStatusOptions"
       @submit="submitFilters"
       @reset="resetFilters"
     />
@@ -675,6 +688,7 @@ onActivated(() => {
       :category-options="categoryOptions"
       :level-options="levelOptions"
       :format-options="formatOptions"
+      :lifecycle-status-options="lifecycleStatusOptions"
       :honor-rule-options="honorRuleOptions"
       @submit="submitCompetition"
     />

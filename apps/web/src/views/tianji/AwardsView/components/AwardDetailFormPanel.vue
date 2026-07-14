@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { AwardDetail, AwardScopeType } from '@/services/types/awards';
+import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
+import SemanticTag from '@/components/SemanticTag.vue';
+import { getLifecycleStatusLabel, getLifecycleStatusVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   award: AwardDetail;
@@ -17,11 +20,13 @@ const props = defineProps<{
     description: string;
     confederationId: string;
     countryId: string;
+    lifecycleStatus: LifecycleStatus;
     enabled: boolean;
     sortOrder: number;
   };
   saving: boolean;
   scopeTypeOptions: Array<{ label: string; value: AwardScopeType }>;
+  lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
   awardLevelOptions: string[];
   awardRuleOptions: Array<{
     value: string;
@@ -44,7 +49,14 @@ const emit = defineEmits<{
   <div class="panel">
     <div class="panel-header">
       <h3>奖项资料</h3>
-      <span class="status-pill">{{ award.enabled ? '启用' : '停用' }}</span>
+      <div class="panel-actions">
+        <SemanticTag :variant="award.enabled ? 'status-enabled' : 'status-disabled'">
+          {{ award.enabled ? '启用' : '停用' }}
+        </SemanticTag>
+        <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
+          {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
+        </SemanticTag>
+      </div>
     </div>
     <el-form class="competition-form-grid" label-position="top" @submit.prevent="emit('save')">
       <el-form-item label="奖项编码">
@@ -124,6 +136,9 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item label="状态">
         <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
+      </el-form-item>
+      <el-form-item label="奖项状态">
+        <el-segmented v-model="form.lifecycleStatus" :options="lifecycleStatusOptions" />
       </el-form-item>
       <div class="competition-form-actions">
         <el-button type="primary" :loading="saving" @click="emit('save')">

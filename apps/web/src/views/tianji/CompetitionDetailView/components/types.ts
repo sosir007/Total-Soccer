@@ -5,6 +5,7 @@ import type {
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 
 export type StandingSlot = { countryId: string; clubId: string };
 export type StandingForm = Record<string, StandingSlot>;
@@ -44,6 +45,7 @@ export interface CompetitionDetailForm {
   confederationIds: string[];
   countryId: string;
   countryIds: string[];
+  lifecycleStatus: LifecycleStatus;
   enabled: boolean;
   includeInStats: boolean;
   sortOrder: number;

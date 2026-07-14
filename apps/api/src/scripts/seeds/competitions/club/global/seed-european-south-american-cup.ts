@@ -1,4 +1,9 @@
-import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
+import {
+  CompetitionScopeType,
+  CompetitionTargetType,
+  LifecycleStatus,
+  PrismaClient
+} from '@prisma/client';
 import { runCompetitionSeed, runSeed } from '../../../../helpers/competition-seed.js';
 import { withStandingMode } from '../../../../helpers/competition-results.js';
 import { CONFEDERATION_SEEDS, pickSeedCountries } from '../../../../helpers/seed-data.js';
@@ -50,6 +55,7 @@ async function main() {
         format: '杯赛',
         description:
           '欧冠冠军与南美解放者杯冠军之间的世界俱乐部冠军赛事，1980-2004 为丰田杯赞助阶段。',
+        lifecycleStatus: LifecycleStatus.DISCONTINUED,
         enabled: true,
         includeInStats: true,
         sortOrder: 2
@@ -67,6 +73,7 @@ async function main() {
           '欧冠冠军与南美解放者杯冠军之间的世界俱乐部冠军赛事，1980-2004 为丰田杯赞助阶段。',
         confederationId: null,
         countryId: null,
+        lifecycleStatus: LifecycleStatus.DISCONTINUED,
         enabled: true,
         includeInStats: true,
         sortOrder: 2

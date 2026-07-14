@@ -2,7 +2,8 @@ import type {
   CompetitionScopeType,
   CompetitionEditionStandingMode,
   CompetitionStandingPlacement,
-  CompetitionTargetType
+  CompetitionTargetType,
+  LifecycleStatus
 } from '@prisma/client';
 
 export interface CompetitionListQuery {
@@ -13,6 +14,7 @@ export interface CompetitionListQuery {
   scopeType?: CompetitionScopeType;
   confederationId?: string;
   countryId?: string;
+  lifecycleStatus?: LifecycleStatus;
   enabled?: string;
   includeInStats?: string;
 }
@@ -32,6 +34,7 @@ export interface CreateCompetitionBody {
   confederationIds?: string[];
   countryId?: string;
   countryIds?: string[];
+  lifecycleStatus?: LifecycleStatus;
   enabled?: boolean;
   includeInStats?: boolean;
   sortOrder?: number;

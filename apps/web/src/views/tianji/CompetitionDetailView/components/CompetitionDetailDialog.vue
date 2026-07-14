@@ -7,6 +7,7 @@ import type {
   CompetitionScopeType,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import type { CompetitionDetailForm } from './types';
@@ -20,6 +21,7 @@ const props = defineProps<{
   categoryOptions: Array<{ label: string; value: CompetitionCategory }>;
   levelOptions: Array<{ label: string; value: CompetitionLevel }>;
   formatOptions: Array<{ label: string; value: CompetitionFormat }>;
+  lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
 }>();
 
 const visible = defineModel<boolean>('visible', { required: true });
@@ -124,6 +126,9 @@ const emit = defineEmits<{
       </div>
       <el-form-item label="状态">
         <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
+      </el-form-item>
+      <el-form-item label="赛事状态">
+        <el-segmented v-model="form.lifecycleStatus" :options="lifecycleStatusOptions" />
       </el-form-item>
       <el-form-item label="统计">
         <el-switch

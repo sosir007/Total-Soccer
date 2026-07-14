@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { AwardScopeType } from '@/services/types/awards';
+import type { LifecycleStatus } from '@/services/types/common';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const props = defineProps<{
@@ -17,11 +18,13 @@ const props = defineProps<{
     level: string;
     externalUrl: string;
     description: string;
+    lifecycleStatus: LifecycleStatus;
     enabled: boolean;
     sortOrder: number;
   };
   creating: boolean;
   scopeTypeOptions: Array<{ label: string; value: AwardScopeType }>;
+  lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
   awardLevelOptions: string[];
   awardRuleOptions: Array<{
     value: string;
@@ -121,6 +124,9 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item label="状态">
         <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
+      </el-form-item>
+      <el-form-item label="奖项状态">
+        <el-segmented v-model="form.lifecycleStatus" :options="lifecycleStatusOptions" />
       </el-form-item>
       <div class="competition-form-actions">
         <el-button type="primary" :loading="creating" @click="emit('submit')">

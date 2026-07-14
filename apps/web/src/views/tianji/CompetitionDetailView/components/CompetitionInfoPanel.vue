@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import type { CompetitionDetail, CompetitionTargetType } from '@/services/types/competitions';
+import SemanticTag from '@/components/SemanticTag.vue';
+import {
+  getLifecycleStatusLabel,
+  getLifecycleStatusVariant,
+  getBooleanLabel,
+  getBooleanVariant
+} from '@/utils/tag-theme';
 
 defineProps<{
   competition: CompetitionDetail;
@@ -14,7 +21,14 @@ defineProps<{
   <div class="panel">
     <div class="panel-header">
       <h3>赛事资料</h3>
-      <span class="status-pill">{{ competition.enabled ? '启用' : '停用' }}</span>
+      <div class="panel-actions">
+        <SemanticTag :variant="competition.enabled ? 'status-enabled' : 'status-disabled'">
+          {{ competition.enabled ? '启用' : '停用' }}
+        </SemanticTag>
+        <SemanticTag :variant="getLifecycleStatusVariant(competition.lifecycleStatus)">
+          {{ getLifecycleStatusLabel(competition.lifecycleStatus) }}
+        </SemanticTag>
+      </div>
     </div>
 
     <div class="competition-info-grid">
@@ -51,8 +65,20 @@ defineProps<{
         <strong>{{ formatCompetitionFormat(competition) }}</strong>
       </div>
       <div class="competition-info-item">
+        <span>赛事状态</span>
+        <strong>
+          <SemanticTag :variant="getLifecycleStatusVariant(competition.lifecycleStatus)">
+            {{ getLifecycleStatusLabel(competition.lifecycleStatus) }}
+          </SemanticTag>
+        </strong>
+      </div>
+      <div class="competition-info-item">
         <span>统计</span>
-        <strong>{{ competition.includeInStats ? '纳入奖牌/荣誉统计' : '排除统计' }}</strong>
+        <strong>
+          <SemanticTag :variant="getBooleanVariant(competition.includeInStats)">
+            {{ getBooleanLabel(competition.includeInStats) }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="competition-info-item form-wide">
         <span>描述</span>

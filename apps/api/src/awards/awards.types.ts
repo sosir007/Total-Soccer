@@ -1,4 +1,4 @@
-import type { AwardScopeType } from '@prisma/client';
+import type { AwardScopeType, LifecycleStatus } from '@prisma/client';
 
 export interface AwardListQuery {
   page?: string;
@@ -7,6 +7,7 @@ export interface AwardListQuery {
   scopeType?: AwardScopeType;
   confederationId?: string;
   countryId?: string;
+  lifecycleStatus?: LifecycleStatus;
   enabled?: string;
 }
 
@@ -31,6 +32,7 @@ export interface CreateAwardBody {
   description?: string;
   confederationId?: string;
   countryId?: string;
+  lifecycleStatus?: LifecycleStatus;
   enabled?: boolean;
   sortOrder?: number;
 }

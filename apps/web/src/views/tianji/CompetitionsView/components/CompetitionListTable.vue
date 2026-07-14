@@ -6,6 +6,8 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
+  getLifecycleStatusLabel,
+  getLifecycleStatusVariant,
   type SemanticTagVariant
 } from '@/utils/tag-theme';
 
@@ -120,6 +122,13 @@ function openExternalLink(row: CompetitionListItem) {
           <template #default="{ row }">
             <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="赛事状态" width="96" align="center" header-align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getLifecycleStatusVariant(row.lifecycleStatus)">
+              {{ getLifecycleStatusLabel(row.lifecycleStatus) }}
             </SemanticTag>
           </template>
         </el-table-column>

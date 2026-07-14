@@ -1,4 +1,4 @@
-import type { NamedRef } from './common';
+import type { LifecycleStatus, NamedRef } from './common';
 
 export type CompetitionTargetType = 'COUNTRY' | 'CLUB';
 export type CompetitionScopeType = 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
@@ -26,6 +26,7 @@ export interface CompetitionListParams {
   scopeType?: CompetitionScopeType;
   confederationId?: string;
   countryId?: string;
+  lifecycleStatus?: LifecycleStatus;
   enabled?: string;
 }
 
@@ -43,6 +44,7 @@ export interface CompetitionListItem {
   description?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
+  lifecycleStatus: LifecycleStatus;
   enabled: boolean;
   includeInStats: boolean;
   sortOrder: number;
@@ -104,6 +106,7 @@ export interface CreateCompetitionPayload {
   confederationIds?: string[];
   countryId?: string;
   countryIds?: string[];
+  lifecycleStatus?: LifecycleStatus;
   enabled?: boolean;
   includeInStats?: boolean;
   sortOrder?: number;

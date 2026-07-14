@@ -4,6 +4,7 @@ import {
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType,
+  LifecycleStatus,
   Prisma
 } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
@@ -236,6 +237,9 @@ export class CompetitionsService {
     const where: Prisma.CompetitionWhereInput = {
       ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
       ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
+      ...(query.lifecycleStatus
+        ? { lifecycleStatus: this.parseLifecycleStatus(query.lifecycleStatus) }
+        : {}),
       ...(andConditions.length ? { AND: andConditions } : {}),
       ...(query.enabled === undefined ? {} : { enabled: query.enabled === 'true' }),
       ...(query.includeInStats === undefined
@@ -469,6 +473,7 @@ export class CompetitionsService {
         confederationId:
           scopeType === CompetitionScopeType.CONFEDERATION ? confederationIds[0] : null,
         countryId: scopeType === CompetitionScopeType.COUNTRY ? countryIds[0] : null,
+        lifecycleStatus: this.parseLifecycleStatus(body.lifecycleStatus ?? LifecycleStatus.CURRENT),
         enabled: body.enabled ?? true,
         includeInStats: body.includeInStats ?? true,
         sortOrder: body.sortOrder ?? 0
@@ -704,6 +709,14 @@ export class CompetitionsService {
   private parseScopeType(value: CompetitionScopeType) {
     if (!Object.values(CompetitionScopeType).includes(value)) {
       throw new BadRequestException('赛事适用范围不合法。');
+    }
+
+    return value;
+  }
+
+  private parseLifecycleStatus(value: LifecycleStatus) {
+    if (!Object.values(LifecycleStatus).includes(value)) {
+      throw new BadRequestException('赛事生命周期状态不合法。');
     }
 
     return value;

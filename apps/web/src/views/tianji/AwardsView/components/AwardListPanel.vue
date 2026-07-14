@@ -3,6 +3,7 @@ import type { AwardListItem } from '@/services/types/awards';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
+import { getLifecycleStatusLabel, getLifecycleStatusVariant } from '@/utils/tag-theme';
 
 defineProps<{
   awards: AwardListItem[];
@@ -83,6 +84,13 @@ function openExternalLink(row: AwardListItem) {
           <template #default="{ row }">
             <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
               {{ row.enabled ? '启用' : '停用' }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="奖项状态" width="96" align="center" header-align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getLifecycleStatusVariant(row.lifecycleStatus)">
+              {{ getLifecycleStatusLabel(row.lifecycleStatus) }}
             </SemanticTag>
           </template>
         </el-table-column>

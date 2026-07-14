@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AwardScopeType, type Prisma } from '@prisma/client';
+import { AwardScopeType, LifecycleStatus, type Prisma } from '@prisma/client';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type {
@@ -317,6 +317,9 @@ export class AwardsService {
       ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
       ...(query.confederationId ? { confederationId: query.confederationId } : {}),
       ...(query.countryId ? { countryId: query.countryId } : {}),
+      ...(query.lifecycleStatus
+        ? { lifecycleStatus: this.parseLifecycleStatus(query.lifecycleStatus) }
+        : {}),
       ...(query.enabled === undefined ? {} : { enabled: query.enabled === 'true' })
     };
   }
@@ -374,6 +377,7 @@ export class AwardsService {
           : null,
       countryId:
         scopeType === AwardScopeType.COUNTRY ? this.toNullableString(body.countryId) : null,
+      lifecycleStatus: this.parseLifecycleStatus(body.lifecycleStatus ?? LifecycleStatus.CURRENT),
       enabled: body.enabled ?? true,
       sortOrder: body.sortOrder ?? 0
     } satisfies Prisma.AwardUncheckedCreateInput;
@@ -501,6 +505,14 @@ export class AwardsService {
   private parseScopeType(value: AwardScopeType) {
     if (!Object.values(AwardScopeType).includes(value)) {
       throw new BadRequestException('奖项范围不合法。');
+    }
+
+    return value;
+  }
+
+  private parseLifecycleStatus(value: LifecycleStatus) {
+    if (!Object.values(LifecycleStatus).includes(value)) {
+      throw new BadRequestException('奖项生命周期状态不合法。');
     }
 
     return value;

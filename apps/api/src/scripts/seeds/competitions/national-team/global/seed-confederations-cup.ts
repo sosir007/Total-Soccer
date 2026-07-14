@@ -1,4 +1,9 @@
-import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
+import {
+  CompetitionScopeType,
+  CompetitionTargetType,
+  LifecycleStatus,
+  PrismaClient
+} from '@prisma/client';
 import { runCompetitionSeed, runSeed } from '../../../../helpers/competition-seed.js';
 import { buildCompetitionResultStandings } from '../../../../helpers/competition-results.js';
 import { CONFEDERATION_SEEDS } from '../../../../helpers/seed-data.js';
@@ -27,6 +32,7 @@ async function main() {
         level: '二级',
         format: '杯赛',
         description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
+        lifecycleStatus: LifecycleStatus.DISCONTINUED,
         enabled: true,
         includeInStats: true,
         sortOrder: 1
@@ -43,6 +49,7 @@ async function main() {
         description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
         confederationId: null,
         countryId: null,
+        lifecycleStatus: LifecycleStatus.DISCONTINUED,
         enabled: true,
         includeInStats: true,
         sortOrder: 1

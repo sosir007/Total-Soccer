@@ -1,4 +1,5 @@
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 
 export interface SemanticTagTheme {
   text: string;
@@ -37,6 +38,8 @@ export interface ChartColorGroup {
 
 export type SemanticTagVariant =
   | 'neutral'
+  | 'boolean-yes'
+  | 'boolean-no'
   | 'confed-afc'
   | 'confed-uefa'
   | 'confed-conmebol'
@@ -58,6 +61,8 @@ export type SemanticTagVariant =
   | 'competition-level-quaternary'
   | 'status-enabled'
   | 'status-disabled'
+  | 'status-current'
+  | 'status-discontinued'
   | 'status-included'
   | 'status-excluded'
   | 'status-active'
@@ -115,6 +120,8 @@ export type PositionTagVariant =
 
 export const semanticTagThemes: Record<SemanticTagVariant, SemanticTagTheme> = {
   neutral: tagVars('neutral'),
+  'boolean-yes': tagVars('boolean-yes'),
+  'boolean-no': tagVars('boolean-no'),
   'confed-afc': tagVars('confed-afc'),
   'confed-uefa': tagVars('confed-uefa'),
   'confed-conmebol': tagVars('confed-conmebol'),
@@ -149,6 +156,8 @@ export const semanticTagThemes: Record<SemanticTagVariant, SemanticTagTheme> = {
   'competition-level-quaternary': tagVars('competition-level-quaternary'),
   'status-enabled': tagVars('status-enabled'),
   'status-disabled': tagVars('status-disabled'),
+  'status-current': tagVars('status-current'),
+  'status-discontinued': tagVars('status-discontinued'),
   'status-included': tagVars('status-included'),
   'status-excluded': tagVars('status-excluded'),
   'status-active': tagVars('status-active'),
@@ -201,8 +210,12 @@ export const semanticColorGroups: SemanticColorGroup[] = [
   {
     key: 'base',
     label: '基础',
-    description: '通用中性色，用于无明确业务语义的标签和兜底展示。',
-    colors: [colorToken('neutral', '中性', '默认标签、未知值、低强调信息。')]
+    description: '通用中性色和布尔值配色，用于兜底信息及是/否展示。',
+    colors: [
+      colorToken('neutral', '中性', '默认标签、未知值、低强调信息。'),
+      colorToken('boolean-yes', '是', '布尔值为真、确认或具备某项属性。'),
+      colorToken('boolean-no', '否', '布尔值为假、否定或不具备某项属性。')
+    ]
   },
   {
     key: 'confederation',
@@ -271,6 +284,8 @@ export const semanticColorGroups: SemanticColorGroup[] = [
     colors: [
       colorToken('status-enabled', '启用', '配置或规则启用。'),
       colorToken('status-disabled', '停用', '配置或规则停用。'),
+      colorToken('status-current', '现行', '赛事目前仍按周期正常举办。'),
+      colorToken('status-discontinued', '停办', '赛事已停止举办但保留历史数据。'),
       colorToken('status-included', '纳入统计', '赛事或对象纳入统计。'),
       colorToken('status-excluded', '排除统计', '赛事或对象不纳入统计。'),
       colorToken('status-active', '现役', '球员现役状态。'),
@@ -385,6 +400,34 @@ export function getConfederationVariant(value?: string | null): SemanticTagVaria
   if (/大洋足联|大洋洲|OFC/i.test(value ?? '')) return 'confed-ofc';
 
   return 'neutral';
+}
+
+export function getBooleanVariant(value?: boolean | null): SemanticTagVariant {
+  if (value === true) return 'boolean-yes';
+  if (value === false) return 'boolean-no';
+
+  return 'neutral';
+}
+
+export function getBooleanLabel(value?: boolean | null) {
+  if (value === true) return '是';
+  if (value === false) return '否';
+
+  return '-';
+}
+
+export function getLifecycleStatusVariant(value?: LifecycleStatus | null): SemanticTagVariant {
+  if (value === 'CURRENT') return 'status-current';
+  if (value === 'DISCONTINUED') return 'status-discontinued';
+
+  return 'neutral';
+}
+
+export function getLifecycleStatusLabel(value?: LifecycleStatus | null) {
+  if (value === 'CURRENT') return '现行';
+  if (value === 'DISCONTINUED') return '停办';
+
+  return '-';
 }
 
 export function getCareerStatusVariant(retired?: boolean | null): SemanticTagVariant {

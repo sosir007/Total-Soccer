@@ -7,7 +7,7 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import type { CareerProfileLine, ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import { getConfederationVariant } from '@/utils/tag-theme';
+import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   club: ClubDetail;
@@ -217,11 +217,19 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
         </div>
         <div>
           <dt>是否存在</dt>
-          <dd>{{ club.exists ? '是' : '否' }}</dd>
+          <dd>
+            <SemanticTag :variant="getBooleanVariant(club.exists)">
+              {{ getBooleanLabel(club.exists) }}
+            </SemanticTag>
+          </dd>
         </div>
         <div>
           <dt>列表展示</dt>
-          <dd>{{ club.visibleInCatalog ? '是' : '否' }}</dd>
+          <dd>
+            <SemanticTag :variant="getBooleanVariant(club.visibleInCatalog)">
+              {{ getBooleanLabel(club.visibleInCatalog) }}
+            </SemanticTag>
+          </dd>
         </div>
       </dl>
     </div>

@@ -7,6 +7,7 @@ import type {
   CompetitionScopeType,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const props = defineProps<{
@@ -28,6 +29,7 @@ const props = defineProps<{
     confederationIds: string[];
     countryId: string;
     countryIds: string[];
+    lifecycleStatus: LifecycleStatus;
     enabled: boolean;
     includeInStats: boolean;
     sortOrder: number;
@@ -39,6 +41,7 @@ const props = defineProps<{
   categoryOptions: Array<{ label: string; value: CompetitionCategory }>;
   levelOptions: Array<{ label: string; value: CompetitionLevel }>;
   formatOptions: Array<{ label: string; value: CompetitionFormat }>;
+  lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
   honorRuleOptions: Array<{
     value: string;
     label: string;
@@ -188,6 +191,9 @@ const emit = defineEmits<{
       </div>
       <el-form-item label="状态">
         <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
+      </el-form-item>
+      <el-form-item label="赛事状态">
+        <el-segmented v-model="form.lifecycleStatus" :options="lifecycleStatusOptions" />
       </el-form-item>
       <el-form-item label="统计">
         <el-switch

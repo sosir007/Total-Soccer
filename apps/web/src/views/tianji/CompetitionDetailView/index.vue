@@ -21,6 +21,7 @@ import type {
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
@@ -61,6 +62,10 @@ const formatOptions: Array<{ label: string; value: CompetitionFormat }> = [
   { label: '联赛', value: '联赛' },
   { label: '杯赛', value: '杯赛' },
   { label: '其他', value: '其他' }
+];
+const lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }> = [
+  { label: '现行', value: 'CURRENT' },
+  { label: '停办', value: 'DISCONTINUED' }
 ];
 const standingModeOptions: Array<{ label: string; value: CompetitionEditionStandingMode }> = [
   { label: '有三四名赛', value: 'THIRD_PLACE_MATCH' },
@@ -121,6 +126,7 @@ const detailForm = reactive({
   confederationIds: [] as string[],
   countryId: '',
   countryIds: [] as string[],
+  lifecycleStatus: 'CURRENT' as LifecycleStatus,
   enabled: true,
   includeInStats: true,
   sortOrder: 0
@@ -343,6 +349,7 @@ function populateDetailForm() {
   detailForm.confederationIds = getCompetitionConfederationIds(competition.value);
   detailForm.countryId = competition.value.countryId ?? '';
   detailForm.countryIds = getCompetitionCountryIds(competition.value);
+  detailForm.lifecycleStatus = competition.value.lifecycleStatus;
   detailForm.enabled = competition.value.enabled;
   detailForm.includeInStats = competition.value.includeInStats;
   detailForm.sortOrder = competition.value.sortOrder;
@@ -395,6 +402,7 @@ function buildCompetitionPayload() {
     confederationIds: detailForm.scopeType === 'CONFEDERATION' ? detailForm.confederationIds : [],
     countryId: detailForm.scopeType === 'COUNTRY' ? detailForm.countryIds[0] : undefined,
     countryIds: detailForm.scopeType === 'COUNTRY' ? detailForm.countryIds : [],
+    lifecycleStatus: detailForm.lifecycleStatus,
     enabled: detailForm.enabled,
     includeInStats: detailForm.includeInStats,
     sortOrder: detailForm.sortOrder
@@ -737,6 +745,7 @@ onMounted(() => {
       :category-options="categoryOptions"
       :level-options="levelOptions"
       :format-options="formatOptions"
+      :lifecycle-status-options="lifecycleStatusOptions"
       @save="saveCompetitionDetail"
     />
 

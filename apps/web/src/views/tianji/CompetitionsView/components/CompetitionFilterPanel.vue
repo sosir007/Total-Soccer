@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { CompetitionScopeType, CompetitionTargetType } from '@/services/types/competitions';
+import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 
 const props = defineProps<{
@@ -8,10 +9,12 @@ const props = defineProps<{
     keyword: string;
     targetType: '' | CompetitionTargetType;
     scopeType: '' | CompetitionScopeType;
+    lifecycleStatus: '' | LifecycleStatus;
   };
   loading: boolean;
   targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }>;
   scopeTypeOptions: Array<{ label: string; value: CompetitionScopeType }>;
+  lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
 }>();
 
 const filters = toRef(props, 'filters');
@@ -58,6 +61,16 @@ const emit = defineEmits<{
             :key="scopeType.value"
             :label="scopeType.label"
             :value="scopeType.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="赛事状态">
+        <el-select v-model="filters.lifecycleStatus" clearable placeholder="全部状态">
+          <el-option
+            v-for="status in lifecycleStatusOptions"
+            :key="status.value"
+            :label="status.label"
+            :value="status.value"
           />
         </el-select>
       </el-form-item>
