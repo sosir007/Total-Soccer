@@ -131,6 +131,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'uefa-europa-league',
+    label: '欧足联欧洲联赛',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-europa-league.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/uefa-europa-league.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'conmebol-libertadores',
     label: '南美解放者杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-conmebol-libertadores.ts',

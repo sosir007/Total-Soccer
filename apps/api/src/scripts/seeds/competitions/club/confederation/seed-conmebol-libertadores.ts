@@ -65,10 +65,9 @@ async function main() {
     },
     editions: withStandingMode(CONMEBOL_LIBERTADORES_RESULTS),
     buildStandings: buildConmebolLibertadoresStandings,
-    allowPartialStandings: true,
     expected: {
       editions: 66,
-      standings: 120
+      standings: 132
     },
     completedMessage: 'CONMEBOL Libertadores seed completed.'
   });

@@ -33,26 +33,13 @@ export const CONMEBOL_LIBERTADORES_METADATA: CompetitionDataMetadata = {
       remark: '用于核对 2025 年决赛弗拉门戈 1-0 帕尔梅拉斯。'
     }
   ],
-  lastVerifiedAt: '2026-07-10',
+  lastVerifiedAt: '2026-07-14',
   notes: [
     '本文件录入 1960 至 2025 南美解放者杯决赛冠亚军。',
     '只录最终冠军和亚军，不录四强、季军、殿军。',
-    '西班牙联合、卡利体育、科布雷洛亚、纽维尔老男孩、巴塞罗那竞技、水晶体育、圣卡埃塔诺、巴拉圭国民暂未入库，相关亚军 standings 暂空。'
+    '历届冠亚军俱乐部均已完成映射，隐藏俱乐部仍参与豪门荣誉统计。'
   ]
 };
-
-export const CONMEBOL_LIBERTADORES_MISSING_CLUBS = [
-  '西班牙联合',
-  '卡利体育',
-  '科布雷洛亚',
-  '纽维尔老男孩',
-  '巴塞罗那竞技',
-  '水晶体育',
-  '圣卡埃塔诺',
-  '巴拉圭国民'
-] as const;
-
-const SKIPPED_CLUBS = new Set<string>(CONMEBOL_LIBERTADORES_MISSING_CLUBS);
 
 export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '1922', name: '佩纳罗尔', countryName: '乌拉圭', confederationCode: 'CONMEBOL' },
@@ -66,9 +53,33 @@ export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '93', name: '竞赛', countryName: '阿根廷', confederationCode: 'CONMEBOL' },
   { uid: '85', name: '拉普拉塔大学生', countryName: '阿根廷', confederationCode: 'CONMEBOL' },
   {
+    uid: '120064',
+    name: '西班牙联',
+    alias: '西班牙联合',
+    countryName: '智利',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
+  {
     uid: '1450',
     name: '秘鲁体育大学',
     countryName: '秘鲁',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
+  {
+    uid: '421',
+    name: '卡利体育',
+    alias: '卡利竞技',
+    countryName: '哥伦比亚',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
+  {
+    uid: '104359',
+    name: '科布雷罗阿',
+    alias: '科布雷洛亚',
+    countryName: '智利',
     confederationCode: 'CONMEBOL',
     visibleInCatalog: false
   },
@@ -81,6 +92,13 @@ export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   { uid: '78', name: '阿根廷青年人', countryName: '阿根廷', confederationCode: 'CONMEBOL' },
+  {
+    uid: '91',
+    name: '纽维尔老男孩',
+    countryName: '阿根廷',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
   {
     uid: '417',
     name: '卡利美洲',
@@ -97,6 +115,14 @@ export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
   },
   { uid: '337', name: '圣保罗', countryName: '巴西', confederationCode: 'CONMEBOL' },
   { uid: '403', name: '天主教大学', countryName: '智利', confederationCode: 'CONMEBOL' },
+  {
+    uid: '109180',
+    name: '瓜亚基尔巴塞罗那',
+    alias: '巴塞罗那SC',
+    countryName: '厄瓜多尔',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
   { uid: '98', name: '萨斯菲尔德', countryName: '阿根廷', confederationCode: 'CONMEBOL' },
   { uid: '324', name: '格雷米奥', countryName: '巴西', confederationCode: 'CONMEBOL' },
   {
@@ -122,6 +148,20 @@ export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
     alias: '云斯卡尔达斯',
     visibleInCatalog: false
   },
+  {
+    uid: '1449',
+    name: '水晶体育',
+    countryName: '秘鲁',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
+  {
+    uid: '301354',
+    name: '圣卡埃塔诺',
+    countryName: '巴西',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
   { uid: '107206', name: '巴拉纳竞技', countryName: '巴西', confederationCode: 'CONMEBOL' },
   {
     uid: '5270338',
@@ -143,6 +183,13 @@ export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
     uid: '96',
     name: '圣洛伦索',
     countryName: '阿根廷',
+    confederationCode: 'CONMEBOL',
+    visibleInCatalog: false
+  },
+  {
+    uid: '5280337',
+    name: '巴拉圭国民',
+    countryName: '巴拉圭',
     confederationCode: 'CONMEBOL',
     visibleInCatalog: false
   },
@@ -200,14 +247,14 @@ const RAW_LIBERTADORES_RESULTS: RawLibertadoresResult[] = [
   { year: 1972, champion: '独立竞技', runnerUp: '秘鲁体育大学' },
   { year: 1973, champion: '独立竞技', runnerUp: '科洛科洛' },
   { year: 1974, champion: '独立竞技', runnerUp: '圣保罗' },
-  { year: 1975, champion: '独立竞技', runnerUp: '西班牙联合' },
+  { year: 1975, champion: '独立竞技', runnerUp: '西班牙联' },
   { year: 1976, champion: '克鲁塞罗', runnerUp: '河床竞技' },
   { year: 1977, champion: '博卡青年', runnerUp: '克鲁塞罗' },
   { year: 1978, champion: '博卡青年', runnerUp: '卡利体育' },
   { year: 1979, champion: '亚松森奥林匹亚', runnerUp: '博卡青年' },
   { year: 1980, champion: '乌拉圭国民', runnerUp: '巴西国际' },
-  { year: 1981, champion: '弗拉门戈', runnerUp: '科布雷洛亚' },
-  { year: 1982, champion: '佩纳罗尔', runnerUp: '科布雷洛亚' },
+  { year: 1981, champion: '弗拉门戈', runnerUp: '科布雷罗阿' },
+  { year: 1982, champion: '佩纳罗尔', runnerUp: '科布雷罗阿' },
   { year: 1983, champion: '格雷米奥', runnerUp: '佩纳罗尔' },
   { year: 1984, champion: '独立竞技', runnerUp: '格雷米奥' },
   { year: 1985, champion: '阿根廷青年人', runnerUp: '卡利美洲' },
@@ -215,7 +262,7 @@ const RAW_LIBERTADORES_RESULTS: RawLibertadoresResult[] = [
   { year: 1987, champion: '佩纳罗尔', runnerUp: '卡利美洲' },
   { year: 1988, champion: '乌拉圭国民', runnerUp: '纽维尔老男孩' },
   { year: 1989, champion: '国民竞技', runnerUp: '亚松森奥林匹亚' },
-  { year: 1990, champion: '亚松森奥林匹亚', runnerUp: '巴塞罗那竞技' },
+  { year: 1990, champion: '亚松森奥林匹亚', runnerUp: '瓜亚基尔巴塞罗那' },
   { year: 1991, champion: '科洛科洛', runnerUp: '亚松森奥林匹亚' },
   { year: 1992, champion: '圣保罗', runnerUp: '纽维尔老男孩' },
   { year: 1993, champion: '圣保罗', runnerUp: '天主教大学' },
@@ -223,7 +270,7 @@ const RAW_LIBERTADORES_RESULTS: RawLibertadoresResult[] = [
   { year: 1995, champion: '格雷米奥', runnerUp: '国民竞技' },
   { year: 1996, champion: '河床竞技', runnerUp: '卡利美洲' },
   { year: 1997, champion: '克鲁塞罗', runnerUp: '水晶体育' },
-  { year: 1998, champion: '瓦斯科达伽马', runnerUp: '巴塞罗那竞技' },
+  { year: 1998, champion: '瓦斯科达伽马', runnerUp: '瓜亚基尔巴塞罗那' },
   { year: 1999, champion: '帕尔梅拉斯', runnerUp: '卡利体育' },
   { year: 2000, champion: '博卡青年', runnerUp: '帕尔梅拉斯' },
   { year: 2001, champion: '博卡青年', runnerUp: '蓝十字' },
@@ -267,16 +314,8 @@ export const CONMEBOL_LIBERTADORES_RESULTS: LibertadoresResult[] = RAW_LIBERTADO
 );
 
 export function buildConmebolLibertadoresStandings(result: LibertadoresResult): SeedStanding[] {
-  const standings: SeedStanding[] = [
-    { placement: CompetitionStandingPlacement.CHAMPION, clubName: result.champion }
+  return [
+    { placement: CompetitionStandingPlacement.CHAMPION, clubName: result.champion },
+    { placement: CompetitionStandingPlacement.RUNNER_UP, clubName: result.runnerUp }
   ];
-
-  if (!SKIPPED_CLUBS.has(result.runnerUp)) {
-    standings.push({
-      placement: CompetitionStandingPlacement.RUNNER_UP,
-      clubName: result.runnerUp
-    });
-  }
-
-  return standings;
 }
