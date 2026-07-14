@@ -13,6 +13,13 @@ export interface PlayerListQuery {
   sortOrder?: string;
 }
 
+export interface TeamHonorStandingOptionQuery {
+  page?: string;
+  pageSize?: string;
+  keyword?: string;
+  targetType?: 'COUNTRY' | 'CLUB';
+}
+
 export interface PlayerPayload {
   uid?: string;
   chineseName?: string;
@@ -25,6 +32,7 @@ export interface PlayerPayload {
   birthCityId?: string;
   clubId?: string;
   confederationId?: string;
+  initialClubId?: string;
   primaryRole?: string;
   position?: string;
   positions?: string;
@@ -74,5 +82,25 @@ export interface PlayerCareerPayload {
   isRepresentative?: boolean | string | null;
   isLegend?: boolean | string | null;
   sortOrder?: number | string | null;
+  remark?: string;
+}
+
+export interface SavePlayerCareersBody {
+  careers?: PlayerCareerPayload[];
+}
+
+export interface PlayerAwardRecipientPayload {
+  editionId?: string;
+  rank?: number | string | null;
+  placement?: string;
+  externalUrl?: string;
+  remark?: string;
+}
+
+export interface PlayerTeamHonorPayload {
+  standingId?: string;
+  careerId?: string | null;
+  sourceType?: 'MANUAL' | 'CAREER_MATCH' | 'IMPORT';
+  status?: 'CONFIRMED' | 'PENDING' | 'EXCLUDED';
   remark?: string;
 }

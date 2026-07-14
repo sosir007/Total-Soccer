@@ -77,7 +77,7 @@ onMounted(() => {
       <div class="panel-header">
         <div>
           <h2>{{ pageTitle }}</h2>
-          <p>维护球员基础资料、国籍、位置、身体数据、球队经历和结构化经历。</p>
+          <p>维护球员基础资料、国籍、位置和身体数据；经历、奖项和团队荣誉请到履历管理维护。</p>
         </div>
         <el-button :disabled="loading" @click="goBack(false)">
           <IconFont name="back" />

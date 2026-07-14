@@ -13,6 +13,7 @@ import StarsOverviewView from '@/views/stars/StarsOverviewView/index.vue';
 import StarHonorsView from '@/views/stars/StarHonorsView.vue';
 import StarDetailView from '@/views/stars/StarDetailView/index.vue';
 import StarFormView from '@/views/stars/StarFormView.vue';
+import StarResumeView from '@/views/stars/StarResumeView.vue';
 import HonorRulesView from '@/views/tianji/HonorRulesView/index.vue';
 import CompetitionsView from '@/views/tianji/CompetitionsView/index.vue';
 import CompetitionDetailView from '@/views/tianji/CompetitionDetailView/index.vue';
@@ -131,6 +132,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'stars-edit-id',
         component: StarFormView,
         meta: { title: '编辑球员' }
+      },
+      {
+        path: 'stars/resume/:id',
+        name: 'stars-resume-id',
+        component: StarResumeView,
+        meta: { title: '履历管理' }
       },
       { path: 'tianji', redirect: '/tianji/honor-rules' },
       {

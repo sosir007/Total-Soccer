@@ -49,6 +49,18 @@ enum AwardScopeType {
   MEDIA
 }
 
+enum PlayerTeamHonorSourceType {
+  MANUAL
+  CAREER_MATCH
+  IMPORT
+}
+
+enum PlayerTeamHonorStatus {
+  CONFIRMED
+  PENDING
+  EXCLUDED
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -113,6 +125,7 @@ model Player {
   primaryClub        String?
   externalUrl        String?
   clubUid            String?
+  initialClubId      String?
   initialClub        String?
   clubs              String?
   marketValue        Float?
@@ -128,6 +141,7 @@ model Player {
   birthCountry       Country?            @relation("PlayerBirthCountry", fields: [birthCountryId], references: [id])
   birthCityRef       City?               @relation(fields: [birthCityId], references: [id])
   club               Club?               @relation(fields: [clubId], references: [id])
+  initialClubRef     Club?               @relation("PlayerInitialClub", fields: [initialClubId], references: [id])
   confederationRef   Confederation?      @relation(fields: [confederationId], references: [id])
   hairColorRef       HairColor?          @relation(fields: [hairColorId], references: [id])
   ethnicityRef       Ethnicity?          @relation(fields: [ethnicityId], references: [id])
@@ -136,6 +150,7 @@ model Player {
   nationalities      PlayerNationality[]
   careers            PlayerCareer[]
   awardRecipients    AwardRecipient[]
+  teamHonors         PlayerTeamHonor[]
   honors             PlayerHonor[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -144,6 +159,7 @@ model Player {
   @@index([birthCountryId])
   @@index([birthCityId])
   @@index([clubId])
+  @@index([initialClubId])
   @@index([confederationId])
   @@index([hairColorId])
   @@index([ethnicityId])
@@ -295,6 +311,7 @@ model Club {
   countryRef         Country?              @relation(fields: [countryId], references: [id])
   federationRef      Confederation?        @relation(fields: [federationId], references: [id])
   players            Player[]
+  initialPlayers     Player[]              @relation("PlayerInitialClub")
   playerCareers      PlayerCareer[]
   honors             ClubHonor[]
   competitionResults CompetitionStanding[]
@@ -334,6 +351,7 @@ model PlayerCareer {
   player           Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
   club             Club?            @relation(fields: [clubId], references: [id])
   country          Country?         @relation(fields: [countryId], references: [id])
+  teamHonors       PlayerTeamHonor[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -344,6 +362,28 @@ model PlayerCareer {
   @@index([showInProfile])
   @@index([isRepresentative])
   @@index([isLegend])
+}
+
+model PlayerTeamHonor {
+  id         String                    @id @default(cuid())
+  playerId   String
+  standingId String
+  careerId   String?
+  sourceType PlayerTeamHonorSourceType @default(MANUAL)
+  status     PlayerTeamHonorStatus     @default(CONFIRMED)
+  remark     String?
+  player     Player                    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  standing   CompetitionStanding       @relation(fields: [standingId], references: [id], onDelete: Cascade)
+  career     PlayerCareer?             @relation(fields: [careerId], references: [id], onDelete: SetNull)
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
+
+  @@unique([playerId, standingId])
+  @@index([playerId])
+  @@index([standingId])
+  @@index([careerId])
+  @@index([sourceType])
+  @@index([status])
 }
 
 model HonorRule {
@@ -668,6 +708,7 @@ model CompetitionStanding {
   edition   CompetitionEdition           @relation(fields: [editionId], references: [id], onDelete: Cascade)
   country   Country?                     @relation(fields: [countryId], references: [id])
   club      Club?                        @relation(fields: [clubId], references: [id])
+  playerTeamHonors PlayerTeamHonor[]
   createdAt DateTime                     @default(now())
   updatedAt DateTime                     @updatedAt
 

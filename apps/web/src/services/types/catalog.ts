@@ -94,6 +94,8 @@ export interface HonorGroupedRecord {
 }
 
 export type PlayerCareerType = 'CLUB' | 'COUNTRY';
+export type PlayerTeamHonorSourceType = 'MANUAL' | 'CAREER_MATCH' | 'IMPORT';
+export type PlayerTeamHonorStatus = 'CONFIRMED' | 'PENDING' | 'EXCLUDED';
 
 export interface PlayerCareer {
   id: string;
@@ -118,6 +120,30 @@ export interface PlayerCareer {
   remark?: string | null;
   club?: (NamedRef & { exists?: boolean }) | null;
   country?: NamedRef | null;
+}
+
+export interface TeamHonorStandingOption {
+  id: string;
+  placement: CompetitionStandingPlacement;
+  standingOrder: number;
+  remark?: string | null;
+  country?: NamedRef | null;
+  club?: (NamedRef & { exists?: boolean }) | null;
+  edition: HonorEditionRef & {
+    competition: HonorCompetitionRef;
+  };
+}
+
+export interface PlayerTeamHonor {
+  id: string;
+  playerId: string;
+  standingId: string;
+  careerId?: string | null;
+  sourceType: PlayerTeamHonorSourceType;
+  status: PlayerTeamHonorStatus;
+  remark?: string | null;
+  standing: TeamHonorStandingOption;
+  career?: PlayerCareer | null;
 }
 
 export interface CareerProfileLine {
@@ -189,6 +215,7 @@ export interface PlayerListItem {
   birthCityId?: string | null;
   clubUid?: string | null;
   primaryClub?: string | null;
+  initialClubId?: string | null;
   initialClub?: string | null;
   clubs?: string | null;
   marketValue?: number | null;
@@ -241,6 +268,7 @@ export interface PlayerDetail extends PlayerListItem {
   remark?: string | null;
   hairColorRef?: NamedRef | null;
   personalHonors?: AwardRecipientRecord[];
+  teamHonors?: PlayerTeamHonor[];
 }
 
 export interface CountryListItem {
@@ -328,6 +356,13 @@ export interface PlayerListParams {
   maxPa?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+}
+
+export interface TeamHonorStandingOptionParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  targetType?: 'COUNTRY' | 'CLUB';
 }
 
 export interface CountryListParams {
@@ -430,6 +465,7 @@ export interface PlayerPayload {
   birthCityId?: string;
   clubId?: string;
   confederationId?: string;
+  initialClubId?: string;
   primaryRole?: string;
   position?: string;
   positions?: string;
@@ -479,5 +515,25 @@ export interface PlayerCareerPayload {
   isRepresentative?: boolean;
   isLegend?: boolean;
   sortOrder?: number | null;
+  remark?: string;
+}
+
+export interface SavePlayerCareersPayload {
+  careers: PlayerCareerPayload[];
+}
+
+export interface PlayerAwardRecipientPayload {
+  editionId?: string;
+  rank?: number | null;
+  placement?: string;
+  externalUrl?: string;
+  remark?: string;
+}
+
+export interface PlayerTeamHonorPayload {
+  standingId?: string;
+  careerId?: string | null;
+  sourceType?: PlayerTeamHonorSourceType;
+  status?: PlayerTeamHonorStatus;
   remark?: string;
 }

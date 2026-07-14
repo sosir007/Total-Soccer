@@ -15,7 +15,6 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import {
   CitySelect,
   ClubSelect,
-  ConfederationSelect,
   CountrySelect,
   EthnicitySelect,
   HairColorSelect,
@@ -26,10 +25,18 @@ import {
 import { useOptionStore } from '@/stores/options';
 
 const visible = defineModel<boolean>({ default: false });
-const props = defineProps<{
-  player?: PlayerDetail | null;
-  display?: 'dialog' | 'page';
-}>();
+const props = withDefaults(
+  defineProps<{
+    player?: PlayerDetail | null;
+    display?: 'dialog' | 'page';
+    includeCareers?: boolean;
+  }>(),
+  {
+    player: null,
+    display: 'dialog',
+    includeCareers: false
+  }
+);
 const emit = defineEmits<{
   saved: [player: PlayerDetail];
   cancelled: [];
@@ -70,7 +77,7 @@ const form = reactive({
   birthCountryId: '',
   birthCityId: '',
   clubId: '',
-  confederationId: '',
+  initialClubId: '',
   primaryRole: '',
   positions: '',
   clubHistoryIds: [] as string[],
@@ -89,7 +96,6 @@ const form = reactive({
   clubs: '',
   marketValue: undefined as number | undefined,
   retired: false,
-  deceased: false,
   databaseSource: '',
   staffRoles: '',
   achievement: '',
@@ -117,7 +123,8 @@ watch(
     form.birthCountryId = props.player?.birthCountry?.id ?? '';
     form.birthCityId = props.player?.birthCityRef?.id ?? '';
     form.clubId = props.player?.club?.id ?? '';
-    form.confederationId = props.player?.confederationRef?.id ?? '';
+    form.initialClubId =
+      props.player?.initialClubRef?.id ?? resolveInitialClubId(props.player?.initialClub);
     form.primaryRole = props.player?.primaryRole ?? '';
     form.positions = props.player?.positions ?? props.player?.primaryRole ?? '';
     form.clubHistoryIds = resolveClubHistoryIds(props.player?.clubs);
@@ -136,7 +143,6 @@ watch(
     form.clubs = props.player?.clubs ?? '';
     form.marketValue = props.player?.marketValue ?? undefined;
     form.retired = props.player?.retired ?? false;
-    form.deceased = props.player?.deceased ?? false;
     form.databaseSource = props.player?.databaseSource ?? '';
     form.staffRoles = props.player?.staffRoles ?? '';
     form.achievement = props.player?.achievement ?? '';
@@ -264,6 +270,16 @@ function resolveClubHistoryIds(value?: string | null) {
   });
 }
 
+function resolveInitialClubId(value?: string | null) {
+  const name = value?.trim();
+
+  if (!name) {
+    return '';
+  }
+
+  return optionStore.clubs.find((club) => club.name === name)?.id ?? '';
+}
+
 function cancel() {
   if (props.display === 'page') {
     emit('cancelled');
@@ -279,6 +295,9 @@ watch(
     if (isVisible || props.display === 'page') {
       void optionStore.ensureClubs().then(() => {
         form.clubHistoryIds = resolveClubHistoryIds(props.player?.clubs);
+        if (!form.initialClubId) {
+          form.initialClubId = resolveInitialClubId(props.player?.initialClub);
+        }
       });
     }
   },
@@ -305,7 +324,7 @@ async function submit() {
       birthCountryId: form.birthCountryId || undefined,
       birthCityId: form.birthCityId || undefined,
       clubId: form.clubId || undefined,
-      confederationId: form.confederationId || undefined,
+      initialClubId: form.initialClubId || undefined,
       primaryRole: form.primaryRole || undefined,
       positions: form.positions.trim() || undefined,
       clubHistoryIds: form.clubHistoryIds,
@@ -324,13 +343,13 @@ async function submit() {
       clubs: form.clubs.trim() || undefined,
       marketValue: form.marketValue ?? null,
       retired: form.retired,
-      deceased: form.deceased,
+      deceased: Boolean(form.deathDate),
       databaseSource: form.databaseSource.trim() || undefined,
       staffRoles: form.staffRoles.trim() || undefined,
       achievement: form.achievement.trim() || undefined,
       externalUrl: form.externalUrl.trim() || undefined,
       remark: form.remark.trim() || undefined,
-      careers: buildCareers()
+      ...(props.includeCareers ? { careers: buildCareers() } : {})
     };
     const result = props.player
       ? await updatePlayer(props.player.id, payload)
@@ -384,9 +403,6 @@ async function submit() {
             value-format="YYYY-MM-DD"
             placeholder="未去世可不填"
           />
-        </el-form-item>
-        <el-form-item label="足联">
-          <ConfederationSelect v-model="form.confederationId" />
         </el-form-item>
         <el-form-item label="代表国籍">
           <CountrySelect v-model="form.countryId" placeholder="请选择代表国籍" />
@@ -451,7 +467,7 @@ async function submit() {
           />
         </el-form-item>
         <el-form-item label="初始球队">
-          <el-input v-model="form.initialClub" placeholder="请输入初始球队" />
+          <ClubSelect v-model="form.initialClubId" placeholder="请选择初始球队" />
         </el-form-item>
         <el-form-item label="市场价值">
           <el-input-number v-model="form.marketValue" :controls="false" :min="0" />
@@ -465,14 +481,11 @@ async function submit() {
         <el-form-item label="是否退役">
           <el-switch v-model="form.retired" active-text="是" inactive-text="否" />
         </el-form-item>
-        <el-form-item label="是否去世">
-          <el-switch v-model="form.deceased" active-text="是" inactive-text="否" />
-        </el-form-item>
       </div>
-      <el-form-item label="球队经历">
+      <el-form-item v-if="includeCareers" label="球队经历">
         <ClubSelect v-model="form.clubHistoryIds" multiple placeholder="请选择球员效力过的球队" />
       </el-form-item>
-      <div class="career-editor">
+      <div v-if="includeCareers" class="career-editor">
         <div class="career-editor-header">
           <div>
             <strong>结构化经历</strong>

@@ -16,11 +16,19 @@ import type {
   HonorRecord,
   HonorSummaryResult,
   HonorSummaryRow,
+  PlayerAwardRecipientPayload,
   PlayerDetail,
+  PlayerCareerPayload,
   PlayerListItem,
   PlayerListParams,
-  PlayerPayload
+  PlayerPayload,
+  PlayerTeamHonor,
+  PlayerTeamHonorPayload,
+  SavePlayerCareersPayload,
+  TeamHonorStandingOption,
+  TeamHonorStandingOptionParams
 } from '../types/catalog';
+import type { AwardRecipientRecord } from '../types/awards';
 import type { PaginationResult } from '../types/common';
 
 const playerPrefix = ApiPrefix.PLAYERS;
@@ -30,7 +38,15 @@ const clubPrefix = ApiPrefix.CLUBS;
 const API = {
   PLAYERS: {
     LIST: playerPrefix,
-    DETAIL: (id: string) => `${playerPrefix}/${id}`
+    DETAIL: (id: string) => `${playerPrefix}/${id}`,
+    CAREERS: (id: string) => `${playerPrefix}/${id}/careers`,
+    AWARD_RECIPIENTS: (id: string) => `${playerPrefix}/${id}/award-recipients`,
+    AWARD_RECIPIENT_DETAIL: (id: string, recipientId: string) =>
+      `${playerPrefix}/${id}/award-recipients/${recipientId}`,
+    TEAM_HONORS: (id: string) => `${playerPrefix}/${id}/team-honors`,
+    TEAM_HONOR_DETAIL: (id: string, honorId: string) =>
+      `${playerPrefix}/${id}/team-honors/${honorId}`,
+    TEAM_HONOR_STANDINGS: `${playerPrefix}/team-honor-standings`
   },
   COUNTRIES: {
     LIST: countryPrefix,
@@ -72,6 +88,82 @@ export async function updatePlayer(id: string, payload: PlayerPayload) {
 
 export async function deletePlayer(id: string) {
   const response = await api.delete<{ id: string }>(API.PLAYERS.DETAIL(id));
+
+  return response;
+}
+
+export async function savePlayerCareers(id: string, careers: PlayerCareerPayload[]) {
+  const payload: SavePlayerCareersPayload = { careers };
+  const response = await api.put<PlayerDetail>(API.PLAYERS.CAREERS(id), payload);
+
+  return response;
+}
+
+export async function createPlayerAwardRecipient(id: string, payload: PlayerAwardRecipientPayload) {
+  const response = await api.post<AwardRecipientRecord>(API.PLAYERS.AWARD_RECIPIENTS(id), payload);
+
+  return response;
+}
+
+export async function updatePlayerAwardRecipient(
+  id: string,
+  recipientId: string,
+  payload: PlayerAwardRecipientPayload
+) {
+  const response = await api.put<AwardRecipientRecord>(
+    API.PLAYERS.AWARD_RECIPIENT_DETAIL(id, recipientId),
+    payload
+  );
+
+  return response;
+}
+
+export async function deletePlayerAwardRecipient(id: string, recipientId: string) {
+  const response = await api.delete<{ id: string }>(
+    API.PLAYERS.AWARD_RECIPIENT_DETAIL(id, recipientId)
+  );
+
+  return response;
+}
+
+export async function fetchPlayerTeamHonors(id: string) {
+  const response = await api.get<PlayerTeamHonor[]>(API.PLAYERS.TEAM_HONORS(id));
+
+  return response;
+}
+
+export async function createPlayerTeamHonor(id: string, payload: PlayerTeamHonorPayload) {
+  const response = await api.post<PlayerTeamHonor>(API.PLAYERS.TEAM_HONORS(id), payload);
+
+  return response;
+}
+
+export async function updatePlayerTeamHonor(
+  id: string,
+  honorId: string,
+  payload: PlayerTeamHonorPayload
+) {
+  const response = await api.put<PlayerTeamHonor>(
+    API.PLAYERS.TEAM_HONOR_DETAIL(id, honorId),
+    payload
+  );
+
+  return response;
+}
+
+export async function deletePlayerTeamHonor(id: string, honorId: string) {
+  const response = await api.delete<{ id: string }>(API.PLAYERS.TEAM_HONOR_DETAIL(id, honorId));
+
+  return response;
+}
+
+export async function fetchTeamHonorStandingOptions(params: TeamHonorStandingOptionParams) {
+  const response = await api.get<PaginationResult<TeamHonorStandingOption>>(
+    API.PLAYERS.TEAM_HONOR_STANDINGS,
+    {
+      params
+    }
+  );
 
   return response;
 }

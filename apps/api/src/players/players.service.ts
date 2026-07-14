@@ -1,9 +1,23 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { PlayerCareerType, Prisma } from '@prisma/client';
+import {
+  CompetitionTargetType,
+  PlayerCareerType,
+  PlayerTeamHonorSourceType,
+  PlayerTeamHonorStatus,
+  Prisma
+} from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { resolvePagination, toNumber } from '../common/pagination.js';
-import type { PlayerCareerPayload, PlayerListQuery, PlayerPayload } from './players.types.js';
+import type {
+  PlayerAwardRecipientPayload,
+  PlayerCareerPayload,
+  PlayerListQuery,
+  PlayerPayload,
+  PlayerTeamHonorPayload,
+  SavePlayerCareersBody,
+  TeamHonorStandingOptionQuery
+} from './players.types.js';
 
 const PLAYER_CAREER_INCLUDE = {
   club: {
@@ -25,6 +39,14 @@ const PLAYER_CAREER_INCLUDE = {
   }
 } satisfies Prisma.PlayerCareerInclude;
 
+const CLUB_NAME_REF_SELECT = {
+  id: true,
+  uid: true,
+  name: true,
+  externalUrl: true,
+  exists: true
+} satisfies Prisma.ClubSelect;
+
 const PLAYER_LIST_INCLUDE = {
   country: {
     select: {
@@ -42,6 +64,9 @@ const PLAYER_LIST_INCLUDE = {
       externalUrl: true,
       exists: true
     }
+  },
+  initialClubRef: {
+    select: CLUB_NAME_REF_SELECT
   },
   confederationRef: {
     select: {
@@ -137,13 +162,39 @@ const PLAYER_AWARD_RECIPIENT_INCLUDE = {
   }
 } satisfies Prisma.AwardRecipientInclude;
 
-const CLUB_NAME_REF_SELECT = {
-  id: true,
-  uid: true,
-  name: true,
-  externalUrl: true,
-  exists: true
-} satisfies Prisma.ClubSelect;
+const TEAM_HONOR_STANDING_INCLUDE = {
+  edition: {
+    include: {
+      competition: true
+    }
+  },
+  country: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  },
+  club: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true,
+      exists: true
+    }
+  }
+} satisfies Prisma.CompetitionStandingInclude;
+
+const PLAYER_TEAM_HONOR_INCLUDE = {
+  standing: {
+    include: TEAM_HONOR_STANDING_INCLUDE
+  },
+  career: {
+    include: PLAYER_CAREER_INCLUDE
+  }
+} satisfies Prisma.PlayerTeamHonorInclude;
 
 const PLAYER_DETAIL_INCLUDE = {
   ...PLAYER_LIST_INCLUDE,
@@ -174,6 +225,11 @@ const PLAYER_DETAIL_INCLUDE = {
   awardRecipients: {
     include: PLAYER_AWARD_RECIPIENT_INCLUDE,
     orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }, { placement: 'asc' }]
+  },
+  teamHonors: {
+    where: { status: PlayerTeamHonorStatus.CONFIRMED },
+    include: PLAYER_TEAM_HONOR_INCLUDE,
+    orderBy: [{ createdAt: 'desc' }]
   }
 } satisfies Prisma.PlayerInclude;
 
@@ -216,7 +272,9 @@ export class PlayersService {
       throw new NotFoundException('球员不存在。');
     }
 
-    return this.attachPersonalHonors(this.attachCareerSummaries(player));
+    const [enrichedPlayer] = await this.attachInitialClubRefs([this.attachCareerSummaries(player)]);
+
+    return this.attachPlayerRelations(enrichedPlayer);
   }
 
   async create(body: PlayerPayload) {
@@ -279,6 +337,300 @@ export class PlayersService {
     }
   }
 
+  async saveCareers(id: string, body: SavePlayerCareersBody) {
+    await this.assertPlayerExists(id);
+    const careers = await this.buildCareerData(body.careers ?? []);
+
+    await this.prisma.$transaction(async (tx) => {
+      await this.replaceCareers(tx, id, careers);
+    });
+
+    return this.findOne(id);
+  }
+
+  async createAwardRecipient(id: string, body: PlayerAwardRecipientPayload) {
+    await this.assertPlayerExists(id);
+    const editionId = this.requiredText(body.editionId, '奖项届次');
+    await this.assertAwardEditionExists(editionId);
+    const data = this.buildAwardRecipientData(body);
+
+    return this.prisma.awardRecipient.upsert({
+      where: {
+        editionId_playerId: {
+          editionId,
+          playerId: id
+        }
+      },
+      create: {
+        editionId,
+        playerId: id,
+        ...data
+      },
+      update: data,
+      include: PLAYER_AWARD_RECIPIENT_INCLUDE
+    });
+  }
+
+  async updateAwardRecipient(id: string, recipientId: string, body: PlayerAwardRecipientPayload) {
+    await this.assertPlayerExists(id);
+    await this.assertAwardRecipientBelongsToPlayer(recipientId, id);
+
+    return this.prisma.awardRecipient.update({
+      where: { id: recipientId },
+      data: this.buildAwardRecipientData(body),
+      include: PLAYER_AWARD_RECIPIENT_INCLUDE
+    });
+  }
+
+  async removeAwardRecipient(id: string, recipientId: string) {
+    await this.assertPlayerExists(id);
+    await this.assertAwardRecipientBelongsToPlayer(recipientId, id);
+    await this.prisma.awardRecipient.delete({
+      where: { id: recipientId }
+    });
+
+    return { id: recipientId };
+  }
+
+  async findTeamHonors(id: string) {
+    await this.assertPlayerExists(id);
+
+    return this.prisma.playerTeamHonor.findMany({
+      where: { playerId: id },
+      include: PLAYER_TEAM_HONOR_INCLUDE,
+      orderBy: [{ createdAt: 'desc' }]
+    });
+  }
+
+  async createTeamHonor(id: string, body: PlayerTeamHonorPayload) {
+    await this.assertPlayerExists(id);
+    const standingId = this.requiredText(body.standingId, '赛事结果');
+    await this.assertStandingExists(standingId);
+    const data = await this.buildTeamHonorData(id, body);
+
+    return this.prisma.playerTeamHonor.upsert({
+      where: {
+        playerId_standingId: {
+          playerId: id,
+          standingId
+        }
+      },
+      create: {
+        playerId: id,
+        standingId,
+        ...data
+      },
+      update: data,
+      include: PLAYER_TEAM_HONOR_INCLUDE
+    });
+  }
+
+  async updateTeamHonor(id: string, honorId: string, body: PlayerTeamHonorPayload) {
+    await this.assertPlayerExists(id);
+    const existing = await this.assertTeamHonorBelongsToPlayer(honorId, id);
+    const data = await this.buildTeamHonorData(id, {
+      ...body,
+      standingId: body.standingId ?? existing.standingId
+    });
+
+    return this.prisma.playerTeamHonor.update({
+      where: { id: honorId },
+      data,
+      include: PLAYER_TEAM_HONOR_INCLUDE
+    });
+  }
+
+  async removeTeamHonor(id: string, honorId: string) {
+    await this.assertPlayerExists(id);
+    await this.assertTeamHonorBelongsToPlayer(honorId, id);
+    await this.prisma.playerTeamHonor.delete({
+      where: { id: honorId }
+    });
+
+    return { id: honorId };
+  }
+
+  async findTeamHonorStandingOptions(query: TeamHonorStandingOptionQuery) {
+    const pagination = resolvePagination(query);
+    const keyword = query.keyword?.trim();
+    const targetType = this.parseOptionalCompetitionTargetType(query.targetType);
+    const where: Prisma.CompetitionStandingWhereInput = {
+      ...(targetType
+        ? {
+            edition: {
+              competition: {
+                targetType
+              }
+            }
+          }
+        : {}),
+      ...(keyword
+        ? {
+            OR: [
+              { edition: { name: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { season: { contains: keyword, mode: 'insensitive' } } },
+              { edition: { competition: { name: { contains: keyword, mode: 'insensitive' } } } },
+              { edition: { competition: { alias: { contains: keyword, mode: 'insensitive' } } } },
+              { edition: { competition: { code: { contains: keyword, mode: 'insensitive' } } } },
+              { country: { name: { contains: keyword, mode: 'insensitive' } } },
+              { country: { uid: { contains: keyword, mode: 'insensitive' } } },
+              { club: { name: { contains: keyword, mode: 'insensitive' } } },
+              { club: { uid: { contains: keyword, mode: 'insensitive' } } }
+            ]
+          }
+        : {})
+    };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.competitionStanding.findMany({
+        where,
+        include: TEAM_HONOR_STANDING_INCLUDE,
+        orderBy: [{ edition: { year: 'desc' } }, { standingOrder: 'asc' }, { placement: 'asc' }],
+        skip: pagination.skip,
+        take: pagination.take
+      }),
+      this.prisma.competitionStanding.count({ where })
+    ]);
+
+    return {
+      items,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total
+    };
+  }
+
+  private async assertPlayerExists(id: string) {
+    const player = await this.prisma.player.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!player) {
+      throw new NotFoundException('球员不存在。');
+    }
+
+    return player;
+  }
+
+  private async assertAwardEditionExists(id: string) {
+    const edition = await this.prisma.awardEdition.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!edition) {
+      throw new BadRequestException('奖项届次不存在。');
+    }
+  }
+
+  private async assertAwardRecipientBelongsToPlayer(id: string, playerId: string) {
+    const recipient = await this.prisma.awardRecipient.findUnique({
+      where: { id },
+      select: { id: true, playerId: true }
+    });
+
+    if (!recipient || recipient.playerId !== playerId) {
+      throw new NotFoundException('球员奖项记录不存在。');
+    }
+
+    return recipient;
+  }
+
+  private buildAwardRecipientData(body: PlayerAwardRecipientPayload) {
+    return {
+      rank: this.optionalInteger(body.rank, '名次', 1, 999),
+      placement: this.optionalText(body.placement),
+      externalUrl: this.optionalText(body.externalUrl),
+      remark: this.optionalText(body.remark)
+    } satisfies Prisma.AwardRecipientUncheckedUpdateInput;
+  }
+
+  private async assertStandingExists(id: string) {
+    const standing = await this.prisma.competitionStanding.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!standing) {
+      throw new BadRequestException('赛事结果不存在。');
+    }
+  }
+
+  private async assertCareerBelongsToPlayer(id: string, playerId: string) {
+    const career = await this.prisma.playerCareer.findUnique({
+      where: { id },
+      select: { id: true, playerId: true }
+    });
+
+    if (!career || career.playerId !== playerId) {
+      throw new BadRequestException('球员经历不存在。');
+    }
+  }
+
+  private async assertTeamHonorBelongsToPlayer(id: string, playerId: string) {
+    const honor = await this.prisma.playerTeamHonor.findUnique({
+      where: { id },
+      select: { id: true, playerId: true, standingId: true }
+    });
+
+    if (!honor || honor.playerId !== playerId) {
+      throw new NotFoundException('球员关联荣誉不存在。');
+    }
+
+    return honor;
+  }
+
+  private async buildTeamHonorData(playerId: string, body: PlayerTeamHonorPayload) {
+    const careerId = this.optionalText(body.careerId);
+
+    if (careerId) {
+      await this.assertCareerBelongsToPlayer(careerId, playerId);
+    }
+
+    return {
+      careerId,
+      sourceType: this.parseTeamHonorSourceType(body.sourceType),
+      status: this.parseTeamHonorStatus(body.status),
+      remark: this.optionalText(body.remark)
+    } satisfies Prisma.PlayerTeamHonorUncheckedUpdateInput;
+  }
+
+  private parseTeamHonorSourceType(value?: PlayerTeamHonorPayload['sourceType']) {
+    if (!value) {
+      return PlayerTeamHonorSourceType.MANUAL;
+    }
+
+    if (!Object.values(PlayerTeamHonorSourceType).includes(value)) {
+      throw new BadRequestException('关联荣誉来源不合法。');
+    }
+
+    return value;
+  }
+
+  private parseTeamHonorStatus(value?: PlayerTeamHonorPayload['status']) {
+    if (!value) {
+      return PlayerTeamHonorStatus.CONFIRMED;
+    }
+
+    if (!Object.values(PlayerTeamHonorStatus).includes(value)) {
+      throw new BadRequestException('关联荣誉状态不合法。');
+    }
+
+    return value;
+  }
+
+  private parseOptionalCompetitionTargetType(value?: TeamHonorStandingOptionQuery['targetType']) {
+    if (!value) {
+      return undefined;
+    }
+
+    if (!Object.values(CompetitionTargetType).includes(value)) {
+      throw new BadRequestException('赛事对象不合法。');
+    }
+
+    return value;
+  }
+
   private buildWhere(query: PlayerListQuery): Prisma.PlayerWhereInput {
     const keyword = query.keyword?.trim();
     const minPa = toNumber(query.minPa);
@@ -334,6 +686,7 @@ export class PlayersService {
       | 'clubId'
       | 'clubUid'
       | 'primaryClub'
+      | 'initialClubId'
       | 'initialClub'
       | 'clubs'
       | 'confederationId'
@@ -372,7 +725,7 @@ export class PlayersService {
     const birthCountry = await this.findCountry(body.birthCountryId);
     const birthCity = await this.findCity(body.birthCityId);
     const club = await this.findClub(body.clubId);
-    const confederation = await this.findConfederation(body.confederationId);
+    const initialClub = await this.findClub(body.initialClubId);
     const playerType = await this.findPlayerType(body.playerTypeId);
     const ethnicity = await this.findEthnicity(body.ethnicityId);
     const hairColor = await this.findHairColor(body.hairColorId);
@@ -383,6 +736,9 @@ export class PlayersService {
     const clubHistory = await this.resolveClubHistoryText(body.clubHistoryIds, body.clubs);
     const nationality = await this.resolveNationalityText(nationalityIds);
     const finalBirthCountryId = birthCountry?.id ?? birthCity?.countryId ?? null;
+    const deathDate = this.optionalDate(body.deathDate, '过世日期');
+    const federationId = country?.federationId ?? club?.federationId ?? null;
+    const federationName = country?.federation ?? club?.federation ?? null;
 
     return {
       data: {
@@ -390,7 +746,7 @@ export class PlayersService {
         chineseName,
         englishName: this.optionalText(body.englishName),
         birthDate: this.optionalDate(body.birthDate, '生日'),
-        deathDate: this.optionalDate(body.deathDate, '过世日期'),
+        deathDate,
         countryId: country?.id ?? null,
         countryUid: country?.uid ?? null,
         representedCountry: country?.name ?? null,
@@ -402,10 +758,11 @@ export class PlayersService {
         clubId: club?.id ?? null,
         clubUid: club?.uid ?? null,
         primaryClub: club?.name ?? null,
-        initialClub: this.optionalText(body.initialClub),
+        initialClubId: initialClub?.id ?? null,
+        initialClub: initialClub?.name ?? this.optionalText(body.initialClub),
         clubs: clubHistory,
-        confederationId: confederation?.id ?? country?.federationId ?? club?.federationId ?? null,
-        confederation: confederation?.name ?? country?.federation ?? club?.federation ?? null,
+        confederationId: federationId,
+        confederation: federationName,
         positions,
         primaryRole,
         playerTypeId: playerType?.id ?? null,
@@ -424,7 +781,7 @@ export class PlayersService {
         skinTone: this.optionalText(body.skinTone),
         marketValue: this.optionalFloat(body.marketValue, '市场价值', 0),
         retired: this.optionalBoolean(body.retired),
-        deceased: this.optionalBoolean(body.deceased),
+        deceased: Boolean(deathDate),
         databaseSource: this.optionalText(body.databaseSource),
         staffRoles: this.optionalText(body.staffRoles),
         achievement: this.optionalText(body.achievement),
@@ -741,10 +1098,16 @@ export class PlayersService {
     };
   }
 
-  private async attachInitialClubRefs<T extends { initialClub?: string | null }>(players: T[]) {
+  private async attachInitialClubRefs<
+    T extends {
+      initialClub?: string | null;
+      initialClubRef?: Prisma.ClubGetPayload<{ select: typeof CLUB_NAME_REF_SELECT }> | null;
+    }
+  >(players: T[]) {
     const initialClubNames = Array.from(
       new Set(
         players
+          .filter((player) => !player.initialClubRef)
           .map((player) => player.initialClub?.trim())
           .filter((name): name is string => Boolean(name))
       )
@@ -753,7 +1116,7 @@ export class PlayersService {
     if (initialClubNames.length === 0) {
       return players.map((player) => ({
         ...player,
-        initialClubRef: null
+        initialClubRef: player.initialClubRef ?? null
       }));
     }
 
@@ -771,22 +1134,28 @@ export class PlayersService {
 
     return players.map((player) => ({
       ...player,
-      initialClubRef: player.initialClub
-        ? (clubByName.get(player.initialClub.trim()) ?? null)
-        : null
+      initialClubRef: player.initialClubRef
+        ? player.initialClubRef
+        : player.initialClub
+          ? (clubByName.get(player.initialClub.trim()) ?? null)
+          : null
     }));
   }
 
-  private attachPersonalHonors<
+  private attachPlayerRelations<
     T extends {
       awardRecipients?: Array<
         Prisma.AwardRecipientGetPayload<{ include: typeof PLAYER_AWARD_RECIPIENT_INCLUDE }>
+      >;
+      teamHonors?: Array<
+        Prisma.PlayerTeamHonorGetPayload<{ include: typeof PLAYER_TEAM_HONOR_INCLUDE }>
       >;
     }
   >(player: T) {
     return {
       ...player,
-      personalHonors: player.awardRecipients ?? []
+      personalHonors: player.awardRecipients ?? [],
+      teamHonors: player.teamHonors ?? []
     };
   }
 

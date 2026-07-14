@@ -84,6 +84,17 @@ function openEditDialog() {
   });
 }
 
+function openResumeManager() {
+  if (!playerId.value) {
+    return;
+  }
+
+  void router.push({
+    name: 'stars-resume-id',
+    params: { id: playerId.value }
+  });
+}
+
 watch(playerId, () => {
   void loadPlayer();
 });
@@ -131,6 +142,7 @@ onBeforeUnmount(() => {
       v-else-if="player"
       :player="player"
       @edit="openEditDialog"
+      @manage-resume="openResumeManager"
       @back="backToList"
     />
   </section>

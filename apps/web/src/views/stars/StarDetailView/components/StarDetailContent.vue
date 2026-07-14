@@ -25,8 +25,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   edit: [];
+  manageResume: [];
   back: [];
 }>();
+
+const placementLabels = {
+  CHAMPION: '冠军',
+  RUNNER_UP: '亚军',
+  THIRD_PLACE: '季军',
+  FOURTH_PLACE: '殿军',
+  SEMI_FINALIST: '四强'
+} as const;
 
 function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
@@ -140,6 +149,16 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
     `${honor.edition.award.name} ${formatAwardEdition(honor)}`
   );
 }
+
+function formatTeamHonor(row: NonNullable<PlayerDetail['teamHonors']>[number]) {
+  const team = row.standing.club?.name ?? row.standing.country?.name ?? '-';
+  const competition = row.standing.edition.competition.name;
+  const edition =
+    row.standing.edition.season || row.standing.edition.name || row.standing.edition.year || '-';
+  const placement = placementLabels[row.standing.placement] ?? row.standing.placement;
+
+  return `${team} / ${competition} / ${edition} / ${placement}`;
+}
 </script>
 
 <template>
@@ -171,7 +190,11 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
       <div class="panel-actions">
         <el-button type="primary" @click="emit('edit')">
           <IconFont name="edit" />
-          编辑
+          编辑资料
+        </el-button>
+        <el-button type="success" @click="emit('manageResume')">
+          <IconFont name="edit" />
+          履历管理
         </el-button>
         <el-button @click="emit('back')">
           <IconFont name="back" />
@@ -488,6 +511,35 @@ function awardEditionUrl(honor: NonNullable<PlayerDetail['personalHonors']>[numb
           </template>
         </el-table-column>
         <el-table-column label="备注" min-width="180">
+          <template #default="{ row }">{{ formatText(row.remark) }}</template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>团队荣誉</h3>
+        <span class="status-pill">{{ player.teamHonors?.length ?? 0 }} 条</span>
+      </div>
+
+      <div v-if="!player.teamHonors?.length" class="mini-empty">暂无确认关联的团队荣誉</div>
+
+      <el-table v-else :data="player.teamHonors" border>
+        <el-table-column label="关联荣誉" min-width="300" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatTeamHonor(row) }}</template>
+        </el-table-column>
+        <el-table-column label="来源" width="110" align="center">
+          <template #default="{ row }">
+            {{
+              row.sourceType === 'MANUAL'
+                ? '手动资料'
+                : row.sourceType === 'CAREER_MATCH'
+                  ? '经历反查'
+                  : '批量导入'
+            }}
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ formatText(row.remark) }}</template>
         </el-table-column>
       </el-table>
