@@ -99,11 +99,11 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     level: '三级',
     format: '杯赛',
     scopeType: CompetitionScopeType.GLOBAL,
-    baseScore: 6,
+    baseScore: 4,
     placementScope: HonorRulePlacementScope.TOP_FOUR,
     conversionType: HonorRuleConversionType.OLYMPIC_STAGE,
     sortOrder: 30,
-    remark: '奥运会男足按年份阶段换算。'
+    remark: '泛美锦标赛等国家队国际三级赛事；奥运会男足按年份阶段换算。'
   },
   {
     code: 'COUNTRY_CONTINENTAL_LEVEL_1_CUP',
@@ -914,10 +914,10 @@ export class HonorRulesService {
 
     if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
       if (!year) return 1;
-      if (year <= 1928) return 2;
-      if (year <= 1980) return 4 / 3;
-      if (year <= 1988) return 1;
-      return 2 / 3;
+      if (year <= 1928) return 3;
+      if (year <= 1980) return 2;
+      if (year <= 1988) return 1.5;
+      return 1;
     }
 
     if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {

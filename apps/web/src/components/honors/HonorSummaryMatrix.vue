@@ -56,8 +56,31 @@ const scoreDialogRow = ref<HonorSummaryScoreRow | null>(null);
 const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   const columns: HonorSummaryDisplayCompetition[] = [];
   let continentalCupColumn: HonorSummaryDisplayCompetition | null = null;
+  let internationalLevelThreeColumn: HonorSummaryDisplayCompetition | null = null;
 
   for (const competition of props.competitions) {
+    if (shouldMergeAsInternationalLevelThree(competition)) {
+      if (!internationalLevelThreeColumn) {
+        internationalLevelThreeColumn = {
+          ...competition,
+          id: getInternationalLevelThreeColumnId(),
+          code: getInternationalLevelThreeColumnCode(),
+          name: getInternationalLevelThreeColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(internationalLevelThreeColumn);
+      }
+
+      internationalLevelThreeColumn.sourceCompetitionIds.push(competition.id);
+      internationalLevelThreeColumn.counts ??= createEmptyCounts();
+      addCounts(
+        internationalLevelThreeColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
     if (shouldMergeAsContinentalCup(competition)) {
       if (!continentalCupColumn) {
         continentalCupColumn = {
@@ -217,6 +240,16 @@ function shouldMergeAsContinentalCup(competition: HonorSummaryCompetition) {
   );
 }
 
+function shouldMergeAsInternationalLevelThree(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'country' &&
+    competition.targetType === 'COUNTRY' &&
+    competition.category === '国际' &&
+    competition.level === '三级' &&
+    competition.format === '杯赛'
+  );
+}
+
 function getContinentalCupColumnId() {
   return props.entityType === 'country'
     ? '__country_continental_cup__'
@@ -229,6 +262,18 @@ function getContinentalCupColumnCode() {
 
 function getContinentalCupColumnName() {
   return props.entityType === 'country' ? '洲际杯' : '洲际一级';
+}
+
+function getInternationalLevelThreeColumnId() {
+  return '__country_international_level_three__';
+}
+
+function getInternationalLevelThreeColumnCode() {
+  return 'COUNTRY_INTERNATIONAL_LEVEL_THREE';
+}
+
+function getInternationalLevelThreeColumnName() {
+  return '国际三级';
 }
 
 const placementValues = placements.map(

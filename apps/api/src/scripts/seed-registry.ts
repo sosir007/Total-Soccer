@@ -95,6 +95,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'panamerican-championship',
+    label: '泛美锦标赛',
+    file: 'src/scripts/seeds/competitions/national-team/global/seed-panamerican-championship.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/national-team/global/panamerican-championship.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'national-team',
+    scope: 'global'
+  },
+  {
     key: 'fifa-club-world-cup',
     label: '国际足联俱乐部世界杯',
     file: 'src/scripts/seeds/competitions/club/global/seed-fifa-club-world-cup.ts',
