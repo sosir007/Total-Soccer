@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus';
 import { createClub, updateClub } from '@/services/modules/catalog';
 import type { ClubDetail, ClubPayload } from '@/services/types/catalog';
 import IconFont from '@/components/IconFont.vue';
-import { ConfederationSelect, CountrySelect } from '@/components/selects';
+import { CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
 
 const visible = defineModel<boolean>({ default: false });
@@ -23,7 +23,6 @@ const form = reactive({
   formerName: '',
   alias: '',
   countryId: '',
-  confederationId: '',
   exists: true,
   visibleInCatalog: true,
   externalUrl: '',
@@ -42,7 +41,6 @@ watch(
     form.formerName = props.club?.formerName ?? '';
     form.alias = props.club?.alias ?? '';
     form.countryId = props.club?.countryRef?.id ?? '';
-    form.confederationId = props.club?.federationRef?.id ?? '';
     form.exists = props.club?.exists ?? true;
     form.visibleInCatalog = props.club?.visibleInCatalog ?? true;
     form.externalUrl = props.club?.externalUrl ?? '';
@@ -66,7 +64,6 @@ async function submit() {
       formerName: form.formerName.trim() || undefined,
       alias: form.alias.trim() || undefined,
       countryId: form.countryId || undefined,
-      confederationId: form.confederationId || undefined,
       exists: form.exists,
       visibleInCatalog: form.visibleInCatalog,
       externalUrl: form.externalUrl.trim() || undefined,
@@ -111,9 +108,6 @@ async function submit() {
         </el-form-item>
         <el-form-item label="国家">
           <CountrySelect v-model="form.countryId" include-hidden />
-        </el-form-item>
-        <el-form-item label="足联">
-          <ConfederationSelect v-model="form.confederationId" />
         </el-form-item>
         <el-form-item label="是否存在">
           <el-switch v-model="form.exists" active-text="存在" inactive-text="已不存在" />

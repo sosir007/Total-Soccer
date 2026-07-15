@@ -388,7 +388,6 @@ export class ClubsService {
     const uid = this.requiredText(body.uid, 'UID');
     const name = this.requiredText(body.name, '俱乐部名称');
     const country = await this.findCountry(body.countryId);
-    const confederation = await this.findConfederation(body.confederationId);
 
     return {
       uid,
@@ -402,8 +401,8 @@ export class ClubsService {
       country: country?.name ?? null,
       countryId: country?.id ?? null,
       countryUid: country?.uid ?? null,
-      federation: confederation?.name ?? country?.federation ?? null,
-      federationId: confederation?.id ?? country?.federationId ?? null
+      federation: country?.federation ?? null,
+      federationId: country?.federationId ?? null
     };
   }
 
@@ -425,26 +424,6 @@ export class ClubsService {
 
     return country;
   }
-
-  private async findConfederation(id?: string) {
-    const cleanId = this.optionalText(id);
-
-    if (!cleanId) {
-      return null;
-    }
-
-    const confederation = await this.prisma.confederation.findUnique({
-      where: { id: cleanId },
-      select: { id: true, name: true }
-    });
-
-    if (!confederation) {
-      throw new BadRequestException('足联不存在。');
-    }
-
-    return confederation;
-  }
-
   private async assertUniqueUid(uid: string, id?: string) {
     if (uid === '-') {
       return;

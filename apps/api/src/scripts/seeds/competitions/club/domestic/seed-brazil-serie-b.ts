@@ -6,7 +6,7 @@ import {
 } from '@prisma/client';
 import { runCompetitionSeed, runSeed } from '../../../../helpers/competition-seed.js';
 import { CONFEDERATION_SEEDS, pickSeedCountries } from '../../../../helpers/seed-data.js';
-import { BRAZIL_SERIE_A_RESULTS } from '../../../../data/competition-results/club/domestic/brazil-serie-a.js';
+import { BRAZIL_SERIE_B_RESULTS } from '../../../../data/competition-results/club/domestic/brazil-serie-b.js';
 
 const prisma = new PrismaClient();
 
@@ -16,47 +16,46 @@ async function main() {
     confederations: CONFEDERATION_SEEDS,
     countries: pickSeedCountries(['巴西']),
     competition: {
-      code: 'BRAZIL_SERIE_A',
+      code: 'BRAZIL_SERIE_B',
       primaryCountryName: '巴西',
       create: {
-        code: 'BRAZIL_SERIE_A',
-        name: '巴西甲级联赛',
-        alias: '巴甲',
-        externalUrl: 'https://en.wikipedia.org/wiki/Campeonato_Brasileiro_S%C3%A9rie_A',
+        code: 'BRAZIL_SERIE_B',
+        name: '巴西乙级联赛',
+        alias: '巴乙',
+        externalUrl: 'https://en.wikipedia.org/wiki/Campeonato_Brasileiro_S%C3%A9rie_B',
         targetType: CompetitionTargetType.CLUB,
         scopeType: CompetitionScopeType.COUNTRY,
         category: '国内',
-        level: '一级',
+        level: '二级',
         format: '联赛',
-        description:
-          '按 CBF 官方承认的全国冠军统一口径整合的巴西顶级联赛，涵盖 1937、Taça Brasil、Roberto Gomes Pedrosa / Taça de Prata 及 1971 年后的 Campeonato Brasileiro。',
+        description: '巴西全国第二级别职业联赛，按官方认可赛季统一纳入巴乙赛事体系。',
         lifecycleStatus: LifecycleStatus.CURRENT,
         enabled: true,
         includeInStats: true,
-        sortOrder: 16510
+        sortOrder: 16520
       },
       update: {
         targetType: CompetitionTargetType.CLUB,
         scopeType: CompetitionScopeType.COUNTRY,
         category: '国内',
-        level: '一级',
+        level: '二级',
         format: '联赛',
         lifecycleStatus: LifecycleStatus.CURRENT,
         enabled: true,
         includeInStats: true,
-        sortOrder: 16510
+        sortOrder: 16520
       }
     },
     scope: {
       countryNames: ['巴西']
     },
-    editions: BRAZIL_SERIE_A_RESULTS,
+    editions: BRAZIL_SERIE_B_RESULTS,
     buildStandings: () => [],
     expected: {
       editions: 0,
       standings: 0
     },
-    completedMessage: 'Brazil Serie A seed completed.'
+    completedMessage: 'Brazil Serie B seed completed.'
   });
 }
 

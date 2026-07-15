@@ -167,6 +167,14 @@ function formatMarketValue(value?: number | null) {
     maximumFractionDigits: 2
   }).format(value);
 }
+
+function openExternalLink(row: PlayerListItem) {
+  if (!row.externalUrl) {
+    return;
+  }
+
+  window.open(row.externalUrl, '_blank');
+}
 </script>
 
 <template>
@@ -379,6 +387,21 @@ function formatMarketValue(value?: number | null) {
             <SemanticTag :variant="getPlayerStatusVariant(row)" size="small">
               {{ getPlayerStatusLabel(row) }}
             </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="外链" width="86" align="center" header-align="center">
+          <template #default="{ row }">
+            <a
+              v-if="row.externalUrl"
+              class="external-text-link"
+              :href="row.externalUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click.prevent.stop="openExternalLink(row)"
+            >
+              打开
+            </a>
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="150" fixed="right">

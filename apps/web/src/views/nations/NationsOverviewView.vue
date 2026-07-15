@@ -148,6 +148,14 @@ function formatConfederation(ref?: NamedRef | null) {
   return ref?.name ?? '';
 }
 
+function openExternalLink(row: CountryListItem) {
+  if (!row.externalUrl) {
+    return;
+  }
+
+  window.open(row.externalUrl, '_blank');
+}
+
 watch(
   () => [filters.page, filters.pageSize],
   () => {
@@ -272,6 +280,21 @@ onMounted(() => {
           <el-table-column prop="championCount" label="冠军数" min-width="120" sortable="custom" />
           <el-table-column prop="honorScore" label="荣誉分" min-width="120" sortable="custom">
             <template #default="{ row }">{{ formatNumber(row.honorScore, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="外链" width="86" align="center" header-align="center">
+            <template #default="{ row }">
+              <a
+                v-if="row.externalUrl"
+                class="external-text-link"
+                :href="row.externalUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                @click.prevent.stop="openExternalLink(row)"
+              >
+                打开
+              </a>
+              <span v-else>-</span>
+            </template>
           </el-table-column>
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
