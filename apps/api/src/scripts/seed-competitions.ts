@@ -408,7 +408,7 @@ function summarizePatchArrays(arrays: unknown[][]) {
   let standings = 0;
   let remarks = 0;
   let specialModes = 0;
-  let missingQuantity = 0;
+  const missingQuantity = 0;
   let orderIssues = 0;
 
   for (const array of arrays) {
@@ -433,7 +433,6 @@ function summarizePatchArrays(arrays: unknown[][]) {
       remarks += patch.remark ? 1 : 0;
       specialModes +=
         patch.standingMode === CompetitionEditionStandingMode.THIRD_PLACE_MATCH ? 0 : 1;
-      missingQuantity += patch.quantity == null ? 1 : 0;
       orderIssues += countOrderIssue(previousYear, patch.year ?? null);
       previousYear = patch.year ?? previousYear;
       modes[patch.standingMode] = (modes[patch.standingMode] ?? 0) + 1;

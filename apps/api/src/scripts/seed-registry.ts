@@ -160,6 +160,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'brazil-serie-a',
+    label: '巴西甲级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-serie-a.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/brazil-serie-a.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',
