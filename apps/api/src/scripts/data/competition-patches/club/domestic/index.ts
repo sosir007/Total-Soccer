@@ -2,6 +2,8 @@ import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
 import type { SeedClub, SeedCompetitionPatch } from '../../../../helpers/competition-seed.js';
 import { BRAZIL_SERIE_A_PATCHES, BRAZIL_SERIE_A_PATCH_METADATA } from './brazil-serie-a.js';
 import { BRAZIL_SERIE_B_PATCHES, BRAZIL_SERIE_B_PATCH_METADATA } from './brazil-serie-b.js';
+import { BRAZIL_CUP_PATCHES, BRAZIL_CUP_PATCH_METADATA } from './brazil-cup.js';
+import { BRAZIL_SUPER_CUP_PATCHES, BRAZIL_SUPER_CUP_PATCH_METADATA } from './brazil-super-cup.js';
 
 export const CLUB_DOMESTIC_PATCH_METADATA: CompetitionDataMetadata = {
   competitionCode: 'CLUB_DOMESTIC_PATCH_INDEX',
@@ -19,7 +21,7 @@ export const CLUB_DOMESTIC_PATCH_METADATA: CompetitionDataMetadata = {
   notes: [
     '俱乐部资料可在此作为通用补录数据维护；赛事 standings 仍按对应赛事文件归档。',
     'seed 只为新俱乐部写入初始资料，不覆盖页面后续编辑的名称、别名或展示状态。',
-    `当前已挂接补录赛事：${BRAZIL_SERIE_A_PATCH_METADATA.name}、${BRAZIL_SERIE_B_PATCH_METADATA.name}。`
+    `当前已挂接补录赛事：${BRAZIL_SERIE_A_PATCH_METADATA.name}、${BRAZIL_SERIE_B_PATCH_METADATA.name}、${BRAZIL_CUP_PATCH_METADATA.name}、${BRAZIL_SUPER_CUP_PATCH_METADATA.name}。`
   ]
 };
 
@@ -50,5 +52,7 @@ export const CLUB_DOMESTIC_PATCH_CLUBS: SeedClub[] = [
 
 export const CLUB_DOMESTIC_PATCHES: SeedCompetitionPatch[] = [
   ...BRAZIL_SERIE_A_PATCHES,
-  ...BRAZIL_SERIE_B_PATCHES
+  ...BRAZIL_SERIE_B_PATCHES,
+  ...BRAZIL_CUP_PATCHES,
+  ...BRAZIL_SUPER_CUP_PATCHES
 ];

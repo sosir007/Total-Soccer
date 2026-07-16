@@ -178,6 +178,24 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'brazil-cup',
+    label: '巴西杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/brazil-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'brazil-super-cup',
+    label: '巴西超级杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-super-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/brazil-super-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',

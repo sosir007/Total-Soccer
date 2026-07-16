@@ -60,6 +60,9 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   let continentalLevelTwoColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelOneLeagueColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelTwoLeagueColumn: HonorSummaryDisplayCompetition | null = null;
+  let domesticLevelOneCupColumn: HonorSummaryDisplayCompetition | null = null;
+  let domesticLevelTwoCupColumn: HonorSummaryDisplayCompetition | null = null;
+  let domesticLevelThreeCupColumn: HonorSummaryDisplayCompetition | null = null;
 
   for (const competition of props.competitions) {
     if (shouldMergeAsInternationalLevelThree(competition)) {
@@ -167,6 +170,72 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
       domesticLevelTwoLeagueColumn.counts ??= createEmptyCounts();
       addCounts(
         domesticLevelTwoLeagueColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsDomesticLevelOneCup(competition)) {
+      if (!domesticLevelOneCupColumn) {
+        domesticLevelOneCupColumn = {
+          ...competition,
+          id: getDomesticLevelOneCupColumnId(),
+          code: getDomesticLevelOneCupColumnCode(),
+          name: getDomesticLevelOneCupColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(domesticLevelOneCupColumn);
+      }
+
+      domesticLevelOneCupColumn.sourceCompetitionIds.push(competition.id);
+      domesticLevelOneCupColumn.counts ??= createEmptyCounts();
+      addCounts(
+        domesticLevelOneCupColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsDomesticLevelTwoCup(competition)) {
+      if (!domesticLevelTwoCupColumn) {
+        domesticLevelTwoCupColumn = {
+          ...competition,
+          id: getDomesticLevelTwoCupColumnId(),
+          code: getDomesticLevelTwoCupColumnCode(),
+          name: getDomesticLevelTwoCupColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(domesticLevelTwoCupColumn);
+      }
+
+      domesticLevelTwoCupColumn.sourceCompetitionIds.push(competition.id);
+      domesticLevelTwoCupColumn.counts ??= createEmptyCounts();
+      addCounts(
+        domesticLevelTwoCupColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsDomesticLevelThreeCup(competition)) {
+      if (!domesticLevelThreeCupColumn) {
+        domesticLevelThreeCupColumn = {
+          ...competition,
+          id: getDomesticLevelThreeCupColumnId(),
+          code: getDomesticLevelThreeCupColumnCode(),
+          name: getDomesticLevelThreeCupColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(domesticLevelThreeCupColumn);
+      }
+
+      domesticLevelThreeCupColumn.sourceCompetitionIds.push(competition.id);
+      domesticLevelThreeCupColumn.counts ??= createEmptyCounts();
+      addCounts(
+        domesticLevelThreeCupColumn.counts,
         competition.counts ?? getCompetitionCountsFromRows(competition.id)
       );
       continue;
@@ -349,6 +418,36 @@ function shouldMergeAsDomesticLevelTwoLeague(competition: HonorSummaryCompetitio
   );
 }
 
+function shouldMergeAsDomesticLevelOneCup(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'club' &&
+    competition.targetType === 'CLUB' &&
+    competition.category === '国内' &&
+    competition.level === '一级' &&
+    competition.format === '杯赛'
+  );
+}
+
+function shouldMergeAsDomesticLevelTwoCup(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'club' &&
+    competition.targetType === 'CLUB' &&
+    competition.category === '国内' &&
+    competition.level === '二级' &&
+    competition.format === '杯赛'
+  );
+}
+
+function shouldMergeAsDomesticLevelThreeCup(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'club' &&
+    competition.targetType === 'CLUB' &&
+    competition.category === '国内' &&
+    competition.level === '三级' &&
+    competition.format === '杯赛'
+  );
+}
+
 function getContinentalCupColumnId() {
   return props.entityType === 'country'
     ? '__country_continental_cup__'
@@ -409,6 +508,42 @@ function getDomesticLevelTwoLeagueColumnCode() {
 
 function getDomesticLevelTwoLeagueColumnName() {
   return '国内二级联赛';
+}
+
+function getDomesticLevelOneCupColumnId() {
+  return '__club_domestic_level_one_cup__';
+}
+
+function getDomesticLevelOneCupColumnCode() {
+  return 'CLUB_DOMESTIC_LEVEL_ONE_CUP';
+}
+
+function getDomesticLevelOneCupColumnName() {
+  return '国内一级杯赛';
+}
+
+function getDomesticLevelTwoCupColumnId() {
+  return '__club_domestic_level_two_cup__';
+}
+
+function getDomesticLevelTwoCupColumnCode() {
+  return 'CLUB_DOMESTIC_LEVEL_TWO_CUP';
+}
+
+function getDomesticLevelTwoCupColumnName() {
+  return '国内二级杯赛';
+}
+
+function getDomesticLevelThreeCupColumnId() {
+  return '__club_domestic_level_three_cup__';
+}
+
+function getDomesticLevelThreeCupColumnCode() {
+  return 'CLUB_DOMESTIC_LEVEL_THREE_CUP';
+}
+
+function getDomesticLevelThreeCupColumnName() {
+  return '国内三级杯赛';
 }
 
 const placementValues = placements.map(
