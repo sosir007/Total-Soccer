@@ -160,6 +160,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'copa-conmebol',
+    label: '南美足联杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-copa-conmebol.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/copa-conmebol.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'brazil-serie-a',
     label: '巴西甲级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-serie-a.ts',
