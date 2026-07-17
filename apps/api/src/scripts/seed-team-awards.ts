@@ -11,6 +11,9 @@ const validateData = args.has('--validate-data');
 const requestedCode = cliArgs.find((arg) => !arg.startsWith('--'));
 
 const IFFHS_AWARD_CODE = 'IFFHS_WORLD_BEST_CLUB';
+const LAUREUS_COUNTRY_AWARD_CODE = 'LAUREUS_WORLD_TEAM_OF_THE_YEAR_COUNTRY';
+const LAUREUS_CLUB_AWARD_CODE = 'LAUREUS_WORLD_TEAM_OF_THE_YEAR_CLUB';
+const LAUREUS_EXTERNAL_URL = 'https://www.laureus.com/world-sports-awards/past-winners';
 
 const CLUB_UIDS = {
   Roma: '1100',
@@ -49,6 +52,16 @@ const CLUB_UIDS = {
   Flamengo: '322',
   'Bayer Leverkusen': '901',
   Atalanta: '1106'
+} satisfies Record<string, string>;
+
+const COUNTRY_UIDS = {
+  France: '769',
+  Germany: '771',
+  Greece: '772',
+  Italy: '776',
+  Spain: '796',
+  Argentina: '1649',
+  Brazil: '1651'
 } satisfies Record<string, string>;
 
 const IFFHS_RESULTS: Array<{
@@ -188,18 +201,69 @@ const TEAM_HONOR_RULES = [
   }
 ] as const;
 
+const LAUREUS_COUNTRY_RESULTS: Array<{
+  year: number;
+  country: keyof typeof COUNTRY_UIDS;
+  name: string;
+}> = [
+  { year: 2002, country: 'France', name: 'France Men’s Football Team' },
+  { year: 2003, country: 'Brazil', name: 'Brazil Men’s Football Team' },
+  { year: 2005, country: 'Greece', name: 'Greece Men’s Football Team' },
+  { year: 2007, country: 'Italy', name: 'Italy Men’s Football Team' },
+  { year: 2011, country: 'Spain', name: 'Spain Men’s Football Team' },
+  { year: 2015, country: 'Germany', name: 'Germany Men’s Football Team' },
+  { year: 2019, country: 'France', name: 'France Men’s Football Team' },
+  { year: 2022, country: 'Italy', name: 'Italy National Football Team' },
+  { year: 2023, country: 'Argentina', name: 'Argentina Men’s Football Team' }
+];
+
+const LAUREUS_CLUB_RESULTS: Array<{
+  year: number;
+  club: keyof typeof CLUB_UIDS;
+  name: string;
+}> = [
+  { year: 2000, club: 'Manchester United', name: 'Manchester United' },
+  { year: 2012, club: 'Barcelona', name: 'FC Barcelona' },
+  { year: 2014, club: 'Bayern Munich', name: 'Bayern Munich' },
+  { year: 2021, club: 'Bayern Munich', name: 'Bayern Munich' },
+  { year: 2025, club: 'Real Madrid', name: 'Real Madrid Men’s Football Team' },
+  { year: 2026, club: 'Paris Saint-Germain', name: 'Paris Saint-Germain' }
+];
+
 async function main() {
-  if (requestedCode && requestedCode !== 'iffhs-world-best-club') {
+  if (requestedCode && !shouldRunSeed(requestedCode)) {
     console.log(`No team-award seed matched: ${requestedCode}`);
     return;
   }
 
   const clubMap = await ensureSeedClubs();
-  await validateClubMappings(clubMap);
+  const countryMap = await findSeedCountries();
 
-  if (validateData || validateOnly) {
+  if (shouldRunIffhsSeed()) {
+    await validateClubMappings(clubMap);
+  }
+
+  if (shouldRunLaureusSeed()) {
+    await validateLaureusMappings(countryMap, clubMap);
+  }
+
+  if ((validateData || validateOnly) && shouldRunIffhsSeed()) {
     console.log(`IFFHS data rows: ${IFFHS_RESULTS.length}`);
     console.log(`IFFHS years: ${new Set(IFFHS_RESULTS.map((item) => item.year)).size}`);
+  }
+
+  if ((validateData || validateOnly) && shouldRunLaureusSeed()) {
+    console.log(
+      `Laureus country data rows: ${LAUREUS_COUNTRY_RESULTS.length}, club data rows: ${LAUREUS_CLUB_RESULTS.length}`
+    );
+    console.log(
+      `Laureus football years: ${
+        new Set([
+          ...LAUREUS_COUNTRY_RESULTS.map((item) => item.year),
+          ...LAUREUS_CLUB_RESULTS.map((item) => item.year)
+        ]).size
+      }`
+    );
   }
 
   if (validateOnly || validateData) {
@@ -207,6 +271,56 @@ async function main() {
   }
 
   await seedTeamHonorRules();
+  if (shouldRunIffhsSeed()) {
+    await seedIffhsWorldBestClub(clubMap);
+  }
+
+  if (shouldRunLaureusSeed()) {
+    await seedLaureusWorldTeamAwards(countryMap, clubMap);
+  }
+}
+
+function shouldRunSeed(code: string) {
+  return [
+    'iffhs-world-best-club',
+    'laureus-world-team',
+    'laureus-world-team-country',
+    'laureus-world-team-club'
+  ].includes(code);
+}
+
+function shouldRunIffhsSeed() {
+  return !requestedCode || requestedCode === 'iffhs-world-best-club';
+}
+
+function shouldRunLaureusSeed() {
+  return (
+    !requestedCode ||
+    requestedCode === 'laureus-world-team' ||
+    requestedCode === 'laureus-world-team-country' ||
+    requestedCode === 'laureus-world-team-club'
+  );
+}
+
+function shouldRunLaureusCountrySeed() {
+  return (
+    !requestedCode ||
+    requestedCode === 'laureus-world-team' ||
+    requestedCode === 'laureus-world-team-country'
+  );
+}
+
+function shouldRunLaureusClubSeed() {
+  return (
+    !requestedCode ||
+    requestedCode === 'laureus-world-team' ||
+    requestedCode === 'laureus-world-team-club'
+  );
+}
+
+async function seedIffhsWorldBestClub(
+  clubMap: Map<string, { id: string; uid: string; name: string }>
+) {
   const award = await prisma.award.upsert({
     where: { code: IFFHS_AWARD_CODE },
     create: {
@@ -270,6 +384,125 @@ async function main() {
   }
 
   console.log(`Seeded ${IFFHS_AWARD_CODE}: ${IFFHS_RESULTS.length} recipients.`);
+}
+
+async function seedLaureusWorldTeamAwards(
+  countryMap: Map<string, { id: string; uid: string; name: string }>,
+  clubMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  if (shouldRunLaureusCountrySeed()) {
+    const award = await upsertLaureusAward({
+      code: LAUREUS_COUNTRY_AWARD_CODE,
+      name: '劳伦斯世界年度最佳团队奖（国家队）',
+      targetType: AwardTargetType.COUNTRY,
+      sortOrder: 10100,
+      description: '劳伦斯世界体育奖年度最佳团队奖，当前只录男子足球国家队获奖对象。'
+    });
+
+    for (const item of LAUREUS_COUNTRY_RESULTS) {
+      const edition = await upsertLaureusEdition(award.id, item.year);
+
+      await prisma.awardRecipient.deleteMany({ where: { editionId: edition.id } });
+      await prisma.awardRecipient.create({
+        data: {
+          editionId: edition.id,
+          targetType: AwardTargetType.COUNTRY,
+          countryId: countryMap.get(COUNTRY_UIDS[item.country])!.id,
+          placement: '获奖',
+          remark: item.name
+        }
+      });
+    }
+
+    console.log(
+      `Seeded ${LAUREUS_COUNTRY_AWARD_CODE}: ${LAUREUS_COUNTRY_RESULTS.length} recipients.`
+    );
+  }
+
+  if (shouldRunLaureusClubSeed()) {
+    const award = await upsertLaureusAward({
+      code: LAUREUS_CLUB_AWARD_CODE,
+      name: '劳伦斯世界年度最佳团队奖（俱乐部）',
+      targetType: AwardTargetType.CLUB,
+      sortOrder: 10110,
+      description: '劳伦斯世界体育奖年度最佳团队奖，当前只录男子足球俱乐部获奖对象。'
+    });
+
+    for (const item of LAUREUS_CLUB_RESULTS) {
+      const edition = await upsertLaureusEdition(award.id, item.year);
+
+      await prisma.awardRecipient.deleteMany({ where: { editionId: edition.id } });
+      await prisma.awardRecipient.create({
+        data: {
+          editionId: edition.id,
+          targetType: AwardTargetType.CLUB,
+          clubId: clubMap.get(CLUB_UIDS[item.club])!.id,
+          placement: '获奖',
+          remark: item.name
+        }
+      });
+    }
+
+    console.log(`Seeded ${LAUREUS_CLUB_AWARD_CODE}: ${LAUREUS_CLUB_RESULTS.length} recipients.`);
+  }
+}
+
+async function upsertLaureusAward(input: {
+  code: string;
+  name: string;
+  targetType: AwardTargetType;
+  sortOrder: number;
+  description: string;
+}) {
+  return prisma.award.upsert({
+    where: { code: input.code },
+    create: {
+      code: input.code,
+      name: input.name,
+      externalUrl: LAUREUS_EXTERNAL_URL,
+      targetType: input.targetType,
+      scopeType: AwardScopeType.WORLD,
+      category: '年度最佳团队',
+      level: '团队附加分',
+      description: input.description,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: input.sortOrder
+    },
+    update: {
+      name: input.name,
+      externalUrl: LAUREUS_EXTERNAL_URL,
+      targetType: input.targetType,
+      scopeType: AwardScopeType.WORLD,
+      category: '年度最佳团队',
+      level: '团队附加分',
+      description: input.description,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: input.sortOrder
+    }
+  });
+}
+
+async function upsertLaureusEdition(awardId: string, year: number) {
+  return prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId,
+        name: `${year}年`
+      }
+    },
+    create: {
+      awardId,
+      name: `${year}年`,
+      year,
+      externalUrl: LAUREUS_EXTERNAL_URL
+    },
+    update: {
+      year,
+      externalUrl: LAUREUS_EXTERNAL_URL
+    }
+  });
 }
 
 async function ensureSeedClubs() {
@@ -337,6 +570,55 @@ async function validateClubMappings(
         .map(([name, uid]) => `${name}(${uid})`)
         .join(', ')}`
     );
+  }
+}
+
+async function findSeedCountries() {
+  const countries = await prisma.country.findMany({
+    where: {
+      uid: {
+        in: [...new Set(Object.values(COUNTRY_UIDS))]
+      }
+    },
+    select: {
+      id: true,
+      uid: true,
+      name: true
+    }
+  });
+
+  return new Map(countries.map((country) => [country.uid, country]));
+}
+
+async function validateLaureusMappings(
+  countryMap: Map<string, { id: string; uid: string; name: string }>,
+  clubMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  if (shouldRunLaureusCountrySeed()) {
+    const missingCountries = Object.entries(COUNTRY_UIDS).filter(([, uid]) => !countryMap.has(uid));
+
+    if (missingCountries.length) {
+      throw new Error(
+        `Laureus seed references missing countries: ${missingCountries
+          .map(([name, uid]) => `${name}(${uid})`)
+          .join(', ')}`
+      );
+    }
+  }
+
+  if (shouldRunLaureusClubSeed()) {
+    const usedClubUids = new Set(LAUREUS_CLUB_RESULTS.map((item) => CLUB_UIDS[item.club]));
+    const missingClubs = Object.entries(CLUB_UIDS).filter(
+      ([, uid]) => usedClubUids.has(uid) && !clubMap.has(uid)
+    );
+
+    if (missingClubs.length) {
+      throw new Error(
+        `Laureus seed references missing clubs: ${missingClubs
+          .map(([name, uid]) => `${name}(${uid})`)
+          .join(', ')}`
+      );
+    }
   }
 }
 
