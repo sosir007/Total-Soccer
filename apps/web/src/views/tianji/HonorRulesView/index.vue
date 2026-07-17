@@ -21,6 +21,7 @@ import type { AwardRuleItem, AwardRulePayload } from '@/services/types/award-rul
 import type { AwardScopeType, AwardTargetType } from '@/services/types/awards';
 import type { CompetitionTargetType } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import AwardRuleDialog from './components/AwardRuleDialog.vue';
 import AwardRuleListPanel from './components/AwardRuleListPanel.vue';
@@ -867,10 +868,10 @@ onMounted(() => {
 
           <el-skeleton v-if="teamRuleLoading && !teamRuleItems.length" :rows="6" animated />
 
-          <div v-else-if="!teamRuleItems.length" class="empty-panel">
-            <h3>暂无团队附加分规则</h3>
-            <p>默认规则会由后端自动补齐；如仍为空，请刷新或检查接口状态。</p>
-          </div>
+          <NoDataView
+            v-else-if="!teamRuleItems.length"
+            text="暂无团队附加分规则，默认规则会由后端自动补齐；如仍为空，请刷新或检查接口状态。"
+          />
 
           <el-table v-else :data="teamRuleItems" border>
             <el-table-column type="index" label="序号" width="60" align="center" fixed="left" />

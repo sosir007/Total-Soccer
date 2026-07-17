@@ -8,6 +8,7 @@ import { fetchSummitCandidates, fetchSummitLineup } from '@/services/modules/sum
 import type { SummitGroup, SummitLineup } from '@/services/types/summit';
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import {
   ClubSelect,
   ConfederationSelect,
@@ -225,9 +226,8 @@ onMounted(() => {
     </div>
 
     <template v-else-if="lineup">
-      <div v-if="!hasStarters" class="panel empty-panel">
-        <h3>暂无匹配阵容</h3>
-        <p>可以调整筛选条件，或先录入更多球员数据。</p>
+      <div v-if="!hasStarters" class="panel">
+        <NoDataView text="暂无匹配阵容，可以调整筛选条件，或先录入更多球员数据。" />
       </div>
 
       <div v-else class="summit-grid">
@@ -281,7 +281,7 @@ onMounted(() => {
                 class="bench-group"
               >
                 <div class="bench-group-title">{{ benchGroup.group }}</div>
-                <div v-if="!benchGroup.players.length" class="mini-empty">暂无候选</div>
+                <NoDataView v-if="!benchGroup.players.length" text="暂无候选" />
                 <button
                   v-for="player in benchGroup.players"
                   :key="player.id"
@@ -320,7 +320,7 @@ onMounted(() => {
 
             <el-skeleton v-if="candidatesLoading && !candidates.length" :rows="6" animated />
 
-            <div v-else-if="!candidates.length" class="mini-empty">暂无候选球员</div>
+            <NoDataView v-else-if="!candidates.length" text="暂无候选球员" />
 
             <template v-else>
               <el-table :data="candidates" border @row-click="openPlayer">

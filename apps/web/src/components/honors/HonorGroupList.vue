@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { HonorGroupedPlacementEntry, HonorGroupedRecord } from '@/services/types/catalog';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
@@ -32,7 +33,7 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
 </script>
 
 <template>
-  <div v-if="!groups?.length" class="mini-empty">暂无赛事荣誉记录</div>
+  <NoDataView v-if="!groups?.length" text="暂无赛事荣誉记录" />
 
   <div v-else class="honor-group-list">
     <div v-for="group in groups" :key="group.competition.id" class="honor-group">

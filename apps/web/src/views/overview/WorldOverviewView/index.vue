@@ -6,6 +6,7 @@ import { fetchWorldOverview } from '@/services/modules/dashboard';
 import type { DashboardRankItem, WorldOverview } from '@/services/types/dashboard';
 import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import { chartPalette } from '@/utils/tag-theme';
 
 const loading = ref(false);
@@ -247,9 +248,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div v-if="!hasData" class="panel empty-panel">
-        <h3>暂无可统计数据</h3>
-        <p>可以先到天机阁导入《紫禁之巅》数据，再回到世界概览查看统计看板。</p>
+      <div v-if="!hasData" class="panel">
+        <NoDataView
+          text="暂无可统计数据，可以先到天机阁导入《紫禁之巅》数据，再回到世界概览查看统计看板。"
+        />
       </div>
 
       <template v-else>
@@ -306,7 +308,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <div v-else class="mini-empty">暂无国家荣誉分数据</div>
+            <NoDataView v-else text="暂无国家荣誉分数据" />
           </div>
 
           <div class="panel">
@@ -323,7 +325,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <div v-else class="mini-empty">暂无豪门荣誉分数据</div>
+            <NoDataView v-else text="暂无豪门荣誉分数据" />
           </div>
         </div>
       </template>

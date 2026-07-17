@@ -9,6 +9,7 @@ import type {
 import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import { getPlacementTextColor } from '@/utils/tag-theme';
 import type { PlacementField } from './types';
 
@@ -237,7 +238,7 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
       </div>
     </div>
 
-    <div v-if="!editions.length" class="mini-empty">暂无年份结果</div>
+    <NoDataView v-if="!editions.length" text="暂无年份结果" />
 
     <el-table v-else :data="editions" border>
       <el-table-column label="序号" width="60" align="center">
@@ -302,7 +303,7 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
         <p>按队伍汇总该赛事已录入年份或赛季的最终名次。</p>
       </div>
 
-      <div v-if="!statisticsRows.length" class="mini-empty">暂无荣誉统计</div>
+      <NoDataView v-if="!statisticsRows.length" text="暂无荣誉统计" />
 
       <el-table v-else :data="statisticsRows" border class="edition-statistics-table">
         <el-table-column label="序号" width="60" align="center" fixed="left">

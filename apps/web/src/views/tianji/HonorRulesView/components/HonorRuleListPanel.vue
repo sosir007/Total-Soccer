@@ -6,6 +6,7 @@ import type {
   HonorRulePlacementScope
 } from '@/services/types/honor-rules';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionCategoryVariant,
@@ -141,10 +142,10 @@ function getScoreStyle(
 
     <el-skeleton v-if="loading && !items.length" :rows="8" animated />
 
-    <div v-else-if="!items.length" class="empty-panel">
-      <h3>暂无系统规则</h3>
-      <p>默认荣誉规则会由后端按稳定编码自动导入。</p>
-    </div>
+    <NoDataView
+      v-else-if="!items.length"
+      text="暂无系统规则，默认荣誉规则会由后端按稳定编码自动导入。"
+    />
 
     <div v-else class="honor-rule-table-wrap">
       <el-table :data="items" border>

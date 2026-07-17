@@ -12,7 +12,6 @@ const props = defineProps<{
     lifecycleStatus: '' | LifecycleStatus;
   };
   loading: boolean;
-  targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }>;
   scopeTypeOptions: Array<{ label: string; value: CompetitionScopeType }>;
   lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
 }>();
@@ -43,16 +42,6 @@ const emit = defineEmits<{
           placeholder="赛事名称 / 编码 / 分类 / 描述"
           @keyup.enter="emit('submit')"
         />
-      </el-form-item>
-      <el-form-item label="对象">
-        <el-select v-model="filters.targetType" clearable placeholder="全部对象">
-          <el-option
-            v-for="targetType in targetTypeOptions"
-            :key="targetType.value"
-            :label="targetType.label"
-            :value="targetType.value"
-          />
-        </el-select>
       </el-form-item>
       <el-form-item label="范围">
         <el-select v-model="filters.scopeType" clearable placeholder="全部范围">

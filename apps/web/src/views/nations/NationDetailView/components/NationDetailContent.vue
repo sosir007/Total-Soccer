@@ -2,6 +2,7 @@
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import OverflowTooltip from '@/components/OverflowTooltip.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
@@ -253,7 +254,7 @@ function formatBonusPlacement(detail: NonNullable<CountryDetail['bonusHonorDetai
       <span class="status-pill">{{ country.bonusHonorDetails?.length ?? 0 }} 项奖项</span>
     </div>
 
-    <div v-if="!country.bonusHonorDetails?.length" class="mini-empty">暂无团队附加分</div>
+    <NoDataView v-if="!country.bonusHonorDetails?.length" text="暂无团队附加分" />
 
     <el-table v-else :data="country.bonusHonorDetails" border size="small">
       <el-table-column label="年份" width="90" align="center">
@@ -282,7 +283,7 @@ function formatBonusPlacement(detail: NonNullable<CountryDetail['bonusHonorDetai
       <span class="status-pill">{{ country.careerTimeline?.length ?? 0 }} 个年代</span>
     </div>
 
-    <div v-if="!country.careerTimeline?.length" class="mini-empty">暂无结构化国家队经历</div>
+    <NoDataView v-if="!country.careerTimeline?.length" text="暂无结构化国家队经历" />
 
     <div v-else class="career-timeline">
       <div v-for="group in country.careerTimeline" :key="group.decade" class="timeline-block">
@@ -313,7 +314,7 @@ function formatBonusPlacement(detail: NonNullable<CountryDetail['bonusHonorDetai
       <span class="status-pill">{{ countLineupItems(country.lineupByPosition) }} 人</span>
     </div>
 
-    <div v-if="!hasLineupItems(country.lineupByPosition)" class="mini-empty">暂无代表国家球员</div>
+    <NoDataView v-if="!hasLineupItems(country.lineupByPosition)" text="暂无代表国家球员" />
 
     <div v-else class="lineup-board">
       <div v-for="group in country.lineupByPosition" :key="group.position" class="lineup-row">

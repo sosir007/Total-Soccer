@@ -2,20 +2,27 @@
 import type { AwardListItem, AwardTargetType } from '@/services/types/awards';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { getLifecycleStatusLabel, getLifecycleStatusVariant } from '@/utils/tag-theme';
 
-defineProps<{
-  awards: AwardListItem[];
-  total: number;
-  loading: boolean;
-  hasRows: boolean;
-  deletingId: string;
-  page: number;
-  pageSize: number;
-  formatScope: (award: AwardListItem) => string;
-  targetTypeLabels: Record<AwardTargetType, string>;
-}>();
+withDefaults(
+  defineProps<{
+    awards: AwardListItem[];
+    total: number;
+    loading: boolean;
+    hasRows: boolean;
+    deletingId: string;
+    page: number;
+    pageSize: number;
+    formatScope: (award: AwardListItem) => string;
+    targetTypeLabels: Record<AwardTargetType, string>;
+    embedded?: boolean;
+  }>(),
+  {
+    embedded: false
+  }
+);
 
 const emit = defineEmits<{
   create: [];
@@ -47,7 +54,7 @@ function openExternalLink(row: AwardListItem) {
 </script>
 
 <template>
-  <div class="panel">
+  <div :class="embedded ? 'list-panel-content' : 'panel'">
     <div class="panel-header">
       <h3>奖项列表</h3>
       <div class="panel-actions">
@@ -61,10 +68,10 @@ function openExternalLink(row: AwardListItem) {
 
     <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-    <div v-else-if="!hasRows" class="empty-panel">
-      <h3>暂无奖项数据</h3>
-      <p>可以先创建金球奖、世界足球先生、洲际年度最佳球员等个人奖项。</p>
-    </div>
+    <NoDataView
+      v-else-if="!hasRows"
+      text="暂无奖项数据，可以先创建金球奖、世界足球先生、洲际年度最佳球员等个人奖项。"
+    />
 
     <template v-else>
       <el-table :data="awards" border>

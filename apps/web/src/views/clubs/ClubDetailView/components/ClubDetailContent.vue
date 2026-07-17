@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import OverflowTooltip from '@/components/OverflowTooltip.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
@@ -378,7 +379,7 @@ function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
           国内荣誉与奖项
         </div>
 
-        <div v-if="!hasLeftHonorContent" class="mini-empty">暂无国内荣誉与团队附加分</div>
+        <NoDataView v-if="!hasLeftHonorContent" text="暂无国内荣誉与团队附加分" />
         <template v-else>
           <HonorGroupList :groups="leftHonorGroups" />
 
@@ -424,7 +425,7 @@ function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
       <span class="status-pill">{{ club.careerTimeline?.length ?? 0 }} 个年代</span>
     </div>
 
-    <div v-if="!club.careerTimeline?.length" class="mini-empty">暂无结构化俱乐部经历</div>
+    <NoDataView v-if="!club.careerTimeline?.length" text="暂无结构化俱乐部经历" />
 
     <div v-else class="career-timeline">
       <div v-for="group in club.careerTimeline" :key="group.decade" class="timeline-block">
@@ -456,7 +457,7 @@ function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
         <span class="status-pill">{{ countLineupItems(club.lineupByPosition) }} 人</span>
       </div>
 
-      <div v-if="!hasLineupItems(club.lineupByPosition)" class="mini-empty">暂无可展示球员</div>
+      <NoDataView v-if="!hasLineupItems(club.lineupByPosition)" text="暂无可展示球员" />
 
       <div v-else class="lineup-board">
         <div v-for="group in club.lineupByPosition" :key="group.position" class="lineup-row">
@@ -491,9 +492,10 @@ function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
         </span>
       </div>
 
-      <div v-if="!hasLineupItems(club.representativeLineupByPosition)" class="mini-empty">
-        暂无俱乐部名宿
-      </div>
+      <NoDataView
+        v-if="!hasLineupItems(club.representativeLineupByPosition)"
+        text="暂无俱乐部名宿"
+      />
 
       <div v-else class="lineup-board">
         <div
@@ -534,11 +536,17 @@ function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
 
 .club-honor-layout--split {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
   align-items: start;
 }
 
 .club-honor-section {
   min-width: 0;
+}
+
+.club-honor-layout--split .club-honor-section + .club-honor-section {
+  padding-left: 28px;
+  border-left: 1px solid var(--color-border-default);
 }
 
 .club-honor-section-title {
@@ -574,6 +582,11 @@ function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
 @media (max-width: 1180px) {
   .club-honor-layout--split {
     grid-template-columns: 1fr;
+  }
+
+  .club-honor-layout--split .club-honor-section + .club-honor-section {
+    padding-left: 0;
+    border-left: 0;
   }
 }
 </style>

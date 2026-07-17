@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import type { AwardEdition, AwardEditionRecipient } from '@/services/types/awards';
 import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 
 type RecipientRankColumn = 1 | 2 | 3;
 
@@ -222,7 +223,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       </el-button>
     </div>
 
-    <div v-if="!editions.length" class="mini-empty">暂无奖项年份</div>
+    <NoDataView v-if="!editions.length" text="暂无奖项年份" />
 
     <el-table v-else-if="rankedLayout" :data="editions" border>
       <el-table-column label="年份" width="100" sortable>
@@ -376,7 +377,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
         <p>按获奖对象汇总该奖项已录入年份的最终名次。</p>
       </div>
 
-      <div v-if="!statisticsRows.length" class="mini-empty">暂无荣誉统计</div>
+      <NoDataView v-if="!statisticsRows.length" text="暂无荣誉统计" />
 
       <el-table v-else :data="statisticsRows" border class="edition-statistics-table">
         <el-table-column label="序号" width="60" align="center" fixed="left">

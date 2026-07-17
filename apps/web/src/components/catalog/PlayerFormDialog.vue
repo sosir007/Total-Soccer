@@ -11,6 +11,7 @@ import type {
   PlayerPayload
 } from '@/services/types/catalog';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
   CitySelect,
@@ -503,9 +504,10 @@ async function submit() {
           </div>
         </div>
 
-        <div v-if="!form.careers.length" class="mini-empty">
-          暂无结构化经历，可先新增俱乐部经历或国家队经历。
-        </div>
+        <NoDataView
+          v-if="!form.careers.length"
+          text="暂无结构化经历，可先新增俱乐部经历或国家队经历。"
+        />
 
         <div v-for="(career, index) in form.careers" :key="index" class="career-card">
           <div class="career-card-title">

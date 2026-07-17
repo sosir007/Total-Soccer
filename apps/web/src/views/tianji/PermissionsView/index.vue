@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus';
 import { fetchAuditLogs } from '@/services/modules/audit-logs';
 import type { AuditAction, AuditLogItem } from '@/services/types/audit-logs';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 
 const loading = ref(false);
@@ -265,10 +266,10 @@ onMounted(() => {
     <div class="panel">
       <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无审计日志</h3>
-        <p>新增、编辑、导入确认或荣誉重算后，这里会出现操作记录。</p>
-      </div>
+      <NoDataView
+        v-else-if="!hasRows"
+        text="暂无审计日志，新增、编辑、导入确认或荣誉重算后，这里会出现操作记录。"
+      />
 
       <template v-else>
         <el-table :data="logs" border>

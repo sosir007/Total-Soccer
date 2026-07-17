@@ -7,6 +7,7 @@ import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 
@@ -175,10 +176,10 @@ onMounted(() => {
 
       <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无巨星荣誉</h3>
-        <p>可以先通过奖项接口创建奖项、届次，并录入获奖球员。</p>
-      </div>
+      <NoDataView
+        v-else-if="!hasRows"
+        text="暂无巨星荣誉，可以先通过奖项接口创建奖项、届次，并录入获奖球员。"
+      />
 
       <template v-else>
         <el-table :data="records" border>

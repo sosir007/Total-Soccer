@@ -7,6 +7,7 @@ import type { NamedRef } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
@@ -235,10 +236,10 @@ onMounted(() => {
 
       <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无国家数据</h3>
-        <p>可以先到天机阁导入数据，或调整当前筛选条件。</p>
-      </div>
+      <NoDataView
+        v-else-if="!hasRows"
+        text="暂无国家数据，可以先到天机阁导入数据，或调整当前筛选条件。"
+      />
 
       <template v-else>
         <el-table

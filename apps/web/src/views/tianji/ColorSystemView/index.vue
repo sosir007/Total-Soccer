@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
   chartColorGroups,
@@ -160,10 +161,7 @@ onMounted(() => {
         <span class="status-pill">{{ colorRows.length }} 条</span>
       </div>
 
-      <div v-if="!colorRows.length" class="empty-panel">
-        <h3>暂无颜色配置</h3>
-        <p>当前分组没有可展示的颜色 token。</p>
-      </div>
+      <NoDataView v-if="!colorRows.length" text="暂无颜色配置，当前分组没有可展示的颜色 token。" />
 
       <el-table v-else :data="colorRows" border class="color-system-table">
         <el-table-column label="序号" width="60" align="center">

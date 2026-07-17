@@ -2,6 +2,7 @@
 import { toRef } from 'vue';
 import type { BaseConfigItem } from '@/services/types/base-config';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 
 interface BaseConfigFilters {
@@ -38,10 +39,10 @@ const filters = toRef(props, 'filters');
 
     <el-skeleton v-if="loading && !items.length" :rows="8" animated />
 
-    <div v-else-if="!items.length" class="empty-panel">
-      <h3>暂无{{ label }}配置</h3>
-      <p>可以新增一条配置，或调整当前筛选条件。</p>
-    </div>
+    <NoDataView
+      v-else-if="!items.length"
+      :text="`暂无${label}配置，可以新增一条配置，或调整当前筛选条件。`"
+    />
 
     <template v-else>
       <el-table class="base-config-table" :data="items" border>

@@ -2,6 +2,7 @@
 import type { CompetitionListItem } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionCategoryVariant,
@@ -11,20 +12,26 @@ import {
   type SemanticTagVariant
 } from '@/utils/tag-theme';
 
-defineProps<{
-  competitions: CompetitionListItem[];
-  total: number;
-  loading: boolean;
-  hasRows: boolean;
-  hasLoaded: boolean;
-  deletingId: string;
-  page: number;
-  pageSize: number;
-  formatTargetType: (competition: CompetitionListItem) => string;
-  formatScope: (competition: CompetitionListItem) => string;
-  formatText: (value?: string | number | null) => string | number;
-  formatFormat: (competition: CompetitionListItem) => string;
-}>();
+withDefaults(
+  defineProps<{
+    competitions: CompetitionListItem[];
+    total: number;
+    loading: boolean;
+    hasRows: boolean;
+    hasLoaded: boolean;
+    deletingId: string;
+    page: number;
+    pageSize: number;
+    formatTargetType: (competition: CompetitionListItem) => string;
+    formatScope: (competition: CompetitionListItem) => string;
+    formatText: (value?: string | number | null) => string | number;
+    formatFormat: (competition: CompetitionListItem) => string;
+    embedded?: boolean;
+  }>(),
+  {
+    embedded: false
+  }
+);
 
 const emit = defineEmits<{
   create: [];
@@ -57,7 +64,7 @@ function openExternalLink(row: CompetitionListItem) {
 </script>
 
 <template>
-  <div class="panel">
+  <div :class="embedded ? 'list-panel-content' : 'panel'">
     <div class="panel-header">
       <h3>赛事列表</h3>
       <div class="panel-actions">
@@ -71,10 +78,10 @@ function openExternalLink(row: CompetitionListItem) {
 
     <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-    <div v-else-if="!hasRows" class="empty-panel">
-      <h3>暂无赛事数据</h3>
-      <p>可以先创建世界杯、欧洲杯、英超、欧冠等赛事。</p>
-    </div>
+    <NoDataView
+      v-else-if="!hasRows"
+      text="暂无赛事数据，可以先创建世界杯、欧洲杯、英超、欧冠等赛事。"
+    />
 
     <template v-else>
       <el-table :data="competitions" border>

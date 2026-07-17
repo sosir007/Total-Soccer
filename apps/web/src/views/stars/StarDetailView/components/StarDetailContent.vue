@@ -4,6 +4,7 @@ import AbilityBadge from '@/components/AbilityBadge.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
@@ -418,7 +419,7 @@ function formatTeamHonor(row: NonNullable<PlayerDetail['teamHonors']>[number]) {
           <span class="status-pill">{{ player.profileClubCareers?.length ?? 0 }} 段</span>
         </div>
 
-        <div v-if="!player.profileClubCareers?.length" class="mini-empty">暂无结构化俱乐部经历</div>
+        <NoDataView v-if="!player.profileClubCareers?.length" text="暂无结构化俱乐部经历" />
 
         <el-table v-else :data="player.profileClubCareers" border>
           <el-table-column label="俱乐部" min-width="150">
@@ -452,7 +453,7 @@ function formatTeamHonor(row: NonNullable<PlayerDetail['teamHonors']>[number]) {
           <span class="status-pill">{{ player.countryCareers?.length ?? 0 }} 段</span>
         </div>
 
-        <div v-if="!player.countryCareers?.length" class="mini-empty">暂无结构化国家队经历</div>
+        <NoDataView v-if="!player.countryCareers?.length" text="暂无结构化国家队经历" />
 
         <el-table v-else :data="player.countryCareers" border>
           <el-table-column label="国家队" min-width="150">
@@ -477,7 +478,7 @@ function formatTeamHonor(row: NonNullable<PlayerDetail['teamHonors']>[number]) {
         <span class="status-pill">{{ player.personalHonors?.length ?? 0 }} 条</span>
       </div>
 
-      <div v-if="!player.personalHonors?.length" class="mini-empty">暂无结构化个人荣誉</div>
+      <NoDataView v-if="!player.personalHonors?.length" text="暂无结构化个人荣誉" />
 
       <el-table v-else :data="player.personalHonors" border>
         <el-table-column label="奖项" min-width="170" fixed>
@@ -522,7 +523,7 @@ function formatTeamHonor(row: NonNullable<PlayerDetail['teamHonors']>[number]) {
         <span class="status-pill">{{ player.teamHonors?.length ?? 0 }} 条</span>
       </div>
 
-      <div v-if="!player.teamHonors?.length" class="mini-empty">暂无确认关联的团队荣誉</div>
+      <NoDataView v-if="!player.teamHonors?.length" text="暂无确认关联的团队荣誉" />
 
       <el-table v-else :data="player.teamHonors" border>
         <el-table-column label="关联荣誉" min-width="300" show-overflow-tooltip>

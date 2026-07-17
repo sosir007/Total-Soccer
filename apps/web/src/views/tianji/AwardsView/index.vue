@@ -104,7 +104,7 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   scopeType: '' as '' | AwardScopeType,
-  targetType: '' as '' | AwardTargetType,
+  targetType: 'PLAYER' as AwardTargetType,
   lifecycleStatus: '' as '' | LifecycleStatus
 });
 const awardForm = reactive(createEmptyAwardForm());
@@ -288,10 +288,11 @@ function submitFilters() {
 }
 
 function resetFilters() {
+  const currentTargetType = filters.targetType;
   filters.page = 1;
   filters.keyword = '';
   filters.scopeType = '';
-  filters.targetType = '';
+  filters.targetType = currentTargetType;
   filters.lifecycleStatus = '';
   void loadAwards();
 }
@@ -299,7 +300,13 @@ function resetFilters() {
 function openCreateAwardDialog() {
   editingAwardId.value = '';
   Object.assign(awardForm, createEmptyAwardForm());
+  awardForm.targetType = filters.targetType;
   createDialogVisible.value = true;
+}
+
+function changeAwardTargetTab() {
+  filters.page = 1;
+  void loadAwards();
 }
 
 async function openEditAwardDialog(row: AwardListItem) {
@@ -755,7 +762,6 @@ onMounted(() => {
         :filters="filters"
         :loading="loading"
         :scope-type-options="scopeTypeOptions"
-        :target-type-options="targetTypeOptions"
         :lifecycle-status-options="lifecycleStatusOptions"
         @submit="submitFilters"
         @reset="resetFilters"
@@ -765,22 +771,38 @@ onMounted(() => {
         <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       </div>
 
-      <AwardListPanel
-        :awards="awards"
-        :total="total"
-        :loading="loading"
-        :has-rows="hasRows"
-        :deleting-id="deletingId"
-        :page="filters.page"
-        :page-size="filters.pageSize"
-        :format-scope="formatScope"
-        :target-type-labels="targetTypeLabels"
-        @create="openCreateAwardDialog"
-        @edit="openEditAwardDialog"
-        @delete="confirmDeleteAward"
-        @update:page="filters.page = $event"
-        @update:page-size="filters.pageSize = $event"
-      />
+      <div class="panel management-list-panel">
+        <el-tabs
+          v-model="filters.targetType"
+          class="object-tabs"
+          @tab-change="changeAwardTargetTab"
+        >
+          <el-tab-pane
+            v-for="targetType in targetTypeOptions"
+            :key="targetType.value"
+            :label="`${targetType.label}奖项`"
+            :name="targetType.value"
+          />
+        </el-tabs>
+
+        <AwardListPanel
+          :awards="awards"
+          :total="total"
+          :loading="loading"
+          :has-rows="hasRows"
+          :deleting-id="deletingId"
+          :page="filters.page"
+          :page-size="filters.pageSize"
+          :format-scope="formatScope"
+          :target-type-labels="targetTypeLabels"
+          embedded
+          @create="openCreateAwardDialog"
+          @edit="openEditAwardDialog"
+          @delete="confirmDeleteAward"
+          @update:page="filters.page = $event"
+          @update:page-size="filters.pageSize = $event"
+        />
+      </div>
 
       <AwardCreateDialog
         v-model:visible="createDialogVisible"
@@ -865,3 +887,20 @@ onMounted(() => {
     />
   </section>
 </template>
+
+<style scoped lang="scss">
+.management-list-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.object-tabs {
+  :deep(.el-tabs__header) {
+    margin: 0;
+  }
+
+  :deep(.el-tabs__nav-wrap::after) {
+    height: 0;
+  }
+}
+</style>

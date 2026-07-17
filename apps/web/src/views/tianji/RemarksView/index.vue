@@ -7,6 +7,7 @@ import { fetchRemarks } from '@/services/modules/remarks';
 import type { RemarkItem, RemarkObjectType } from '@/services/types/remarks';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 
 type RemarkEntityType = 'country' | 'club' | 'player' | 'competition' | 'award';
@@ -224,10 +225,10 @@ onMounted(() => {
 
       <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无备注记录</h3>
-        <p>当前筛选条件下没有备注或描述，可以切换为“全部”查看未填写备注的对象。</p>
-      </div>
+      <NoDataView
+        v-else-if="!hasRows"
+        text="暂无备注记录，当前筛选条件下没有备注或描述，可以切换为“全部”查看未填写备注的对象。"
+      />
 
       <template v-else>
         <el-table :data="remarks" border>

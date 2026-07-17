@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Empty football archive</title>
+  <defs>
+    <linearGradient id="field" x1="38" y1="32" x2="202" y2="143" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FFF7"/>
+      <stop offset="0.58" stop-color="#EAF7EF"/>
+      <stop offset="1" stop-color="#FFF4D9"/>
+    </linearGradient>
+    <linearGradient id="green" x1="69" y1="43" x2="163" y2="126" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2BAF6A"/>
+      <stop offset="1" stop-color="#0F6F43"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="84" y1="63" x2="153" y2="129" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE18A"/>
+      <stop offset="1" stop-color="#C89436"/>
+    </linearGradient>
+    <filter id="shadow" x="43" y="34" width="154" height="117" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#1B432D" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="120" cy="128" rx="82" ry="13" fill="#10251B" opacity="0.06"/>
+  <rect x="31" y="18" width="178" height="124" rx="32" fill="url(#field)"/>
+  <path d="M48 99c31-17 113-17 144 0" stroke="#1F8B55" stroke-width="5" stroke-linecap="round" opacity="0.12"/>
+  <path d="M62 118c25-10 91-10 116 0" stroke="#C89436" stroke-width="4" stroke-linecap="round" opacity="0.16"/>
+  <path d="M120 39v80" stroke="#1F8B55" stroke-width="3" stroke-linecap="round" opacity="0.1"/>
+  <circle cx="120" cy="84" r="22" stroke="#1F8B55" stroke-width="3" opacity="0.1"/>
+
+  <g filter="url(#shadow)">
+    <path d="M70 58h33l9 11h58a10 10 0 0 1 10 10v42a12 12 0 0 1-12 12H72a12 12 0 0 1-12-12V68a10 10 0 0 1 10-10z" fill="#FFFFFF"/>
+    <path d="M67 74h106a9 9 0 0 1 9 9v38a12 12 0 0 1-12 12H70a12 12 0 0 1-12-12V83a9 9 0 0 1 9-9z" fill="url(#green)"/>
+    <path d="M81 88h78" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.28"/>
+    <path d="M82 105h55" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.22"/>
+    <path d="M89 119h62" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.18"/>
+    <path d="M68 72h104" stroke="#DCEBE2" stroke-width="3" stroke-linecap="round"/>
+
+    <circle cx="160" cy="92" r="21" fill="#FAFFF9" stroke="#0A4F34" stroke-width="4"/>
+    <path d="M160 76l8 6-3 10h-10l-3-10 8-6z" fill="#10251B"/>
+    <path d="M152 82l-8 1M168 82l8 1M155 92l-6 8M165 92l6 8M160 76v-7" stroke="#10251B" stroke-width="3" stroke-linecap="round"/>
+
+    <path d="M91 47h44l6 11H85l6-11z" fill="url(#gold)"/>
+    <path d="M98 37h30v12H98z" fill="#F4C64A"/>
+  </g>
+</svg>

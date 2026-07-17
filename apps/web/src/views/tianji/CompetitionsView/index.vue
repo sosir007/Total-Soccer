@@ -91,7 +91,7 @@ const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
-  targetType: '' as '' | CompetitionTargetType,
+  targetType: 'COUNTRY' as CompetitionTargetType,
   scopeType: '' as '' | CompetitionScopeType,
   lifecycleStatus: '' as '' | LifecycleStatus
 });
@@ -200,9 +200,10 @@ function submitFilters() {
 }
 
 function resetFilters() {
+  const currentTargetType = filters.targetType;
   filters.page = 1;
   filters.keyword = '';
-  filters.targetType = '';
+  filters.targetType = currentTargetType;
   filters.scopeType = '';
   filters.lifecycleStatus = '';
   void loadCompetitions();
@@ -211,7 +212,13 @@ function resetFilters() {
 function openCreateCompetitionDialog() {
   editingId.value = '';
   resetCompetitionForm();
+  competitionForm.targetType = filters.targetType;
   createDialogVisible.value = true;
+}
+
+function changeCompetitionTargetTab() {
+  filters.page = 1;
+  void loadCompetitions();
 }
 
 async function openEditCompetitionDialog(row: CompetitionListItem) {
@@ -644,7 +651,6 @@ onActivated(() => {
     <CompetitionFilterPanel
       :filters="filters"
       :loading="loading"
-      :target-type-options="targetTypeOptions"
       :scope-type-options="scopeTypeOptions"
       :lifecycle-status-options="lifecycleStatusOptions"
       @submit="submitFilters"
@@ -655,26 +661,42 @@ onActivated(() => {
       <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
     </div>
 
-    <CompetitionListTable
-      :competitions="competitions"
-      :total="total"
-      :loading="loading"
-      :has-rows="hasRows"
-      :has-loaded="hasLoaded"
-      :deleting-id="deletingId"
-      :page="filters.page"
-      :page-size="filters.pageSize"
-      :format-target-type="formatTargetType"
-      :format-scope="formatScope"
-      :format-text="formatText"
-      :format-format="formatFormat"
-      @create="openCreateCompetitionDialog"
-      @edit="openEditCompetitionDialog"
-      @open="openCompetitionDetail"
-      @delete="confirmDeleteCompetition"
-      @update:page="filters.page = $event"
-      @update:page-size="filters.pageSize = $event"
-    />
+    <div class="panel management-list-panel">
+      <el-tabs
+        v-model="filters.targetType"
+        class="object-tabs"
+        @tab-change="changeCompetitionTargetTab"
+      >
+        <el-tab-pane
+          v-for="targetType in targetTypeOptions"
+          :key="targetType.value"
+          :label="`${targetType.label}赛事`"
+          :name="targetType.value"
+        />
+      </el-tabs>
+
+      <CompetitionListTable
+        :competitions="competitions"
+        :total="total"
+        :loading="loading"
+        :has-rows="hasRows"
+        :has-loaded="hasLoaded"
+        :deleting-id="deletingId"
+        :page="filters.page"
+        :page-size="filters.pageSize"
+        :format-target-type="formatTargetType"
+        :format-scope="formatScope"
+        :format-text="formatText"
+        :format-format="formatFormat"
+        embedded
+        @create="openCreateCompetitionDialog"
+        @edit="openEditCompetitionDialog"
+        @open="openCompetitionDetail"
+        @delete="confirmDeleteCompetition"
+        @update:page="filters.page = $event"
+        @update:page-size="filters.pageSize = $event"
+      />
+    </div>
 
     <CompetitionCreateDialog
       v-model:visible="createDialogVisible"
@@ -694,3 +716,20 @@ onActivated(() => {
     />
   </section>
 </template>
+
+<style scoped lang="scss">
+.management-list-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.object-tabs {
+  :deep(.el-tabs__header) {
+    margin: 0;
+  }
+
+  :deep(.el-tabs__nav-wrap::after) {
+    height: 0;
+  }
+}
+</style>

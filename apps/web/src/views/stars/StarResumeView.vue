@@ -31,6 +31,7 @@ import type { CompetitionStandingPlacement } from '@/services/types/competitions
 import { AwardSelect, ClubSelect, CountrySelect, PositionSelect } from '@/components/selects';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { useOptionStore } from '@/stores/options';
@@ -589,7 +590,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div v-if="!careerForms.length" class="mini-empty">暂无结构化经历。</div>
+        <NoDataView v-if="!careerForms.length" text="暂无结构化经历。" />
 
         <el-table v-else :data="careerForms" border>
           <el-table-column type="index" label="序号" width="60" align="center" />

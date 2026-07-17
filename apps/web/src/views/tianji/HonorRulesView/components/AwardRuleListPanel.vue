@@ -2,6 +2,7 @@
 import type { AwardScopeType } from '@/services/types/awards';
 import type { AwardRuleItem } from '@/services/types/award-rules';
 import IconFont from '@/components/IconFont.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { getBooleanLabel, getBooleanVariant } from '@/utils/tag-theme';
 
@@ -44,10 +45,10 @@ const emit = defineEmits<{
 
     <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-    <div v-else-if="!hasRows" class="empty-panel">
-      <h3>暂无球员奖项规则</h3>
-      <p>系统会自动补齐默认奖项评分规则；如仍为空，请刷新或检查接口状态。</p>
-    </div>
+    <NoDataView
+      v-else-if="!hasRows"
+      text="暂无球员奖项规则，系统会自动补齐默认奖项评分规则；如仍为空，请刷新或检查接口状态。"
+    />
 
     <template v-else>
       <el-table :data="items" border>

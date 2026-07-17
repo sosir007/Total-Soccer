@@ -5,6 +5,7 @@ import IconFont from '@/components/IconFont.vue';
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerListItem } from '@/services/types/catalog';
@@ -186,10 +187,10 @@ function openExternalLink(row: PlayerListItem) {
 
     <el-skeleton v-if="loading && !players.length" :rows="8" animated />
 
-    <div v-else-if="!players.length" class="empty-panel">
-      <h3>暂无巨星数据</h3>
-      <p>可以先到天机阁导入数据，或调整当前筛选条件。</p>
-    </div>
+    <NoDataView
+      v-else-if="!players.length"
+      text="暂无巨星数据，可以先到天机阁导入数据，或调整当前筛选条件。"
+    />
 
     <template v-else>
       <el-table :data="players" border>

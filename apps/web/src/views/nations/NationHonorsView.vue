@@ -5,6 +5,7 @@ import { fetchCountryHonorSummary } from '@/services/modules/catalog';
 import type { HonorSummaryCompetition, HonorSummaryRow } from '@/services/types/catalog';
 import IconFont from '@/components/IconFont.vue';
 import HonorSummaryMatrix from '@/components/honors/HonorSummaryMatrix.vue';
+import NoDataView from '@/components/NoDataView.vue';
 import { CompetitionSelect, CountrySelect } from '@/components/selects';
 
 const loading = ref(false);
@@ -120,10 +121,10 @@ onMounted(() => {
 
       <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
 
-      <div v-else-if="!hasRows" class="empty-panel">
-        <h3>暂无国家荣誉</h3>
-        <p>可以先到天机阁创建国家队赛事，并录入名次结果。</p>
-      </div>
+      <NoDataView
+        v-else-if="!hasRows"
+        text="暂无国家荣誉，可以先到天机阁创建国家队赛事，并录入名次结果。"
+      />
 
       <template v-else>
         <HonorSummaryMatrix
