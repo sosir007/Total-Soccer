@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AwardListItem } from '@/services/types/awards';
+import type { AwardListItem, AwardTargetType } from '@/services/types/awards';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
@@ -14,6 +14,7 @@ defineProps<{
   page: number;
   pageSize: number;
   formatScope: (award: AwardListItem) => string;
+  targetTypeLabels: Record<AwardTargetType, string>;
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +31,10 @@ function getRowSequence(page: number, pageSize: number, index: number) {
 
 function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
+}
+
+function formatTargetType(row: AwardListItem, labels: Record<AwardTargetType, string>) {
+  return labels[row.targetType] ?? '-';
 }
 
 function openExternalLink(row: AwardListItem) {
@@ -73,6 +78,9 @@ function openExternalLink(row: AwardListItem) {
         </el-table-column>
         <el-table-column label="范围" width="100" align="center" header-align="center">
           <template #default="{ row }">{{ formatScope(row) }}</template>
+        </el-table-column>
+        <el-table-column label="获奖对象" width="96" align="center" header-align="center">
+          <template #default="{ row }">{{ formatTargetType(row, targetTypeLabels) }}</template>
         </el-table-column>
         <el-table-column label="规则分类" min-width="170" show-overflow-tooltip>
           <template #default="{ row }">{{ formatText(row.category) }}</template>

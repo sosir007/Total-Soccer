@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AwardScopeType, type AwardRule, type Prisma } from '@prisma/client';
+import { AwardScopeType, AwardTargetType, type AwardRule, type Prisma } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { DEFAULT_AWARD_RULES, type AwardRuleDefaultDefinition } from './default-award-rules.js';
@@ -82,6 +82,7 @@ export class AwardRulesService {
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
       }),
       this.prisma.awardRecipient.findMany({
+        where: { targetType: AwardTargetType.PLAYER },
         include: {
           edition: {
             include: {
@@ -105,6 +106,10 @@ export class AwardRulesService {
     const lineupGroups = new Set<string>();
 
     for (const recipient of recipients) {
+      if (!recipient.playerId) {
+        continue;
+      }
+
       const stats = statsByPlayer.get(recipient.playerId) ?? this.emptyStats();
       const rule = this.findMatchingRule(sortedRules, {
         scopeType: recipient.edition.award.scopeType,

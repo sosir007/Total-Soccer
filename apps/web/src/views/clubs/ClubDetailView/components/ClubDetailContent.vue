@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import OverflowTooltip from '@/components/OverflowTooltip.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
-import type { CareerProfileLine, ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
+import type {
+  CareerProfileLine,
+  ClubDetail,
+  HonorGroupedRecord,
+  LineupPositionGroup,
+  TeamBonusHonorDetail
+} from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
 import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
@@ -18,6 +25,27 @@ const emit = defineEmits<{
   back: [];
   openPlayer: [id?: string | null];
 }>();
+
+type BonusHonorPlacementGroup = {
+  key: string;
+  label: string;
+  rank?: number | null;
+  details: TeamBonusHonorDetail[];
+};
+
+const internationalHonorGroups = computed(() =>
+  (props.club.honorGroups ?? []).filter(isInternationalOrContinentalHonor)
+);
+const hasInternationalHonorGroups = computed(() => internationalHonorGroups.value.length > 0);
+const leftHonorGroups = computed(() =>
+  hasInternationalHonorGroups.value
+    ? (props.club.honorGroups ?? []).filter((group) => !isInternationalOrContinentalHonor(group))
+    : (props.club.honorGroups ?? [])
+);
+const bonusHonorGroups = computed(() => buildBonusHonorGroups(props.club.bonusHonorDetails ?? []));
+const hasLeftHonorContent = computed(
+  () => leftHonorGroups.value.length > 0 || bonusHonorGroups.value.length > 0
+);
 
 function formatNumber(value?: number | null, digits = 0) {
   if (value === null || value === undefined) {
@@ -61,6 +89,98 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 
 function hasLineupItems(groups?: LineupPositionGroup[]) {
   return countLineupItems(groups) > 0;
+}
+
+function formatBonusPlacement(detail: NonNullable<ClubDetail['bonusHonorDetails']>[number]) {
+  return detail.placement || (detail.rank ? `第 ${detail.rank} 名` : '获奖');
+}
+
+function isInternationalOrContinentalHonor(group: HonorGroupedRecord) {
+  const category = group.competition.category;
+  return (
+    category === '国际' ||
+    category === '洲际' ||
+    group.competition.scopeType === 'GLOBAL' ||
+    group.competition.scopeType === 'CONFEDERATION'
+  );
+}
+
+function buildBonusHonorGroups(details: TeamBonusHonorDetail[]) {
+  const groupMap = new Map<string, Map<string, BonusHonorPlacementGroup>>();
+
+  for (const detail of details) {
+    const groupKey = detail.awardId;
+    const placementLabel = formatBonusPlacement(detail);
+    const placementKey = `${detail.rank ?? ''}:${placementLabel}`;
+    const placementMap = groupMap.get(groupKey) ?? new Map<string, BonusHonorPlacementGroup>();
+    const placementGroup = placementMap.get(placementKey) ?? {
+      key: placementKey,
+      label: placementLabel,
+      rank: detail.rank,
+      details: []
+    };
+
+    placementGroup.details.push(detail);
+    placementMap.set(placementKey, placementGroup);
+    groupMap.set(groupKey, placementMap);
+  }
+
+  return [...groupMap.entries()].map(([awardId, placementMap]) => {
+    const placements = [...placementMap.values()]
+      .map((placement) => ({
+        ...placement,
+        details: [...placement.details].sort(compareBonusDetails)
+      }))
+      .sort(compareBonusPlacements);
+    const firstDetail = placements[0]?.details[0];
+
+    return {
+      key: awardId,
+      awardName: firstDetail?.awardName ?? '团队附加分',
+      placements
+    };
+  });
+}
+
+function compareBonusDetails(left: TeamBonusHonorDetail, right: TeamBonusHonorDetail) {
+  return getBonusDetailSortValue(left) - getBonusDetailSortValue(right);
+}
+
+function compareBonusPlacements(left: BonusHonorPlacementGroup, right: BonusHonorPlacementGroup) {
+  const leftRank = left.rank ?? 999;
+  const rightRank = right.rank ?? 999;
+
+  if (leftRank !== rightRank) {
+    return leftRank - rightRank;
+  }
+
+  return left.label.localeCompare(right.label, 'zh-CN');
+}
+
+function getBonusDetailSortValue(detail: TeamBonusHonorDetail) {
+  if (detail.year) {
+    return detail.year;
+  }
+
+  const seasonYear = Number.parseInt(detail.season ?? '', 10);
+  return Number.isFinite(seasonYear) ? seasonYear : 9999;
+}
+
+function formatBonusEntry(detail: TeamBonusHonorDetail) {
+  return detail.season || (detail.year ? String(detail.year) : detail.editionName);
+}
+
+function getBonusPlacementStyle(group: BonusHonorPlacementGroup) {
+  const color =
+    group.rank === 1
+      ? 'var(--color-accent-gold)'
+      : group.rank === 3
+        ? '#9c6a3c'
+        : 'var(--text-color-primary)';
+
+  return {
+    '--honor-placement-color': color
+  };
 }
 </script>
 
@@ -208,6 +328,14 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dd>{{ formatNumber(club.honorScore, 2) }}</dd>
         </div>
         <div>
+          <dt>赛事分</dt>
+          <dd>{{ formatNumber(club.baseHonorScore, 2) }}</dd>
+        </div>
+        <div>
+          <dt>附加分</dt>
+          <dd>{{ formatNumber(club.bonusHonorScore, 2) }}</dd>
+        </div>
+        <div>
           <dt>奖杯数</dt>
           <dd>{{ formatNumber(club.trophyCount) }}</dd>
         </div>
@@ -241,7 +369,53 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
       <span class="status-pill">{{ club.honorGroups?.length ?? 0 }} 项赛事</span>
     </div>
 
-    <HonorGroupList :groups="club.honorGroups" />
+    <div
+      class="club-honor-layout"
+      :class="{ 'club-honor-layout--split': hasInternationalHonorGroups }"
+    >
+      <div class="club-honor-section">
+        <div v-if="hasInternationalHonorGroups" class="club-honor-section-title">
+          国内荣誉与奖项
+        </div>
+
+        <div v-if="!hasLeftHonorContent" class="mini-empty">暂无国内荣誉与团队附加分</div>
+        <template v-else>
+          <HonorGroupList :groups="leftHonorGroups" />
+
+          <div v-if="bonusHonorGroups.length" class="bonus-honor-list">
+            <div v-for="group in bonusHonorGroups" :key="group.key" class="bonus-honor-group">
+              <div class="bonus-honor-title">
+                <span>{{ group.awardName }}</span>
+                <SemanticTag size="small" variant="status-legend">团队附加分</SemanticTag>
+              </div>
+
+              <div class="honor-group-placements">
+                <div
+                  v-for="placement in group.placements"
+                  :key="placement.key"
+                  class="honor-group-placement"
+                  :style="getBonusPlacementStyle(placement)"
+                >
+                  <span>{{ placement.label }}</span>
+                  <strong>({{ placement.details.length }})：</strong>
+                  <span class="honor-entry-list">
+                    <template v-for="(detail, index) in placement.details" :key="detail.id">
+                      <span v-if="index > 0" class="honor-entry-separator">、</span>
+                      <span class="honor-entry-year">{{ formatBonusEntry(detail) }}</span>
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div v-if="hasInternationalHonorGroups" class="club-honor-section">
+        <div class="club-honor-section-title">国际与洲际荣誉</div>
+        <HonorGroupList :groups="internationalHonorGroups" />
+      </div>
+    </div>
   </div>
 
   <div class="panel">
@@ -351,3 +525,55 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.club-honor-layout {
+  display: grid;
+  gap: 22px;
+}
+
+.club-honor-layout--split {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.club-honor-section {
+  min-width: 0;
+}
+
+.club-honor-section-title {
+  margin-bottom: 16px;
+  color: var(--text-color-primary);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.bonus-honor-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.bonus-honor-group {
+  display: grid;
+  gap: 10px;
+  padding: 2px 0 12px;
+  border-bottom: 1px solid rgba(31, 139, 85, 0.1);
+}
+
+.bonus-honor-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--color-accent-gold);
+  font-size: 16px;
+  font-weight: 850;
+}
+
+@media (max-width: 1180px) {
+  .club-honor-layout--split {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

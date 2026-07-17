@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
+  AwardScopeType,
+  AwardTargetType,
   CompetitionStandingPlacement,
   CompetitionTargetType,
   HonorRuleConversionType,
@@ -160,6 +162,22 @@ type HonorSummaryCounts = {
     }>
   >;
 };
+type TeamBonusHonorDetail = {
+  id: string;
+  awardId: string;
+  awardName: string;
+  editionName: string;
+  year: number | null;
+  season: string | null;
+  rank: number | null;
+  placement: string | null;
+  score: number;
+  baseScore: number;
+  coefficient: number;
+  ruleName: string;
+  externalUrl: string | null;
+  remark: string | null;
+};
 
 const CAREER_PLAYER_SELECT = {
   id: true,
@@ -239,6 +257,7 @@ export class ClubsService {
       ...computedClub,
       honorRecords: await this.getClubHonorRecords(club.id, 10),
       honorGroups: await this.getClubHonorGroups(club.id),
+      bonusHonorDetails: (await this.getClubBonusHonorDetailMap([club.id])).get(club.id) ?? [],
       ...(await this.getClubCareerProfile(club.id))
     };
   }
@@ -593,6 +612,78 @@ export class ClubsService {
     return this.buildClubHonorGroups(items);
   }
 
+  private async getClubBonusHonorDetailMap(clubIds?: string[]) {
+    const [rules, recipients] = await Promise.all([
+      this.prisma.teamHonorRule.findMany({
+        where: { targetType: AwardTargetType.CLUB, enabled: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      }),
+      this.prisma.awardRecipient.findMany({
+        where: {
+          targetType: AwardTargetType.CLUB,
+          clubId: clubIds?.length ? { in: clubIds } : { not: null }
+        },
+        include: {
+          edition: {
+            include: {
+              award: {
+                select: {
+                  id: true,
+                  name: true,
+                  scopeType: true,
+                  category: true,
+                  targetType: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }]
+      })
+    ]);
+    const detailMap = new Map<string, TeamBonusHonorDetail[]>();
+
+    for (const recipient of recipients) {
+      if (!recipient.clubId) {
+        continue;
+      }
+
+      const rule = this.findMatchingTeamHonorRule(rules, {
+        targetType: recipient.targetType,
+        scopeType: recipient.edition.award.scopeType,
+        category: recipient.edition.award.category,
+        placement: recipient.placement,
+        rank: recipient.rank
+      });
+
+      if (!rule) {
+        continue;
+      }
+
+      const detail: TeamBonusHonorDetail = {
+        id: recipient.id,
+        awardId: recipient.edition.award.id,
+        awardName: recipient.edition.award.name,
+        editionName: recipient.edition.name,
+        year: recipient.edition.year,
+        season: recipient.edition.season,
+        rank: recipient.rank,
+        placement: recipient.placement,
+        score: this.round(rule.baseScore * rule.coefficient),
+        baseScore: rule.baseScore,
+        coefficient: rule.coefficient,
+        ruleName: rule.name,
+        externalUrl: recipient.externalUrl ?? recipient.edition.externalUrl,
+        remark: recipient.remark
+      };
+      const details = detailMap.get(recipient.clubId) ?? [];
+      details.push(detail);
+      detailMap.set(recipient.clubId, details);
+    }
+
+    return detailMap;
+  }
+
   private async getClubHonorSummaryRecords(query: ClubHonorSummaryQuery) {
     return this.prisma.competitionStanding.findMany({
       where: {
@@ -632,12 +723,16 @@ export class ClubsService {
           this.matchesCompetitionKeyword(record.edition.competition, keyword)
         )
       : records;
+    const bonusDetailMap = query.competitionId
+      ? new Map<string, TeamBonusHonorDetail[]>()
+      : await this.getClubBonusHonorDetailMap(query.clubId ? [query.clubId] : undefined);
     const clubIds = [
-      ...new Set(
-        effectiveRecords
+      ...new Set([
+        ...effectiveRecords
           .map((record) => record.clubId)
-          .filter((clubId): clubId is string => Boolean(clubId))
-      )
+          .filter((clubId): clubId is string => Boolean(clubId)),
+        ...bonusDetailMap.keys()
+      ])
     ];
     const clubs = clubIds.length
       ? await this.attachComputedStats(
@@ -680,18 +775,37 @@ export class ClubsService {
       rowMap.set(record.clubId, row);
     }
 
+    for (const [clubId, details] of bonusDetailMap.entries()) {
+      const club = clubMap.get(clubId);
+
+      if (!club || !details.length) {
+        continue;
+      }
+
+      const row = rowMap.get(clubId) ?? this.createClubHonorSummaryRow(club);
+      const bonusHonorScore = this.round(
+        details.reduce((total, detail) => total + detail.score, 0)
+      );
+      row.bonusHonorScore = bonusHonorScore;
+      row.bonusHonorDetails = details;
+      row.honorScore = this.round((row.honorScore ?? 0) + bonusHonorScore);
+      rowMap.set(clubId, row);
+    }
+
     return [...rowMap.values()]
       .filter((row) => {
         if (!keyword || competitionKeywordMatched) {
           return true;
         }
 
-        return this.matchesText(
-          keyword,
-          row.name,
-          row.uid,
-          row.countryRef?.name,
-          row.federationRef?.name
+        return (
+          this.matchesText(
+            keyword,
+            row.name,
+            row.uid,
+            row.countryRef?.name,
+            row.federationRef?.name
+          ) || this.matchesBonusHonorKeyword(row.bonusHonorDetails, keyword)
         );
       })
       .sort((a, b) => {
@@ -848,6 +962,9 @@ export class ClubsService {
       countryRef: club.countryRef,
       federationRef: club.federationRef,
       honorScore: 0,
+      baseHonorScore: 0,
+      bonusHonorScore: 0,
+      bonusHonorDetails: [] as TeamBonusHonorDetail[],
       totalCount: 0,
       championCount: 0,
       runnerUpCount: 0,
@@ -883,6 +1000,7 @@ export class ClubsService {
       ruleName: scoreDetail.ruleName
     });
     counts.score = this.round(counts.score + scoreDetail.score);
+    row.baseHonorScore = this.round((row.baseHonorScore ?? 0) + scoreDetail.score);
     row.honorScore = this.round((row.honorScore ?? 0) + scoreDetail.score);
     row.competitionStats[competitionId] = counts;
   }
@@ -1210,6 +1328,71 @@ export class ClubsService {
         .toLocaleLowerCase('zh-CN')
         .includes(keyword)
     );
+  }
+
+  private matchesBonusHonorKeyword(details: TeamBonusHonorDetail[] | undefined, keyword: string) {
+    return (details ?? []).some((detail) =>
+      this.matchesText(
+        keyword,
+        detail.awardName,
+        detail.editionName,
+        detail.placement,
+        detail.ruleName,
+        detail.remark
+      )
+    );
+  }
+
+  private findMatchingTeamHonorRule(
+    rules: Array<{
+      targetType: AwardTargetType;
+      scopeType: AwardScopeType | null;
+      category: string | null;
+      placement: string | null;
+      rank: number | null;
+      baseScore: number;
+      coefficient: number;
+      name: string;
+    }>,
+    recipient: {
+      targetType: AwardTargetType;
+      scopeType: AwardScopeType | null;
+      category: string | null;
+      placement: string | null;
+      rank: number | null;
+    }
+  ) {
+    return rules.find((rule) => {
+      if (rule.targetType !== recipient.targetType) {
+        return false;
+      }
+
+      if (rule.scopeType && rule.scopeType !== recipient.scopeType) {
+        return false;
+      }
+
+      if (
+        rule.category &&
+        this.normalizeKeyword(rule.category) !== this.normalizeKeyword(recipient.category)
+      ) {
+        return false;
+      }
+
+      if (rule.rank !== null && rule.rank !== recipient.rank) {
+        return false;
+      }
+
+      if (rule.placement) {
+        const placement = this.normalizeKeyword(recipient.placement);
+        const rulePlacement = this.normalizeKeyword(rule.placement);
+
+        if (!placement || !placement.includes(rulePlacement)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   private matchesCompetitionKeyword(

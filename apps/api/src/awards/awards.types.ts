@@ -1,4 +1,4 @@
-import type { AwardScopeType, LifecycleStatus } from '@prisma/client';
+import type { AwardScopeType, AwardTargetType, LifecycleStatus } from '@prisma/client';
 
 export interface AwardListQuery {
   page?: string;
@@ -7,6 +7,7 @@ export interface AwardListQuery {
   scopeType?: AwardScopeType;
   confederationId?: string;
   countryId?: string;
+  targetType?: AwardTargetType;
   lifecycleStatus?: LifecycleStatus;
   enabled?: string;
 }
@@ -17,7 +18,10 @@ export interface AwardRecipientListQuery {
   keyword?: string;
   awardId?: string;
   scopeType?: AwardScopeType;
+  targetType?: AwardTargetType;
   playerId?: string;
+  countryId?: string;
+  clubId?: string;
   placement?: string;
   year?: string;
 }
@@ -26,6 +30,7 @@ export interface CreateAwardBody {
   code?: string;
   name?: string;
   externalUrl?: string;
+  targetType?: AwardTargetType;
   scopeType?: AwardScopeType;
   category?: string;
   level?: string;
@@ -52,6 +57,8 @@ export type UpdateAwardEditionBody = CreateAwardEditionBody;
 export interface SaveAwardRecipientsBody {
   recipients?: Array<{
     playerId?: string;
+    countryId?: string;
+    clubId?: string;
     rank?: number;
     placement?: string;
     externalUrl?: string;

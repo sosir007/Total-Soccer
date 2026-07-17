@@ -701,9 +701,41 @@ function hasScoreBreakdown(row: HonorSummaryRow) {
 }
 
 function getScoreBreakdown(row: HonorSummaryRow): HonorScoreBreakdownGroup[] {
-  return displayCompetitions.value
-    .flatMap((competition) => getCompetitionScoreBreakdown(row, competition))
-    .filter((item) => item.score > 0);
+  return [
+    ...displayCompetitions.value.flatMap((competition) =>
+      getCompetitionScoreBreakdown(row, competition)
+    ),
+    getBonusScoreBreakdown(row)
+  ].filter((item): item is HonorScoreBreakdownGroup => Boolean(item && item.score > 0));
+}
+
+function getBonusScoreBreakdown(row: HonorSummaryRow): HonorScoreBreakdownGroup | null {
+  const details = row.bonusHonorDetails ?? [];
+
+  if (!details.length) {
+    return null;
+  }
+
+  return {
+    name: '团队附加分',
+    score: details.reduce((total, detail) => total + detail.score, 0),
+    entries: details.map((detail) => ({
+      id: detail.id,
+      label: [detail.awardName, detail.editionName].filter(Boolean).join(' '),
+      year: detail.year,
+      season: detail.season,
+      host: null,
+      competitionId: null,
+      competitionName: detail.awardName,
+      score: detail.score,
+      placementScore: detail.baseScore,
+      qualityCoefficient: detail.coefficient,
+      conversionCoefficient: 1,
+      ruleName: detail.ruleName,
+      placement: 'CHAMPION',
+      placementLabel: detail.placement || (detail.rank ? `第 ${detail.rank} 名` : '获奖')
+    }))
+  };
 }
 
 function getCompetitionScoreBreakdown(
@@ -906,6 +938,12 @@ function openScoreDialog(row: HonorSummaryRow) {
       </template>
     </el-table-column>
 
+    <el-table-column label="附加分" width="80" fixed="right" align="center">
+      <template #default="{ row }">
+        <span class="honor-count-cell">{{ formatNumber(row.bonusHonorScore, 2) }}</span>
+      </template>
+    </el-table-column>
+
     <el-table-column label="荣誉分" width="90" fixed="right" align="center">
       <template #default="{ row }">
         <el-tooltip
@@ -952,7 +990,10 @@ function openScoreDialog(row: HonorSummaryRow) {
   >
     <div v-if="scoreDialogRow" class="honor-score-dialog__body">
       <div class="honor-score-dialog__summary">
-        <span>总计</span>
+        <span>
+          赛事分 {{ formatNumber(scoreDialogRow.baseHonorScore, 2) }} · 附加分
+          {{ formatNumber(scoreDialogRow.bonusHonorScore, 2) }}
+        </span>
         <strong>{{ formatNumber(scoreDialogRow.honorScore, 2) }}</strong>
       </div>
 

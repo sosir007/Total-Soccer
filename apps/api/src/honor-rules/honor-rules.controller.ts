@@ -14,6 +14,12 @@ export class HonorRulesController {
     return this.honorRulesService.findAll(query);
   }
 
+  @Get('team-summaries')
+  @ApiOperation({ summary: '获取团队附加分总规则' })
+  findTeamSummaries() {
+    return this.honorRulesService.findTeamSummaries();
+  }
+
   @Post()
   @ApiOperation({ summary: '创建荣誉规则' })
   create() {

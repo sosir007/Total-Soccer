@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
+  AwardTargetType,
   CompetitionTargetType,
   PlayerCareerType,
   PlayerTeamHonorSourceType,
@@ -223,6 +224,7 @@ const PLAYER_DETAIL_INCLUDE = {
     }
   },
   awardRecipients: {
+    where: { targetType: AwardTargetType.PLAYER },
     include: PLAYER_AWARD_RECIPIENT_INCLUDE,
     orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }, { placement: 'asc' }]
   },
@@ -356,13 +358,15 @@ export class PlayersService {
 
     return this.prisma.awardRecipient.upsert({
       where: {
-        editionId_playerId: {
+        editionId_targetType_playerId: {
           editionId,
+          targetType: AwardTargetType.PLAYER,
           playerId: id
         }
       },
       create: {
         editionId,
+        targetType: AwardTargetType.PLAYER,
         playerId: id,
         ...data
       },
@@ -515,21 +519,36 @@ export class PlayersService {
   private async assertAwardEditionExists(id: string) {
     const edition = await this.prisma.awardEdition.findUnique({
       where: { id },
-      select: { id: true }
+      select: {
+        id: true,
+        award: {
+          select: {
+            targetType: true
+          }
+        }
+      }
     });
 
     if (!edition) {
       throw new BadRequestException('奖项届次不存在。');
+    }
+
+    if (edition.award.targetType !== AwardTargetType.PLAYER) {
+      throw new BadRequestException('球员详情只能绑定球员奖项。');
     }
   }
 
   private async assertAwardRecipientBelongsToPlayer(id: string, playerId: string) {
     const recipient = await this.prisma.awardRecipient.findUnique({
       where: { id },
-      select: { id: true, playerId: true }
+      select: { id: true, targetType: true, playerId: true }
     });
 
-    if (!recipient || recipient.playerId !== playerId) {
+    if (
+      !recipient ||
+      recipient.targetType !== AwardTargetType.PLAYER ||
+      recipient.playerId !== playerId
+    ) {
       throw new NotFoundException('球员奖项记录不存在。');
     }
 

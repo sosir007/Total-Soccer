@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import SemanticTag from '@/components/SemanticTag.vue';
-import type { AwardDetail, AwardListItem, AwardScopeType } from '@/services/types/awards';
+import type {
+  AwardDetail,
+  AwardListItem,
+  AwardScopeType,
+  AwardTargetType
+} from '@/services/types/awards';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
@@ -11,6 +16,7 @@ import {
 defineProps<{
   award: AwardDetail;
   scopeTypeLabels: Record<AwardScopeType, string>;
+  targetTypeLabels: Record<AwardTargetType, string>;
   formatScope: (award: AwardListItem | AwardDetail) => string;
   externalUrl: string;
 }>();
@@ -31,6 +37,7 @@ defineProps<{
         <SemanticTag :variant="getCompetitionLevelVariant(award.level)">
           {{ award.level || '未分级' }}
         </SemanticTag>
+        <SemanticTag variant="status-info">{{ targetTypeLabels[award.targetType] }}</SemanticTag>
         <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
           {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
         </SemanticTag>

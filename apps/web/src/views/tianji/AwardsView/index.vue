@@ -17,7 +17,8 @@ import type {
   AwardDetail,
   AwardEdition,
   AwardListItem,
-  AwardScopeType
+  AwardScopeType,
+  AwardTargetType
 } from '@/services/types/awards';
 import type { LifecycleStatus } from '@/services/types/common';
 import type { AwardRuleItem } from '@/services/types/award-rules';
@@ -35,6 +36,8 @@ import AwardListPanel from './components/AwardListPanel.vue';
 
 interface RecipientFormRow {
   playerId: string;
+  countryId: string;
+  clubId: string;
   rank?: number;
   placement: string;
   externalUrl: string;
@@ -62,6 +65,14 @@ const scopeTypeOptions: Array<{ label: string; value: AwardScopeType }> = [
 const scopeTypeLabels = Object.fromEntries(
   scopeTypeOptions.map((scopeType) => [scopeType.value, scopeType.label])
 ) as Record<AwardScopeType, string>;
+const targetTypeOptions: Array<{ label: string; value: AwardTargetType }> = [
+  { label: '球员', value: 'PLAYER' },
+  { label: '国家队', value: 'COUNTRY' },
+  { label: '俱乐部', value: 'CLUB' }
+];
+const targetTypeLabels = Object.fromEntries(
+  targetTypeOptions.map((targetType) => [targetType.value, targetType.label])
+) as Record<AwardTargetType, string>;
 const awardLevelOptions = ['综合奖项', '阵容奖项', '专项奖项', '补充奖项'];
 const lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }> = [
   { label: '现行', value: 'CURRENT' },
@@ -93,6 +104,7 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   scopeType: '' as '' | AwardScopeType,
+  targetType: '' as '' | AwardTargetType,
   lifecycleStatus: '' as '' | LifecycleStatus
 });
 const awardForm = reactive(createEmptyAwardForm());
@@ -110,7 +122,11 @@ const hasRows = computed(() => awards.value.length > 0);
 const editionDialogTitle = computed(() => (editingEdition.value ? '编辑奖项年份' : '新增奖项年份'));
 const sortedEditions = computed(() => selectedAward.value?.editions ?? []);
 const routeAwardId = computed(() => String(route.params.id ?? ''));
-const isDetailPage = computed(() => Boolean(routeAwardId.value));
+const isAwardDetailRoute = computed(() => route.name === 'tianji-award-detail-id');
+const isAwardsRoute = computed(
+  () => route.name === 'tianji-awards' || route.name === 'tianji-award-detail-id'
+);
+const isDetailPage = computed(() => isAwardDetailRoute.value && Boolean(routeAwardId.value));
 const awardDialogTitle = computed(() => (editingAwardId.value ? '编辑奖项' : '创建奖项'));
 const awardDialogSubmitText = computed(() => (editingAwardId.value ? '保存奖项' : '创建奖项'));
 
@@ -124,6 +140,7 @@ async function loadAwards() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       scopeType: filters.scopeType || undefined,
+      targetType: filters.targetType || undefined,
       lifecycleStatus: filters.lifecycleStatus || undefined
     });
     awards.value = result.items;
@@ -274,6 +291,7 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.scopeType = '';
+  filters.targetType = '';
   filters.lifecycleStatus = '';
   void loadAwards();
 }
@@ -397,7 +415,9 @@ function openEditEditionDialog(edition: AwardEdition) {
   editionForm.externalUrl = edition.externalUrl ?? '';
   editionForm.remark = edition.remark ?? '';
   editionForm.recipients = (edition.recipients ?? []).map((recipient) => ({
-    playerId: recipient.playerId,
+    playerId: recipient.playerId ?? '',
+    countryId: recipient.countryId ?? '',
+    clubId: recipient.clubId ?? '',
     rank: recipient.rank ?? undefined,
     placement: recipient.placement ?? '',
     externalUrl: recipient.externalUrl ?? '',
@@ -423,7 +443,7 @@ async function saveEdition() {
   }
 
   if (hasDuplicateRecipients()) {
-    ElMessage.warning('同一届奖项不能重复选择同一球员。');
+    ElMessage.warning('同一届奖项不能重复选择同一获奖对象。');
     return;
   }
 
@@ -443,9 +463,9 @@ async function saveEdition() {
 
     await saveAwardRecipients(edition.id, {
       recipients: editionForm.recipients
-        .filter((recipient) => recipient.playerId)
+        .filter((recipient) => getRecipientTargetId(recipient))
         .map((recipient) => ({
-          playerId: recipient.playerId,
+          ...buildRecipientTargetPayload(recipient),
           rank: recipient.rank ?? null,
           placement: recipient.placement.trim() || undefined,
           externalUrl: recipient.externalUrl.trim() || undefined,
@@ -488,6 +508,7 @@ function populateAwardForm(
   form.code = award.code;
   form.name = award.name;
   form.externalUrl = award.externalUrl ?? '';
+  form.targetType = award.targetType;
   form.scopeType = award.scopeType;
   form.category = award.category ?? '';
   form.level = award.level ?? '';
@@ -529,6 +550,7 @@ function buildAwardPayload(form: ReturnType<typeof createEmptyAwardForm>) {
     code: form.code.trim(),
     name: form.name.trim(),
     externalUrl: form.externalUrl.trim() || undefined,
+    targetType: form.targetType,
     scopeType: form.scopeType,
     category: form.category.trim() || undefined,
     level: form.level.trim() || undefined,
@@ -546,6 +568,7 @@ function createEmptyAwardForm() {
     code: '',
     name: '',
     externalUrl: '',
+    targetType: 'PLAYER' as AwardTargetType,
     scopeType: 'WORLD' as AwardScopeType,
     category: '',
     level: '',
@@ -571,6 +594,8 @@ function resetEditionForm() {
 function addRecipientRow() {
   editionForm.recipients.push({
     playerId: '',
+    countryId: '',
+    clubId: '',
     rank: undefined,
     placement: '',
     externalUrl: '',
@@ -580,10 +605,34 @@ function addRecipientRow() {
 
 function hasDuplicateRecipients() {
   const ids = editionForm.recipients
-    .map((recipient) => recipient.playerId)
+    .map((recipient) => getRecipientTargetId(recipient))
     .filter(Boolean) as string[];
 
   return new Set(ids).size !== ids.length;
+}
+
+function getRecipientTargetId(recipient: RecipientFormRow) {
+  if (selectedAward.value?.targetType === 'COUNTRY') {
+    return recipient.countryId;
+  }
+
+  if (selectedAward.value?.targetType === 'CLUB') {
+    return recipient.clubId;
+  }
+
+  return recipient.playerId;
+}
+
+function buildRecipientTargetPayload(recipient: RecipientFormRow) {
+  if (selectedAward.value?.targetType === 'COUNTRY') {
+    return { countryId: recipient.countryId };
+  }
+
+  if (selectedAward.value?.targetType === 'CLUB') {
+    return { clubId: recipient.clubId };
+  }
+
+  return { playerId: recipient.playerId };
 }
 
 function formatScope(award: AwardListItem | AwardDetail) {
@@ -608,9 +657,13 @@ function formatEditionRecipients(edition: AwardEdition) {
   return recipients
     .map((recipient) => {
       const placement = recipient.placement || (recipient.rank ? `第 ${recipient.rank} 名` : '');
-      return [placement, recipient.player.chineseName].filter(Boolean).join(' ');
+      return [placement, formatRecipientTargetName(recipient)].filter(Boolean).join(' ');
     })
     .join('、');
+}
+
+function formatRecipientTargetName(recipient: NonNullable<AwardEdition['recipients']>[number]) {
+  return recipient.player?.chineseName ?? recipient.country?.name ?? recipient.club?.name ?? '-';
 }
 
 function formatRecipientPlacement(recipient: NonNullable<AwardEdition['recipients']>[number]) {
@@ -637,6 +690,10 @@ watch(
 );
 
 watch(routeAwardId, (id) => {
+  if (!isAwardsRoute.value) {
+    return;
+  }
+
   if (id) {
     void openAwardById(id);
   } else {
@@ -679,6 +736,10 @@ onMounted(() => {
   void loadPlayerOptions();
   void loadAwardRuleOptions();
 
+  if (!isAwardsRoute.value) {
+    return;
+  }
+
   if (isDetailPage.value) {
     void openAwardById(routeAwardId.value);
   } else {
@@ -694,6 +755,7 @@ onMounted(() => {
         :filters="filters"
         :loading="loading"
         :scope-type-options="scopeTypeOptions"
+        :target-type-options="targetTypeOptions"
         :lifecycle-status-options="lifecycleStatusOptions"
         @submit="submitFilters"
         @reset="resetFilters"
@@ -712,6 +774,7 @@ onMounted(() => {
         :page="filters.page"
         :page-size="filters.pageSize"
         :format-scope="formatScope"
+        :target-type-labels="targetTypeLabels"
         @create="openCreateAwardDialog"
         @edit="openEditAwardDialog"
         @delete="confirmDeleteAward"
@@ -726,6 +789,7 @@ onMounted(() => {
         :form="awardForm"
         :creating="creating"
         :scope-type-options="scopeTypeOptions"
+        :target-type-options="targetTypeOptions"
         :lifecycle-status-options="lifecycleStatusOptions"
         :award-rule-options="awardRuleOptions"
         :award-level-options="awardLevelOptions"
@@ -758,6 +822,7 @@ onMounted(() => {
         <AwardDetailHero
           :award="selectedAward"
           :scope-type-labels="scopeTypeLabels"
+          :target-type-labels="targetTypeLabels"
           :format-scope="formatScope"
           :external-url="awardExternalUrl()"
         />
@@ -767,6 +832,7 @@ onMounted(() => {
           :award="selectedAward"
           :saving="savingDetail"
           :scope-type-options="scopeTypeOptions"
+          :target-type-options="targetTypeOptions"
           :lifecycle-status-options="lifecycleStatusOptions"
           :award-rule-options="awardRuleOptions"
           :award-level-options="awardLevelOptions"
@@ -775,6 +841,7 @@ onMounted(() => {
 
         <AwardEditionsPanel
           :editions="sortedEditions"
+          :ranked-layout="selectedAward.code === 'IFFHS_WORLD_BEST_CLUB'"
           :format-edition-recipients="formatEditionRecipients"
           :format-recipient-placement="formatRecipientPlacement"
           @create="openCreateEditionDialog"
@@ -791,6 +858,8 @@ onMounted(() => {
       :players-loading="playersLoading"
       :player-options="playerOptions"
       :player-option-meta="playerOptionMeta"
+      :target-type="selectedAward?.targetType ?? 'PLAYER'"
+      :target-type-labels="targetTypeLabels"
       @search-players="searchPlayerOptions"
       @save="saveEdition"
     />

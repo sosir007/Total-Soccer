@@ -1,19 +1,23 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  AwardScopeType,
+  AwardTargetType,
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType,
   HonorRuleConversionType,
   HonorRulePlacementScope,
   Prisma,
-  type HonorRule
+  type HonorRule,
+  type TeamHonorRule
 } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type {
   HonorRuleDefaultDefinition,
   HonorRuleListQuery,
-  HonorRulePayload
+  HonorRulePayload,
+  TeamHonorRuleSummaryItem
 } from './honor-rules.types.js';
 
 interface RecalculateTargetStats {
@@ -49,6 +53,25 @@ type CompetitionForScoring = {
   editions: Array<{ year: number | null; quantity: number | null }>;
 };
 
+interface TeamBonusStats {
+  bonusHonorScore: number;
+  bonusDetails: number;
+}
+
+interface TeamHonorRuleDefaultDefinition {
+  code: string;
+  name: string;
+  targetType: AwardTargetType;
+  scopeType?: AwardScopeType | null;
+  category?: string | null;
+  placement?: string | null;
+  rank?: number | null;
+  baseScore: number;
+  coefficient?: number;
+  sortOrder: number;
+  remark?: string | null;
+}
+
 const EMPTY_TARGET_STATS: RecalculateTargetStats = {
   championCount: 0,
   runnerUpCount: 0,
@@ -61,6 +84,99 @@ const EMPTY_TARGET_STATS: RecalculateTargetStats = {
 };
 
 const DEPRECATED_RULE_CODES = ['CLUB_INTERNATIONAL_LEVEL_2_OTHER'];
+
+const DEFAULT_TEAM_HONOR_RULES: TeamHonorRuleDefaultDefinition[] = [
+  {
+    code: 'CLUB_WORLD_ANNUAL_RANKING_1',
+    name: '俱乐部世界年度排名第一',
+    targetType: AwardTargetType.CLUB,
+    scopeType: AwardScopeType.WORLD,
+    category: '年度俱乐部排名',
+    rank: 1,
+    baseScore: 2,
+    coefficient: 1,
+    sortOrder: 10010,
+    remark: 'IFFHS 世界最佳俱乐部年度最终榜第一名。'
+  },
+  {
+    code: 'CLUB_WORLD_ANNUAL_RANKING_2',
+    name: '俱乐部世界年度排名第二',
+    targetType: AwardTargetType.CLUB,
+    scopeType: AwardScopeType.WORLD,
+    category: '年度俱乐部排名',
+    rank: 2,
+    baseScore: 2,
+    coefficient: 0.5,
+    sortOrder: 10020,
+    remark: 'IFFHS 世界最佳俱乐部年度最终榜第二名。'
+  },
+  {
+    code: 'CLUB_WORLD_ANNUAL_RANKING_3',
+    name: '俱乐部世界年度排名第三',
+    targetType: AwardTargetType.CLUB,
+    scopeType: AwardScopeType.WORLD,
+    category: '年度俱乐部排名',
+    rank: 3,
+    baseScore: 2,
+    coefficient: 0.3,
+    sortOrder: 10030,
+    remark: 'IFFHS 世界最佳俱乐部年度最终榜第三名。'
+  },
+  {
+    code: 'CLUB_TEAM_OF_THE_YEAR',
+    name: '俱乐部年度最佳团队',
+    targetType: AwardTargetType.CLUB,
+    scopeType: AwardScopeType.WORLD,
+    category: '年度最佳团队',
+    baseScore: 2,
+    coefficient: 1,
+    sortOrder: 10100,
+    remark: '劳伦斯年度最佳团队、金球奖年度俱乐部等白名单团队奖。'
+  },
+  {
+    code: 'CLUB_FAIR_PLAY',
+    name: '俱乐部公平竞赛奖',
+    targetType: AwardTargetType.CLUB,
+    category: '公平竞赛奖',
+    baseScore: 1,
+    coefficient: 1,
+    sortOrder: 10200,
+    remark: '世俱杯或俱乐部洲际赛事官方公平竞赛奖。'
+  },
+  {
+    code: 'COUNTRY_TEAM_OF_THE_YEAR',
+    name: '国家队年度最佳团队',
+    targetType: AwardTargetType.COUNTRY,
+    scopeType: AwardScopeType.WORLD,
+    category: '年度最佳团队',
+    baseScore: 2,
+    coefficient: 1,
+    sortOrder: 20100,
+    remark: '劳伦斯年度最佳团队等白名单国家队团队奖。'
+  },
+  {
+    code: 'COUNTRY_FAIR_PLAY',
+    name: '国家队公平竞赛奖',
+    targetType: AwardTargetType.COUNTRY,
+    category: '公平竞赛奖',
+    baseScore: 1,
+    coefficient: 1,
+    sortOrder: 20200,
+    remark: '世界杯、洲际杯等官方公平竞赛奖。'
+  },
+  {
+    code: 'COUNTRY_WORLD_ANNUAL_RANKING_1',
+    name: '国家队世界年度排名第一',
+    targetType: AwardTargetType.COUNTRY,
+    scopeType: AwardScopeType.WORLD,
+    category: '年度国家队排名',
+    rank: 1,
+    baseScore: 1,
+    coefficient: 1,
+    sortOrder: 20300,
+    remark: 'IFFHS 世界最佳国家队或年度国家队排名第一。'
+  }
+];
 
 const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
   {
@@ -356,6 +472,16 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
 export class HonorRulesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findTeamSummaries(): Promise<TeamHonorRuleSummaryItem[]> {
+    await this.ensureDefaultTeamHonorRules();
+
+    const rules = await this.prisma.teamHonorRule.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+    });
+
+    return this.buildTeamHonorRuleSummaries(rules);
+  }
+
   async findAll(query: HonorRuleListQuery) {
     await this.ensureDefaultRules();
     const pagination = resolvePagination(query);
@@ -426,48 +552,86 @@ export class HonorRulesService {
 
   async recalculate() {
     await this.ensureDefaultRules();
-    const [rules, standings, countryParticipation, clubParticipation, countries, clubs, links] =
-      await Promise.all([
-        this.prisma.honorRule.findMany({
-          where: { enabled: true, isSystem: true },
-          include: { coefficients: true }
-        }),
-        this.prisma.competitionStanding.findMany({
-          where: {
-            edition: {
-              competition: {
-                includeInStats: true
-              }
+    await this.ensureDefaultTeamHonorRules();
+    const [
+      rules,
+      teamRules,
+      standings,
+      teamAwardRecipients,
+      countryParticipation,
+      clubParticipation,
+      countries,
+      clubs,
+      links
+    ] = await Promise.all([
+      this.prisma.honorRule.findMany({
+        where: { enabled: true, isSystem: true },
+        include: { coefficients: true }
+      }),
+      this.prisma.teamHonorRule.findMany({
+        where: { enabled: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      }),
+      this.prisma.competitionStanding.findMany({
+        where: {
+          edition: {
+            competition: {
+              includeInStats: true
             }
-          },
-          include: {
-            edition: {
-              include: {
-                competition: {
-                  include: {
-                    scopeConfederations: { select: { confederationId: true } },
-                    scopeCountries: { select: { countryId: true } },
-                    editions: { select: { year: true, quantity: true } }
-                  }
+          }
+        },
+        include: {
+          edition: {
+            include: {
+              competition: {
+                include: {
+                  scopeConfederations: { select: { confederationId: true } },
+                  scopeCountries: { select: { countryId: true } },
+                  editions: { select: { year: true, quantity: true } }
                 }
               }
             }
           }
-        }),
-        this.getCountryParticipationStats(),
-        this.getClubParticipationStats(),
-        this.prisma.country.findMany({ select: { id: true } }),
-        this.prisma.club.findMany({ select: { id: true } }),
-        this.prisma.countrySuccessor.findMany({
-          select: {
-            historicalCountryId: true,
-            successorCountryId: true
+        }
+      }),
+      this.prisma.awardRecipient.findMany({
+        where: {
+          targetType: {
+            in: [AwardTargetType.COUNTRY, AwardTargetType.CLUB]
           }
-        })
-      ]);
+        },
+        include: {
+          edition: {
+            include: {
+              award: {
+                select: {
+                  id: true,
+                  scopeType: true,
+                  category: true,
+                  level: true,
+                  targetType: true
+                }
+              }
+            }
+          }
+        }
+      }),
+      this.getCountryParticipationStats(),
+      this.getClubParticipationStats(),
+      this.prisma.country.findMany({ select: { id: true } }),
+      this.prisma.club.findMany({ select: { id: true } }),
+      this.prisma.countrySuccessor.findMany({
+        select: {
+          historicalCountryId: true,
+          successorCountryId: true
+        }
+      })
+    ]);
 
     const countryStats = new Map<string, RecalculateTargetStats>();
     const clubStats = new Map<string, RecalculateTargetStats>();
+    const countryBonusStats = new Map<string, TeamBonusStats>();
+    const clubBonusStats = new Map<string, TeamBonusStats>();
     const successorMap = new Map<string, string[]>();
 
     for (const link of links) {
@@ -505,12 +669,45 @@ export class HonorRulesService {
       }
     }
 
+    for (const recipient of teamAwardRecipients) {
+      const rule = this.findMatchingTeamRule(teamRules, {
+        targetType: recipient.targetType,
+        scopeType: recipient.edition.award.scopeType,
+        category: recipient.edition.award.category,
+        placement: recipient.placement,
+        rank: recipient.rank
+      });
+
+      if (!rule) {
+        continue;
+      }
+
+      const score = rule.baseScore * rule.coefficient;
+
+      if (recipient.targetType === AwardTargetType.COUNTRY && recipient.countryId) {
+        const stats = countryBonusStats.get(recipient.countryId) ?? this.emptyTeamBonusStats();
+        stats.bonusHonorScore += score;
+        stats.bonusDetails += 1;
+        countryBonusStats.set(recipient.countryId, stats);
+      }
+
+      if (recipient.targetType === AwardTargetType.CLUB && recipient.clubId) {
+        const stats = clubBonusStats.get(recipient.clubId) ?? this.emptyTeamBonusStats();
+        stats.bonusHonorScore += score;
+        stats.bonusDetails += 1;
+        clubBonusStats.set(recipient.clubId, stats);
+      }
+    }
+
     await this.prisma.$transaction([
       ...countries.map((country) => {
         const participation = countryParticipation.get(country.id);
         const stats = countryStats.get(country.id) ?? this.emptyStats();
+        const bonusStats = countryBonusStats.get(country.id) ?? this.emptyTeamBonusStats();
         const playerCount = participation?.playerCount ?? 0;
-        const honorScore = this.round(stats.honorScore);
+        const baseHonorScore = this.round(stats.honorScore);
+        const bonusHonorScore = this.round(bonusStats.bonusHonorScore);
+        const honorScore = this.round(baseHonorScore + bonusHonorScore);
 
         return this.prisma.country.update({
           where: { id: country.id },
@@ -521,6 +718,8 @@ export class HonorRulesService {
             medalCount: stats.medalCount,
             championCount: stats.championCount,
             majorChampionCount: stats.championCount,
+            baseHonorScore,
+            bonusHonorScore,
             honorScore,
             averageHonorScore: playerCount > 0 ? this.round(honorScore / playerCount) : null
           }
@@ -529,6 +728,10 @@ export class HonorRulesService {
       ...clubs.map((club) => {
         const participation = clubParticipation.get(club.id);
         const stats = clubStats.get(club.id) ?? this.emptyStats();
+        const bonusStats = clubBonusStats.get(club.id) ?? this.emptyTeamBonusStats();
+        const baseHonorScore = this.round(stats.honorScore);
+        const bonusHonorScore = this.round(bonusStats.bonusHonorScore);
+        const honorScore = this.round(baseHonorScore + bonusHonorScore);
 
         return this.prisma.club.update({
           where: { id: club.id },
@@ -538,7 +741,9 @@ export class HonorRulesService {
             averagePa: this.roundNullable(participation?.averagePa),
             trophyCount: stats.trophyCount,
             championCount: stats.championCount,
-            honorScore: this.round(stats.honorScore)
+            baseHonorScore,
+            bonusHonorScore,
+            honorScore
           }
         });
       })
@@ -627,6 +832,104 @@ export class HonorRulesService {
     } satisfies Prisma.HonorRuleInclude;
   }
 
+  private buildTeamHonorRuleSummaries(rules: TeamHonorRule[]): TeamHonorRuleSummaryItem[] {
+    const clubRankingRules = this.pickTeamRules(rules, [
+      'CLUB_WORLD_ANNUAL_RANKING_1',
+      'CLUB_WORLD_ANNUAL_RANKING_2',
+      'CLUB_WORLD_ANNUAL_RANKING_3'
+    ]);
+    const countryRankingRule = this.pickTeamRules(rules, ['COUNTRY_WORLD_ANNUAL_RANKING_1']);
+    const teamOfYearRules = this.pickTeamRules(rules, [
+      'CLUB_TEAM_OF_THE_YEAR',
+      'COUNTRY_TEAM_OF_THE_YEAR'
+    ]);
+    const fairPlayRules = this.pickTeamRules(rules, ['CLUB_FAIR_PLAY', 'COUNTRY_FAIR_PLAY']);
+
+    return [
+      {
+        id: 'world-annual-ranking-club',
+        name: '权威俱乐部年度排名奖',
+        targetTypes: [AwardTargetType.CLUB],
+        scopeType: AwardScopeType.WORLD,
+        category: '年度俱乐部排名',
+        typicalAwards: 'IFFHS世界最佳俱乐部',
+        scoring: `年度最终榜前三按 ${this.formatRuleScore(
+          clubRankingRules[0]
+        )} / ${this.formatRuleScore(clubRankingRules[1])} / ${this.formatRuleScore(
+          clubRankingRules[2]
+        )}`,
+        enabled: this.areTeamRulesEnabled(clubRankingRules),
+        sortOrder: 10,
+        remark: '只录年度最终榜前三，不录月度榜、Top 10 或历史总榜。'
+      },
+      {
+        id: 'world-annual-ranking-country',
+        name: '权威国家队年度排名奖',
+        targetTypes: [AwardTargetType.COUNTRY],
+        scopeType: AwardScopeType.WORLD,
+        category: '年度国家队排名',
+        typicalAwards: 'IFFHS世界最佳国家队 / 年度国家队排名第一',
+        scoring: `年度第一名 ${this.formatRuleScore(countryRankingRule[0])}`,
+        enabled: this.areTeamRulesEnabled(countryRankingRule),
+        sortOrder: 20,
+        remark: '当前只计年度最终榜第一名，不强补后续名次。'
+      },
+      {
+        id: 'team-of-the-year',
+        name: '权威年度最佳团队',
+        targetTypes: [AwardTargetType.COUNTRY, AwardTargetType.CLUB],
+        scopeType: AwardScopeType.WORLD,
+        category: '年度最佳团队',
+        typicalAwards: '劳伦斯年度最佳团队、金球奖年度俱乐部',
+        scoring: `获奖 ${this.formatRuleScore(teamOfYearRules[0])}`,
+        enabled: this.areTeamRulesEnabled(teamOfYearRules),
+        sortOrder: 30,
+        remark: '只收权威年度团队奖，世纪最佳、十年最佳等非常规荣誉只作备注。'
+      },
+      {
+        id: 'official-fair-play',
+        name: '官方赛事公平竞赛奖',
+        targetTypes: [AwardTargetType.COUNTRY, AwardTargetType.CLUB],
+        category: '公平竞赛奖',
+        typicalAwards: '世界杯公平竞赛奖、洲际杯官方公平竞赛奖、世俱杯公平竞赛奖',
+        scoring: `获奖 ${this.formatRuleScore(fairPlayRules[0])}`,
+        enabled: this.areTeamRulesEnabled(fairPlayRules),
+        sortOrder: 40,
+        remark: '必须能确认是赛事官方团队奖。'
+      },
+      {
+        id: 'media-team-of-the-year',
+        name: '媒体年度团队奖',
+        targetTypes: [AwardTargetType.COUNTRY, AwardTargetType.CLUB],
+        scopeType: AwardScopeType.MEDIA,
+        category: '年度最佳团队',
+        typicalAwards: '世界足球年度最佳球队、环球足球奖年度最佳男子俱乐部',
+        scoring: '获奖 +1.00',
+        enabled: true,
+        sortOrder: 50,
+        remark: '低优先级白名单，后续遇到具体奖项再逐个确认是否纳入。'
+      }
+    ].sort((left, right) => left.sortOrder - right.sortOrder);
+  }
+
+  private pickTeamRules(rules: TeamHonorRule[], codes: string[]) {
+    return codes
+      .map((code) => rules.find((rule) => rule.code === code))
+      .filter((rule): rule is TeamHonorRule => Boolean(rule));
+  }
+
+  private formatRuleScore(rule?: Pick<TeamHonorRule, 'baseScore' | 'coefficient'>) {
+    if (!rule) {
+      return '-';
+    }
+
+    return `+${this.round(rule.baseScore * rule.coefficient).toFixed(2)}`;
+  }
+
+  private areTeamRulesEnabled(rules: TeamHonorRule[]) {
+    return rules.length > 0 && rules.every((rule) => rule.enabled);
+  }
+
   private async ensureDefaultRules() {
     await this.prisma.honorRule.deleteMany({
       where: {
@@ -669,6 +972,16 @@ export class HonorRulesService {
           data: coefficientData
         });
       }
+    }
+  }
+
+  private async ensureDefaultTeamHonorRules() {
+    for (const definition of DEFAULT_TEAM_HONOR_RULES) {
+      await this.prisma.teamHonorRule.upsert({
+        where: { code: definition.code },
+        create: this.defaultTeamHonorRuleData(definition),
+        update: this.defaultTeamHonorRuleData(definition)
+      });
     }
   }
 
@@ -716,6 +1029,23 @@ export class HonorRulesService {
       isSystem: true,
       sortOrder: definition.sortOrder
     } satisfies Prisma.HonorRuleUncheckedUpdateInput;
+  }
+
+  private defaultTeamHonorRuleData(definition: TeamHonorRuleDefaultDefinition) {
+    return {
+      code: definition.code,
+      name: definition.name,
+      targetType: definition.targetType,
+      scopeType: definition.scopeType ?? null,
+      category: definition.category ?? null,
+      placement: definition.placement ?? null,
+      rank: definition.rank ?? null,
+      baseScore: definition.baseScore,
+      coefficient: definition.coefficient ?? 1,
+      enabled: true,
+      sortOrder: definition.sortOrder,
+      remark: definition.remark ?? null
+    } satisfies Prisma.TeamHonorRuleUncheckedCreateInput;
   }
 
   private defaultPlacementScore(
@@ -866,6 +1196,54 @@ export class HonorRulesService {
     );
   }
 
+  private findMatchingTeamRule(
+    rules: Array<{
+      targetType: AwardTargetType;
+      scopeType: AwardScopeType | null;
+      category: string | null;
+      placement: string | null;
+      rank: number | null;
+      baseScore: number;
+      coefficient: number;
+    }>,
+    recipient: {
+      targetType: AwardTargetType;
+      scopeType: AwardScopeType | null;
+      category: string | null;
+      placement: string | null;
+      rank: number | null;
+    }
+  ) {
+    return rules.find((rule) => {
+      if (rule.targetType !== recipient.targetType) {
+        return false;
+      }
+
+      if (rule.scopeType && rule.scopeType !== recipient.scopeType) {
+        return false;
+      }
+
+      if (rule.category && this.normalize(rule.category) !== this.normalize(recipient.category)) {
+        return false;
+      }
+
+      if (rule.rank !== null && rule.rank !== recipient.rank) {
+        return false;
+      }
+
+      if (rule.placement) {
+        const placement = this.normalize(recipient.placement);
+        const rulePlacement = this.normalize(rule.placement);
+
+        if (!placement || !placement.includes(rulePlacement)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
   private placementScore(rule: RuleWithRelations, placement: CompetitionStandingPlacement) {
     if (!this.scopeAllowsPlacement(rule, placement)) {
       return null;
@@ -997,6 +1375,10 @@ export class HonorRulesService {
     return (left?.trim() ?? '') === (right?.trim() ?? '');
   }
 
+  private normalize(value?: string | null) {
+    return value?.trim().toLowerCase() ?? '';
+  }
+
   private async parseTypicalCompetitionIds(value: unknown) {
     if (!Array.isArray(value)) {
       return [];
@@ -1048,6 +1430,13 @@ export class HonorRulesService {
       stats.semiFinalistCount;
     stats.honorScore += score;
     map.set(targetId, stats);
+  }
+
+  private emptyTeamBonusStats(): TeamBonusStats {
+    return {
+      bonusHonorScore: 0,
+      bonusDetails: 0
+    };
   }
 
   private async getCountryParticipationStats() {

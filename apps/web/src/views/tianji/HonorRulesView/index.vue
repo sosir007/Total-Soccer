@@ -2,20 +2,26 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
+  fetchTeamHonorRuleSummaries,
   fetchHonorRules,
   recalculateHonorScores,
   updateHonorRule
 } from '@/services/modules/honor-rules';
-import type { HonorRuleItem, HonorRulePayload } from '@/services/types/honor-rules';
+import type {
+  HonorRuleItem,
+  HonorRulePayload,
+  TeamHonorRuleSummaryItem
+} from '@/services/types/honor-rules';
 import {
   fetchAwardRules,
   recalculateAwardScores,
   updateAwardRule
 } from '@/services/modules/award-rules';
 import type { AwardRuleItem, AwardRulePayload } from '@/services/types/award-rules';
-import type { AwardScopeType } from '@/services/types/awards';
+import type { AwardScopeType, AwardTargetType } from '@/services/types/awards';
 import type { CompetitionTargetType } from '@/services/types/competitions';
 import IconFont from '@/components/IconFont.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
 import AwardRuleDialog from './components/AwardRuleDialog.vue';
 import AwardRuleListPanel from './components/AwardRuleListPanel.vue';
 import HonorRuleDialog from './components/HonorRuleDialog.vue';
@@ -43,6 +49,10 @@ const targetTypeLabels = Object.fromEntries(
 const awardScopeLabels = Object.fromEntries(
   awardScopeOptions.map((item) => [item.value, item.label])
 ) as Record<AwardScopeType, string>;
+const teamTargetTypeLabels: Record<Extract<AwardTargetType, 'COUNTRY' | 'CLUB'>, string> = {
+  COUNTRY: '国家队',
+  CLUB: '俱乐部'
+};
 const defaultAwardCategoryScores: Record<string, string> = {
   国际一级综合奖: '6.00 / 3.00 / 1.80',
   国际二级阵容奖: '6.00',
@@ -82,7 +92,7 @@ const defaultAwardCategoryScores: Record<string, string> = {
   附加分: '1.00'
 };
 
-const activeTab = ref<'competition' | 'player-award'>('competition');
+const activeTab = ref<'competition' | 'player-award' | 'team-bonus'>('competition');
 const loading = ref(false);
 const submitting = ref(false);
 const recalculating = ref(false);
@@ -92,6 +102,9 @@ const errorMessage = ref('');
 const items = ref<HonorRuleItem[]>([]);
 const total = ref(0);
 const lastRecalculateSummary = ref('');
+const teamRuleLoading = ref(false);
+const teamRuleErrorMessage = ref('');
+const teamRuleItems = ref<TeamHonorRuleSummaryItem[]>([]);
 
 const filters = reactive({
   keyword: '',
@@ -500,6 +513,31 @@ function getAwardScopeLabel(value?: AwardScopeType | null) {
   return value ? (awardScopeLabels[value] ?? value) : '全部范围';
 }
 
+function getTeamTargetTypeLabel(values: AwardTargetType[]) {
+  const labels = values
+    .filter((value): value is Extract<AwardTargetType, 'COUNTRY' | 'CLUB'> =>
+      ['COUNTRY', 'CLUB'].includes(value)
+    )
+    .map((value) => teamTargetTypeLabels[value]);
+
+  return labels.length ? labels.join(' / ') : '-';
+}
+
+async function loadTeamRuleSummaries() {
+  teamRuleLoading.value = true;
+  teamRuleErrorMessage.value = '';
+
+  try {
+    teamRuleItems.value = await fetchTeamHonorRuleSummaries();
+  } catch (error) {
+    teamRuleErrorMessage.value =
+      error instanceof Error ? error.message : '团队附加分规则加载失败。';
+    ElMessage.error(teamRuleErrorMessage.value);
+  } finally {
+    teamRuleLoading.value = false;
+  }
+}
+
 async function loadAwardRules() {
   awardLoading.value = true;
   awardErrorMessage.value = '';
@@ -708,6 +746,7 @@ watch(
 
 onMounted(() => {
   void loadRules();
+  void loadTeamRuleSummaries();
   void loadAwardRules();
   void loadAwardRuleSummaries();
 });
@@ -720,7 +759,7 @@ onMounted(() => {
         <div class="panel">
           <div class="panel-header">
             <div>
-              <h2>荣誉规则</h2>
+              <h2>赛事荣誉规则</h2>
               <p>
                 系统规则按对象、分类、级别、赛制和适用范围命中赛事；典型赛事只用于展示辅助理解。
               </p>
@@ -803,6 +842,80 @@ onMounted(() => {
         <p class="rule-count-hint">当前共 {{ total }} 条系统规则，页面不提供新增和删除。</p>
       </el-tab-pane>
 
+      <el-tab-pane label="团队附加分规则" name="team-bonus">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>团队附加分规则</h2>
+              <p>展示国家队和俱乐部在赛事荣誉之外可获得的小额团队奖项附加分，只展示总规则口径。</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="teamRuleErrorMessage" class="panel">
+          <el-alert type="error" :title="teamRuleErrorMessage" show-icon :closable="false" />
+        </div>
+
+        <div class="panel award-rule-summary-panel">
+          <div class="panel-header">
+            <div>
+              <h3>团队附加分总规则</h3>
+              <p>底层匹配规则会按排名、名次和奖项分类拆分；这里按业务口径聚合展示。</p>
+            </div>
+            <span class="status-pill">{{ teamRuleItems.length }} 条</span>
+          </div>
+
+          <el-skeleton v-if="teamRuleLoading && !teamRuleItems.length" :rows="6" animated />
+
+          <div v-else-if="!teamRuleItems.length" class="empty-panel">
+            <h3>暂无团队附加分规则</h3>
+            <p>默认规则会由后端自动补齐；如仍为空，请刷新或检查接口状态。</p>
+          </div>
+
+          <el-table v-else :data="teamRuleItems" border>
+            <el-table-column type="index" label="序号" width="60" align="center" fixed="left" />
+            <el-table-column
+              prop="name"
+              label="规则名称"
+              width="210"
+              fixed="left"
+              show-overflow-tooltip
+            />
+            <el-table-column label="对象" width="150" align="center">
+              <template #default="{ row }">{{ getTeamTargetTypeLabel(row.targetTypes) }}</template>
+            </el-table-column>
+            <el-table-column label="范围" width="90" align="center">
+              <template #default="{ row }">{{ getAwardScopeLabel(row.scopeType) }}</template>
+            </el-table-column>
+            <el-table-column prop="category" label="规则分类" min-width="150" show-overflow-tooltip>
+              <template #default="{ row }">{{ row.category || '-' }}</template>
+            </el-table-column>
+            <el-table-column
+              prop="typicalAwards"
+              label="典型命中奖项"
+              min-width="300"
+              show-overflow-tooltip
+            />
+            <el-table-column
+              prop="scoring"
+              label="计分口径"
+              min-width="210"
+              show-overflow-tooltip
+            />
+            <el-table-column label="状态" width="84" align="center">
+              <template #default="{ row }">
+                <SemanticTag :variant="row.enabled ? 'status-enabled' : 'status-disabled'">
+                  {{ row.enabled ? '启用' : '停用' }}
+                </SemanticTag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="remark" label="备注" min-width="280" show-overflow-tooltip>
+              <template #default="{ row }">{{ row.remark || '-' }}</template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-tab-pane>
+
       <el-tab-pane label="球员奖项规则" name="player-award">
         <div class="panel">
           <div class="panel-header">
@@ -882,7 +995,11 @@ onMounted(() => {
           <el-alert type="error" :title="awardErrorMessage" show-icon :closable="false" />
         </div>
 
-        <div v-for="group in awardRuleSummaryGroups" :key="group.title" class="panel">
+        <div
+          v-for="group in awardRuleSummaryGroups"
+          :key="group.title"
+          class="panel award-rule-summary-panel"
+        >
           <div class="panel-header">
             <div>
               <h3>{{ group.title }}</h3>
@@ -1076,6 +1193,8 @@ onMounted(() => {
 }
 
 .rule-detail-guide {
+  margin-top: 16px;
+
   h3 {
     margin: 0 0 6px;
     color: var(--text-color-primary);
@@ -1086,6 +1205,11 @@ onMounted(() => {
     color: var(--text-color-secondary);
     font-size: 13px;
   }
+}
+
+.award-rule-summary-panel {
+  margin-top: 16px;
+  overflow: hidden;
 }
 
 .award-score-cell {

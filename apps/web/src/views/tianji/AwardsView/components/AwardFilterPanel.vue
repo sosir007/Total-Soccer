@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { AwardScopeType } from '@/services/types/awards';
+import type { AwardScopeType, AwardTargetType } from '@/services/types/awards';
 import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 
@@ -8,10 +8,12 @@ const props = defineProps<{
   filters: {
     keyword: string;
     scopeType: '' | AwardScopeType;
+    targetType: '' | AwardTargetType;
     lifecycleStatus: '' | LifecycleStatus;
   };
   loading: boolean;
   scopeTypeOptions: Array<{ label: string; value: AwardScopeType }>;
+  targetTypeOptions: Array<{ label: string; value: AwardTargetType }>;
   lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
 }>();
 
@@ -49,6 +51,16 @@ const emit = defineEmits<{
             :key="scopeType.value"
             :label="scopeType.label"
             :value="scopeType.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="获奖对象">
+        <el-select v-model="filters.targetType" clearable placeholder="全部对象">
+          <el-option
+            v-for="targetType in targetTypeOptions"
+            :key="targetType.value"
+            :label="targetType.label"
+            :value="targetType.value"
           />
         </el-select>
       </el-form-item>

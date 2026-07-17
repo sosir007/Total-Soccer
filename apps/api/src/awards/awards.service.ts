@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AwardScopeType, LifecycleStatus, type Prisma } from '@prisma/client';
+import { AwardScopeType, AwardTargetType, LifecycleStatus, type Prisma } from '@prisma/client';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type {
@@ -72,6 +72,24 @@ const AWARD_DETAIL_INCLUDE = {
                 }
               }
             }
+          },
+          country: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true
+            }
+          },
+          club: {
+            select: {
+              id: true,
+              uid: true,
+              name: true,
+              externalUrl: true,
+              exists: true,
+              visibleInCatalog: true
+            }
           }
         }
       }
@@ -107,6 +125,24 @@ const AWARD_RECIPIENT_INCLUDE = {
           exists: true
         }
       }
+    }
+  },
+  country: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true
+    }
+  },
+  club: {
+    select: {
+      id: true,
+      uid: true,
+      name: true,
+      externalUrl: true,
+      exists: true,
+      visibleInCatalog: true
     }
   },
   edition: {
@@ -273,10 +309,16 @@ export class AwardsService {
   }
 
   async saveRecipients(id: string, body: SaveAwardRecipientsBody) {
-    await this.assertEditionExists(id);
-    const recipients = this.buildRecipientData(body);
+    const edition = await this.assertEditionExists(id);
+    const targetType = edition.award.targetType;
+    const recipients = this.buildRecipientData(body, targetType);
 
-    await this.assertPlayersExist(recipients.map((recipient) => recipient.playerId));
+    await this.assertTargetsExist(
+      targetType,
+      recipients
+        .map((recipient) => this.resolveRecipientTargetId(recipient, targetType))
+        .filter((targetId): targetId is string => Boolean(targetId))
+    );
     await this.prisma.$transaction([
       this.prisma.awardRecipient.deleteMany({
         where: { editionId: id }
@@ -315,6 +357,7 @@ export class AwardsService {
           }
         : {}),
       ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
+      ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
       ...(query.confederationId ? { confederationId: query.confederationId } : {}),
       ...(query.countryId ? { countryId: query.countryId } : {}),
       ...(query.lifecycleStatus
@@ -331,11 +374,21 @@ export class AwardsService {
 
     return {
       ...(query.playerId ? { playerId: query.playerId } : {}),
+      ...(query.countryId ? { countryId: query.countryId } : {}),
+      ...(query.clubId ? { clubId: query.clubId } : {}),
+      ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
       ...(placement ? { placement: { contains: placement, mode: 'insensitive' } } : {}),
       edition: {
         ...(query.awardId ? { awardId: query.awardId } : {}),
         ...(Number.isFinite(year) ? { year } : {}),
-        ...(query.scopeType ? { award: { scopeType: this.parseScopeType(query.scopeType) } } : {})
+        ...(query.scopeType || query.targetType
+          ? {
+              award: {
+                ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
+                ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {})
+              }
+            }
+          : {})
       },
       ...(keyword
         ? {
@@ -345,6 +398,10 @@ export class AwardsService {
               { player: { uid: { contains: keyword, mode: 'insensitive' } } },
               { player: { chineseName: { contains: keyword, mode: 'insensitive' } } },
               { player: { englishName: { contains: keyword, mode: 'insensitive' } } },
+              { country: { uid: { contains: keyword, mode: 'insensitive' } } },
+              { country: { name: { contains: keyword, mode: 'insensitive' } } },
+              { club: { uid: { contains: keyword, mode: 'insensitive' } } },
+              { club: { name: { contains: keyword, mode: 'insensitive' } } },
               { edition: { name: { contains: keyword, mode: 'insensitive' } } },
               { edition: { season: { contains: keyword, mode: 'insensitive' } } },
               { edition: { award: { code: { contains: keyword, mode: 'insensitive' } } } },
@@ -367,6 +424,7 @@ export class AwardsService {
       code,
       name,
       externalUrl: this.toNullableString(body.externalUrl),
+      targetType: this.parseTargetType(body.targetType ?? AwardTargetType.PLAYER),
       scopeType,
       category: this.toNullableString(body.category),
       level: this.toNullableString(body.level),
@@ -412,11 +470,14 @@ export class AwardsService {
     } satisfies Prisma.AwardEditionUpdateInput;
   }
 
-  private buildRecipientData(body: SaveAwardRecipientsBody) {
+  private buildRecipientData(body: SaveAwardRecipientsBody, targetType: AwardTargetType) {
     const recipients = body.recipients ?? [];
-    const usedPlayers = new Set<string>();
+    const usedTargetIds = new Set<string>();
     const rows: Array<{
-      playerId: string;
+      targetType: AwardTargetType;
+      playerId?: string | null;
+      countryId?: string | null;
+      clubId?: string | null;
       rank?: number | null;
       placement?: string | null;
       externalUrl?: string | null;
@@ -424,19 +485,22 @@ export class AwardsService {
     }> = [];
 
     for (const recipient of recipients) {
-      const playerId = this.toNullableString(recipient.playerId);
+      const targetId = this.resolveRecipientTargetId(recipient, targetType);
 
-      if (!playerId) {
+      if (!targetId) {
         continue;
       }
 
-      if (usedPlayers.has(playerId)) {
+      if (usedTargetIds.has(targetId)) {
         throw new BadRequestException('同一届奖项不能重复录入同一球员。');
       }
 
-      usedPlayers.add(playerId);
+      usedTargetIds.add(targetId);
       rows.push({
-        playerId,
+        targetType,
+        playerId: targetType === AwardTargetType.PLAYER ? targetId : null,
+        countryId: targetType === AwardTargetType.COUNTRY ? targetId : null,
+        clubId: targetType === AwardTargetType.CLUB ? targetId : null,
         rank: this.toNullableNumber(recipient.rank),
         placement: this.toNullableString(recipient.placement),
         externalUrl: this.toNullableString(recipient.externalUrl),
@@ -471,40 +535,92 @@ export class AwardsService {
   private async assertEditionExists(id: string) {
     const edition = await this.prisma.awardEdition.findUnique({
       where: { id },
-      select: { id: true }
+      select: {
+        id: true,
+        award: {
+          select: {
+            targetType: true
+          }
+        }
+      }
     });
 
     if (!edition) {
       throw new NotFoundException('奖项届次不存在。');
     }
+
+    return edition;
   }
 
-  private async assertPlayersExist(playerIds: string[]) {
-    if (!playerIds.length) {
+  private async assertTargetsExist(targetType: AwardTargetType, targetIds: string[]) {
+    if (!targetIds.length) {
       return;
     }
 
-    const players = await this.prisma.player.findMany({
-      where: {
-        id: {
-          in: playerIds
-        }
-      },
-      select: {
-        id: true
-      }
-    });
-    const foundIds = new Set(players.map((player) => player.id));
-    const missing = playerIds.find((playerId) => !foundIds.has(playerId));
+    const uniqueIds = [...new Set(targetIds)];
+    const foundIds = new Set<string>();
+
+    if (targetType === AwardTargetType.PLAYER) {
+      const players = await this.prisma.player.findMany({
+        where: { id: { in: uniqueIds } },
+        select: { id: true }
+      });
+      players.forEach((player) => foundIds.add(player.id));
+    } else if (targetType === AwardTargetType.COUNTRY) {
+      const countries = await this.prisma.country.findMany({
+        where: { id: { in: uniqueIds } },
+        select: { id: true }
+      });
+      countries.forEach((country) => foundIds.add(country.id));
+    } else if (targetType === AwardTargetType.CLUB) {
+      const clubs = await this.prisma.club.findMany({
+        where: { id: { in: uniqueIds } },
+        select: { id: true }
+      });
+      clubs.forEach((club) => foundIds.add(club.id));
+    }
+
+    const missing = uniqueIds.find((targetId) => !foundIds.has(targetId));
 
     if (missing) {
-      throw new BadRequestException('获奖人中存在不存在的球员。');
+      throw new BadRequestException('获奖对象中存在不存在的实体。');
     }
+  }
+
+  private resolveRecipientTargetId(
+    recipient: {
+      playerId?: string | null;
+      countryId?: string | null;
+      clubId?: string | null;
+    },
+    targetType: AwardTargetType
+  ) {
+    if (targetType === AwardTargetType.PLAYER) {
+      return this.toNullableString(recipient.playerId);
+    }
+
+    if (targetType === AwardTargetType.COUNTRY) {
+      return this.toNullableString(recipient.countryId);
+    }
+
+    if (targetType === AwardTargetType.CLUB) {
+      return this.toNullableString(recipient.clubId);
+    }
+
+    return null;
   }
 
   private parseScopeType(value: AwardScopeType) {
     if (!Object.values(AwardScopeType).includes(value)) {
       throw new BadRequestException('奖项范围不合法。');
+    }
+
+    return value;
+  }
+
+  private parseTargetType(value: AwardTargetType) {
+    if (!Object.values(AwardTargetType).includes(value)) {
+      throw new BadRequestException('获奖对象类型不合法。');
     }
 
     return value;

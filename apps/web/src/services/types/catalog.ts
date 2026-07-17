@@ -65,6 +65,23 @@ export interface HonorSummaryDetail {
   ruleName?: string | null;
 }
 
+export interface TeamBonusHonorDetail {
+  id: string;
+  awardId: string;
+  awardName: string;
+  editionName: string;
+  year?: number | null;
+  season?: string | null;
+  rank?: number | null;
+  placement?: string | null;
+  score: number;
+  baseScore: number;
+  coefficient: number;
+  ruleName: string;
+  externalUrl?: string | null;
+  remark?: string | null;
+}
+
 export interface HonorSummaryCompetition extends HonorCompetitionRef {
   counts?: HonorSummaryCounts;
 }
@@ -76,6 +93,9 @@ export interface HonorSummaryRow extends HonorSummaryCounts {
   countryRef?: NamedRef | null;
   federationRef?: NamedRef | null;
   honorScore?: number | null;
+  baseHonorScore?: number | null;
+  bonusHonorScore?: number | null;
+  bonusHonorDetails?: TeamBonusHonorDetail[];
   competitionStats: Record<string, HonorSummaryCounts>;
 }
 
@@ -292,6 +312,8 @@ export interface CountryListItem {
   fourthPlaceCount?: number | null;
   majorChampionCount?: number | null;
   honorScore?: number | null;
+  baseHonorScore?: number | null;
+  bonusHonorScore?: number | null;
   averageHonorScore?: number | null;
   federationRef?: NamedRef | null;
   _count?: {
@@ -303,6 +325,7 @@ export interface CountryListItem {
 export type CountryDetail = CountryListItem & {
   honorRecords?: HonorRecord[];
   honorGroups?: HonorGroupedRecord[];
+  bonusHonorDetails?: TeamBonusHonorDetail[];
   careerTimeline?: CareerTimelineGroup[];
   lineupByPosition?: LineupPositionGroup[];
 };
@@ -328,6 +351,8 @@ export interface ClubListItem {
   thirdPlaceCount?: number | null;
   fourthPlaceCount?: number | null;
   honorScore?: number | null;
+  baseHonorScore?: number | null;
+  bonusHonorScore?: number | null;
   countryRef?: NamedRef | null;
   federationRef?: NamedRef | null;
   _count?: {
@@ -338,6 +363,7 @@ export interface ClubListItem {
 export type ClubDetail = ClubListItem & {
   honorRecords?: HonorRecord[];
   honorGroups?: HonorGroupedRecord[];
+  bonusHonorDetails?: TeamBonusHonorDetail[];
   careerTimeline?: CareerTimelineGroup[];
   lineupByPosition?: LineupPositionGroup[];
   representativeLineupByPosition?: LineupPositionGroup[];

@@ -1,3 +1,4 @@
+import type { AwardScopeType, AwardTargetType } from './awards';
 import type {
   CompetitionFormat,
   CompetitionScopeType,
@@ -91,4 +92,17 @@ export interface HonorRecalculateResult {
   enabledRuleCount: number;
   scoredCountryCount: number;
   scoredClubCount: number;
+}
+
+export interface TeamHonorRuleSummaryItem {
+  id: string;
+  name: string;
+  targetTypes: AwardTargetType[];
+  scopeType?: AwardScopeType | null;
+  category?: string | null;
+  typicalAwards: string;
+  scoring: string;
+  enabled: boolean;
+  sortOrder: number;
+  remark?: string | null;
 }

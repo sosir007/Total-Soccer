@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { AwardDetail, AwardScopeType } from '@/services/types/awards';
+import type { AwardDetail, AwardScopeType, AwardTargetType } from '@/services/types/awards';
 import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
@@ -12,6 +12,7 @@ const props = defineProps<{
   form: {
     code: string;
     name: string;
+    targetType: AwardTargetType;
     externalUrl: string;
     ruleCategoryKey: string;
     scopeType: AwardScopeType;
@@ -26,6 +27,7 @@ const props = defineProps<{
   };
   saving: boolean;
   scopeTypeOptions: Array<{ label: string; value: AwardScopeType }>;
+  targetTypeOptions: Array<{ label: string; value: AwardTargetType }>;
   lifecycleStatusOptions: Array<{ label: string; value: LifecycleStatus }>;
   awardLevelOptions: string[];
   awardRuleOptions: Array<{
@@ -64,6 +66,16 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item label="奖项名称">
         <el-input v-model="form.name" />
+      </el-form-item>
+      <el-form-item label="获奖对象">
+        <el-select v-model="form.targetType" placeholder="选择获奖对象">
+          <el-option
+            v-for="targetType in targetTypeOptions"
+            :key="targetType.value"
+            :label="targetType.label"
+            :value="targetType.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="评分规则">
         <el-select

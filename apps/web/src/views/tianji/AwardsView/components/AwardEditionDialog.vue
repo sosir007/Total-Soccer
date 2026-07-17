@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { PlayerListItem } from '@/services/types/catalog';
+import type { AwardTargetType } from '@/services/types/awards';
+import { ClubSelect, CountrySelect } from '@/components/selects';
 import IconFont from '@/components/IconFont.vue';
 
 interface RecipientFormRow {
   playerId: string;
+  countryId: string;
+  clubId: string;
   rank?: number;
   placement: string;
   externalUrl: string;
@@ -25,6 +29,8 @@ const props = defineProps<{
   playersLoading: boolean;
   playerOptions: PlayerListItem[];
   playerOptionMeta: (player: PlayerListItem) => string;
+  targetType: AwardTargetType;
+  targetTypeLabels: Record<AwardTargetType, string>;
 }>();
 
 const visible = defineModel<boolean>('visible', { required: true });
@@ -38,6 +44,8 @@ const emit = defineEmits<{
 function addRecipientRow(form: { recipients: RecipientFormRow[] }) {
   form.recipients.push({
     playerId: '',
+    countryId: '',
+    clubId: '',
     rank: undefined,
     placement: '',
     externalUrl: '',
@@ -76,10 +84,10 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
 
     <div class="standing-editor">
       <div class="panel-header">
-        <h3>获奖球员</h3>
+        <h3>获奖{{ targetTypeLabels[targetType] }}</h3>
         <el-button size="small" @click="addRecipientRow(form)">
           <IconFont name="add" />
-          新增获奖人
+          新增获奖对象
         </el-button>
       </div>
       <div class="standing-grid">
@@ -88,7 +96,7 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
           :key="index"
           class="standing-row award-recipient-row"
         >
-          <el-form-item label="球员">
+          <el-form-item v-if="targetType === 'PLAYER'" label="球员">
             <el-select
               v-model="recipient.playerId"
               filterable
@@ -110,6 +118,17 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
                 </div>
               </el-option>
             </el-select>
+          </el-form-item>
+          <el-form-item v-else-if="targetType === 'COUNTRY'" label="国家队">
+            <CountrySelect
+              v-model="recipient.countryId"
+              include-hidden
+              include-historical
+              placeholder="选择国家队"
+            />
+          </el-form-item>
+          <el-form-item v-else label="俱乐部">
+            <ClubSelect v-model="recipient.clubId" placeholder="选择俱乐部" />
           </el-form-item>
           <el-form-item label="排名">
             <el-input-number v-model="recipient.rank" :min="1" :controls="false" />

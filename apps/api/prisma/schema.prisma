@@ -49,6 +49,12 @@ enum AwardScopeType {
   MEDIA
 }
 
+enum AwardTargetType {
+  PLAYER
+  COUNTRY
+  CLUB
+}
+
 enum LifecycleStatus {
   CURRENT
   DISCONTINUED
@@ -202,46 +208,49 @@ model AuditLog {
 }
 
 model Country {
-  id                    String                    @id @default(cuid())
-  importKey             String                    @unique
-  uid                   String
-  uidSort               Int?
-  name                  String
-  externalUrl           String?
-  remark                String?
-  federation            String?
-  federationId          String?
-  visibleInCatalog      Boolean                   @default(true)
-  isHistorical          Boolean                   @default(false)
+  id                      String                    @id @default(cuid())
+  importKey               String                    @unique
+  uid                     String
+  uidSort                 Int?
+  name                    String
+  externalUrl             String?
+  remark                  String?
+  federation              String?
+  federationId            String?
+  visibleInCatalog        Boolean                   @default(true)
+  isHistorical            Boolean                   @default(false)
   detailRedirectCountryId String?
-  playerCount           Int?
-  totalPa               Int?
-  averagePa             Float?
-  medalCount            Int?
-  championCount         Int?
-  majorChampionCount    Int?
-  honorScore            Float?
-  averageHonorScore     Float?
-  players               Player[]
-  birthPlayers          Player[]                  @relation("PlayerBirthCountry")
-  playerNationalities   PlayerNationality[]
-  cities                City[]
-  clubs                 Club[]
-  playerCareers         PlayerCareer[]
-  federationRef         Confederation?            @relation(fields: [federationId], references: [id])
-  detailRedirectCountry Country?                  @relation("CountryDetailRedirect", fields: [detailRedirectCountryId], references: [id])
-  redirectSourceCountries Country[]               @relation("CountryDetailRedirect")
-  historicalSuccessors  CountrySuccessor[]        @relation("HistoricalCountrySuccessors")
-  inheritedFromCountries CountrySuccessor[]       @relation("CountryInheritedFrom")
-  honors                CountryHonor[]
-  scopedAwards          Award[]                   @relation("AwardScopeCountry")
-  honorRules            HonorRule[]               @relation("HonorRuleScopeCountry")
-  honorRuleCoefficients HonorRuleCoefficient[]    @relation("HonorRuleCoefficientCountry")
-  scopedCompetitions    Competition[]             @relation("CompetitionLegacyScopeCountry")
-  competitionScopeLinks CompetitionScopeCountry[]
-  competitionResults    CompetitionStanding[]
-  createdAt             DateTime                  @default(now())
-  updatedAt             DateTime                  @updatedAt
+  playerCount             Int?
+  totalPa                 Int?
+  averagePa               Float?
+  medalCount              Int?
+  championCount           Int?
+  majorChampionCount      Int?
+  baseHonorScore          Float?
+  bonusHonorScore         Float?
+  honorScore              Float?
+  averageHonorScore       Float?
+  players                 Player[]
+  birthPlayers            Player[]                  @relation("PlayerBirthCountry")
+  playerNationalities     PlayerNationality[]
+  cities                  City[]
+  clubs                   Club[]
+  playerCareers           PlayerCareer[]
+  federationRef           Confederation?            @relation(fields: [federationId], references: [id])
+  detailRedirectCountry   Country?                  @relation("CountryDetailRedirect", fields: [detailRedirectCountryId], references: [id])
+  redirectSourceCountries Country[]                 @relation("CountryDetailRedirect")
+  historicalSuccessors    CountrySuccessor[]        @relation("HistoricalCountrySuccessors")
+  inheritedFromCountries  CountrySuccessor[]        @relation("CountryInheritedFrom")
+  honors                  CountryHonor[]
+  scopedAwards            Award[]                   @relation("AwardScopeCountry")
+  honorRules              HonorRule[]               @relation("HonorRuleScopeCountry")
+  honorRuleCoefficients   HonorRuleCoefficient[]    @relation("HonorRuleCoefficientCountry")
+  scopedCompetitions      Competition[]             @relation("CompetitionLegacyScopeCountry")
+  competitionScopeLinks   CompetitionScopeCountry[]
+  competitionResults      CompetitionStanding[]
+  awardRecipients         AwardRecipient[]
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
 
   @@index([federation])
   @@index([federationId])
@@ -312,6 +321,8 @@ model Club {
   averagePa          Float?
   trophyCount        Int?
   championCount      Int?
+  baseHonorScore     Float?
+  bonusHonorScore    Float?
   honorScore         Float?
   countryRef         Country?              @relation(fields: [countryId], references: [id])
   federationRef      Confederation?        @relation(fields: [federationId], references: [id])
@@ -320,6 +331,7 @@ model Club {
   playerCareers      PlayerCareer[]
   honors             ClubHonor[]
   competitionResults CompetitionStanding[]
+  awardRecipients    AwardRecipient[]
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
@@ -332,7 +344,7 @@ model Club {
 }
 
 model PlayerCareer {
-  id               String           @id @default(cuid())
+  id               String            @id @default(cuid())
   playerId         String
   careerType       PlayerCareerType
   clubId           String?
@@ -348,17 +360,17 @@ model PlayerCareer {
   goalsConceded    Int?
   position         String?
   positionGroup    String?
-  showInProfile    Boolean          @default(true)
-  isRepresentative Boolean          @default(false)
-  isLegend         Boolean          @default(false)
-  sortOrder        Int              @default(0)
+  showInProfile    Boolean           @default(true)
+  isRepresentative Boolean           @default(false)
+  isLegend         Boolean           @default(false)
+  sortOrder        Int               @default(0)
   remark           String?
-  player           Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  club             Club?            @relation(fields: [clubId], references: [id])
-  country          Country?         @relation(fields: [countryId], references: [id])
+  player           Player            @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  club             Club?             @relation(fields: [clubId], references: [id])
+  country          Country?          @relation(fields: [countryId], references: [id])
   teamHonors       PlayerTeamHonor[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([playerId])
   @@index([careerType])
@@ -410,7 +422,7 @@ model HonorRule {
   runnerUpScore       Float?
   thirdPlaceScore     Float?
   fourthPlaceScore    Float?
-  semiFinalistScore    Float?
+  semiFinalistScore   Float?
   coefficient         Float                        @default(1)
   qualityCoefficient  Float                        @default(1)
   isSystem            Boolean                      @default(false)
@@ -483,6 +495,31 @@ model AwardRule {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
+  @@index([scopeType])
+  @@index([category])
+  @@index([placement])
+  @@index([rank])
+  @@index([enabled])
+}
+
+model TeamHonorRule {
+  id          String          @id @default(cuid())
+  code        String          @unique
+  name        String
+  targetType  AwardTargetType
+  scopeType   AwardScopeType?
+  category    String?
+  placement   String?
+  rank        Int?
+  baseScore   Float           @default(0)
+  coefficient Float           @default(1)
+  enabled     Boolean         @default(true)
+  sortOrder   Int             @default(0)
+  remark      String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([targetType])
   @@index([scopeType])
   @@index([category])
   @@index([placement])
@@ -622,25 +659,27 @@ model CompetitionScopeCountry {
 }
 
 model Award {
-  id              String         @id @default(cuid())
-  code            String         @unique
+  id              String          @id @default(cuid())
+  code            String          @unique
   name            String
   externalUrl     String?
-  scopeType       AwardScopeType @default(WORLD)
+  targetType      AwardTargetType @default(PLAYER)
+  scopeType       AwardScopeType  @default(WORLD)
   category        String?
   level           String?
   description     String?
   confederationId String?
   countryId       String?
   lifecycleStatus LifecycleStatus @default(CURRENT)
-  enabled         Boolean        @default(true)
-  sortOrder       Int            @default(0)
-  confederation   Confederation? @relation("AwardScopeConfederation", fields: [confederationId], references: [id])
-  country         Country?       @relation("AwardScopeCountry", fields: [countryId], references: [id])
+  enabled         Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  confederation   Confederation?  @relation("AwardScopeConfederation", fields: [confederationId], references: [id])
+  country         Country?        @relation("AwardScopeCountry", fields: [countryId], references: [id])
   editions        AwardEdition[]
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
+  @@index([targetType])
   @@index([scopeType])
   @@index([category])
   @@index([confederationId])
@@ -668,26 +707,36 @@ model AwardEdition {
 }
 
 model AwardRecipient {
-  id          String       @id @default(cuid())
+  id          String          @id @default(cuid())
   editionId   String
-  playerId    String
+  targetType  AwardTargetType @default(PLAYER)
+  playerId    String?
+  countryId   String?
+  clubId      String?
   rank        Int?
   placement   String?
   externalUrl String?
   remark      String?
-  edition     AwardEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
-  player      Player       @relation(fields: [playerId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  edition     AwardEdition    @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  player      Player?         @relation(fields: [playerId], references: [id])
+  country     Country?        @relation(fields: [countryId], references: [id])
+  club        Club?           @relation(fields: [clubId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
-  @@unique([editionId, playerId])
+  @@unique([editionId, targetType, playerId])
+  @@unique([editionId, targetType, countryId])
+  @@unique([editionId, targetType, clubId])
+  @@index([targetType])
   @@index([playerId])
+  @@index([countryId])
+  @@index([clubId])
   @@index([rank])
   @@index([placement])
 }
 
 model CompetitionEdition {
-  id            String                @id @default(cuid())
+  id            String                         @id @default(cuid())
   competitionId String
   name          String
   season        String?
@@ -696,10 +745,10 @@ model CompetitionEdition {
   standingMode  CompetitionEditionStandingMode @default(THIRD_PLACE_MATCH)
   host          String?
   remark        String?
-  competition   Competition           @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  competition   Competition                    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   standings     CompetitionStanding[]
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  createdAt     DateTime                       @default(now())
+  updatedAt     DateTime                       @updatedAt
 
   @@unique([competitionId, name])
   @@index([competitionId])
@@ -707,19 +756,19 @@ model CompetitionEdition {
 }
 
 model CompetitionStanding {
-  id        String                       @id @default(cuid())
-  editionId String
-  placement CompetitionStandingPlacement
-  standingOrder Int                         @default(0)
-  countryId String?
-  clubId    String?
-  remark    String?
-  edition   CompetitionEdition           @relation(fields: [editionId], references: [id], onDelete: Cascade)
-  country   Country?                     @relation(fields: [countryId], references: [id])
-  club      Club?                        @relation(fields: [clubId], references: [id])
+  id               String                       @id @default(cuid())
+  editionId        String
+  placement        CompetitionStandingPlacement
+  standingOrder    Int                          @default(0)
+  countryId        String?
+  clubId           String?
+  remark           String?
+  edition          CompetitionEdition           @relation(fields: [editionId], references: [id], onDelete: Cascade)
+  country          Country?                     @relation(fields: [countryId], references: [id])
+  club             Club?                        @relation(fields: [clubId], references: [id])
   playerTeamHonors PlayerTeamHonor[]
-  createdAt DateTime                     @default(now())
-  updatedAt DateTime                     @updatedAt
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
 
   @@index([editionId, placement])
   @@index([countryId])

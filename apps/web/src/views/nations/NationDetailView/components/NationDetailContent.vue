@@ -67,6 +67,10 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 function hasLineupItems(groups?: LineupPositionGroup[]) {
   return countLineupItems(groups) > 0;
 }
+
+function formatBonusPlacement(detail: NonNullable<CountryDetail['bonusHonorDetails']>[number]) {
+  return detail.placement || (detail.rank ? `第 ${detail.rank} 名` : '获奖');
+}
 </script>
 
 <template>
@@ -219,6 +223,14 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
           <dd>{{ formatNumber(country.honorScore, 2) }}</dd>
         </div>
         <div>
+          <dt>赛事分</dt>
+          <dd>{{ formatNumber(country.baseHonorScore, 2) }}</dd>
+        </div>
+        <div>
+          <dt>附加分</dt>
+          <dd>{{ formatNumber(country.bonusHonorScore, 2) }}</dd>
+        </div>
+        <div>
           <dt>冠军数</dt>
           <dd>{{ formatNumber(country.championCount) }}</dd>
         </div>
@@ -233,6 +245,35 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
     </div>
 
     <HonorGroupList :groups="country.honorGroups" />
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>团队附加分</h3>
+      <span class="status-pill">{{ country.bonusHonorDetails?.length ?? 0 }} 项奖项</span>
+    </div>
+
+    <div v-if="!country.bonusHonorDetails?.length" class="mini-empty">暂无团队附加分</div>
+
+    <el-table v-else :data="country.bonusHonorDetails" border size="small">
+      <el-table-column label="年份" width="90" align="center">
+        <template #default="{ row }">{{ row.year || row.season || '-' }}</template>
+      </el-table-column>
+      <el-table-column label="奖项" min-width="180" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.awardName }}</template>
+      </el-table-column>
+      <el-table-column label="名次" width="100" align="center">
+        <template #default="{ row }">{{ formatBonusPlacement(row) }}</template>
+      </el-table-column>
+      <el-table-column label="规则" min-width="160" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.ruleName }}</template>
+      </el-table-column>
+      <el-table-column label="得分" width="90" align="center">
+        <template #default="{ row }">
+          <strong>{{ formatNumber(row.score, 2) }}</strong>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 
   <div class="panel">

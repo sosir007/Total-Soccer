@@ -360,7 +360,8 @@ function awardToOption(award: AwardListItem): SelectOption {
     meta: [award.code, award.description, award.confederation?.name, award.country?.name].filter(
       Boolean
     ) as string[],
-    chipLabel: scopeLabel
+    chipLabel: scopeLabel,
+    targetType: award.targetType
   };
 }
 

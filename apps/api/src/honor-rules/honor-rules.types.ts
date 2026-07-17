@@ -1,4 +1,6 @@
 import type {
+  AwardScopeType,
+  AwardTargetType,
   CompetitionScopeType,
   CompetitionTargetType,
   HonorRuleConversionType,
@@ -20,6 +22,19 @@ export interface HonorRulePayload {
   fourthPlaceScore?: number | string | null;
   semiFinalistScore?: number | string | null;
   typicalCompetitionIds?: string[];
+  remark?: string | null;
+}
+
+export interface TeamHonorRuleSummaryItem {
+  id: string;
+  name: string;
+  targetTypes: AwardTargetType[];
+  scopeType?: AwardScopeType | null;
+  category?: string | null;
+  typicalAwards: string;
+  scoring: string;
+  enabled: boolean;
+  sortOrder: number;
   remark?: string | null;
 }
 

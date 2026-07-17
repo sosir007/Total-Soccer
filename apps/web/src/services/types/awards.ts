@@ -7,9 +7,11 @@ export interface AwardNamedRef {
   name: string;
   externalUrl?: string | null;
   exists?: boolean;
+  visibleInCatalog?: boolean;
 }
 
 export type AwardScopeType = 'WORLD' | 'CONFEDERATION' | 'COUNTRY' | 'LEAGUE' | 'CLUB' | 'MEDIA';
+export type AwardTargetType = 'PLAYER' | 'COUNTRY' | 'CLUB';
 
 export interface AwardListParams {
   page?: number;
@@ -19,6 +21,7 @@ export interface AwardListParams {
   confederationId?: string;
   countryId?: string;
   lifecycleStatus?: LifecycleStatus;
+  targetType?: AwardTargetType;
   enabled?: boolean;
 }
 
@@ -28,7 +31,10 @@ export interface AwardRecipientListParams {
   keyword?: string;
   awardId?: string;
   scopeType?: AwardScopeType;
+  targetType?: AwardTargetType;
   playerId?: string;
+  countryId?: string;
+  clubId?: string;
   placement?: string;
   year?: number;
 }
@@ -38,6 +44,7 @@ export interface AwardListItem {
   code: string;
   name: string;
   externalUrl?: string | null;
+  targetType: AwardTargetType;
   scopeType: AwardScopeType;
   category?: string | null;
   level?: string | null;
@@ -72,12 +79,15 @@ export interface AwardDetail extends AwardListItem {
 export interface AwardEditionRecipient {
   id: string;
   editionId: string;
-  playerId: string;
+  targetType: AwardTargetType;
+  playerId?: string | null;
+  countryId?: string | null;
+  clubId?: string | null;
   rank?: number | null;
   placement?: string | null;
   externalUrl?: string | null;
   remark?: string | null;
-  player: {
+  player?: {
     id: string;
     uid: string;
     chineseName: string;
@@ -88,7 +98,9 @@ export interface AwardEditionRecipient {
     positions?: string | null;
     country?: AwardNamedRef | null;
     club?: AwardNamedRef | null;
-  };
+  } | null;
+  country?: AwardNamedRef | null;
+  club?: AwardNamedRef | null;
 }
 
 export interface AwardRecipientRecord extends AwardEditionRecipient {
@@ -101,6 +113,7 @@ export interface CreateAwardPayload {
   code: string;
   name: string;
   externalUrl?: string;
+  targetType: AwardTargetType;
   scopeType: AwardScopeType;
   category?: string;
   level?: string;
@@ -123,6 +136,8 @@ export interface CreateAwardEditionPayload {
 export interface SaveAwardRecipientsPayload {
   recipients: Array<{
     playerId?: string;
+    countryId?: string;
+    clubId?: string;
     rank?: number | null;
     placement?: string;
     externalUrl?: string;
