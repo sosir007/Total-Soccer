@@ -133,6 +133,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'intercontinental-champions-supercup',
+    label: '洲际冠军超级杯',
+    file: 'src/scripts/seeds/competitions/club/global/seed-intercontinental-champions-supercup.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/global/intercontinental-champions-supercup.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'global'
+  },
+  {
     key: 'uefa-champions-league',
     label: '欧洲冠军联赛',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-champions-league.ts',
@@ -164,6 +175,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     label: '南美足联杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-copa-conmebol.ts',
     dataFiles: ['src/scripts/data/competition-results/club/confederation/copa-conmebol.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
+    key: 'recopa-sudamericana',
+    label: '南美优胜者杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-recopa-sudamericana.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/recopa-sudamericana.ts'],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'confederation'

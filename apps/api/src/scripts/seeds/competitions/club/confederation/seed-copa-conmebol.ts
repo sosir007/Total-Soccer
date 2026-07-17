@@ -1,4 +1,9 @@
-import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
+import {
+  CompetitionScopeType,
+  CompetitionTargetType,
+  LifecycleStatus,
+  PrismaClient
+} from '@prisma/client';
 import { runCompetitionSeed, runSeed } from '../../../../helpers/competition-seed.js';
 import { withStandingMode } from '../../../../helpers/competition-results.js';
 import { CONFEDERATION_SEEDS, pickSeedCountries } from '../../../../helpers/seed-data.js';
@@ -30,6 +35,7 @@ async function main() {
         level: '二级',
         format: '杯赛',
         description: '南美足联历史上的二级俱乐部杯赛，举办于 1992 至 1999 年。',
+        lifecycleStatus: LifecycleStatus.DISCONTINUED,
         enabled: true,
         includeInStats: true,
         sortOrder: 61
@@ -45,6 +51,7 @@ async function main() {
         format: '杯赛',
         description: '南美足联历史上的二级俱乐部杯赛，举办于 1992 至 1999 年。',
         countryId: null,
+        lifecycleStatus: LifecycleStatus.DISCONTINUED,
         enabled: true,
         includeInStats: true,
         sortOrder: 61

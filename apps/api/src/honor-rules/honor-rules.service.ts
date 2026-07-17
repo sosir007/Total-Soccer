@@ -194,6 +194,20 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     remark: '丰田杯、旧洲际杯等欧冠冠军与南美冠军之间的单场世界冠军杯。'
   },
   {
+    code: 'CLUB_INTERNATIONAL_LEVEL_4_CUP',
+    name: '俱乐部国际四级杯赛',
+    targetType: CompetitionTargetType.CLUB,
+    category: '国际',
+    level: '四级',
+    format: '杯赛',
+    scopeType: CompetitionScopeType.GLOBAL,
+    baseScore: 2,
+    placementScope: HonorRulePlacementScope.TOP_TWO,
+    conversionType: HonorRuleConversionType.NONE,
+    sortOrder: 140,
+    remark: '洲际冠军超级杯等官方性较弱或历史口径特殊的小型全球俱乐部杯赛。'
+  },
+  {
     code: 'CLUB_CONTINENTAL_LEVEL_1_CUP',
     name: '俱乐部洲际一级杯赛',
     targetType: CompetitionTargetType.CLUB,

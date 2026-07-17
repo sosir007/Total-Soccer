@@ -57,7 +57,9 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   const columns: HonorSummaryDisplayCompetition[] = [];
   let continentalCupColumn: HonorSummaryDisplayCompetition | null = null;
   let internationalLevelThreeColumn: HonorSummaryDisplayCompetition | null = null;
+  let clubInternationalLevelFourColumn: HonorSummaryDisplayCompetition | null = null;
   let continentalLevelTwoColumn: HonorSummaryDisplayCompetition | null = null;
+  let continentalLevelFourColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelOneLeagueColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelTwoLeagueColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelOneCupColumn: HonorSummaryDisplayCompetition | null = null;
@@ -82,6 +84,28 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
       internationalLevelThreeColumn.counts ??= createEmptyCounts();
       addCounts(
         internationalLevelThreeColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsClubInternationalLevelFour(competition)) {
+      if (!clubInternationalLevelFourColumn) {
+        clubInternationalLevelFourColumn = {
+          ...competition,
+          id: getClubInternationalLevelFourColumnId(),
+          code: getClubInternationalLevelFourColumnCode(),
+          name: getClubInternationalLevelFourColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(clubInternationalLevelFourColumn);
+      }
+
+      clubInternationalLevelFourColumn.sourceCompetitionIds.push(competition.id);
+      clubInternationalLevelFourColumn.counts ??= createEmptyCounts();
+      addCounts(
+        clubInternationalLevelFourColumn.counts,
         competition.counts ?? getCompetitionCountsFromRows(competition.id)
       );
       continue;
@@ -126,6 +150,28 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
       continentalLevelTwoColumn.counts ??= createEmptyCounts();
       addCounts(
         continentalLevelTwoColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsContinentalLevelFour(competition)) {
+      if (!continentalLevelFourColumn) {
+        continentalLevelFourColumn = {
+          ...competition,
+          id: getContinentalLevelFourColumnId(),
+          code: getContinentalLevelFourColumnCode(),
+          name: getContinentalLevelFourColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(continentalLevelFourColumn);
+      }
+
+      continentalLevelFourColumn.sourceCompetitionIds.push(competition.id);
+      continentalLevelFourColumn.counts ??= createEmptyCounts();
+      addCounts(
+        continentalLevelFourColumn.counts,
         competition.counts ?? getCompetitionCountsFromRows(competition.id)
       );
       continue;
@@ -388,12 +434,32 @@ function shouldMergeAsInternationalLevelThree(competition: HonorSummaryCompetiti
   );
 }
 
+function shouldMergeAsClubInternationalLevelFour(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'club' &&
+    competition.targetType === 'CLUB' &&
+    competition.category === '国际' &&
+    competition.level === '四级' &&
+    competition.format === '杯赛'
+  );
+}
+
 function shouldMergeAsContinentalLevelTwo(competition: HonorSummaryCompetition) {
   return (
     props.entityType === 'club' &&
     competition.targetType === 'CLUB' &&
     competition.category === '洲际' &&
     competition.level === '二级' &&
+    competition.format === '杯赛'
+  );
+}
+
+function shouldMergeAsContinentalLevelFour(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'club' &&
+    competition.targetType === 'CLUB' &&
+    competition.category === '洲际' &&
+    competition.level === '四级' &&
     competition.format === '杯赛'
   );
 }
@@ -474,6 +540,18 @@ function getInternationalLevelThreeColumnName() {
   return '国际三级';
 }
 
+function getClubInternationalLevelFourColumnId() {
+  return '__club_international_level_four__';
+}
+
+function getClubInternationalLevelFourColumnCode() {
+  return 'CLUB_INTERNATIONAL_LEVEL_FOUR';
+}
+
+function getClubInternationalLevelFourColumnName() {
+  return '国际四级';
+}
+
 function getContinentalLevelTwoColumnId() {
   return '__club_continental_level_two__';
 }
@@ -484,6 +562,18 @@ function getContinentalLevelTwoColumnCode() {
 
 function getContinentalLevelTwoColumnName() {
   return '洲际二级';
+}
+
+function getContinentalLevelFourColumnId() {
+  return '__club_continental_level_four__';
+}
+
+function getContinentalLevelFourColumnCode() {
+  return 'CLUB_CONTINENTAL_LEVEL_FOUR';
+}
+
+function getContinentalLevelFourColumnName() {
+  return '洲际四级';
 }
 
 function getDomesticLevelOneLeagueColumnId() {
