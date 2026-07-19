@@ -134,6 +134,17 @@ const DEFAULT_TEAM_HONOR_RULES: TeamHonorRuleDefaultDefinition[] = [
     remark: '劳伦斯年度最佳团队、金球奖年度俱乐部等白名单团队奖。'
   },
   {
+    code: 'CLUB_MEDIA_TEAM_OF_THE_YEAR',
+    name: '俱乐部媒体年度团队',
+    targetType: AwardTargetType.CLUB,
+    scopeType: AwardScopeType.MEDIA,
+    category: '年度最佳团队',
+    baseScore: 1,
+    coefficient: 1,
+    sortOrder: 10120,
+    remark: 'World Soccer 年度最佳球队、《米兰体育报》年度世界最佳球队等白名单媒体奖。'
+  },
+  {
     code: 'CLUB_FAIR_PLAY',
     name: '俱乐部公平竞赛奖',
     targetType: AwardTargetType.CLUB,
@@ -153,6 +164,17 @@ const DEFAULT_TEAM_HONOR_RULES: TeamHonorRuleDefaultDefinition[] = [
     coefficient: 1,
     sortOrder: 20100,
     remark: '劳伦斯年度最佳团队等白名单国家队团队奖。'
+  },
+  {
+    code: 'COUNTRY_MEDIA_TEAM_OF_THE_YEAR',
+    name: '国家队媒体年度团队',
+    targetType: AwardTargetType.COUNTRY,
+    scopeType: AwardScopeType.MEDIA,
+    category: '年度最佳团队',
+    baseScore: 1,
+    coefficient: 1,
+    sortOrder: 20120,
+    remark: 'World Soccer 年度最佳球队、《米兰体育报》年度世界最佳球队等白名单媒体奖。'
   },
   {
     code: 'COUNTRY_FAIR_PLAY',
@@ -685,10 +707,14 @@ export class HonorRulesService {
       const score = rule.baseScore * rule.coefficient;
 
       if (recipient.targetType === AwardTargetType.COUNTRY && recipient.countryId) {
-        const stats = countryBonusStats.get(recipient.countryId) ?? this.emptyTeamBonusStats();
-        stats.bonusHonorScore += score;
-        stats.bonusDetails += 1;
-        countryBonusStats.set(recipient.countryId, stats);
+        const targetIds = successorMap.get(recipient.countryId) ?? [recipient.countryId];
+
+        for (const targetId of targetIds) {
+          const stats = countryBonusStats.get(targetId) ?? this.emptyTeamBonusStats();
+          stats.bonusHonorScore += score;
+          stats.bonusDetails += 1;
+          countryBonusStats.set(targetId, stats);
+        }
       }
 
       if (recipient.targetType === AwardTargetType.CLUB && recipient.clubId) {
@@ -843,6 +869,10 @@ export class HonorRulesService {
       'CLUB_TEAM_OF_THE_YEAR',
       'COUNTRY_TEAM_OF_THE_YEAR'
     ]);
+    const mediaTeamOfYearRules = this.pickTeamRules(rules, [
+      'CLUB_MEDIA_TEAM_OF_THE_YEAR',
+      'COUNTRY_MEDIA_TEAM_OF_THE_YEAR'
+    ]);
     const fairPlayRules = this.pickTeamRules(rules, ['CLUB_FAIR_PLAY', 'COUNTRY_FAIR_PLAY']);
 
     return [
@@ -903,9 +933,9 @@ export class HonorRulesService {
         targetTypes: [AwardTargetType.COUNTRY, AwardTargetType.CLUB],
         scopeType: AwardScopeType.MEDIA,
         category: '年度最佳团队',
-        typicalAwards: '世界足球年度最佳球队、环球足球奖年度最佳男子俱乐部',
-        scoring: '获奖 +1.00',
-        enabled: true,
+        typicalAwards: '世界足球年度最佳球队、《米兰体育报》年度世界最佳球队',
+        scoring: `获奖 ${this.formatRuleScore(mediaTeamOfYearRules[0])}`,
+        enabled: this.areTeamRulesEnabled(mediaTeamOfYearRules),
         sortOrder: 50,
         remark: '低优先级白名单，后续遇到具体奖项再逐个确认是否纳入。'
       }

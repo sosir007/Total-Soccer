@@ -46,15 +46,17 @@ const placementStyle = computed(() => ({
 
 <style scoped lang="scss">
 .honor-placement-icon {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
   object-fit: contain;
 }
 
 .honor-placement-label {
   color: var(--honor-placement-label-color);
+  font-size: 14px;
   font-weight: 800;
+  line-height: 24px;
 }
 
 .honor-placement-label.compact {

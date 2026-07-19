@@ -80,6 +80,7 @@ export interface TeamBonusHonorDetail {
   ruleName: string;
   externalUrl?: string | null;
   remark?: string | null;
+  sourceName?: string | null;
 }
 
 export interface HonorSummaryCompetition extends HonorCompetitionRef {

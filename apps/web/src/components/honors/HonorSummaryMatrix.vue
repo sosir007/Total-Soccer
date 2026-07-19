@@ -721,21 +721,28 @@ function getBonusScoreBreakdown(row: HonorSummaryRow): HonorScoreBreakdownGroup 
     score: details.reduce((total, detail) => total + detail.score, 0),
     entries: details.map((detail) => ({
       id: detail.id,
-      label: [detail.awardName, detail.editionName].filter(Boolean).join(' '),
+      label: detail.editionName,
       year: detail.year,
       season: detail.season,
       host: null,
       competitionId: null,
-      competitionName: detail.awardName,
+      competitionName: formatAwardName(detail.awardName),
       score: detail.score,
       placementScore: detail.baseScore,
       qualityCoefficient: detail.coefficient,
       conversionCoefficient: 1,
+      sourceName: detail.sourceName,
       ruleName: detail.ruleName,
       placement: 'CHAMPION',
       placementLabel: detail.placement || (detail.rank ? `第 ${detail.rank} 名` : '获奖')
     }))
   };
+}
+
+function formatAwardName(name?: string | null) {
+  return String(name ?? '')
+    .replace(/（(?:国家队|俱乐部)）/g, '')
+    .trim();
 }
 
 function getCompetitionScoreBreakdown(
@@ -790,9 +797,28 @@ function getScoreBreakdownEntries(counts: HonorSummaryCounts): HonorScoreBreakdo
   );
 }
 
-function formatScoreEntryLabel(entry: HonorScoreBreakdownEntry) {
-  const source = entry.sourceName ? `（来自 ${entry.sourceName}）` : '';
-  return `${entry.label || '-'} ${entry.placementLabel}${source}`;
+function formatScoreEntryEdition(entry: HonorScoreBreakdownEntry) {
+  if (entry.season) {
+    return entry.season;
+  }
+
+  if (entry.year) {
+    return `${entry.year}年`;
+  }
+
+  return entry.label || '-';
+}
+
+function formatScoreEntryHonor(entry: HonorScoreBreakdownEntry) {
+  return formatAwardName(entry.competitionName) || '-';
+}
+
+function isBonusScoreBreakdownGroup(group: HonorScoreBreakdownGroup) {
+  return group.name === '团队附加分';
+}
+
+function hasScoreGroupSource(group: HonorScoreBreakdownGroup) {
+  return group.entries.some((entry) => Boolean(entry.sourceName));
 }
 
 function openScoreDialog(row: HonorSummaryRow) {
@@ -1007,11 +1033,57 @@ function openScoreDialog(row: HonorSummaryRow) {
           <span>{{ formatNumber(group.score, 2) }}</span>
         </div>
 
-        <el-table :data="group.entries" border size="small">
-          <el-table-column label="届次" min-width="150">
+        <el-table
+          v-if="isBonusScoreBreakdownGroup(group)"
+          :data="group.entries"
+          border
+          size="small"
+        >
+          <el-table-column label="届次" width="110">
             <template #default="{ row }">
-              {{ formatScoreEntryLabel(row) }}
+              {{ formatScoreEntryEdition(row) }}
             </template>
+          </el-table-column>
+          <el-table-column label="荣誉" min-width="210" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatScoreEntryHonor(row) }}</template>
+          </el-table-column>
+          <el-table-column v-if="hasScoreGroupSource(group)" label="来源" width="90" align="center">
+            <template #default="{ row }">{{ row.sourceName || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="规则" min-width="160" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.ruleName || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="基础分" width="86" align="center">
+            <template #default="{ row }">{{ formatNumber(row.placementScore, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="质量系数" width="92" align="center">
+            <template #default="{ row }">{{ formatNumber(row.qualityCoefficient, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="换算系数" width="92" align="center">
+            <template #default="{ row }">{{ formatNumber(row.conversionCoefficient, 2) }}</template>
+          </el-table-column>
+          <el-table-column label="得分" width="90" align="center">
+            <template #default="{ row }">
+              <strong>{{ formatNumber(row.score, 2) }}</strong>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <el-table v-else :data="group.entries" border size="small">
+          <el-table-column label="届次" min-width="140">
+            <template #default="{ row }">
+              {{ formatScoreEntryEdition(row) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="名次" width="90" align="center">
+            <template #default="{ row }">
+              <span class="honor-score-dialog__placement" :style="getPlacementStyle(row.placement)">
+                {{ row.placementLabel }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="hasScoreGroupSource(group)" label="来源" width="90" align="center">
+            <template #default="{ row }">{{ row.sourceName || '-' }}</template>
           </el-table-column>
           <el-table-column label="规则" min-width="160" show-overflow-tooltip>
             <template #default="{ row }">{{ row.ruleName || '-' }}</template>
@@ -1156,5 +1228,10 @@ function openScoreDialog(row: HonorSummaryRow) {
     color: var(--color-brand-primary);
     font-weight: 800;
   }
+}
+
+.honor-score-dialog__placement {
+  color: var(--honor-placement-color);
+  font-weight: 850;
 }
 </style>

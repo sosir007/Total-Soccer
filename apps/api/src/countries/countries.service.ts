@@ -175,6 +175,7 @@ type TeamBonusHonorDetail = {
   ruleName: string;
   externalUrl: string | null;
   remark: string | null;
+  sourceName?: string | null;
 };
 
 const PROFILE_PLAYER_SELECT = {
@@ -640,6 +641,42 @@ export class CountriesService {
   }
 
   private async getCountryBonusHonorDetailMap(countryIds?: string[]) {
+    const requestedCountryIds = countryIds?.length ? [...new Set(countryIds)] : undefined;
+    const inheritedLinks = await this.prisma.countrySuccessor.findMany({
+      where: requestedCountryIds?.length
+        ? {
+            successorCountryId: {
+              in: requestedCountryIds
+            }
+          }
+        : undefined,
+      select: {
+        historicalCountryId: true,
+        successorCountryId: true
+      }
+    });
+    const sourceCountryIds = requestedCountryIds?.length
+      ? [
+          ...new Set([
+            ...requestedCountryIds,
+            ...inheritedLinks.map((link) => link.historicalCountryId)
+          ])
+        ]
+      : undefined;
+    const sourceTargetMap = new Map<string, string[]>();
+
+    if (requestedCountryIds?.length) {
+      for (const countryId of requestedCountryIds) {
+        sourceTargetMap.set(countryId, [countryId]);
+      }
+    }
+
+    for (const link of inheritedLinks) {
+      const targetIds = sourceTargetMap.get(link.historicalCountryId) ?? [];
+      targetIds.push(link.successorCountryId);
+      sourceTargetMap.set(link.historicalCountryId, targetIds);
+    }
+
     const [rules, recipients] = await Promise.all([
       this.prisma.teamHonorRule.findMany({
         where: { targetType: AwardTargetType.COUNTRY, enabled: true },
@@ -648,9 +685,15 @@ export class CountriesService {
       this.prisma.awardRecipient.findMany({
         where: {
           targetType: AwardTargetType.COUNTRY,
-          countryId: countryIds?.length ? { in: countryIds } : { not: null }
+          countryId: sourceCountryIds?.length ? { in: sourceCountryIds } : { not: null }
         },
         include: {
+          country: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
           edition: {
             include: {
               award: {
@@ -687,25 +730,30 @@ export class CountriesService {
         continue;
       }
 
-      const detail: TeamBonusHonorDetail = {
-        id: recipient.id,
-        awardId: recipient.edition.award.id,
-        awardName: recipient.edition.award.name,
-        editionName: recipient.edition.name,
-        year: recipient.edition.year,
-        season: recipient.edition.season,
-        rank: recipient.rank,
-        placement: recipient.placement,
-        score: this.round(rule.baseScore * rule.coefficient),
-        baseScore: rule.baseScore,
-        coefficient: rule.coefficient,
-        ruleName: rule.name,
-        externalUrl: recipient.externalUrl ?? recipient.edition.externalUrl,
-        remark: recipient.remark
-      };
-      const details = detailMap.get(recipient.countryId) ?? [];
-      details.push(detail);
-      detailMap.set(recipient.countryId, details);
+      const targetIds = sourceTargetMap.get(recipient.countryId) ?? [recipient.countryId];
+
+      for (const targetId of targetIds) {
+        const detail: TeamBonusHonorDetail = {
+          id: recipient.id,
+          awardId: recipient.edition.award.id,
+          awardName: recipient.edition.award.name,
+          editionName: recipient.edition.name,
+          year: recipient.edition.year,
+          season: recipient.edition.season,
+          rank: recipient.rank,
+          placement: recipient.placement,
+          score: this.round(rule.baseScore * rule.coefficient),
+          baseScore: rule.baseScore,
+          coefficient: rule.coefficient,
+          ruleName: rule.name,
+          externalUrl: recipient.externalUrl ?? recipient.edition.externalUrl,
+          remark: recipient.remark,
+          sourceName: targetId === recipient.countryId ? null : recipient.country?.name
+        };
+        const details = detailMap.get(targetId) ?? [];
+        details.push(detail);
+        detailMap.set(targetId, details);
+      }
     }
 
     return detailMap;

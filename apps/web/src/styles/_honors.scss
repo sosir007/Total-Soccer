@@ -92,15 +92,17 @@
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
   gap: 4px 6px;
-  align-items: center;
+  align-items: start;
   color: var(--honor-placement-color);
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 24px;
 
   strong {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     color: var(--honor-placement-color);
     font-weight: 800;
+    line-height: 24px;
   }
 
   > span {
@@ -116,17 +118,18 @@
 .honor-entry-list {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
+  line-height: 24px;
 }
 
 .honor-entry-year {
   color: var(--text-color-secondary);
   font-size: 14px;
   font-weight: 650;
+  line-height: 24px;
 }
 
 .honor-entry-separator {
   color: var(--text-color-secondary);
   font-size: 13px;
 }
-
