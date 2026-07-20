@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
-import type { AwardDetail, AwardScopeType, AwardTargetType } from '@/services/types/awards';
+import type { AwardScopeType, AwardTargetType } from '@/services/types/awards';
 import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
-import SemanticTag from '@/components/SemanticTag.vue';
-import { getLifecycleStatusLabel, getLifecycleStatusVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
-  award: AwardDetail;
   form: {
     code: string;
     name: string;
@@ -40,6 +37,7 @@ const props = defineProps<{
   }>;
 }>();
 
+const visible = defineModel<boolean>('visible', { required: true });
 const form = toRef(props, 'form');
 
 const emit = defineEmits<{
@@ -48,18 +46,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="panel">
-    <div class="panel-header">
-      <h3>奖项资料</h3>
-      <div class="panel-actions">
-        <SemanticTag :variant="award.enabled ? 'status-enabled' : 'status-disabled'">
-          {{ award.enabled ? '启用' : '停用' }}
-        </SemanticTag>
-        <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
-          {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
-        </SemanticTag>
-      </div>
-    </div>
+  <el-dialog v-model="visible" title="编辑奖项资料" width="760px" destroy-on-close>
     <el-form class="competition-form-grid" label-position="top" @submit.prevent="emit('save')">
       <el-form-item label="奖项编码">
         <el-input v-model="form.code" />
@@ -152,14 +139,16 @@ const emit = defineEmits<{
       <el-form-item label="奖项状态">
         <el-segmented v-model="form.lifecycleStatus" :options="lifecycleStatusOptions" />
       </el-form-item>
-      <div class="competition-form-actions">
-        <el-button type="primary" :loading="saving" @click="emit('save')">
-          <IconFont name="save" />
-          保存奖项资料
-        </el-button>
-      </div>
     </el-form>
-  </div>
+
+    <template #footer>
+      <el-button :disabled="saving" @click="visible = false">取消</el-button>
+      <el-button type="primary" :loading="saving" @click="emit('save')">
+        <IconFont name="save" />
+        保存资料
+      </el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped lang="scss">

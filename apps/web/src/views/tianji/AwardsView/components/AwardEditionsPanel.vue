@@ -199,6 +199,26 @@ function formatEditionYear(edition: AwardEdition) {
   return edition.year ? String(edition.year) : edition.name || '-';
 }
 
+function formatEditionTime(edition: AwardEdition) {
+  if (edition.season) {
+    return edition.season;
+  }
+
+  if (edition.year) {
+    return `${edition.year}年`;
+  }
+
+  return edition.name || '-';
+}
+
+function shouldShowEditionName(edition: AwardEdition) {
+  if (!edition.name) {
+    return false;
+  }
+
+  return edition.name !== formatEditionTime(edition);
+}
+
 function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
   const count = row.counts[rank];
 
@@ -318,10 +338,13 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
     </el-table>
 
     <el-table v-else :data="editions" border>
-      <el-table-column prop="year" label="年份" width="90" sortable />
-      <el-table-column prop="name" label="届次 / 年份" min-width="150" />
-      <el-table-column prop="season" label="赛季" width="110">
-        <template #default="{ row }">{{ row.season || '-' }}</template>
+      <el-table-column label="时间" width="150" sortable>
+        <template #default="{ row }">
+          <div class="award-edition-time">
+            <strong>{{ formatEditionTime(row) }}</strong>
+            <span v-if="shouldShowEditionName(row)">{{ row.name }}</span>
+          </div>
+        </template>
       </el-table-column>
       <el-table-column label="获奖对象" min-width="260" show-overflow-tooltip>
         <template #default="{ row }">
@@ -414,6 +437,25 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
 </template>
 
 <style scoped lang="scss">
+.award-edition-time {
+  display: grid;
+  gap: 4px;
+
+  strong {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1.35;
+  }
+
+  span {
+    color: var(--text-color-secondary);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+}
+
 .edition-statistics {
   display: grid;
   gap: 12px;

@@ -21,6 +21,9 @@ const WORLD_SOCCER_EXTERNAL_URL =
 const GAZZETTA_COUNTRY_AWARD_CODE = 'GAZZETTA_WORLD_TEAM_OF_THE_YEAR_COUNTRY';
 const GAZZETTA_CLUB_AWARD_CODE = 'GAZZETTA_WORLD_TEAM_OF_THE_YEAR_CLUB';
 const GAZZETTA_EXTERNAL_URL = 'https://en.wikipedia.org/wiki/Gazzetta_Sports_Awards#Worldwide';
+const FIFA_WORLD_CUP_FAIR_PLAY_AWARD_CODE = 'FIFA_WORLD_CUP_FAIR_PLAY_TROPHY';
+const FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/FIFA_World_Cup_Fair_Play_Trophy';
 
 const CLUB_UIDS = {
   Roma: '1100',
@@ -78,7 +81,11 @@ const COUNTRY_UIDS = {
   Italy: '776',
   Spain: '796',
   Argentina: '1649',
-  Brazil: '1651'
+  Brazil: '1651',
+  Peru: '1656',
+  England: '765',
+  Belgium: '757',
+  Colombia: '1653'
 } satisfies Record<string, string>;
 
 const IFFHS_RESULTS: Array<{
@@ -345,6 +352,36 @@ const GAZZETTA_CLUB_RESULTS: Array<{
   { year: 2020, club: 'Bayern Munich', name: 'Bayern Munich' }
 ];
 
+const FIFA_WORLD_CUP_FAIR_PLAY_RESULTS: Array<{
+  year: number;
+  country: keyof typeof COUNTRY_UIDS;
+  name: string;
+  remark?: string;
+}> = [
+  { year: 1970, country: 'Peru', name: 'Peru national football team' },
+  { year: 1974, country: 'West Germany', name: 'West Germany national football team' },
+  { year: 1978, country: 'Argentina', name: 'Argentina national football team' },
+  { year: 1982, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 1986, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 1990, country: 'England', name: 'England national football team' },
+  { year: 1994, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 1998, country: 'England', name: 'England national football team' },
+  { year: 1998, country: 'France', name: 'France national football team' },
+  { year: 2002, country: 'Belgium', name: 'Belgium national football team' },
+  { year: 2006, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 2006, country: 'Spain', name: 'Spain national football team' },
+  { year: 2010, country: 'Spain', name: 'Spain national football team' },
+  { year: 2014, country: 'Colombia', name: 'Colombia national football team' },
+  { year: 2018, country: 'Spain', name: 'Spain national football team' },
+  { year: 2022, country: 'England', name: 'England national football team' },
+  {
+    year: 2026,
+    country: 'Netherlands',
+    name: 'Netherlands national football team',
+    remark: '2026 FIFA Fair Play Award，FIFA World Cup 官方赛后公布。'
+  }
+];
+
 async function main() {
   if (requestedCode && !shouldRunSeed(requestedCode)) {
     console.log(`No team-award seed matched: ${requestedCode}`);
@@ -368,6 +405,10 @@ async function main() {
 
   if (shouldRunGazzettaSeed()) {
     await validateGazzettaMappings(countryMap, clubMap);
+  }
+
+  if (shouldRunFifaWorldCupFairPlaySeed()) {
+    await validateFifaWorldCupFairPlayMappings(countryMap);
   }
 
   if ((validateData || validateOnly) && shouldRunIffhsSeed()) {
@@ -417,6 +458,15 @@ async function main() {
     );
   }
 
+  if ((validateData || validateOnly) && shouldRunFifaWorldCupFairPlaySeed()) {
+    console.log(`FIFA World Cup Fair Play data rows: ${FIFA_WORLD_CUP_FAIR_PLAY_RESULTS.length}`);
+    console.log(
+      `FIFA World Cup Fair Play years: ${
+        new Set(FIFA_WORLD_CUP_FAIR_PLAY_RESULTS.map((item) => item.year)).size
+      }`
+    );
+  }
+
   if (validateOnly || validateData) {
     return;
   }
@@ -437,6 +487,10 @@ async function main() {
   if (shouldRunGazzettaSeed()) {
     await seedGazzettaWorldTeamAwards(countryMap, clubMap);
   }
+
+  if (shouldRunFifaWorldCupFairPlaySeed()) {
+    await seedFifaWorldCupFairPlayTrophy(countryMap);
+  }
 }
 
 function shouldRunSeed(code: string) {
@@ -450,7 +504,9 @@ function shouldRunSeed(code: string) {
     'world-soccer-team-of-the-year-club',
     'gazzetta-world-team-of-the-year',
     'gazzetta-world-team-of-the-year-country',
-    'gazzetta-world-team-of-the-year-club'
+    'gazzetta-world-team-of-the-year-club',
+    'fifa-world-cup-fair-play-trophy',
+    'world-cup-fair-play-trophy'
   ].includes(code);
 }
 
@@ -514,6 +570,14 @@ function shouldRunGazzettaClubSeed() {
     !requestedCode ||
     requestedCode === 'gazzetta-world-team-of-the-year' ||
     requestedCode === 'gazzetta-world-team-of-the-year-club'
+  );
+}
+
+function shouldRunFifaWorldCupFairPlaySeed() {
+  return (
+    !requestedCode ||
+    requestedCode === 'fifa-world-cup-fair-play-trophy' ||
+    requestedCode === 'world-cup-fair-play-trophy'
   );
 }
 
@@ -784,6 +848,86 @@ async function seedGazzettaWorldTeamAwards(
 
     console.log(`Seeded ${GAZZETTA_CLUB_AWARD_CODE}: ${GAZZETTA_CLUB_RESULTS.length} recipients.`);
   }
+}
+
+async function seedFifaWorldCupFairPlayTrophy(
+  countryMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  const award = await upsertFifaWorldCupFairPlayAward();
+
+  for (const year of [...new Set(FIFA_WORLD_CUP_FAIR_PLAY_RESULTS.map((item) => item.year))]) {
+    const edition = await upsertFifaWorldCupFairPlayEdition(award.id, year);
+    const rows = FIFA_WORLD_CUP_FAIR_PLAY_RESULTS.filter((item) => item.year === year);
+
+    await prisma.awardRecipient.deleteMany({ where: { editionId: edition.id } });
+    await prisma.awardRecipient.createMany({
+      data: rows.map((item) => ({
+        editionId: edition.id,
+        targetType: AwardTargetType.COUNTRY,
+        countryId: countryMap.get(COUNTRY_UIDS[item.country])!.id,
+        placement: '获奖',
+        remark: item.remark ?? item.name
+      }))
+    });
+  }
+
+  console.log(
+    `Seeded ${FIFA_WORLD_CUP_FAIR_PLAY_AWARD_CODE}: ${FIFA_WORLD_CUP_FAIR_PLAY_RESULTS.length} recipients.`
+  );
+}
+
+async function upsertFifaWorldCupFairPlayAward() {
+  return prisma.award.upsert({
+    where: { code: FIFA_WORLD_CUP_FAIR_PLAY_AWARD_CODE },
+    create: {
+      code: FIFA_WORLD_CUP_FAIR_PLAY_AWARD_CODE,
+      name: '国际足联世界杯公平竞赛奖',
+      externalUrl: FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL,
+      targetType: AwardTargetType.COUNTRY,
+      scopeType: AwardScopeType.WORLD,
+      category: '公平竞赛奖',
+      level: '团队附加分',
+      description:
+        '国际足联世界杯官方团队公平竞赛奖，只录获奖国家队。常用名：世界杯公平竞赛奖、FIFA Fair Play Trophy。',
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 10300
+    },
+    update: {
+      name: '国际足联世界杯公平竞赛奖',
+      externalUrl: FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL,
+      targetType: AwardTargetType.COUNTRY,
+      scopeType: AwardScopeType.WORLD,
+      category: '公平竞赛奖',
+      level: '团队附加分',
+      description:
+        '国际足联世界杯官方团队公平竞赛奖，只录获奖国家队。常用名：世界杯公平竞赛奖、FIFA Fair Play Trophy。',
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 10300
+    }
+  });
+}
+
+async function upsertFifaWorldCupFairPlayEdition(awardId: string, year: number) {
+  return prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId,
+        name: `${year}年`
+      }
+    },
+    create: {
+      awardId,
+      name: `${year}年`,
+      year,
+      externalUrl: FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL
+    },
+    update: {
+      year,
+      externalUrl: FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL
+    }
+  });
 }
 
 async function upsertLaureusAward(input: {
@@ -1151,6 +1295,25 @@ async function validateGazzettaMappings(
   }
 }
 
+async function validateFifaWorldCupFairPlayMappings(
+  countryMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  const usedCountryUids = new Set(
+    FIFA_WORLD_CUP_FAIR_PLAY_RESULTS.map((item) => COUNTRY_UIDS[item.country])
+  );
+  const missingCountries = Object.entries(COUNTRY_UIDS).filter(
+    ([, uid]) => usedCountryUids.has(uid) && !countryMap.has(uid)
+  );
+
+  if (missingCountries.length) {
+    throw new Error(
+      `FIFA World Cup Fair Play seed references missing countries: ${missingCountries
+        .map(([name, uid]) => `${name}(${uid})`)
+        .join(', ')}`
+    );
+  }
+}
+
 async function seedTeamHonorRules() {
   for (const rule of TEAM_HONOR_RULES) {
     await prisma.teamHonorRule.upsert({
@@ -1228,6 +1391,31 @@ async function seedTeamHonorRules() {
       }
     });
   }
+
+  await prisma.teamHonorRule.upsert({
+    where: { code: 'COUNTRY_FAIR_PLAY' },
+    create: {
+      code: 'COUNTRY_FAIR_PLAY',
+      name: '国家队公平竞赛奖',
+      targetType: AwardTargetType.COUNTRY,
+      category: '公平竞赛奖',
+      baseScore: 1,
+      coefficient: 1,
+      enabled: true,
+      sortOrder: 20200,
+      remark: '世界杯、洲际杯等官方公平竞赛奖。'
+    },
+    update: {
+      name: '国家队公平竞赛奖',
+      targetType: AwardTargetType.COUNTRY,
+      category: '公平竞赛奖',
+      baseScore: 1,
+      coefficient: 1,
+      enabled: true,
+      sortOrder: 20200,
+      remark: '世界杯、洲际杯等官方公平竞赛奖。'
+    }
+  });
 }
 
 main()

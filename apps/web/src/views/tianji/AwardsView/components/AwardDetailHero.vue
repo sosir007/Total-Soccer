@@ -12,6 +12,7 @@ import {
   getLifecycleStatusLabel,
   getLifecycleStatusVariant
 } from '@/utils/tag-theme';
+import IconFont from '@/components/IconFont.vue';
 
 defineProps<{
   award: AwardDetail;
@@ -19,6 +20,11 @@ defineProps<{
   targetTypeLabels: Record<AwardTargetType, string>;
   formatScope: (award: AwardListItem | AwardDetail) => string;
   externalUrl: string;
+}>();
+
+const emit = defineEmits<{
+  back: [];
+  edit: [];
 }>();
 </script>
 
@@ -44,8 +50,18 @@ defineProps<{
         <SemanticTag variant="status-legend">{{ award.editions.length }} 个年份</SemanticTag>
       </div>
     </div>
-    <a class="external-text-link" :href="externalUrl" target="_blank" rel="noopener noreferrer">
-      外部链接
-    </a>
+    <div class="panel-actions">
+      <el-button @click="emit('back')">
+        <IconFont name="back" />
+        返回列表
+      </el-button>
+      <el-button type="primary" @click="emit('edit')">
+        <IconFont name="edit" />
+        编辑资料
+      </el-button>
+      <a class="external-text-link" :href="externalUrl" target="_blank" rel="noopener noreferrer">
+        外部链接
+      </a>
+    </div>
   </div>
 </template>

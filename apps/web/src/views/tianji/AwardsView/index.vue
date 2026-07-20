@@ -25,10 +25,10 @@ import type { AwardRuleItem } from '@/services/types/award-rules';
 import { fetchPlayers } from '@/services/modules/catalog';
 import type { PlayerListItem } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
-import IconFont from '@/components/IconFont.vue';
 import AwardCreateDialog from './components/AwardCreateDialog.vue';
-import AwardDetailFormPanel from './components/AwardDetailFormPanel.vue';
+import AwardDetailDialog from './components/AwardDetailDialog.vue';
 import AwardDetailHero from './components/AwardDetailHero.vue';
+import AwardInfoPanel from './components/AwardInfoPanel.vue';
 import AwardEditionDialog from './components/AwardEditionDialog.vue';
 import AwardEditionsPanel from './components/AwardEditionsPanel.vue';
 import AwardFilterPanel from './components/AwardFilterPanel.vue';
@@ -90,6 +90,7 @@ const savingDetail = ref(false);
 const editionSaving = ref(false);
 const playersLoading = ref(false);
 const createDialogVisible = ref(false);
+const detailDialogVisible = ref(false);
 const editionDialogVisible = ref(false);
 const errorMessage = ref('');
 const awards = ref<AwardListItem[]>([]);
@@ -319,6 +320,19 @@ async function openEditAwardDialog(row: AwardListItem) {
   createDialogVisible.value = true;
 }
 
+async function openDetailDialog() {
+  if (!selectedAward.value) {
+    return;
+  }
+
+  if (!awardRuleOptions.value.length) {
+    await loadAwardRuleOptions();
+  }
+
+  populateDetailForm();
+  detailDialogVisible.value = true;
+}
+
 async function submitAward() {
   if (!validateAwardForm(awardForm)) {
     return;
@@ -393,6 +407,7 @@ async function saveAwardDetail() {
   try {
     await updateAward(selectedAward.value.id, buildAwardPayload(detailForm));
     ElMessage.success('奖项资料已保存。');
+    detailDialogVisible.value = false;
     await loadAwards();
     await refreshSelectedAward();
   } catch (error) {
@@ -681,6 +696,14 @@ function awardExternalUrl() {
   return buildExternalUrl(selectedAward.value?.externalUrl, selectedAward.value?.name || '奖项');
 }
 
+function formatText(value?: string | number | boolean | null) {
+  if (value === undefined || value === null || value === '') {
+    return '-';
+  }
+
+  return value;
+}
+
 function playerOptionMeta(player: PlayerListItem) {
   return [player.uid, player.country?.name, player.club?.name, player.pa ? `PA ${player.pa}` : '']
     .filter(Boolean)
@@ -820,13 +843,6 @@ onMounted(() => {
     </template>
 
     <template v-else>
-      <div class="panel detail-back-panel">
-        <el-button @click="goBackToAwards">
-          <IconFont name="back" />
-          返回奖项管理
-        </el-button>
-      </div>
-
       <div v-if="errorMessage" class="panel">
         <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
       </div>
@@ -847,18 +863,16 @@ onMounted(() => {
           :target-type-labels="targetTypeLabels"
           :format-scope="formatScope"
           :external-url="awardExternalUrl()"
+          @back="goBackToAwards"
+          @edit="openDetailDialog"
         />
 
-        <AwardDetailFormPanel
-          :form="detailForm"
+        <AwardInfoPanel
           :award="selectedAward"
-          :saving="savingDetail"
-          :scope-type-options="scopeTypeOptions"
-          :target-type-options="targetTypeOptions"
-          :lifecycle-status-options="lifecycleStatusOptions"
-          :award-rule-options="awardRuleOptions"
-          :award-level-options="awardLevelOptions"
-          @save="saveAwardDetail"
+          :target-type-labels="targetTypeLabels"
+          :scope-type-labels="scopeTypeLabels"
+          :format-scope="formatScope"
+          :format-text="formatText"
         />
 
         <AwardEditionsPanel
@@ -884,6 +898,18 @@ onMounted(() => {
       :target-type-labels="targetTypeLabels"
       @search-players="searchPlayerOptions"
       @save="saveEdition"
+    />
+
+    <AwardDetailDialog
+      v-model:visible="detailDialogVisible"
+      :form="detailForm"
+      :saving="savingDetail"
+      :scope-type-options="scopeTypeOptions"
+      :target-type-options="targetTypeOptions"
+      :lifecycle-status-options="lifecycleStatusOptions"
+      :award-rule-options="awardRuleOptions"
+      :award-level-options="awardLevelOptions"
+      @save="saveAwardDetail"
     />
   </section>
 </template>
