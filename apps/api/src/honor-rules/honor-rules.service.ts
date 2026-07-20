@@ -19,6 +19,7 @@ import type {
   HonorRulePayload,
   TeamHonorRuleSummaryItem
 } from './honor-rules.types.js';
+import { EVENT_TEAM_BONUS_COMPETITION_CODES, resolveTeamBonusScore } from './team-bonus-scoring.js';
 
 interface RecalculateTargetStats {
   championCount: number;
@@ -580,6 +581,7 @@ export class HonorRulesService {
       teamRules,
       standings,
       teamAwardRecipients,
+      eventTeamBonusCompetitions,
       countryParticipation,
       clubParticipation,
       countries,
@@ -628,6 +630,7 @@ export class HonorRulesService {
               award: {
                 select: {
                   id: true,
+                  code: true,
                   scopeType: true,
                   category: true,
                   level: true,
@@ -636,6 +639,16 @@ export class HonorRulesService {
               }
             }
           }
+        }
+      }),
+      this.prisma.competition.findMany({
+        where: {
+          code: { in: EVENT_TEAM_BONUS_COMPETITION_CODES }
+        },
+        include: {
+          scopeConfederations: { select: { confederationId: true } },
+          scopeCountries: { select: { countryId: true } },
+          editions: { select: { year: true, quantity: true } }
         }
       }),
       this.getCountryParticipationStats(),
@@ -654,6 +667,9 @@ export class HonorRulesService {
     const clubStats = new Map<string, RecalculateTargetStats>();
     const countryBonusStats = new Map<string, TeamBonusStats>();
     const clubBonusStats = new Map<string, TeamBonusStats>();
+    const eventTeamBonusCompetitionMap = new Map(
+      eventTeamBonusCompetitions.map((competition) => [competition.code, competition])
+    );
     const successorMap = new Map<string, string[]>();
 
     for (const link of links) {
@@ -704,14 +720,19 @@ export class HonorRulesService {
         continue;
       }
 
-      const score = rule.baseScore * rule.coefficient;
+      const scoreDetail = resolveTeamBonusScore({
+        rule,
+        recipient,
+        honorRules: rules,
+        competitionMap: eventTeamBonusCompetitionMap
+      });
 
       if (recipient.targetType === AwardTargetType.COUNTRY && recipient.countryId) {
         const targetIds = successorMap.get(recipient.countryId) ?? [recipient.countryId];
 
         for (const targetId of targetIds) {
           const stats = countryBonusStats.get(targetId) ?? this.emptyTeamBonusStats();
-          stats.bonusHonorScore += score;
+          stats.bonusHonorScore += scoreDetail.rawScore;
           stats.bonusDetails += 1;
           countryBonusStats.set(targetId, stats);
         }
@@ -719,7 +740,7 @@ export class HonorRulesService {
 
       if (recipient.targetType === AwardTargetType.CLUB && recipient.clubId) {
         const stats = clubBonusStats.get(recipient.clubId) ?? this.emptyTeamBonusStats();
-        stats.bonusHonorScore += score;
+        stats.bonusHonorScore += scoreDetail.rawScore;
         stats.bonusDetails += 1;
         clubBonusStats.set(recipient.clubId, stats);
       }

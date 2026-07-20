@@ -19,6 +19,10 @@ import type {
   ClubListQuery,
   ClubPayload
 } from './clubs.types.js';
+import {
+  EVENT_TEAM_BONUS_COMPETITION_CODES,
+  resolveTeamBonusScore
+} from '../honor-rules/team-bonus-scoring.js';
 
 const CLUB_INCLUDE = {
   countryRef: {
@@ -613,7 +617,7 @@ export class ClubsService {
   }
 
   private async getClubBonusHonorDetailMap(clubIds?: string[]) {
-    const [rules, recipients] = await Promise.all([
+    const [rules, recipients, honorRules, eventTeamBonusCompetitions] = await Promise.all([
       this.prisma.teamHonorRule.findMany({
         where: { targetType: AwardTargetType.CLUB, enabled: true },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
@@ -629,6 +633,7 @@ export class ClubsService {
               award: {
                 select: {
                   id: true,
+                  code: true,
                   name: true,
                   scopeType: true,
                   category: true,
@@ -639,9 +644,26 @@ export class ClubsService {
           }
         },
         orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }]
+      }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true, isSystem: true },
+        include: { coefficients: true }
+      }),
+      this.prisma.competition.findMany({
+        where: {
+          code: { in: EVENT_TEAM_BONUS_COMPETITION_CODES }
+        },
+        include: {
+          scopeConfederations: { select: { confederationId: true } },
+          scopeCountries: { select: { countryId: true } },
+          editions: { select: { year: true, quantity: true } }
+        }
       })
     ]);
     const detailMap = new Map<string, TeamBonusHonorDetail[]>();
+    const eventTeamBonusCompetitionMap = new Map(
+      eventTeamBonusCompetitions.map((competition) => [competition.code, competition])
+    );
 
     for (const recipient of recipients) {
       if (!recipient.clubId) {
@@ -660,6 +682,12 @@ export class ClubsService {
         continue;
       }
 
+      const scoreDetail = resolveTeamBonusScore({
+        rule,
+        recipient,
+        honorRules,
+        competitionMap: eventTeamBonusCompetitionMap
+      });
       const detail: TeamBonusHonorDetail = {
         id: recipient.id,
         awardId: recipient.edition.award.id,
@@ -669,9 +697,9 @@ export class ClubsService {
         season: recipient.edition.season,
         rank: recipient.rank,
         placement: recipient.placement,
-        score: this.round(rule.baseScore * rule.coefficient),
-        baseScore: rule.baseScore,
-        coefficient: rule.coefficient,
+        score: scoreDetail.score,
+        baseScore: scoreDetail.baseScore,
+        coefficient: scoreDetail.coefficient,
         ruleName: rule.name,
         externalUrl: recipient.externalUrl ?? recipient.edition.externalUrl,
         remark: recipient.remark

@@ -19,6 +19,10 @@ import type {
   CountryListQuery,
   CountryPayload
 } from './countries.types.js';
+import {
+  EVENT_TEAM_BONUS_COMPETITION_CODES,
+  resolveTeamBonusScore
+} from '../honor-rules/team-bonus-scoring.js';
 
 const COUNTRY_REF_SELECT = {
   id: true,
@@ -677,7 +681,7 @@ export class CountriesService {
       sourceTargetMap.set(link.historicalCountryId, targetIds);
     }
 
-    const [rules, recipients] = await Promise.all([
+    const [rules, recipients, honorRules, eventTeamBonusCompetitions] = await Promise.all([
       this.prisma.teamHonorRule.findMany({
         where: { targetType: AwardTargetType.COUNTRY, enabled: true },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
@@ -699,6 +703,7 @@ export class CountriesService {
               award: {
                 select: {
                   id: true,
+                  code: true,
                   name: true,
                   scopeType: true,
                   category: true,
@@ -709,9 +714,26 @@ export class CountriesService {
           }
         },
         orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }]
+      }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true, isSystem: true },
+        include: { coefficients: true }
+      }),
+      this.prisma.competition.findMany({
+        where: {
+          code: { in: EVENT_TEAM_BONUS_COMPETITION_CODES }
+        },
+        include: {
+          scopeConfederations: { select: { confederationId: true } },
+          scopeCountries: { select: { countryId: true } },
+          editions: { select: { year: true, quantity: true } }
+        }
       })
     ]);
     const detailMap = new Map<string, TeamBonusHonorDetail[]>();
+    const eventTeamBonusCompetitionMap = new Map(
+      eventTeamBonusCompetitions.map((competition) => [competition.code, competition])
+    );
 
     for (const recipient of recipients) {
       if (!recipient.countryId) {
@@ -731,6 +753,12 @@ export class CountriesService {
       }
 
       const targetIds = sourceTargetMap.get(recipient.countryId) ?? [recipient.countryId];
+      const scoreDetail = resolveTeamBonusScore({
+        rule,
+        recipient,
+        honorRules,
+        competitionMap: eventTeamBonusCompetitionMap
+      });
 
       for (const targetId of targetIds) {
         const detail: TeamBonusHonorDetail = {
@@ -742,9 +770,9 @@ export class CountriesService {
           season: recipient.edition.season,
           rank: recipient.rank,
           placement: recipient.placement,
-          score: this.round(rule.baseScore * rule.coefficient),
-          baseScore: rule.baseScore,
-          coefficient: rule.coefficient,
+          score: scoreDetail.score,
+          baseScore: scoreDetail.baseScore,
+          coefficient: scoreDetail.coefficient,
           ruleName: rule.name,
           externalUrl: recipient.externalUrl ?? recipient.edition.externalUrl,
           remark: recipient.remark,

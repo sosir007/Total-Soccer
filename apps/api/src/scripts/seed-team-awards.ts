@@ -24,6 +24,12 @@ const GAZZETTA_EXTERNAL_URL = 'https://en.wikipedia.org/wiki/Gazzetta_Sports_Awa
 const FIFA_WORLD_CUP_FAIR_PLAY_AWARD_CODE = 'FIFA_WORLD_CUP_FAIR_PLAY_TROPHY';
 const FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/FIFA_World_Cup_Fair_Play_Trophy';
+const FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_AWARD_CODE = 'FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_TROPHY';
+const FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/FIFA_Confederations_Cup_records_and_statistics#Awards';
+const COPA_AMERICA_FAIR_PLAY_AWARD_CODE = 'COPA_AMERICA_FAIR_PLAY_AWARD';
+const COPA_AMERICA_FAIR_PLAY_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica_awards#Fair_Play_Award';
 
 const CLUB_UIDS = {
   Roma: '1100',
@@ -85,7 +91,10 @@ const COUNTRY_UIDS = {
   Peru: '1656',
   England: '765',
   Belgium: '757',
-  Colombia: '1653'
+  Colombia: '1653',
+  'South Africa': '45',
+  Japan: '116',
+  Uruguay: '1657'
 } satisfies Record<string, string>;
 
 const IFFHS_RESULTS: Array<{
@@ -382,6 +391,34 @@ const FIFA_WORLD_CUP_FAIR_PLAY_RESULTS: Array<{
   }
 ];
 
+const FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_RESULTS: Array<{
+  year: number;
+  country: keyof typeof COUNTRY_UIDS;
+  name: string;
+}> = [
+  { year: 1997, country: 'South Africa', name: 'South Africa national football team' },
+  { year: 1999, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 2001, country: 'Japan', name: 'Japan national football team' },
+  { year: 2003, country: 'Japan', name: 'Japan national football team' },
+  { year: 2005, country: 'Greece', name: 'Greece national football team' },
+  { year: 2009, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 2013, country: 'Spain', name: 'Spain national football team' },
+  { year: 2017, country: 'Germany', name: 'Germany national football team' }
+];
+
+const COPA_AMERICA_FAIR_PLAY_RESULTS: Array<{
+  year: number;
+  country: keyof typeof COUNTRY_UIDS;
+  name: string;
+}> = [
+  { year: 2011, country: 'Uruguay', name: 'Uruguay national football team' },
+  { year: 2015, country: 'Peru', name: 'Peru national football team' },
+  { year: 2016, country: 'Argentina', name: 'Argentina national football team' },
+  { year: 2019, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 2021, country: 'Brazil', name: 'Brazil national football team' },
+  { year: 2024, country: 'Colombia', name: 'Colombia national football team' }
+];
+
 async function main() {
   if (requestedCode && !shouldRunSeed(requestedCode)) {
     console.log(`No team-award seed matched: ${requestedCode}`);
@@ -409,6 +446,18 @@ async function main() {
 
   if (shouldRunFifaWorldCupFairPlaySeed()) {
     await validateFifaWorldCupFairPlayMappings(countryMap);
+  }
+
+  if (shouldRunFifaConfederationsCupFairPlaySeed()) {
+    await validateFifaConfederationsCupFairPlayMappings(countryMap);
+  }
+
+  const conmebolConfederation = shouldRunCopaAmericaFairPlaySeed()
+    ? await findConmebolConfederation()
+    : null;
+
+  if (shouldRunCopaAmericaFairPlaySeed()) {
+    await validateCopaAmericaFairPlayMappings(countryMap);
   }
 
   if ((validateData || validateOnly) && shouldRunIffhsSeed()) {
@@ -467,6 +516,26 @@ async function main() {
     );
   }
 
+  if ((validateData || validateOnly) && shouldRunFifaConfederationsCupFairPlaySeed()) {
+    console.log(
+      `FIFA Confederations Cup Fair Play data rows: ${FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_RESULTS.length}`
+    );
+    console.log(
+      `FIFA Confederations Cup Fair Play years: ${
+        new Set(FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_RESULTS.map((item) => item.year)).size
+      }`
+    );
+  }
+
+  if ((validateData || validateOnly) && shouldRunCopaAmericaFairPlaySeed()) {
+    console.log(`Copa America Fair Play data rows: ${COPA_AMERICA_FAIR_PLAY_RESULTS.length}`);
+    console.log(
+      `Copa America Fair Play years: ${
+        new Set(COPA_AMERICA_FAIR_PLAY_RESULTS.map((item) => item.year)).size
+      }`
+    );
+  }
+
   if (validateOnly || validateData) {
     return;
   }
@@ -491,6 +560,14 @@ async function main() {
   if (shouldRunFifaWorldCupFairPlaySeed()) {
     await seedFifaWorldCupFairPlayTrophy(countryMap);
   }
+
+  if (shouldRunFifaConfederationsCupFairPlaySeed()) {
+    await seedFifaConfederationsCupFairPlayTrophy(countryMap);
+  }
+
+  if (shouldRunCopaAmericaFairPlaySeed()) {
+    await seedCopaAmericaFairPlayAward(countryMap, conmebolConfederation!.id);
+  }
 }
 
 function shouldRunSeed(code: string) {
@@ -506,7 +583,10 @@ function shouldRunSeed(code: string) {
     'gazzetta-world-team-of-the-year-country',
     'gazzetta-world-team-of-the-year-club',
     'fifa-world-cup-fair-play-trophy',
-    'world-cup-fair-play-trophy'
+    'world-cup-fair-play-trophy',
+    'fifa-confederations-cup-fair-play-trophy',
+    'confederations-cup-fair-play-trophy',
+    'copa-america-fair-play-award'
   ].includes(code);
 }
 
@@ -579,6 +659,18 @@ function shouldRunFifaWorldCupFairPlaySeed() {
     requestedCode === 'fifa-world-cup-fair-play-trophy' ||
     requestedCode === 'world-cup-fair-play-trophy'
   );
+}
+
+function shouldRunFifaConfederationsCupFairPlaySeed() {
+  return (
+    !requestedCode ||
+    requestedCode === 'fifa-confederations-cup-fair-play-trophy' ||
+    requestedCode === 'confederations-cup-fair-play-trophy'
+  );
+}
+
+function shouldRunCopaAmericaFairPlaySeed() {
+  return !requestedCode || requestedCode === 'copa-america-fair-play-award';
 }
 
 function shouldRunLaureusCountrySeed() {
@@ -926,6 +1018,169 @@ async function upsertFifaWorldCupFairPlayEdition(awardId: string, year: number) 
     update: {
       year,
       externalUrl: FIFA_WORLD_CUP_FAIR_PLAY_EXTERNAL_URL
+    }
+  });
+}
+
+async function seedFifaConfederationsCupFairPlayTrophy(
+  countryMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  const award = await upsertFifaConfederationsCupFairPlayAward();
+
+  for (const item of FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_RESULTS) {
+    const edition = await upsertFifaConfederationsCupFairPlayEdition(award.id, item.year);
+
+    await prisma.awardRecipient.deleteMany({ where: { editionId: edition.id } });
+    await prisma.awardRecipient.create({
+      data: {
+        editionId: edition.id,
+        targetType: AwardTargetType.COUNTRY,
+        countryId: countryMap.get(COUNTRY_UIDS[item.country])!.id,
+        placement: '获奖',
+        remark: item.name
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_AWARD_CODE}: ${FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_RESULTS.length} recipients.`
+  );
+}
+
+async function upsertFifaConfederationsCupFairPlayAward() {
+  return prisma.award.upsert({
+    where: { code: FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_AWARD_CODE },
+    create: {
+      code: FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_AWARD_CODE,
+      name: '国际足联联合会杯公平竞赛奖',
+      externalUrl: FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_EXTERNAL_URL,
+      targetType: AwardTargetType.COUNTRY,
+      scopeType: AwardScopeType.WORLD,
+      category: '公平竞赛奖',
+      level: '团队附加分',
+      description:
+        '国际足联联合会杯官方团队公平竞赛奖，只录获奖国家队。常用名：联合会杯公平竞赛奖、FIFA Confederations Cup Fair Play Award。',
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 10310
+    },
+    update: {
+      name: '国际足联联合会杯公平竞赛奖',
+      externalUrl: FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_EXTERNAL_URL,
+      targetType: AwardTargetType.COUNTRY,
+      scopeType: AwardScopeType.WORLD,
+      category: '公平竞赛奖',
+      level: '团队附加分',
+      description:
+        '国际足联联合会杯官方团队公平竞赛奖，只录获奖国家队。常用名：联合会杯公平竞赛奖、FIFA Confederations Cup Fair Play Award。',
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 10310
+    }
+  });
+}
+
+async function upsertFifaConfederationsCupFairPlayEdition(awardId: string, year: number) {
+  return prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId,
+        name: `${year}年`
+      }
+    },
+    create: {
+      awardId,
+      name: `${year}年`,
+      year,
+      externalUrl: FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_EXTERNAL_URL
+    },
+    update: {
+      year,
+      externalUrl: FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_EXTERNAL_URL
+    }
+  });
+}
+
+async function seedCopaAmericaFairPlayAward(
+  countryMap: Map<string, { id: string; uid: string; name: string }>,
+  conmebolConfederationId: string
+) {
+  const award = await upsertCopaAmericaFairPlayAward(conmebolConfederationId);
+
+  for (const item of COPA_AMERICA_FAIR_PLAY_RESULTS) {
+    const edition = await upsertCopaAmericaFairPlayEdition(award.id, item.year);
+
+    await prisma.awardRecipient.deleteMany({ where: { editionId: edition.id } });
+    await prisma.awardRecipient.create({
+      data: {
+        editionId: edition.id,
+        targetType: AwardTargetType.COUNTRY,
+        countryId: countryMap.get(COUNTRY_UIDS[item.country])!.id,
+        placement: '获奖',
+        remark: item.name
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${COPA_AMERICA_FAIR_PLAY_AWARD_CODE}: ${COPA_AMERICA_FAIR_PLAY_RESULTS.length} recipients.`
+  );
+}
+
+async function upsertCopaAmericaFairPlayAward(conmebolConfederationId: string) {
+  return prisma.award.upsert({
+    where: { code: COPA_AMERICA_FAIR_PLAY_AWARD_CODE },
+    create: {
+      code: COPA_AMERICA_FAIR_PLAY_AWARD_CODE,
+      name: '南美足联美洲杯公平竞赛奖',
+      externalUrl: COPA_AMERICA_FAIR_PLAY_EXTERNAL_URL,
+      targetType: AwardTargetType.COUNTRY,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '公平竞赛奖',
+      level: '团队附加分',
+      description:
+        '南美足联美洲杯官方团队公平竞赛奖，只录获奖国家队。按美洲杯赛事完整质量换算系数计入附加分。',
+      confederationId: conmebolConfederationId,
+      countryId: null,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 10320
+    },
+    update: {
+      name: '南美足联美洲杯公平竞赛奖',
+      externalUrl: COPA_AMERICA_FAIR_PLAY_EXTERNAL_URL,
+      targetType: AwardTargetType.COUNTRY,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '公平竞赛奖',
+      level: '团队附加分',
+      description:
+        '南美足联美洲杯官方团队公平竞赛奖，只录获奖国家队。按美洲杯赛事完整质量换算系数计入附加分。',
+      confederationId: conmebolConfederationId,
+      countryId: null,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 10320
+    }
+  });
+}
+
+async function upsertCopaAmericaFairPlayEdition(awardId: string, year: number) {
+  return prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId,
+        name: `${year}年`
+      }
+    },
+    create: {
+      awardId,
+      name: `${year}年`,
+      year,
+      externalUrl: COPA_AMERICA_FAIR_PLAY_EXTERNAL_URL
+    },
+    update: {
+      year,
+      externalUrl: COPA_AMERICA_FAIR_PLAY_EXTERNAL_URL
     }
   });
 }
@@ -1312,6 +1567,61 @@ async function validateFifaWorldCupFairPlayMappings(
         .join(', ')}`
     );
   }
+}
+
+async function validateFifaConfederationsCupFairPlayMappings(
+  countryMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  const usedCountryUids = new Set(
+    FIFA_CONFEDERATIONS_CUP_FAIR_PLAY_RESULTS.map((item) => COUNTRY_UIDS[item.country])
+  );
+  const missingCountries = Object.entries(COUNTRY_UIDS).filter(
+    ([, uid]) => usedCountryUids.has(uid) && !countryMap.has(uid)
+  );
+
+  if (missingCountries.length) {
+    throw new Error(
+      `FIFA Confederations Cup Fair Play seed references missing countries: ${missingCountries
+        .map(([name, uid]) => `${name}(${uid})`)
+        .join(', ')}`
+    );
+  }
+}
+
+async function validateCopaAmericaFairPlayMappings(
+  countryMap: Map<string, { id: string; uid: string; name: string }>
+) {
+  const usedCountryUids = new Set(
+    COPA_AMERICA_FAIR_PLAY_RESULTS.map((item) => COUNTRY_UIDS[item.country])
+  );
+  const missingCountries = Object.entries(COUNTRY_UIDS).filter(
+    ([, uid]) => usedCountryUids.has(uid) && !countryMap.has(uid)
+  );
+
+  if (missingCountries.length) {
+    throw new Error(
+      `Copa America Fair Play seed references missing countries: ${missingCountries
+        .map(([name, uid]) => `${name}(${uid})`)
+        .join(', ')}`
+    );
+  }
+}
+
+async function findConmebolConfederation() {
+  const confederation = await prisma.confederation.findFirst({
+    where: {
+      OR: [{ code: 'CONMEBOL' }, { name: '南美足联' }]
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!confederation) {
+    throw new Error('Confederation not found: CONMEBOL / 南美足联');
+  }
+
+  return confederation;
 }
 
 async function seedTeamHonorRules() {
