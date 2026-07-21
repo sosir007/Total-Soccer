@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import CareerTimelineContent from '@/components/CareerTimelineContent.vue';
+import DetailHero from '@/components/DetailHero.vue';
+import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
 import IconFont from '@/components/IconFont.vue';
 import LineupBoardContent from '@/components/LineupBoardContent.vue';
 import SectionCard from '@/components/SectionCard.vue';
@@ -11,7 +13,6 @@ import ClubBasicInfoContent from './ClubBasicInfoContent.vue';
 import ClubDatabaseStatsContent from './ClubDatabaseStatsContent.vue';
 import ClubHonorDetailsContent from './ClubHonorDetailsContent.vue';
 import ClubSeasonLinksContent from './ClubSeasonLinksContent.vue';
-import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
 
 const props = defineProps<{
   club: ClubDetail;
@@ -52,18 +53,13 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 </script>
 
 <template>
-  <div class="panel player-detail-hero">
-    <div>
-      <div class="detail-kicker">{{ formatRef(club.federationRef) }}</div>
-      <a
-        class="external-title-link"
-        :href="clubExternalUrl()"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <h2>{{ club.name }}</h2>
-      </a>
-      <p>UID {{ club.uid }}</p>
+  <DetailHero
+    :kicker="formatRef(club.federationRef)"
+    :title="club.name"
+    :subtitle="`UID ${club.uid}`"
+    :external-url="clubExternalUrl()"
+  >
+    <template #tags>
       <div class="detail-tags">
         <SemanticTag variant="object-player">
           球员 {{ formatNumber(club.playerCount) }}
@@ -73,8 +69,9 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
           荣誉分 {{ formatNumber(club.honorScore, 2) }}
         </SemanticTag>
       </div>
-    </div>
-    <div class="panel-actions">
+    </template>
+
+    <template #actions>
       <el-button type="primary" @click="emit('edit')">
         <IconFont name="edit" />
         编辑
@@ -83,8 +80,8 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
         <IconFont name="back" />
         返回列表
       </el-button>
-    </div>
-  </div>
+    </template>
+  </DetailHero>
 
   <div class="metric-grid">
     <div class="metric-card">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CareerTimelineContent from '@/components/CareerTimelineContent.vue';
+import DetailHero from '@/components/DetailHero.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
 import IconFont from '@/components/IconFont.vue';
@@ -47,18 +48,13 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 </script>
 
 <template>
-  <div class="panel player-detail-hero">
-    <div>
-      <div class="detail-kicker">{{ formatRef(country.federationRef) }}</div>
-      <a
-        class="external-title-link"
-        :href="countryExternalUrl()"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <h2>{{ country.name }}</h2>
-      </a>
-      <p>UID {{ country.uid }}</p>
+  <DetailHero
+    :kicker="formatRef(country.federationRef)"
+    :title="country.name"
+    :subtitle="`UID ${country.uid}`"
+    :external-url="countryExternalUrl()"
+  >
+    <template #tags>
       <div class="detail-tags">
         <SemanticTag variant="object-player">
           球员 {{ formatNumber(country.playerCount) }}
@@ -70,8 +66,9 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
           荣誉分 {{ formatNumber(country.honorScore, 2) }}
         </SemanticTag>
       </div>
-    </div>
-    <div class="panel-actions">
+    </template>
+
+    <template #actions>
       <el-button type="primary" @click="emit('edit')">
         <IconFont name="edit" />
         编辑
@@ -80,8 +77,8 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
         <IconFont name="back" />
         返回列表
       </el-button>
-    </div>
-  </div>
+    </template>
+  </DetailHero>
 
   <div class="metric-grid">
     <div class="metric-card">

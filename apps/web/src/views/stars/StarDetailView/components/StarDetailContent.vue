@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AbilityBadge from '@/components/AbilityBadge.vue';
+import DetailHero from '@/components/DetailHero.vue';
 import IconFont from '@/components/IconFont.vue';
 import SectionCard from '@/components/SectionCard.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
@@ -43,18 +44,13 @@ function playerExternalUrl() {
 
 <template>
   <template v-if="player">
-    <div class="panel player-detail-hero">
-      <div>
-        <div class="detail-kicker">{{ formatRef(player.confederationRef) }}</div>
-        <a
-          class="external-title-link"
-          :href="playerExternalUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>{{ player.chineseName }}</h2>
-        </a>
-        <p>{{ player.englishName || player.uid }}</p>
+    <DetailHero
+      :kicker="formatRef(player.confederationRef)"
+      :title="player.chineseName"
+      :subtitle="player.englishName || player.uid"
+      :external-url="playerExternalUrl()"
+    >
+      <template #tags>
         <div class="detail-tags">
           <AbilityBadge type="PA" :value="player.pa" />
           <AbilityBadge type="CA" :value="player.ca" />
@@ -66,8 +62,9 @@ function playerExternalUrl() {
             {{ getPlayerStatusLabel(player) }}
           </SemanticTag>
         </div>
-      </div>
-      <div class="panel-actions">
+      </template>
+
+      <template #actions>
         <el-button type="primary" @click="emit('edit')">
           <IconFont name="edit" />
           编辑资料
@@ -80,8 +77,8 @@ function playerExternalUrl() {
           <IconFont name="back" />
           返回列表
         </el-button>
-      </div>
-    </div>
+      </template>
+    </DetailHero>
 
     <div class="detail-grid">
       <SectionCard title="基础资料" :badge="`UID ${player.uid}`">

@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus';
 import { fetchCountryDetail } from '@/services/modules/catalog';
 import type { CountryDetail } from '@/services/types/catalog';
 import IconFont from '@/components/IconFont.vue';
+import PageStatePanel from '@/components/PageStatePanel.vue';
 import CountryFormDialog from '@/components/catalog/CountryFormDialog.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import NationDetailContent from './components/NationDetailContent.vue';
@@ -81,22 +82,23 @@ onMounted(() => {
 
 <template>
   <section class="page-stack">
-    <div v-if="!countryId" class="panel empty-panel">
-      <h3>请选择国家</h3>
-      <p>从国家概览进入详情，可以查看国家队基础统计和荣誉摘要。</p>
-      <el-button type="primary" @click="backToList">
-        <IconFont name="back" />
-        返回国家概览
-      </el-button>
-    </div>
+    <PageStatePanel
+      v-if="!countryId"
+      title="请选择国家"
+      description="从国家概览进入详情，可以查看国家队基础统计和荣誉摘要。"
+    >
+      <template #actions>
+        <el-button type="primary" @click="backToList">
+          <IconFont name="back" />
+          返回国家概览
+        </el-button>
+      </template>
+    </PageStatePanel>
 
-    <div v-else-if="loading" class="panel">
-      <el-skeleton :rows="10" animated />
-    </div>
+    <PageStatePanel v-else-if="loading" type="loading" />
 
-    <div v-else-if="errorMessage" class="panel">
-      <el-alert type="error" :title="errorMessage" show-icon :closable="false" />
-      <div class="detail-actions">
+    <PageStatePanel v-else-if="errorMessage" type="error" :title="errorMessage">
+      <template #actions>
         <el-button @click="backToList">
           <IconFont name="back" />
           返回国家概览
@@ -105,8 +107,8 @@ onMounted(() => {
           <IconFont name="refresh" />
           重试
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageStatePanel>
 
     <template v-else-if="country">
       <NationDetailContent
