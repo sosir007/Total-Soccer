@@ -14,6 +14,22 @@ import {
 
 const prisma = new PrismaClient();
 
+function getConfederationsCupEditionUrl(year: number) {
+  if (year === 1992 || year === 1995) {
+    return `https://en.wikipedia.org/wiki/${year}_King_Fahd_Cup`;
+  }
+
+  return `https://en.wikipedia.org/wiki/${year}_FIFA_Confederations_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Confederations Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -55,7 +71,10 @@ async function main() {
         sortOrder: 1
       }
     },
-    editions: CONFEDERATIONS_CUP_RESULTS,
+    editions: CONFEDERATIONS_CUP_RESULTS.map((result) => ({
+      ...result,
+      externalUrl: getConfederationsCupEditionUrl(getResultYear(result.year))
+    })),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 10,

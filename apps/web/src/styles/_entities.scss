@@ -94,8 +94,12 @@
 }
 
 .external-text-link {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   color: var(--color-brand-primary);
   font-weight: 800;
+  vertical-align: top;
 }
 
 .external-text-link:hover {
@@ -138,6 +142,7 @@
   margin: 0;
   color: var(--text-color-regular);
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .career-timeline {
@@ -283,4 +288,3 @@
   min-height: 34px;
   color: var(--text-color-secondary);
 }
-

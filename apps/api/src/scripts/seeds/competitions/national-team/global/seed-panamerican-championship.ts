@@ -14,6 +14,18 @@ import {
 
 const prisma = new PrismaClient();
 
+function getPanamericanChampionshipEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_Panamerican_Championship`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Panamerican Championship edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -56,7 +68,10 @@ async function main() {
         sortOrder: 3
       }
     },
-    editions: PANAMERICAN_CHAMPIONSHIP_RESULTS,
+    editions: PANAMERICAN_CHAMPIONSHIP_RESULTS.map((result) => ({
+      ...result,
+      externalUrl: getPanamericanChampionshipEditionUrl(getResultYear(result.year))
+    })),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 3,

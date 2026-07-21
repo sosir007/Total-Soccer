@@ -98,6 +98,7 @@ defineProps<{
 .competition-info-item {
   display: grid;
   gap: 8px;
+  min-width: 0;
   min-height: 78px;
   padding: 14px;
   border: 1px solid var(--color-border-brand-subtle);
@@ -111,6 +112,8 @@ defineProps<{
   }
 
   strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
     color: var(--text-color-primary);
     font-size: 16px;
     line-height: 1.45;

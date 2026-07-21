@@ -13,6 +13,22 @@ import {
 
 const prisma = new PrismaClient();
 
+function getOlympicMensFootballEditionUrl(year: number) {
+  if (year >= 1996) {
+    return `https://en.wikipedia.org/wiki/Football_at_the_${year}_Summer_Olympics_%E2%80%93_Men%27s_tournament`;
+  }
+
+  return `https://en.wikipedia.org/wiki/Football_at_the_${year}_Summer_Olympics`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Olympic men football edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -53,7 +69,12 @@ async function main() {
         sortOrder: 2
       }
     },
-    editions: withStandingMode(OLYMPIC_RESULTS),
+    editions: withStandingMode(
+      OLYMPIC_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getOlympicMensFootballEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 26,
