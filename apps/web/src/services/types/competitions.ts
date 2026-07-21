@@ -83,6 +83,7 @@ export interface CompetitionEdition {
   quantity?: number | null;
   standingMode: CompetitionEditionStandingMode;
   host?: string | null;
+  externalUrl?: string | null;
   remark?: string | null;
   standings: CompetitionStanding[];
 }
@@ -119,6 +120,7 @@ export interface CreateCompetitionEditionPayload {
   quantity?: number;
   standingMode?: CompetitionEditionStandingMode;
   host?: string;
+  externalUrl?: string;
   remark?: string;
 }
 

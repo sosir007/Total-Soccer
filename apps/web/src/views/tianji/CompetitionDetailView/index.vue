@@ -297,6 +297,7 @@ async function saveResultRows() {
         quantity: row.quantity,
         standingMode: row.standingMode,
         host: row.host.trim() || undefined,
+        externalUrl: row.externalUrl.trim() || undefined,
         remark: row.remark.trim() || undefined
       };
       const edition = row.id
@@ -430,6 +431,7 @@ function createBlankEditionRow(standingMode?: CompetitionEditionStandingMode): E
     quantity: undefined,
     standingMode: standingMode ?? getDefaultStandingMode(),
     host: '',
+    externalUrl: '',
     remark: '',
     standings: createEmptyStandingForm(),
     locked: false
@@ -458,6 +460,7 @@ function mapEditionToRow(edition: CompetitionEdition): EditionRow {
     quantity: edition.quantity ?? undefined,
     standingMode: edition.standingMode ?? 'THIRD_PLACE_MATCH',
     host: edition.host ?? '',
+    externalUrl: edition.externalUrl ?? '',
     remark: edition.remark ?? '',
     standings,
     locked: edition.standings.length > 0

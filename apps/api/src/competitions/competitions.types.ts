@@ -49,6 +49,7 @@ export interface CreateCompetitionEditionBody {
   quantity?: number;
   standingMode?: CompetitionEditionStandingMode;
   host?: string;
+  externalUrl?: string;
   remark?: string;
 }
 

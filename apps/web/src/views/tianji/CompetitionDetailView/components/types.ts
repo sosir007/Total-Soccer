@@ -25,6 +25,7 @@ export interface EditionRow {
   quantity: number | undefined;
   standingMode: CompetitionEditionStandingMode;
   host: string;
+  externalUrl: string;
   remark: string;
   standings: StandingForm;
   locked: boolean;

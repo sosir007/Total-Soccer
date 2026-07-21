@@ -156,6 +156,7 @@ type HonorSummaryCounts = {
       year: number | null;
       season: string | null;
       host: string | null;
+      externalUrl: string | null;
       competitionId: string;
       competitionName: string;
       score: number;
@@ -889,6 +890,7 @@ export class ClubsService {
             year: number | null;
             season: string | null;
             host: string | null;
+            externalUrl: string | null;
           }>
         >;
       }
@@ -904,6 +906,7 @@ export class ClubsService {
           year: number | null;
           season: string | null;
           host: string | null;
+          externalUrl: string | null;
         }>()
       };
       group.placements[record.placement].push({
@@ -911,7 +914,8 @@ export class ClubsService {
         label: this.formatHonorEntryLabel(record.edition),
         year: record.edition.year,
         season: record.edition.season,
-        host: record.edition.host
+        host: record.edition.host,
+        externalUrl: record.edition.externalUrl
       });
       groupMap.set(competition.id, group);
     }
@@ -1019,6 +1023,7 @@ export class ClubsService {
       year: record.edition.year,
       season: record.edition.season,
       host: record.edition.host,
+      externalUrl: record.edition.externalUrl,
       competitionId,
       competitionName: record.edition.competition.name,
       score: scoreDetail.score,
@@ -1048,6 +1053,7 @@ export class ClubsService {
         year: number | null;
         season: string | null;
         host: string | null;
+        externalUrl: string | null;
         competitionId: string;
         competitionName: string;
         score: number;
@@ -1631,6 +1637,7 @@ export class ClubsService {
         season: item.edition.season,
         year: item.edition.year,
         host: item.edition.host,
+        externalUrl: item.edition.externalUrl,
         remark: item.edition.remark
       },
       standings: this.mapClubStandingSummary(item.edition.standings)

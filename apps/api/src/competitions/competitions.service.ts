@@ -504,6 +504,7 @@ export class CompetitionsService {
         body.standingMode ?? CompetitionEditionStandingMode.THIRD_PLACE_MATCH
       ),
       host: this.toNullableString(body.host),
+      externalUrl: this.toNullableString(body.externalUrl),
       remark: this.toNullableString(body.remark)
     } satisfies Prisma.CompetitionEditionCreateInput;
   }
@@ -518,6 +519,9 @@ export class CompetitionsService {
         ? { standingMode: this.parseStandingMode(body.standingMode) }
         : {}),
       ...(body.host !== undefined ? { host: this.toNullableString(body.host) } : {}),
+      ...(body.externalUrl !== undefined
+        ? { externalUrl: this.toNullableString(body.externalUrl) }
+        : {}),
       ...(body.remark !== undefined ? { remark: this.toNullableString(body.remark) } : {})
     } satisfies Prisma.CompetitionEditionUpdateInput;
   }

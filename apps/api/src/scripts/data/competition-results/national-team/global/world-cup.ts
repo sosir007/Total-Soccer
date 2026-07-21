@@ -26,14 +26,20 @@ export const WORLD_CUP_METADATA: CompetitionDataMetadata = {
       label: 'FIFA World Cup records and statistics - Wikipedia',
       url: 'https://en.wikipedia.org/wiki/FIFA_World_Cup_records_and_statistics',
       remark: '用于交叉核对历届前四名和国家历史统计口径。'
+    },
+    {
+      label: 'FIFA World Cup 2026 final tournament standings',
+      url: 'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/final-tournament-standings',
+      remark: '用于确认 2026 届最终前四名。'
     }
   ],
-  lastVerifiedAt: '2026-07-07',
+  lastVerifiedAt: '2026-07-21',
   notes: [
     '1930 没有实际三四名赛，按通用前四统计口径录入美国季军、南斯拉夫殿军。',
     '1950 为最终循环赛决出名次，按最终前四排名录入冠亚季殿。',
     '1934 起大多数届次有三四名赛，统一保存为冠军、亚军、季军、殿军。',
-    '西德继承到德国；苏联、南斯拉夫、捷克斯洛伐克等使用系统历史国家继承口径。'
+    '西德继承到德国；苏联、南斯拉夫、捷克斯洛伐克等使用系统历史国家继承口径。',
+    '2026 届按 FIFA 2026-07-20 公布的最终排名录入：西班牙冠军、阿根廷亚军、英格兰季军、法国殿军。'
   ]
 };
 
@@ -301,5 +307,6 @@ export const WORLD_CUP_RESULTS = [
   ['2010', '南非', '西班牙', '荷兰', '德国', '乌拉圭', 32],
   ['2014', '巴西', '德国', '阿根廷', '荷兰', '巴西', 32],
   ['2018', '俄罗斯', '法国', '克罗地亚', '比利时', '英格兰', 32],
-  ['2022', '卡塔尔', '阿根廷', '法国', '克罗地亚', '摩洛哥', 32]
+  ['2022', '卡塔尔', '阿根廷', '法国', '克罗地亚', '摩洛哥', 32],
+  ['2026', '加拿大、墨西哥、美国', '西班牙', '阿根廷', '英格兰', '法国', 48]
 ] as const;

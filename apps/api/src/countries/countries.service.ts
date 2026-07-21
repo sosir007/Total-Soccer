@@ -153,6 +153,7 @@ type HonorSummaryCounts = {
       year: number | null;
       season: string | null;
       host: string | null;
+      externalUrl: string | null;
       competitionId: string;
       competitionName: string;
       sourceName?: string | null;
@@ -987,6 +988,7 @@ export class CountriesService {
             year: number | null;
             season: string | null;
             host: string | null;
+            externalUrl: string | null;
             sourceName?: string | null;
           }>
         >;
@@ -1003,6 +1005,7 @@ export class CountriesService {
           year: number | null;
           season: string | null;
           host: string | null;
+          externalUrl: string | null;
           sourceName?: string | null;
         }>()
       };
@@ -1012,6 +1015,7 @@ export class CountriesService {
         year: record.edition.year,
         season: record.edition.season,
         host: record.edition.host,
+        externalUrl: record.edition.externalUrl,
         sourceName: record.countryId === targetCountryId ? null : record.country?.name
       });
       groupMap.set(competition.id, group);
@@ -1142,6 +1146,7 @@ export class CountriesService {
       year: record.edition.year,
       season: record.edition.season,
       host: record.edition.host,
+      externalUrl: record.edition.externalUrl,
       competitionId,
       competitionName: record.edition.competition.name,
       sourceName: record.countryId === targetCountryId ? null : record.country?.name,
@@ -1172,6 +1177,7 @@ export class CountriesService {
         year: number | null;
         season: string | null;
         host: string | null;
+        externalUrl: string | null;
         competitionId: string;
         competitionName: string;
         sourceName?: string | null;
@@ -1789,6 +1795,7 @@ export class CountriesService {
         season: item.edition.season,
         year: item.edition.year,
         host: item.edition.host,
+        externalUrl: item.edition.externalUrl,
         remark: item.edition.remark
       },
       standings: this.mapCountryStandingSummary(item.edition.standings)

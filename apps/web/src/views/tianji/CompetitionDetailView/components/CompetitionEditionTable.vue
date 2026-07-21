@@ -245,7 +245,19 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
       <el-table-column label="赛季" min-width="120">
-        <template #default="{ row }">{{ formatStatisticEditionLabel(row) }}</template>
+        <template #default="{ row }">
+          <a
+            v-if="row.externalUrl"
+            class="edition-link"
+            :href="row.externalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.stop
+          >
+            {{ formatStatisticEditionLabel(row) }}
+          </a>
+          <span v-else>{{ formatStatisticEditionLabel(row) }}</span>
+        </template>
       </el-table-column>
       <el-table-column prop="host" label="举办地" min-width="120" show-overflow-tooltip>
         <template #default="{ row }">{{ row.host || '-' }}</template>
@@ -351,6 +363,16 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
 
 .edition-placement-order {
   flex: 0 0 auto;
+}
+
+.edition-link {
+  color: var(--color-brand-primary);
+  font-weight: 800;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .edition-statistics {

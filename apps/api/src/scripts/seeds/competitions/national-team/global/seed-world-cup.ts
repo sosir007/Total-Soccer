@@ -54,6 +54,7 @@ async function main() {
       ([yearText, host, champion, runnerUp, thirdPlace, fourthPlace, quantity]) => ({
         year: Number(yearText),
         host,
+        externalUrl: `https://en.wikipedia.org/wiki/${yearText}_FIFA_World_Cup`,
         quantity,
         champion,
         runnerUp,
@@ -63,8 +64,8 @@ async function main() {
     ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
-      editions: 22,
-      standings: 88
+      editions: 23,
+      standings: 92
     },
     completedMessage: 'World Cup seed completed.'
   });

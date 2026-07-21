@@ -8,6 +8,7 @@ export interface HonorEditionRef {
   season?: string | null;
   year?: number | null;
   host?: string | null;
+  externalUrl?: string | null;
   remark?: string | null;
 }
 
@@ -55,6 +56,7 @@ export interface HonorSummaryDetail {
   year?: number | null;
   season?: string | null;
   host?: string | null;
+  externalUrl?: string | null;
   competitionId?: string | null;
   competitionName?: string | null;
   sourceName?: string | null;
@@ -106,6 +108,7 @@ export interface HonorGroupedPlacementEntry {
   year?: number | null;
   season?: string | null;
   host?: string | null;
+  externalUrl?: string | null;
   sourceName?: string | null;
 }
 

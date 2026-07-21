@@ -62,7 +62,17 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
                 :key="`${entry.year ?? entry.season ?? entry.label}-${entry.sourceName ?? ''}-${index}`"
               >
                 <span v-if="index > 0" class="honor-entry-separator">、</span>
-                <span class="honor-entry-year">{{ formatEntry(entry) }}</span>
+                <a
+                  v-if="entry.externalUrl"
+                  class="honor-entry-year honor-entry-link"
+                  :href="entry.externalUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  @click.stop
+                >
+                  {{ formatEntry(entry) }}
+                </a>
+                <span v-else class="honor-entry-year">{{ formatEntry(entry) }}</span>
               </template>
             </span>
           </div>
@@ -71,3 +81,15 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.honor-entry-link {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+</style>

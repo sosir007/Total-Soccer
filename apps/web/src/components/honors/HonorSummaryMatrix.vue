@@ -725,6 +725,7 @@ function getBonusScoreBreakdown(row: HonorSummaryRow): HonorScoreBreakdownGroup 
       year: detail.year,
       season: detail.season,
       host: null,
+      externalUrl: detail.externalUrl,
       competitionId: null,
       competitionName: formatAwardName(detail.awardName),
       score: detail.score,
@@ -1041,7 +1042,16 @@ function openScoreDialog(row: HonorSummaryRow) {
         >
           <el-table-column label="届次" width="110">
             <template #default="{ row }">
-              {{ formatScoreEntryEdition(row) }}
+              <a
+                v-if="row.externalUrl"
+                class="honor-score-dialog__edition-link"
+                :href="row.externalUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ formatScoreEntryEdition(row) }}
+              </a>
+              <span v-else>{{ formatScoreEntryEdition(row) }}</span>
             </template>
           </el-table-column>
           <el-table-column label="荣誉" min-width="210" show-overflow-tooltip>
@@ -1072,7 +1082,16 @@ function openScoreDialog(row: HonorSummaryRow) {
         <el-table v-else :data="group.entries" border size="small">
           <el-table-column label="届次" min-width="140">
             <template #default="{ row }">
-              {{ formatScoreEntryEdition(row) }}
+              <a
+                v-if="row.externalUrl"
+                class="honor-score-dialog__edition-link"
+                :href="row.externalUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ formatScoreEntryEdition(row) }}
+              </a>
+              <span v-else>{{ formatScoreEntryEdition(row) }}</span>
             </template>
           </el-table-column>
           <el-table-column label="名次" width="90" align="center">
@@ -1233,5 +1252,15 @@ function openScoreDialog(row: HonorSummaryRow) {
 .honor-score-dialog__placement {
   color: var(--honor-placement-color);
   font-weight: 850;
+}
+
+.honor-score-dialog__edition-link {
+  color: var(--color-brand-primary);
+  font-weight: 800;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style>

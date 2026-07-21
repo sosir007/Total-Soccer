@@ -66,6 +66,7 @@ export type SeedEdition = {
   year?: number;
   season?: string | null;
   host?: string | null;
+  externalUrl?: string | null;
   quantity?: number | null;
   standingMode?: CompetitionEditionStandingMode;
   remark?: string | null;
@@ -262,6 +263,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
         year: editionData.year ?? null,
         season: editionData.season ?? null,
         host: editionData.host ?? null,
+        externalUrl: editionData.externalUrl ?? null,
         quantity: editionData.quantity ?? null,
         standingMode,
         remark: editionData.remark ?? null
@@ -270,6 +272,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
         year: editionData.year ?? null,
         season: editionData.season ?? null,
         host: editionData.host ?? null,
+        externalUrl: editionData.externalUrl ?? null,
         quantity: editionData.quantity ?? null,
         standingMode,
         remark: editionData.remark ?? null
@@ -1309,6 +1312,7 @@ async function applyCompetitionPatches<T extends SeedCompetitionPatch>(
         year: patch.year ?? null,
         season: patch.season ?? null,
         host: patch.host ?? null,
+        externalUrl: patch.externalUrl ?? null,
         quantity: patch.quantity ?? null,
         standingMode: patch.standingMode,
         remark: patch.remark ?? null
@@ -1317,6 +1321,7 @@ async function applyCompetitionPatches<T extends SeedCompetitionPatch>(
         year: patch.year ?? null,
         season: patch.season ?? null,
         host: patch.host ?? null,
+        externalUrl: patch.externalUrl ?? null,
         quantity: patch.quantity ?? null,
         standingMode: patch.standingMode,
         remark: patch.remark ?? null

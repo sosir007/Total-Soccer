@@ -35,6 +35,11 @@
   background: var(--color-surface-default);
 }
 
+.el-dialog__body {
+  max-height: min(640px, calc(100vh - 220px));
+  overflow: auto;
+}
+
 .import-panel {
   display: grid;
   gap: 18px;
@@ -298,4 +303,3 @@
   justify-content: flex-end;
   margin-top: 16px;
 }
-
