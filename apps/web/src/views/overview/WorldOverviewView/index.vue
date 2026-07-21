@@ -7,6 +7,7 @@ import type { DashboardRankItem, WorldOverview } from '@/services/types/dashboar
 import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import NoDataView from '@/components/NoDataView.vue';
+import SectionCard from '@/components/SectionCard.vue';
 import { chartPalette } from '@/utils/tag-theme';
 
 const loading = ref(false);
@@ -256,46 +257,31 @@ onBeforeUnmount(() => {
 
       <template v-else>
         <div class="dashboard-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>PA 分布</h3>
-              <span class="status-pill">{{ formatNumber(overview.summary.playerCount) }} 人</span>
-            </div>
+          <SectionCard title="PA 分布" :badge="`${formatNumber(overview.summary.playerCount)} 人`">
             <div ref="paChartRef" class="chart-box"></div>
-          </div>
+          </SectionCard>
 
-          <div class="panel">
-            <div class="panel-header">
-              <h3>足联分布</h3>
-              <span class="status-pill">球员归属</span>
-            </div>
+          <SectionCard title="足联分布" badge="球员归属">
             <div ref="confederationChartRef" class="chart-box"></div>
-          </div>
+          </SectionCard>
 
-          <div class="panel">
-            <div class="panel-header">
-              <h3>位置分布</h3>
-              <span class="status-pill">Top 12</span>
-            </div>
+          <SectionCard title="位置分布" badge="Top 12">
             <div ref="positionChartRef" class="chart-box tall"></div>
-          </div>
+          </SectionCard>
 
-          <div class="panel">
-            <div class="panel-header">
-              <h3>球员类型</h3>
-              <span class="status-pill">字典统计</span>
-            </div>
+          <SectionCard title="球员类型" badge="字典统计">
             <div ref="playerTypeChartRef" class="chart-box tall"></div>
-          </div>
+          </SectionCard>
         </div>
 
         <div class="rank-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>国家荣誉分榜</h3>
-              <span class="status-pill">Top {{ overview.topCountries.length }}</span>
-            </div>
-            <div v-if="overview.topCountries.length" class="rank-list">
+          <SectionCard
+            title="国家荣誉分榜"
+            :badge="`Top ${overview.topCountries.length}`"
+            :empty="!overview.topCountries.length"
+            empty-text="暂无国家荣誉分数据"
+          >
+            <div class="rank-list">
               <div
                 v-for="(country, index) in overview.topCountries"
                 :key="country.id"
@@ -308,15 +294,15 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <NoDataView v-else text="暂无国家荣誉分数据" />
-          </div>
+          </SectionCard>
 
-          <div class="panel">
-            <div class="panel-header">
-              <h3>豪门荣誉分榜</h3>
-              <span class="status-pill">Top {{ overview.topClubs.length }}</span>
-            </div>
-            <div v-if="overview.topClubs.length" class="rank-list">
+          <SectionCard
+            title="豪门荣誉分榜"
+            :badge="`Top ${overview.topClubs.length}`"
+            :empty="!overview.topClubs.length"
+            empty-text="暂无豪门荣誉分数据"
+          >
+            <div class="rank-list">
               <div v-for="(club, index) in overview.topClubs" :key="club.id" class="rank-item">
                 <strong>{{ index + 1 }}</strong>
                 <div>
@@ -325,8 +311,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <NoDataView v-else text="暂无豪门荣誉分数据" />
-          </div>
+          </SectionCard>
         </div>
       </template>
     </template>

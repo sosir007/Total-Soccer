@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import AbilityBadge from '@/components/AbilityBadge.vue';
+import CareerTimelineContent from '@/components/CareerTimelineContent.vue';
 import IconFont from '@/components/IconFont.vue';
-import NoDataView from '@/components/NoDataView.vue';
-import HonorGroupList from '@/components/honors/HonorGroupList.vue';
-import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
-import OverflowTooltip from '@/components/OverflowTooltip.vue';
+import LineupBoardContent from '@/components/LineupBoardContent.vue';
+import SectionCard from '@/components/SectionCard.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
-import type {
-  CareerProfileLine,
-  ClubDetail,
-  HonorGroupedRecord,
-  LineupPositionGroup
-} from '@/services/types/catalog';
+import type { ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
+import ClubBasicInfoContent from './ClubBasicInfoContent.vue';
+import ClubDatabaseStatsContent from './ClubDatabaseStatsContent.vue';
+import ClubHonorDetailsContent from './ClubHonorDetailsContent.vue';
+import ClubSeasonLinksContent from './ClubSeasonLinksContent.vue';
+import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
 
 const props = defineProps<{
   club: ClubDetail;
@@ -26,20 +22,6 @@ const emit = defineEmits<{
   back: [];
   openPlayer: [id?: string | null];
 }>();
-
-const internationalHonorGroups = computed(() =>
-  (props.club.honorGroups ?? []).filter(isInternationalOrContinentalHonor)
-);
-const hasInternationalHonorGroups = computed(() => internationalHonorGroups.value.length > 0);
-const leftHonorGroups = computed(() =>
-  hasInternationalHonorGroups.value
-    ? (props.club.honorGroups ?? []).filter((group) => !isInternationalOrContinentalHonor(group))
-    : (props.club.honorGroups ?? [])
-);
-const hasLeftHonorContent = computed(() => leftHonorGroups.value.length > 0);
-const seasonLinkCount = computed(
-  () => props.club.seasonLinks?.reduce((total, group) => total + group.items.length, 0) ?? 0
-);
 
 function formatNumber(value?: number | null, digits = 0) {
   if (value === null || value === undefined) {
@@ -56,43 +38,16 @@ function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
 }
 
-function formatText(value?: string | number | null) {
-  return value === null || value === undefined || value === '' ? '-' : value;
-}
-
 function clubExternalUrl() {
   return buildExternalUrl(props.club.externalUrl, props.club.name || '俱乐部');
 }
 
-function formatLineStats(item: CareerProfileLine) {
-  const normal = [item.appearances, item.goals, item.assists]
-    .map((value) => value ?? '-')
-    .join('/');
-  const goalkeeper = [item.cleanSheets, item.goalsConceded].some(
-    (value) => value !== null && value !== undefined
-  )
-    ? `，零封/失球 ${item.cleanSheets ?? '-'}/${item.goalsConceded ?? '-'}`
-    : '';
-
-  return `${normal}${goalkeeper}`;
+function countSeasonLinks() {
+  return props.club.seasonLinks?.reduce((total, group) => total + group.items.length, 0) ?? 0;
 }
 
 function countLineupItems(groups?: LineupPositionGroup[]) {
   return groups?.reduce((sum, group) => sum + group.items.length, 0) ?? 0;
-}
-
-function hasLineupItems(groups?: LineupPositionGroup[]) {
-  return countLineupItems(groups) > 0;
-}
-
-function isInternationalOrContinentalHonor(group: HonorGroupedRecord) {
-  const category = group.competition.category;
-  return (
-    category === '国际' ||
-    category === '洲际' ||
-    group.competition.scopeType === 'GLOBAL' ||
-    group.competition.scopeType === 'CONFEDERATION'
-  );
 }
 </script>
 
@@ -155,391 +110,67 @@ function isInternationalOrContinentalHonor(group: HonorGroupedRecord) {
   </div>
 
   <div class="detail-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <h3>基础资料</h3>
-        <span class="status-pill">豪门殿堂</span>
-      </div>
-      <dl class="detail-list">
-        <div>
-          <dt>俱乐部</dt>
-          <dd>{{ club.name }}</dd>
-        </div>
-        <div>
-          <dt>UID</dt>
-          <dd>{{ club.uid }}</dd>
-        </div>
-        <div>
-          <dt>曾用名</dt>
-          <dd>{{ formatText(club.formerName) }}</dd>
-        </div>
-        <div>
-          <dt>别名</dt>
-          <dd>{{ formatText(club.alias) }}</dd>
-        </div>
-        <div>
-          <dt>国家</dt>
-          <dd>{{ formatRef(club.countryRef) }}</dd>
-        </div>
-        <div>
-          <dt>足联</dt>
-          <dd>
-            <SemanticTag
-              v-if="formatRef(club.federationRef) !== '-'"
-              :variant="getConfederationVariant(formatRef(club.federationRef))"
-            >
-              {{ formatRef(club.federationRef) }}
-            </SemanticTag>
-            <span v-else>-</span>
-          </dd>
-        </div>
-        <div>
-          <dt>外部链接</dt>
-          <dd>
-            <a
-              class="external-text-link"
-              :href="clubExternalUrl()"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ club.externalUrl || 'Google 搜索' }}
-            </a>
-          </dd>
-        </div>
-        <div>
-          <dt>备注</dt>
-          <dd>{{ formatText(club.remark) }}</dd>
-        </div>
-      </dl>
-    </div>
+    <SectionCard title="基础资料" badge="豪门殿堂">
+      <ClubBasicInfoContent :club="club" />
+    </SectionCard>
 
-    <div class="panel">
-      <div class="panel-header">
-        <h3>资料库关联</h3>
-        <span class="status-pill">真实数据</span>
-      </div>
-      <dl class="detail-list">
-        <div>
-          <dt>关联球员</dt>
-          <dd>{{ formatNumber(club._count?.players ?? club.playerCount) }}</dd>
-        </div>
-        <div>
-          <dt>统计球员数</dt>
-          <dd>{{ formatNumber(club.playerCount) }}</dd>
-        </div>
-        <div>
-          <dt>球员平均 PA</dt>
-          <dd>{{ formatNumber(club.averagePa, 2) }}</dd>
-        </div>
-        <div>
-          <dt>总 PA</dt>
-          <dd>{{ formatNumber(club.totalPa) }}</dd>
-        </div>
-        <div>
-          <dt>荣誉分</dt>
-          <dd>{{ formatNumber(club.honorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>赛事分</dt>
-          <dd>{{ formatNumber(club.baseHonorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>附加分</dt>
-          <dd>{{ formatNumber(club.bonusHonorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>奖杯数</dt>
-          <dd>{{ formatNumber(club.trophyCount) }}</dd>
-        </div>
-        <div>
-          <dt>冠军数</dt>
-          <dd>{{ formatNumber(club.championCount) }}</dd>
-        </div>
-        <div>
-          <dt>是否存在</dt>
-          <dd>
-            <SemanticTag :variant="getBooleanVariant(club.exists)">
-              {{ getBooleanLabel(club.exists) }}
-            </SemanticTag>
-          </dd>
-        </div>
-        <div>
-          <dt>列表展示</dt>
-          <dd>
-            <SemanticTag :variant="getBooleanVariant(club.visibleInCatalog)">
-              {{ getBooleanLabel(club.visibleInCatalog) }}
-            </SemanticTag>
-          </dd>
-        </div>
-      </dl>
-    </div>
+    <SectionCard title="资料库关联" badge="真实数据">
+      <ClubDatabaseStatsContent :club="club" />
+    </SectionCard>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h3>荣誉明细</h3>
-      <span class="status-pill">{{ club.honorGroups?.length ?? 0 }} 项赛事</span>
-    </div>
+  <SectionCard title="荣誉明细" :badge="`${club.honorGroups?.length ?? 0} 项赛事`">
+    <ClubHonorDetailsContent :groups="club.honorGroups" />
+  </SectionCard>
 
-    <div
-      class="club-honor-layout"
-      :class="{ 'club-honor-layout--split': hasInternationalHonorGroups }"
-    >
-      <div class="club-honor-section">
-        <div v-if="hasInternationalHonorGroups" class="club-honor-section-title">国内荣誉</div>
-
-        <NoDataView v-if="!hasLeftHonorContent" text="暂无国内荣誉记录" />
-        <HonorGroupList v-else :groups="leftHonorGroups" />
-      </div>
-
-      <div v-if="hasInternationalHonorGroups" class="club-honor-section">
-        <div class="club-honor-section-title">国际与洲际荣誉</div>
-        <HonorGroupList :groups="internationalHonorGroups" />
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <h3>团队附加分</h3>
-      <span class="status-pill">{{ club.bonusHonorDetails?.length ?? 0 }} 项奖项</span>
-    </div>
-
+  <SectionCard title="团队附加分" :badge="`${club.bonusHonorDetails?.length ?? 0} 项奖项`">
     <TeamBonusHonorList :details="club.bonusHonorDetails" />
-  </div>
+  </SectionCard>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h3>赛季资料</h3>
-      <span class="status-pill">{{ seasonLinkCount }} 条链接</span>
-    </div>
+  <SectionCard
+    title="赛季资料"
+    :badge="`${countSeasonLinks()} 条链接`"
+    :empty="!club.seasonLinks?.length"
+    empty-text="暂无赛季资料链接"
+  >
+    <ClubSeasonLinksContent :groups="club.seasonLinks" />
+  </SectionCard>
 
-    <NoDataView v-if="!club.seasonLinks?.length" text="暂无赛季资料链接" />
-
-    <div v-else class="season-link-groups">
-      <div v-for="group in club.seasonLinks" :key="group.decade" class="season-link-group">
-        <div class="season-link-group-title">{{ group.decade }}</div>
-        <div class="season-link-list">
-          <a
-            v-for="item in group.items"
-            :key="item.id"
-            class="season-link-item"
-            :href="item.externalUrl || undefined"
-            :target="item.externalUrl ? '_blank' : undefined"
-            :rel="item.externalUrl ? 'noopener noreferrer' : undefined"
-            :aria-disabled="item.externalUrl ? undefined : 'true'"
-            :tabindex="item.externalUrl ? undefined : -1"
-            :class="{ 'season-link-item--disabled': !item.externalUrl }"
-          >
-            {{ item.season }}
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <h3>时间线</h3>
-      <span class="status-pill">{{ club.careerTimeline?.length ?? 0 }} 个年代</span>
-    </div>
-
-    <NoDataView v-if="!club.careerTimeline?.length" text="暂无结构化俱乐部经历" />
-
-    <div v-else class="career-timeline">
-      <div v-for="group in club.careerTimeline" :key="group.decade" class="timeline-block">
-        <div class="timeline-decade">{{ group.decade }}</div>
-        <div class="timeline-lines">
-          <button
-            v-for="item in group.items"
-            :key="item.id"
-            class="timeline-player"
-            type="button"
-            @click="emit('openPlayer', item.player.id)"
-          >
-            <span>{{ item.position }}</span>
-            <strong>{{ item.player.chineseName }}</strong>
-            <em class="ability-inline-meta">
-              <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-              <span>{{ formatText(item.period) }}</span>
-            </em>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <SectionCard
+    title="时间线"
+    :badge="`${club.careerTimeline?.length ?? 0} 个年代`"
+    :empty="!club.careerTimeline?.length"
+    empty-text="暂无结构化俱乐部经历"
+  >
+    <CareerTimelineContent
+      :groups="club.careerTimeline"
+      @open-player="emit('openPlayer', $event)"
+    />
+  </SectionCard>
 
   <div class="detail-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <h3>阵容</h3>
-        <span class="status-pill">{{ countLineupItems(club.lineupByPosition) }} 人</span>
-      </div>
-
-      <NoDataView v-if="!hasLineupItems(club.lineupByPosition)" text="暂无可展示球员" />
-
-      <div v-else class="lineup-board">
-        <div v-for="group in club.lineupByPosition" :key="group.position" class="lineup-row">
-          <div class="lineup-position">{{ group.position }}</div>
-          <div v-if="!group.items.length" class="lineup-empty">-</div>
-          <div v-else class="lineup-players">
-            <button
-              v-for="item in group.items"
-              :key="item.id"
-              class="lineup-player"
-              type="button"
-              @click="emit('openPlayer', item.player.id)"
-            >
-              <strong>
-                <OverflowTooltip :content="item.player.chineseName" />
-              </strong>
-              <div class="lineup-player-meta">
-                <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-                <em>{{ formatLineStats(item) }}</em>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <h3>代表阵容</h3>
-        <span class="status-pill">
-          {{ countLineupItems(club.representativeLineupByPosition) }} 人
-        </span>
-      </div>
-
-      <NoDataView
-        v-if="!hasLineupItems(club.representativeLineupByPosition)"
-        text="暂无俱乐部名宿"
+    <SectionCard
+      title="阵容"
+      :badge="`${countLineupItems(club.lineupByPosition)} 人`"
+      :empty="countLineupItems(club.lineupByPosition) === 0"
+      empty-text="暂无可展示球员"
+    >
+      <LineupBoardContent
+        :groups="club.lineupByPosition"
+        @open-player="emit('openPlayer', $event)"
       />
+    </SectionCard>
 
-      <div v-else class="lineup-board">
-        <div
-          v-for="group in club.representativeLineupByPosition"
-          :key="group.position"
-          class="lineup-row"
-        >
-          <div class="lineup-position">{{ group.position }}</div>
-          <div v-if="!group.items.length" class="lineup-empty">-</div>
-          <div v-else class="lineup-players">
-            <button
-              v-for="item in group.items"
-              :key="item.id"
-              class="lineup-player"
-              type="button"
-              @click="emit('openPlayer', item.player.id)"
-            >
-              <strong>
-                <OverflowTooltip :content="item.player.chineseName" />
-              </strong>
-              <div class="lineup-player-meta">
-                <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-                <em>{{ formatLineStats(item) }}</em>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <SectionCard
+      title="代表阵容"
+      :badge="`${countLineupItems(club.representativeLineupByPosition)} 人`"
+      :empty="countLineupItems(club.representativeLineupByPosition) === 0"
+      empty-text="暂无俱乐部名宿"
+    >
+      <LineupBoardContent
+        :groups="club.representativeLineupByPosition"
+        @open-player="emit('openPlayer', $event)"
+      />
+    </SectionCard>
   </div>
 </template>
-
-<style scoped lang="scss">
-.club-honor-layout {
-  display: grid;
-  gap: 22px;
-}
-
-.club-honor-layout--split {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 28px;
-  align-items: start;
-}
-
-.club-honor-section {
-  min-width: 0;
-}
-
-.club-honor-layout--split .club-honor-section + .club-honor-section {
-  padding-left: 28px;
-  border-left: 1px solid var(--color-border-default);
-}
-
-.club-honor-section-title {
-  margin-bottom: 16px;
-  color: var(--text-color-primary);
-  font-size: 18px;
-  font-weight: 850;
-}
-
-.season-link-groups {
-  display: grid;
-  gap: 12px;
-}
-
-.season-link-group {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.season-link-group-title {
-  color: var(--text-color-secondary);
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 32px;
-  text-align: center;
-}
-
-.season-link-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.season-link-item {
-  display: inline-flex;
-  align-items: center;
-  min-width: 56px;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 6px;
-  color: var(--text-color-regular);
-  font-size: 14px;
-  font-weight: 750;
-  line-height: 1;
-  text-decoration: none;
-  background: var(--color-bg-primary);
-}
-
-.season-link-item--disabled {
-  cursor: default;
-  opacity: 0.72;
-  pointer-events: none;
-}
-
-@media (max-width: 1180px) {
-  .club-honor-layout--split {
-    grid-template-columns: 1fr;
-  }
-
-  .club-honor-layout--split .club-honor-section + .club-honor-section {
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .season-link-group {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .season-link-group-title {
-    line-height: 1.4;
-  }
-}
-</style>

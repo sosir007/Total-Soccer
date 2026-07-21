@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import AbilityBadge from '@/components/AbilityBadge.vue';
-import IconFont from '@/components/IconFont.vue';
+import CareerTimelineContent from '@/components/CareerTimelineContent.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
-import NoDataView from '@/components/NoDataView.vue';
-import OverflowTooltip from '@/components/OverflowTooltip.vue';
-import PositionTags from '@/components/PositionTags.vue';
+import IconFont from '@/components/IconFont.vue';
+import LineupBoardContent from '@/components/LineupBoardContent.vue';
+import SectionCard from '@/components/SectionCard.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
-import type {
-  CareerProfileLine,
-  CountryDetail,
-  LineupPositionGroup
-} from '@/services/types/catalog';
+import type { CountryDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
+import NationBasicInfoContent from './NationBasicInfoContent.vue';
+import NationDatabaseStatsContent from './NationDatabaseStatsContent.vue';
 
 const props = defineProps<{
   country: CountryDetail;
@@ -41,33 +37,12 @@ function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
 }
 
-function formatText(value?: string | number | null) {
-  return value === null || value === undefined || value === '' ? '-' : value;
-}
-
 function countryExternalUrl() {
   return buildExternalUrl(props.country.externalUrl, props.country.name || '国家队');
 }
 
-function formatLineStats(item: CareerProfileLine) {
-  const normal = [item.appearances, item.goals, item.assists]
-    .map((value) => value ?? '-')
-    .join('/');
-  const goalkeeper = [item.cleanSheets, item.goalsConceded].some(
-    (value) => value !== null && value !== undefined
-  )
-    ? `，零封/失球 ${item.cleanSheets ?? '-'}/${item.goalsConceded ?? '-'}`
-    : '';
-
-  return `${normal}${goalkeeper}`;
-}
-
 function countLineupItems(groups?: LineupPositionGroup[]) {
   return groups?.reduce((sum, group) => sum + group.items.length, 0) ?? 0;
-}
-
-function hasLineupItems(groups?: LineupPositionGroup[]) {
-  return countLineupItems(groups) > 0;
 }
 </script>
 
@@ -132,191 +107,45 @@ function hasLineupItems(groups?: LineupPositionGroup[]) {
   </div>
 
   <div class="detail-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <h3>基础资料</h3>
-        <span class="status-pill">国家圣殿</span>
-      </div>
-      <dl class="detail-list">
-        <div>
-          <dt>国家</dt>
-          <dd>{{ country.name }}</dd>
-        </div>
-        <div>
-          <dt>UID</dt>
-          <dd>{{ country.uid }}</dd>
-        </div>
-        <div>
-          <dt>足联</dt>
-          <dd>
-            <SemanticTag
-              v-if="formatRef(country.federationRef) !== '-'"
-              :variant="getConfederationVariant(formatRef(country.federationRef))"
-            >
-              {{ formatRef(country.federationRef) }}
-            </SemanticTag>
-            <span v-else>-</span>
-          </dd>
-        </div>
-        <div>
-          <dt>外部链接</dt>
-          <dd>
-            <a
-              class="external-text-link"
-              :href="countryExternalUrl()"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ country.externalUrl || 'Google 搜索' }}
-            </a>
-          </dd>
-        </div>
-        <div>
-          <dt>备注</dt>
-          <dd>{{ formatText(country.remark) }}</dd>
-        </div>
-        <div>
-          <dt>列表展示</dt>
-          <dd>
-            <SemanticTag :variant="getBooleanVariant(country.visibleInCatalog !== false)">
-              {{ getBooleanLabel(country.visibleInCatalog !== false) }}
-            </SemanticTag>
-          </dd>
-        </div>
-      </dl>
-    </div>
+    <SectionCard title="基础资料" badge="国家圣殿">
+      <NationBasicInfoContent :country="country" />
+    </SectionCard>
 
-    <div class="panel">
-      <div class="panel-header">
-        <h3>资料库关联</h3>
-        <span class="status-pill">真实数据</span>
-      </div>
-      <dl class="detail-list">
-        <div>
-          <dt>关联球员</dt>
-          <dd>{{ formatNumber(country._count?.players ?? country.playerCount) }}</dd>
-        </div>
-        <div>
-          <dt>关联俱乐部</dt>
-          <dd>{{ formatNumber(country._count?.clubs) }}</dd>
-        </div>
-        <div>
-          <dt>统计球员数</dt>
-          <dd>{{ formatNumber(country.playerCount) }}</dd>
-        </div>
-        <div>
-          <dt>平均 PA</dt>
-          <dd>{{ formatNumber(country.averagePa, 2) }}</dd>
-        </div>
-        <div>
-          <dt>总 PA</dt>
-          <dd>{{ formatNumber(country.totalPa) }}</dd>
-        </div>
-        <div>
-          <dt>球员平均荣誉分</dt>
-          <dd>{{ formatNumber(country.averageHonorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>荣誉分</dt>
-          <dd>{{ formatNumber(country.honorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>赛事分</dt>
-          <dd>{{ formatNumber(country.baseHonorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>附加分</dt>
-          <dd>{{ formatNumber(country.bonusHonorScore, 2) }}</dd>
-        </div>
-        <div>
-          <dt>冠军数</dt>
-          <dd>{{ formatNumber(country.championCount) }}</dd>
-        </div>
-      </dl>
-    </div>
+    <SectionCard title="资料库关联" badge="真实数据">
+      <NationDatabaseStatsContent :country="country" />
+    </SectionCard>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h3>荣誉明细</h3>
-      <span class="status-pill">{{ country.honorGroups?.length ?? 0 }} 项赛事</span>
-    </div>
-
+  <SectionCard title="荣誉明细" :badge="`${country.honorGroups?.length ?? 0} 项赛事`">
     <HonorGroupList :groups="country.honorGroups" />
-  </div>
+  </SectionCard>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h3>团队附加分</h3>
-      <span class="status-pill">{{ country.bonusHonorDetails?.length ?? 0 }} 项奖项</span>
-    </div>
-
+  <SectionCard title="团队附加分" :badge="`${country.bonusHonorDetails?.length ?? 0} 项奖项`">
     <TeamBonusHonorList :details="country.bonusHonorDetails" />
-  </div>
+  </SectionCard>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h3>国家队时间线</h3>
-      <span class="status-pill">{{ country.careerTimeline?.length ?? 0 }} 个年代</span>
-    </div>
+  <SectionCard
+    title="国家队时间线"
+    :badge="`${country.careerTimeline?.length ?? 0} 个年代`"
+    :empty="!country.careerTimeline?.length"
+    empty-text="暂无结构化国家队经历"
+  >
+    <CareerTimelineContent
+      :groups="country.careerTimeline"
+      @open-player="emit('openPlayer', $event)"
+    />
+  </SectionCard>
 
-    <NoDataView v-if="!country.careerTimeline?.length" text="暂无结构化国家队经历" />
-
-    <div v-else class="career-timeline">
-      <div v-for="group in country.careerTimeline" :key="group.decade" class="timeline-block">
-        <div class="timeline-decade">{{ group.decade }}</div>
-        <div class="timeline-lines">
-          <button
-            v-for="item in group.items"
-            :key="item.id"
-            class="timeline-player"
-            type="button"
-            @click="emit('openPlayer', item.player.id)"
-          >
-            <span>{{ item.position }}</span>
-            <strong>{{ item.player.chineseName }}</strong>
-            <em class="ability-inline-meta">
-              <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-              <span>{{ formatText(item.period) }}</span>
-            </em>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-header">
-      <h3>阵容</h3>
-      <span class="status-pill">{{ countLineupItems(country.lineupByPosition) }} 人</span>
-    </div>
-
-    <NoDataView v-if="!hasLineupItems(country.lineupByPosition)" text="暂无代表国家球员" />
-
-    <div v-else class="lineup-board">
-      <div v-for="group in country.lineupByPosition" :key="group.position" class="lineup-row">
-        <div class="lineup-position">
-          <PositionTags :value="group.position" />
-        </div>
-        <div v-if="!group.items.length" class="lineup-empty">-</div>
-        <div v-else class="lineup-players">
-          <button
-            v-for="item in group.items"
-            :key="item.id"
-            class="lineup-player"
-            type="button"
-            @click="emit('openPlayer', item.player.id)"
-          >
-            <strong>
-              <OverflowTooltip :content="item.player.chineseName" />
-            </strong>
-            <div class="lineup-player-meta">
-              <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-              <em>{{ formatLineStats(item) }}</em>
-            </div>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <SectionCard
+    title="阵容"
+    :badge="`${countLineupItems(country.lineupByPosition)} 人`"
+    :empty="countLineupItems(country.lineupByPosition) === 0"
+    empty-text="暂无代表国家球员"
+  >
+    <LineupBoardContent
+      :groups="country.lineupByPosition"
+      position-display="tags"
+      @open-player="emit('openPlayer', $event)"
+    />
+  </SectionCard>
 </template>
