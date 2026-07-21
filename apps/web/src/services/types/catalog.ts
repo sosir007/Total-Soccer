@@ -368,10 +368,26 @@ export type ClubDetail = ClubListItem & {
   honorRecords?: HonorRecord[];
   honorGroups?: HonorGroupedRecord[];
   bonusHonorDetails?: TeamBonusHonorDetail[];
+  seasonLinks?: ClubSeasonLinkGroup[];
   careerTimeline?: CareerTimelineGroup[];
   lineupByPosition?: LineupPositionGroup[];
   representativeLineupByPosition?: LineupPositionGroup[];
 };
+
+export interface ClubSeasonLinkGroup {
+  decade: string;
+  items: ClubSeasonLink[];
+}
+
+export interface ClubSeasonLink {
+  id: string;
+  year: number;
+  season: string;
+  externalUrl?: string | null;
+  sourceName?: string | null;
+  remark?: string | null;
+  sortOrder?: number | null;
+}
 
 export interface PlayerListParams {
   page?: number;

@@ -263,6 +263,7 @@ export class ClubsService {
       honorRecords: await this.getClubHonorRecords(club.id, 10),
       honorGroups: await this.getClubHonorGroups(club.id),
       bonusHonorDetails: (await this.getClubBonusHonorDetailMap([club.id])).get(club.id) ?? [],
+      seasonLinks: await this.getClubSeasonLinkGroups(club.id),
       ...(await this.getClubCareerProfile(club.id))
     };
   }
@@ -1473,6 +1474,34 @@ export class ClubsService {
     };
   }
 
+  private async getClubSeasonLinkGroups(clubId: string) {
+    const links = await this.prisma.clubSeasonLink.findMany({
+      where: { clubId },
+      orderBy: [{ year: 'asc' }, { sortOrder: 'asc' }, { season: 'asc' }]
+    });
+    const map = new Map<string, typeof links>();
+
+    for (const link of links) {
+      const decade = this.getSeasonLinkDecade(link.year);
+      const rows = map.get(decade) ?? [];
+      rows.push(link);
+      map.set(decade, rows);
+    }
+
+    return [...map.entries()].map(([decade, items]) => ({
+      decade,
+      items: items.map((item) => ({
+        id: item.id,
+        year: item.year,
+        season: item.season,
+        externalUrl: item.externalUrl,
+        sourceName: item.sourceName,
+        remark: item.remark,
+        sortOrder: item.sortOrder
+      }))
+    }));
+  }
+
   private buildCareerTimeline(
     careers: Array<
       Prisma.PlayerCareerGetPayload<{
@@ -1578,6 +1607,12 @@ export class ClubsService {
 
     const start = Math.floor(year / 10) * 10;
     return `${start}-${start + 9}`;
+  }
+
+  private getSeasonLinkDecade(year: number) {
+    const start = Math.floor(year / 10) * 10;
+    const end = String(start + 9).slice(-2);
+    return `${start}-${end}`;
   }
 
   private compareDecade(a: string, b: string) {

@@ -332,6 +332,7 @@ model Club {
   honors             ClubHonor[]
   competitionResults CompetitionStanding[]
   awardRecipients    AwardRecipient[]
+  seasonLinks        ClubSeasonLink[]
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
@@ -341,6 +342,25 @@ model Club {
   @@index([federation])
   @@index([federationId])
   @@index([visibleInCatalog])
+}
+
+model ClubSeasonLink {
+  id          String   @id @default(cuid())
+  clubId      String
+  year        Int
+  season      String
+  externalUrl String?
+  sourceName  String?
+  remark      String?
+  sortOrder   Int      @default(0)
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([clubId, season])
+  @@index([clubId])
+  @@index([year])
+  @@index([sortOrder])
 }
 
 model PlayerCareer {

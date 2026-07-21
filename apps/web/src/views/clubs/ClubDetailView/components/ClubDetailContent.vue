@@ -37,6 +37,9 @@ const leftHonorGroups = computed(() =>
     : (props.club.honorGroups ?? [])
 );
 const hasLeftHonorContent = computed(() => leftHonorGroups.value.length > 0);
+const seasonLinkCount = computed(
+  () => props.club.seasonLinks?.reduce((total, group) => total + group.items.length, 0) ?? 0
+);
 
 function formatNumber(value?: number | null, digits = 0) {
   if (value === null || value === undefined) {
@@ -307,6 +310,36 @@ function isInternationalOrContinentalHonor(group: HonorGroupedRecord) {
 
   <div class="panel">
     <div class="panel-header">
+      <h3>赛季资料</h3>
+      <span class="status-pill">{{ seasonLinkCount }} 条链接</span>
+    </div>
+
+    <NoDataView v-if="!club.seasonLinks?.length" text="暂无赛季资料链接" />
+
+    <div v-else class="season-link-groups">
+      <div v-for="group in club.seasonLinks" :key="group.decade" class="season-link-group">
+        <div class="season-link-group-title">{{ group.decade }}</div>
+        <div class="season-link-list">
+          <a
+            v-for="item in group.items"
+            :key="item.id"
+            class="season-link-item"
+            :href="item.externalUrl || undefined"
+            :target="item.externalUrl ? '_blank' : undefined"
+            :rel="item.externalUrl ? 'noopener noreferrer' : undefined"
+            :aria-disabled="item.externalUrl ? undefined : 'true'"
+            :tabindex="item.externalUrl ? undefined : -1"
+            :class="{ 'season-link-item--disabled': !item.externalUrl }"
+          >
+            {{ item.season }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
       <h3>时间线</h3>
       <span class="status-pill">{{ club.careerTimeline?.length ?? 0 }} 个年代</span>
     </div>
@@ -442,6 +475,54 @@ function isInternationalOrContinentalHonor(group: HonorGroupedRecord) {
   font-weight: 850;
 }
 
+.season-link-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.season-link-group {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.season-link-group-title {
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 32px;
+  text-align: center;
+}
+
+.season-link-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.season-link-item {
+  display: inline-flex;
+  align-items: center;
+  min-width: 56px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--text-color-regular);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  background: var(--color-bg-primary);
+}
+
+.season-link-item--disabled {
+  cursor: default;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
 @media (max-width: 1180px) {
   .club-honor-layout--split {
     grid-template-columns: 1fr;
@@ -450,6 +531,15 @@ function isInternationalOrContinentalHonor(group: HonorGroupedRecord) {
   .club-honor-layout--split .club-honor-section + .club-honor-section {
     padding-left: 0;
     border-left: 0;
+  }
+
+  .season-link-group {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .season-link-group-title {
+    line-height: 1.4;
   }
 }
 </style>

@@ -21,6 +21,7 @@
     "db:logs": "docker compose logs -f postgres",
     "prisma:migrate": "pnpm --filter @total-soccer/api prisma:migrate",
     "prisma:studio": "pnpm --filter @total-soccer/api prisma:studio",
+    "seed:club-season-links": "pnpm --filter @total-soccer/api seed:club-season-links",
     "prepare": "husky",
     "commit": "cz"
   },
