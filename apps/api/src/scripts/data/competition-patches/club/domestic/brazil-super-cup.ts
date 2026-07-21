@@ -28,7 +28,7 @@ export const BRAZIL_SUPER_CUP_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
-export const BRAZIL_SUPER_CUP_PATCHES: SeedCompetitionPatch[] = [
+const RAW_BRAZIL_SUPER_CUP_PATCHES: SeedCompetitionPatch[] = [
   {
     competitionCode: 'BRAZIL_SUPER_CUP',
     name: '1990',
@@ -130,3 +130,10 @@ export const BRAZIL_SUPER_CUP_PATCHES: SeedCompetitionPatch[] = [
     ]
   }
 ];
+
+export const BRAZIL_SUPER_CUP_PATCHES: SeedCompetitionPatch[] = RAW_BRAZIL_SUPER_CUP_PATCHES.map(
+  (patch) => ({
+    ...patch,
+    externalUrl: `https://en.wikipedia.org/wiki/${patch.year}_Supercopa_do_Brasil`
+  })
+);

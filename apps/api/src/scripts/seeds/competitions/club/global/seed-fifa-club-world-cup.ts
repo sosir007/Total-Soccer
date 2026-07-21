@@ -9,6 +9,22 @@ import {
 
 const prisma = new PrismaClient();
 
+function getClubWorldCupEditionUrl(year: number) {
+  if (year === 2000 || year === 2005) {
+    return `https://en.wikipedia.org/wiki/${year}_FIFA_Club_World_Championship`;
+  }
+
+  return `https://en.wikipedia.org/wiki/${year}_FIFA_Club_World_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('FIFA Club World Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -74,7 +90,10 @@ async function main() {
         sortOrder: 0
       }
     },
-    editions: FIFA_CLUB_WORLD_CUP_RESULTS,
+    editions: FIFA_CLUB_WORLD_CUP_RESULTS.map((result) => ({
+      ...result,
+      externalUrl: getClubWorldCupEditionUrl(getResultYear(result.year))
+    })),
     buildStandings: buildClubWorldCupStandings,
     expected: {
       editions: 21,

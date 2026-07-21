@@ -15,6 +15,18 @@ import {
 
 const prisma = new PrismaClient();
 
+function getCopaConmebolEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_Copa_CONMEBOL`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Copa CONMEBOL edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -60,7 +72,12 @@ async function main() {
     scope: {
       confederationCodes: ['CONMEBOL']
     },
-    editions: withStandingMode(COPA_CONMEBOL_RESULTS),
+    editions: withStandingMode(
+      COPA_CONMEBOL_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getCopaConmebolEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCopaConmebolStandings,
     expected: {
       editions: 8,

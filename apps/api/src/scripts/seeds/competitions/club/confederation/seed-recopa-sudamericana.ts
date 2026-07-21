@@ -14,6 +14,18 @@ import {
 
 const prisma = new PrismaClient();
 
+function getRecopaSudamericanaEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_Recopa_Sudamericana`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Recopa Sudamericana edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -69,7 +81,10 @@ async function main() {
     scope: {
       confederationCodes: ['CONMEBOL']
     },
-    editions: RECOPA_SUDAMERICANA_RESULTS,
+    editions: RECOPA_SUDAMERICANA_RESULTS.map((result) => ({
+      ...result,
+      externalUrl: getRecopaSudamericanaEditionUrl(getResultYear(result.year))
+    })),
     buildStandings: buildRecopaSudamericanaStandings,
     expected: {
       editions: 34,

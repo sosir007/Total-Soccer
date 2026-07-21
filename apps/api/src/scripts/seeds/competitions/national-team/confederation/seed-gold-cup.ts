@@ -9,6 +9,22 @@ import { GOLD_CUP_RESULTS } from '../../../../data/competition-results/national-
 
 const prisma = new PrismaClient();
 
+function getGoldCupEditionUrl(year: number) {
+  if (year <= 1989) {
+    return `https://en.wikipedia.org/wiki/${year}_CONCACAF_Championship`;
+  }
+
+  return `https://en.wikipedia.org/wiki/${year}_CONCACAF_Gold_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('CONCACAF Gold Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -50,7 +66,12 @@ async function main() {
       confederationCodes: ['CONCACAF']
     },
     historicalCountryNames: ['荷属安的列斯'],
-    editions: withStandingMode(GOLD_CUP_RESULTS),
+    editions: withStandingMode(
+      GOLD_CUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getGoldCupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 28,

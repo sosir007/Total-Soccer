@@ -10,6 +10,18 @@ import {
 
 const prisma = new PrismaClient();
 
+function getLibertadoresEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_Copa_Libertadores`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Copa Libertadores edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -63,7 +75,12 @@ async function main() {
     scope: {
       confederationCodes: ['CONMEBOL']
     },
-    editions: withStandingMode(CONMEBOL_LIBERTADORES_RESULTS),
+    editions: withStandingMode(
+      CONMEBOL_LIBERTADORES_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getLibertadoresEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildConmebolLibertadoresStandings,
     expected: {
       editions: 66,

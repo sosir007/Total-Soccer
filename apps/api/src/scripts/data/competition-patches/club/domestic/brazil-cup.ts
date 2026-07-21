@@ -27,7 +27,7 @@ export const BRAZIL_CUP_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
-export const BRAZIL_CUP_PATCHES: SeedCompetitionPatch[] = [
+const RAW_BRAZIL_CUP_PATCHES: SeedCompetitionPatch[] = [
   {
     competitionCode: 'BRAZIL_CUP',
     name: '1989',
@@ -397,3 +397,8 @@ export const BRAZIL_CUP_PATCHES: SeedCompetitionPatch[] = [
     ]
   }
 ];
+
+export const BRAZIL_CUP_PATCHES: SeedCompetitionPatch[] = RAW_BRAZIL_CUP_PATCHES.map((patch) => ({
+  ...patch,
+  externalUrl: `https://en.wikipedia.org/wiki/${patch.year}_Copa_do_Brasil`
+}));

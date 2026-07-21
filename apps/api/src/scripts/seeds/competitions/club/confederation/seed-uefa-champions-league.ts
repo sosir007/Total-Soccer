@@ -1,5 +1,9 @@
 import { CompetitionScopeType, CompetitionTargetType, PrismaClient } from '@prisma/client';
-import { runCompetitionSeed, runSeed } from '../../../../helpers/competition-seed.js';
+import {
+  runCompetitionSeed,
+  runSeed,
+  type SeedEdition
+} from '../../../../helpers/competition-seed.js';
 import { withStandingMode } from '../../../../helpers/competition-results.js';
 import { CONFEDERATION_SEEDS, pickSeedCountries } from '../../../../helpers/seed-data.js';
 import {
@@ -9,6 +13,26 @@ import {
 } from '../../../../data/competition-results/club/confederation/uefa-champions-league.js';
 
 const prisma = new PrismaClient();
+
+function formatSeasonForUrl(season: string) {
+  return season.replace('-', '%E2%80%93');
+}
+
+function getChampionsLeagueEditionUrl(result: SeedEdition) {
+  const season = getResultSeason(result.season);
+  const startYear = Number(season.slice(0, 4));
+  const competitionSlug = startYear <= 1991 ? 'European_Cup' : 'UEFA_Champions_League';
+
+  return `https://en.wikipedia.org/wiki/${formatSeasonForUrl(season)}_${competitionSlug}`;
+}
+
+function getResultSeason(season: string | null | undefined) {
+  if (!season) {
+    throw new Error('UEFA Champions League edition season is required to build external URL.');
+  }
+
+  return season;
+}
 
 async function main() {
   await runCompetitionSeed({
@@ -70,7 +94,12 @@ async function main() {
     scope: {
       confederationCodes: ['UEFA']
     },
-    editions: withStandingMode(UEFA_CHAMPIONS_LEAGUE_RESULTS),
+    editions: withStandingMode(
+      UEFA_CHAMPIONS_LEAGUE_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getChampionsLeagueEditionUrl(result)
+      }))
+    ),
     buildStandings: buildUefaChampionsLeagueStandings,
     expected: {
       editions: 71,

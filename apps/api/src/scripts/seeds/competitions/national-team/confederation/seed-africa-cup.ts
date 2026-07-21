@@ -9,6 +9,18 @@ import { AFRICA_CUP_RESULTS } from '../../../../data/competition-results/nationa
 
 const prisma = new PrismaClient();
 
+function getAfricaCupEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_Africa_Cup_of_Nations`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Africa Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -50,7 +62,12 @@ async function main() {
       confederationCodes: ['CAF']
     },
     historicalCountryNames: ['阿拉伯联合共和国', '刚果金沙萨', '扎伊尔'],
-    editions: withStandingMode(AFRICA_CUP_RESULTS),
+    editions: withStandingMode(
+      AFRICA_CUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getAfricaCupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 35,

@@ -9,6 +9,18 @@ import { EURO_RESULTS } from '../../../../data/competition-results/national-team
 
 const prisma = new PrismaClient();
 
+function getEuroEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/UEFA_Euro_${year}`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Euro edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -50,7 +62,12 @@ async function main() {
       confederationCodes: ['UEFA']
     },
     historicalCountryNames: ['苏联', '西德', '捷克斯洛伐克', '南斯拉夫'],
-    editions: withStandingMode(EURO_RESULTS),
+    editions: withStandingMode(
+      EURO_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getEuroEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 17,

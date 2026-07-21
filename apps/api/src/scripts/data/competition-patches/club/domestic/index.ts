@@ -50,9 +50,32 @@ export const CLUB_DOMESTIC_PATCH_CLUBS: SeedClub[] = [
   }
 ];
 
+const CLUB_DOMESTIC_PATCH_SORT_ORDER = new Map([
+  ['BRAZIL_SERIE_A', 0],
+  ['BRAZIL_SERIE_B', 1],
+  ['BRAZIL_CUP', 2],
+  ['BRAZIL_SUPER_CUP', 3]
+]);
+
 export const CLUB_DOMESTIC_PATCHES: SeedCompetitionPatch[] = [
   ...BRAZIL_SERIE_A_PATCHES,
   ...BRAZIL_SERIE_B_PATCHES,
   ...BRAZIL_CUP_PATCHES,
   ...BRAZIL_SUPER_CUP_PATCHES
-];
+].sort((left, right) => {
+  const yearDiff = (left.year ?? 0) - (right.year ?? 0);
+
+  if (yearDiff !== 0) {
+    return yearDiff;
+  }
+
+  const competitionDiff =
+    (CLUB_DOMESTIC_PATCH_SORT_ORDER.get(left.competitionCode) ?? 99) -
+    (CLUB_DOMESTIC_PATCH_SORT_ORDER.get(right.competitionCode) ?? 99);
+
+  if (competitionDiff !== 0) {
+    return competitionDiff;
+  }
+
+  return (left.name ?? '').localeCompare(right.name ?? '');
+});

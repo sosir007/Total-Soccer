@@ -27,7 +27,7 @@ export const BRAZIL_SERIE_B_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
-export const BRAZIL_SERIE_B_PATCHES: SeedCompetitionPatch[] = [
+const RAW_BRAZIL_SERIE_B_PATCHES: SeedCompetitionPatch[] = [
   {
     competitionCode: 'BRAZIL_SERIE_B',
     name: '1981',
@@ -361,3 +361,10 @@ export const BRAZIL_SERIE_B_PATCHES: SeedCompetitionPatch[] = [
     ]
   }
 ];
+
+export const BRAZIL_SERIE_B_PATCHES: SeedCompetitionPatch[] = RAW_BRAZIL_SERIE_B_PATCHES.map(
+  (patch) => ({
+    ...patch,
+    externalUrl: `https://en.wikipedia.org/wiki/${patch.year}_Campeonato_Brasileiro_S%C3%A9rie_B`
+  })
+);

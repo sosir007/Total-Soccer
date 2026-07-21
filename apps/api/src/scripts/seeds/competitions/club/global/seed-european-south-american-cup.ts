@@ -15,6 +15,18 @@ import {
 
 const prisma = new PrismaClient();
 
+function getEuropeanSouthAmericanCupEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_Intercontinental_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('European/South American Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -79,7 +91,12 @@ async function main() {
         sortOrder: 2
       }
     },
-    editions: withStandingMode(EUROPEAN_SOUTH_AMERICAN_CUP_RESULTS),
+    editions: withStandingMode(
+      EUROPEAN_SOUTH_AMERICAN_CUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getEuropeanSouthAmericanCupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildEuropeanSouthAmericanCupStandings,
     expected: {
       editions: 43,

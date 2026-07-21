@@ -10,6 +10,18 @@ import {
 
 const prisma = new PrismaClient();
 
+function getFifaIntercontinentalCupEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_FIFA_Intercontinental_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('FIFA Intercontinental Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -50,7 +62,12 @@ async function main() {
         sortOrder: 1
       }
     },
-    editions: withStandingMode(FIFA_INTERCONTINENTAL_CUP_RESULTS),
+    editions: withStandingMode(
+      FIFA_INTERCONTINENTAL_CUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getFifaIntercontinentalCupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildFifaIntercontinentalCupStandings,
     expected: {
       editions: 2,

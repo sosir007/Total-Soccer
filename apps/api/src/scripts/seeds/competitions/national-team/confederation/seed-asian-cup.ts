@@ -9,6 +9,18 @@ import { ASIAN_CUP_RESULTS } from '../../../../data/competition-results/national
 
 const prisma = new PrismaClient();
 
+function getAsianCupEditionUrl(year: number) {
+  return `https://en.wikipedia.org/wiki/${year}_AFC_Asian_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Asian Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -50,7 +62,12 @@ async function main() {
       confederationCodes: ['AFC']
     },
     historicalCountryNames: ['南越'],
-    editions: withStandingMode(ASIAN_CUP_RESULTS),
+    editions: withStandingMode(
+      ASIAN_CUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getAsianCupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 18,

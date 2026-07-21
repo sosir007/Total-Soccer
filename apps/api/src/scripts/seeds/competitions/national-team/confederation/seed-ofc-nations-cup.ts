@@ -9,6 +9,26 @@ import { OFC_NATIONS_CUP_RESULTS } from '../../../../data/competition-results/na
 
 const prisma = new PrismaClient();
 
+function getOfcNationsCupEditionUrl(year: number) {
+  if (year === 1973 || year === 1980) {
+    return `https://en.wikipedia.org/wiki/${year}_Oceania_Cup`;
+  }
+
+  if (year >= 2024) {
+    return `https://en.wikipedia.org/wiki/${year}_OFC_Men%27s_Nations_Cup`;
+  }
+
+  return `https://en.wikipedia.org/wiki/${year}_OFC_Nations_Cup`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('OFC Nations Cup edition year is required to build external URL.');
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -49,7 +69,12 @@ async function main() {
     scope: {
       confederationCodes: ['OFC']
     },
-    editions: withStandingMode(OFC_NATIONS_CUP_RESULTS),
+    editions: withStandingMode(
+      OFC_NATIONS_CUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getOfcNationsCupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 11,

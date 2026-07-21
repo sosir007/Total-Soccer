@@ -15,6 +15,28 @@ import {
 
 const prisma = new PrismaClient();
 
+function getIntercontinentalChampionsSupercupEditionUrl(year: number) {
+  if (year === 1968) {
+    return 'https://www.rsssf.org/tablesr/recopa-int.html';
+  }
+
+  if (year === 1969) {
+    return 'https://www.rsssf.org/sacups/supcopa69.html';
+  }
+
+  return undefined;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error(
+      "Intercontinental Champions' Supercup edition year is required to build external URL."
+    );
+  }
+
+  return year;
+}
+
 async function main() {
   await runCompetitionSeed({
     prisma,
@@ -59,7 +81,12 @@ async function main() {
         sortOrder: 3
       }
     },
-    editions: withStandingMode(INTERCONTINENTAL_CHAMPIONS_SUPERCUP_RESULTS),
+    editions: withStandingMode(
+      INTERCONTINENTAL_CHAMPIONS_SUPERCUP_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getIntercontinentalChampionsSupercupEditionUrl(getResultYear(result.year))
+      }))
+    ),
     buildStandings: buildIntercontinentalChampionsSupercupStandings,
     expected: {
       editions: 2,

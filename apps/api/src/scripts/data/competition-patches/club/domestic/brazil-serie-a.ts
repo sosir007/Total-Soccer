@@ -28,7 +28,7 @@ export const BRAZIL_SERIE_A_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
-export const BRAZIL_SERIE_A_PATCHES: SeedCompetitionPatch[] = [
+const RAW_BRAZIL_SERIE_A_PATCHES: SeedCompetitionPatch[] = [
   {
     competitionCode: 'BRAZIL_SERIE_A',
     name: '1937',
@@ -1383,3 +1383,24 @@ export const BRAZIL_SERIE_A_PATCHES: SeedCompetitionPatch[] = [
     ]
   }
 ];
+
+function getBrazilSerieAExternalUrl(patch: SeedCompetitionPatch) {
+  if (patch.year === 1967 || patch.year === 1968) {
+    if (patch.name?.includes('塔萨')) {
+      return `https://pt.wikipedia.org/wiki/Campeonato_Brasileiro_de_Futebol_de_${patch.year}_%28Ta%C3%A7a_Brasil%29`;
+    }
+
+    if (patch.name?.includes('罗伯托')) {
+      return `https://pt.wikipedia.org/wiki/Campeonato_Brasileiro_de_Futebol_de_${patch.year}_%28Torneio_Roberto_Gomes_Pedrosa%29`;
+    }
+  }
+
+  return `https://pt.wikipedia.org/wiki/Campeonato_Brasileiro_de_Futebol_de_${patch.year}`;
+}
+
+export const BRAZIL_SERIE_A_PATCHES: SeedCompetitionPatch[] = RAW_BRAZIL_SERIE_A_PATCHES.map(
+  (patch) => ({
+    ...patch,
+    externalUrl: getBrazilSerieAExternalUrl(patch)
+  })
+);

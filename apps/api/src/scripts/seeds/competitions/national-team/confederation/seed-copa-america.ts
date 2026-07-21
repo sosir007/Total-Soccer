@@ -6,8 +6,39 @@ import {
 } from '../../../../helpers/competition-results.js';
 import { CONFEDERATION_SEEDS, resolveSeedCountries } from '../../../../helpers/seed-data.js';
 import { COPA_AMERICA_RESULTS } from '../../../../data/competition-results/national-team/confederation/copa-america.js';
+import type { SeedEdition } from '../../../../helpers/competition-seed.js';
 
 const prisma = new PrismaClient();
+
+function getCopaAmericaEditionUrl(result: SeedEdition) {
+  const year = getResultYear(result.year);
+
+  if (year === 1959 && result.name?.includes('阿根廷')) {
+    return 'https://en.wikipedia.org/wiki/1959_South_American_Championship_%28Argentina%29';
+  }
+
+  if (year === 1959 && result.name?.includes('厄瓜多尔')) {
+    return 'https://en.wikipedia.org/wiki/1959_South_American_Championship_%28Ecuador%29';
+  }
+
+  if (year <= 1967) {
+    return `https://en.wikipedia.org/wiki/${year}_South_American_Championship`;
+  }
+
+  if (year === 2016) {
+    return 'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica_Centenario';
+  }
+
+  return `https://en.wikipedia.org/wiki/${year}_Copa_Am%C3%A9rica`;
+}
+
+function getResultYear(year: number | undefined) {
+  if (year === undefined) {
+    throw new Error('Copa America edition year is required to build external URL.');
+  }
+
+  return year;
+}
 
 async function main() {
   await runCompetitionSeed({
@@ -49,7 +80,12 @@ async function main() {
     scope: {
       confederationCodes: ['CONMEBOL']
     },
-    editions: withStandingMode(COPA_AMERICA_RESULTS),
+    editions: withStandingMode(
+      COPA_AMERICA_RESULTS.map((result) => ({
+        ...result,
+        externalUrl: getCopaAmericaEditionUrl(result)
+      }))
+    ),
     buildStandings: buildCompetitionResultStandings,
     expected: {
       editions: 48,
