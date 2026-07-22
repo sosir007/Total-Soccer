@@ -37,6 +37,13 @@ const COMPETITION_CATEGORY_ORDER: Map<string, number> = new Map(
 const COMPETITION_LEVEL_ORDER: Map<string, number> = new Map(
   COMPETITION_LEVELS.map((level, index) => [level, index + 1])
 );
+const COMPETITION_FORMAT_ORDER: Map<string, number> = new Map(
+  COMPETITION_FORMATS.map((format, index) => [format, index + 1])
+);
+const COMPETITION_LIFECYCLE_ORDER: Record<LifecycleStatus, number> = {
+  CURRENT: 10,
+  DISCONTINUED: 20
+};
 
 const COUNTRY_REF_SELECT = {
   id: true,
@@ -108,8 +115,10 @@ function compareCompetitionListItems(a: CompetitionListItem, b: CompetitionListI
     compareNumber(scopeRank(a), scopeRank(b)) ||
     compareNumber(categoryRank(a), categoryRank(b)) ||
     compareNumber(levelRank(a), levelRank(b)) ||
+    compareNumber(formatRank(a), formatRank(b)) ||
     compareNumber(confederationRank(a), confederationRank(b)) ||
     compareNumber(countryRank(a), countryRank(b)) ||
+    compareNumber(lifecycleRank(a), lifecycleRank(b)) ||
     compareNumber(a.sortOrder, b.sortOrder) ||
     a.name.localeCompare(b.name, 'zh-Hans-CN')
   );
@@ -135,6 +144,14 @@ function categoryRank(competition: CompetitionListItem) {
 
 function levelRank(competition: CompetitionListItem) {
   return competition.level ? (COMPETITION_LEVEL_ORDER.get(competition.level) ?? 9999) : 9999;
+}
+
+function formatRank(competition: CompetitionListItem) {
+  return competition.format ? (COMPETITION_FORMAT_ORDER.get(competition.format) ?? 9999) : 9999;
+}
+
+function lifecycleRank(competition: CompetitionListItem) {
+  return COMPETITION_LIFECYCLE_ORDER[competition.lifecycleStatus] ?? 9999;
 }
 
 function confederationRank(competition: CompetitionListItem) {

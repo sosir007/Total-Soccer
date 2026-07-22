@@ -490,8 +490,7 @@ function suggestCompetitionSort(rule: HonorRuleOption) {
   }
 
   if (rule.scopeType === 'COUNTRY') {
-    const countryBase = getSelectedCountrySortBase();
-    return countryBase + getDomesticRuleOffset(rule);
+    return getSelectedCountrySortBase();
   }
 
   if (rule.scopeType === 'GLOBAL') {
@@ -531,20 +530,6 @@ function getRuleLevelOffset(rule: Pick<HonorRuleOption, 'level'>) {
     0,
     levelOptions.findIndex((option) => option.value === rule.level)
   );
-}
-
-function getDomesticRuleOffset(rule: HonorRuleOption) {
-  const levelOffset = getRuleLevelOffset(rule) * 10;
-
-  if (rule.format === '联赛') {
-    return levelOffset;
-  }
-
-  if (rule.format === '杯赛') {
-    return levelOffset + 1;
-  }
-
-  return levelOffset + 9;
 }
 
 function formatScope(competition: CompetitionListItem) {
@@ -721,6 +706,7 @@ onActivated(() => {
 .management-list-panel {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .object-tabs {

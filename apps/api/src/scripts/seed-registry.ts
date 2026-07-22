@@ -225,6 +225,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'north-american-soccer-league',
+    label: '北美足球联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-north-american-soccer-league.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/north-american-soccer-league.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',

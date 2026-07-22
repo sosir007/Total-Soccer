@@ -64,7 +64,7 @@ function openExternalLink(row: CompetitionListItem) {
 </script>
 
 <template>
-  <div :class="embedded ? 'list-panel-content' : 'panel'">
+  <div class="competition-list-table" :class="embedded ? 'list-panel-content' : 'panel'">
     <div class="panel-header">
       <h3>赛事列表</h3>
       <div class="panel-actions">
@@ -197,3 +197,20 @@ function openExternalLink(row: CompetitionListItem) {
     </template>
   </div>
 </template>
+
+<style scoped lang="scss">
+.competition-list-table {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.competition-list-table :deep(.el-table) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.competition-list-table :deep(.el-table__inner-wrapper) {
+  min-width: 0;
+}
+</style>
