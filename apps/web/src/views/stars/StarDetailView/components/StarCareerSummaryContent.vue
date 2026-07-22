@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import EntityLink from '@/components/EntityLink.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import {
@@ -8,9 +10,23 @@ import {
   getLifeStatusVariant
 } from '@/utils/tag-theme';
 
-defineProps<{
+const props = defineProps<{
   player: PlayerDetail;
 }>();
+
+const clubCareerLinks = computed(() => {
+  const clubById = new Map<string, NonNullable<PlayerDetail['careers']>[number]['club']>();
+
+  (props.player.careers ?? []).forEach((career) => {
+    if (career.careerType !== 'CLUB') return;
+
+    if (career.club?.id && !clubById.has(career.club.id)) {
+      clubById.set(career.club.id, career.club);
+    }
+  });
+
+  return [...clubById.values()].filter(Boolean);
+});
 
 function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
@@ -21,11 +37,25 @@ function formatText(value?: string | number | null) {
   <dl class="detail-list wide">
     <div>
       <dt>初始球队</dt>
-      <dd>{{ formatText(player.initialClub) }}</dd>
+      <dd>
+        <EntityLink
+          :id="player.initialClubRef?.id"
+          type="club"
+          :name="player.initialClubRef?.name || player.initialClub"
+        />
+      </dd>
     </div>
     <div>
       <dt>球队经历</dt>
-      <dd>{{ formatText(player.clubs) }}</dd>
+      <dd>
+        <span v-if="clubCareerLinks.length" class="summary-club-links">
+          <template v-for="(club, index) in clubCareerLinks" :key="club?.id ?? index">
+            <span v-if="index > 0">、</span>
+            <EntityLink :id="club?.id" type="club" :name="club?.name" />
+          </template>
+        </span>
+        <span v-else>{{ formatText(player.clubs) }}</span>
+      </dd>
     </div>
     <div>
       <dt>生涯</dt>
@@ -63,3 +93,9 @@ function formatText(value?: string | number | null) {
     </div>
   </dl>
 </template>
+
+<style scoped lang="scss">
+.summary-club-links {
+  display: inline;
+}
+</style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EntityLink from '@/components/EntityLink.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 
 type TeamHonor = NonNullable<PlayerDetail['teamHonors']>[number];
@@ -20,13 +21,32 @@ function formatText(value?: string | number | null) {
 }
 
 function formatTeamHonor(row: TeamHonor) {
-  const team = row.standing.club?.name ?? row.standing.country?.name ?? '-';
-  const competition = row.standing.edition.competition.name;
-  const edition =
-    row.standing.edition.season || row.standing.edition.name || row.standing.edition.year || '-';
+  const edition = formatEditionShort(row.standing.edition);
   const placement = placementLabels[row.standing.placement] ?? row.standing.placement;
 
-  return `${team} / ${competition} / ${edition} / ${placement}`;
+  return `${edition} / ${placement}`;
+}
+
+function formatEditionShort(edition: {
+  season?: string | null;
+  name?: string | null;
+  year?: number | null;
+}) {
+  if (edition.year) return String(edition.year);
+
+  return String(edition.season || edition.name || '-').replace(/年$/, '');
+}
+
+function getTeamType(row: TeamHonor) {
+  return row.standing.club ? 'club' : 'country';
+}
+
+function getTeamId(row: TeamHonor) {
+  return row.standing.club?.id ?? row.standing.country?.id ?? null;
+}
+
+function getTeamName(row: TeamHonor) {
+  return row.standing.club?.name ?? row.standing.country?.name ?? '-';
 }
 
 function formatSourceType(row: TeamHonor) {
@@ -44,8 +64,34 @@ function formatSourceType(row: TeamHonor) {
 
 <template>
   <el-table :data="honors" border>
-    <el-table-column label="关联荣誉" min-width="300" show-overflow-tooltip>
-      <template #default="{ row }">{{ formatTeamHonor(row) }}</template>
+    <el-table-column label="球队 / 国家队" min-width="150" show-overflow-tooltip>
+      <template #default="{ row }">
+        <EntityLink :id="getTeamId(row)" :type="getTeamType(row)" :name="getTeamName(row)" />
+      </template>
+    </el-table-column>
+    <el-table-column label="赛事" min-width="180" show-overflow-tooltip>
+      <template #default="{ row }">
+        <EntityLink
+          :id="row.standing.edition.competition.id"
+          type="competition"
+          :name="row.standing.edition.competition.name"
+        />
+      </template>
+    </el-table-column>
+    <el-table-column label="荣誉" min-width="160" show-overflow-tooltip>
+      <template #default="{ row }">
+        <a
+          v-if="row.standing.edition.externalUrl"
+          class="team-honor-edition-link"
+          :href="row.standing.edition.externalUrl"
+          target="_blank"
+          rel="noreferrer"
+          @click.stop
+        >
+          {{ formatTeamHonor(row) }}
+        </a>
+        <span v-else>{{ formatTeamHonor(row) }}</span>
+      </template>
     </el-table-column>
     <el-table-column label="来源" width="110" align="center">
       <template #default="{ row }">{{ formatSourceType(row) }}</template>
@@ -55,3 +101,14 @@ function formatSourceType(row: TeamHonor) {
     </el-table-column>
   </el-table>
 </template>
+
+<style scoped lang="scss">
+.team-honor-edition-link {
+  color: var(--text-color-regular);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+</style>

@@ -27,14 +27,21 @@ import type {
   PlayerTeamHonorStatus,
   TeamHonorStandingOption
 } from '@/services/types/catalog';
-import type { CompetitionStandingPlacement } from '@/services/types/competitions';
+import type {
+  CompetitionStandingPlacement,
+  CompetitionTargetType
+} from '@/services/types/competitions';
 import { AwardSelect, ClubSelect, CountrySelect, PositionSelect } from '@/components/selects';
+import BaseOptionSelect from '@/components/selects/BaseOptionSelect.vue';
+import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
+import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { useOptionStore } from '@/stores/options';
+import type { SelectOption } from '@/stores/options';
 
 interface CareerForm {
   careerType: PlayerCareerType;
@@ -53,6 +60,35 @@ interface CareerForm {
   isLegend: boolean;
   sortOrder: number;
   remark: string;
+}
+
+interface TeamHonorGroup {
+  id: string;
+  careerId: string;
+  careerLabel: string;
+  teamName: string;
+  teamId?: string | null;
+  teamType: 'club' | 'country';
+  competitionId: string;
+  competitionName: string;
+  standings: TeamHonorStandingOption[];
+  honors: PlayerTeamHonor[];
+  standingIds: string[];
+  sourceType: PlayerTeamHonorSourceType;
+  status: PlayerTeamHonorStatus;
+  remark: string;
+}
+
+interface HonorStandingEditionItem {
+  id: string;
+  label: string;
+  externalUrl?: string | null;
+}
+
+interface HonorStandingPlacementGroup {
+  placement: CompetitionStandingPlacement;
+  placementLabel: string;
+  editions: HonorStandingEditionItem[];
 }
 
 const placementLabels: Record<CompetitionStandingPlacement, string> = {
@@ -95,8 +131,11 @@ const editingAwardRecipient = ref<AwardRecipientRecord | null>(null);
 const selectedAwardId = ref('');
 const awardEditions = ref<AwardDetail['editions']>([]);
 const honorDialogVisible = ref(false);
-const editingTeamHonor = ref<PlayerTeamHonor | null>(null);
+const editingTeamHonorGroup = ref<TeamHonorGroup | null>(null);
 const standingOptions = ref<TeamHonorStandingOption[]>([]);
+const selectedCompetitionId = ref('');
+const initializingHonorForm = ref(false);
+const standingRequestId = ref(0);
 
 const awardForm = reactive({
   editionId: '',
@@ -106,7 +145,7 @@ const awardForm = reactive({
   remark: ''
 });
 const honorForm = reactive({
-  standingId: '',
+  standingIds: [] as string[],
   careerId: '',
   sourceType: 'MANUAL' as PlayerTeamHonorSourceType,
   status: 'CONFIRMED' as PlayerTeamHonorStatus,
@@ -133,16 +172,146 @@ const careerForm = reactive<CareerForm>({
 const careerOptions = computed(() =>
   careerForms.value
     .map((career, index) => {
-      const label =
-        career.careerType === 'CLUB' ? `俱乐部经历 ${index + 1}` : `国家队经历 ${index + 1}`;
+      const typeLabel = career.careerType === 'CLUB' ? '俱乐部' : '国家队';
+      const teamLabel = formatCareerTeam(career);
 
       return {
         value: player.value?.careers?.[index]?.id ?? '',
-        label: `${label} / ${formatCareerPeriod(career)}`
+        label: `${teamLabel} / ${formatCareerPeriod(career)} / ${typeLabel}`,
+        career
       };
     })
     .filter((item) => item.value)
 );
+const selectedCareerOption = computed(() =>
+  careerOptions.value.find((item) => item.value === honorForm.careerId)
+);
+const selectedCareer = computed(() => selectedCareerOption.value?.career ?? null);
+const selectedCareerTargetType = computed<CompetitionTargetType | undefined>(() => {
+  if (!selectedCareer.value) return undefined;
+
+  return selectedCareer.value.careerType === 'CLUB' ? 'CLUB' : 'COUNTRY';
+});
+const relatedCompetitionOptions = computed<SelectOption[]>(() => {
+  const competitionMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      description: string;
+      sortOrder: number;
+    }
+  >();
+
+  standingOptions.value.forEach((standing) => {
+    const competition = standing.edition.competition;
+
+    if (!competitionMap.has(competition.id)) {
+      competitionMap.set(competition.id, {
+        id: competition.id,
+        name: competition.name,
+        description: [competition.category, competition.level, competition.format]
+          .filter(Boolean)
+          .join(' / '),
+        sortOrder:
+          optionStore.competitions.find((item) => item.id === competition.id)?.sortOrder ?? 0
+      });
+    }
+  });
+
+  return [...competitionMap.values()]
+    .sort((left, right) => {
+      if (left.sortOrder !== right.sortOrder) return left.sortOrder - right.sortOrder;
+      return left.name.localeCompare(right.name, 'zh-Hans-CN');
+    })
+    .map((competition) => ({
+      id: competition.id,
+      value: competition.id,
+      label: competition.name,
+      description: competition.description,
+      meta: uniqueMeta([competition.description])
+    }));
+});
+const standingChoiceOptions = computed<SelectOption[]>(() =>
+  standingOptions.value
+    .filter((standing) => {
+      if (!selectedCompetitionId.value) return false;
+      return standing.edition.competition.id === selectedCompetitionId.value;
+    })
+    .map((standing) => ({
+      id: standing.id,
+      value: standing.id,
+      label: formatStandingChoice(standing),
+      description: formatStandingLabel(standing),
+      meta: uniqueMeta([
+        standing.edition.season,
+        standing.edition.name,
+        standing.edition.year ? String(standing.edition.year) : '',
+        placementLabels[standing.placement],
+        standing.club?.name,
+        standing.country?.name,
+        standing.edition.competition.name
+      ])
+    }))
+);
+const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
+  const groups = new Map<string, TeamHonorGroup>();
+
+  teamHonors.value.forEach((honor) => {
+    const standing = honor.standing;
+    const competition = standing.edition.competition;
+    const careerId = honor.careerId ?? '';
+    const key = [careerId, competition.id, honor.sourceType, honor.status, honor.remark ?? ''].join(
+      '|'
+    );
+    const careerLabel = honor.career ? formatPlayerCareerLabel(honor.career) : '-';
+    const group =
+      groups.get(key) ??
+      ({
+        id: key,
+        careerId,
+        careerLabel,
+        teamName: standing.club?.name ?? standing.country?.name ?? '-',
+        teamId: standing.club?.id ?? standing.country?.id ?? null,
+        teamType: standing.club ? 'club' : 'country',
+        competitionId: competition.id,
+        competitionName: competition.name,
+        standings: [],
+        honors: [],
+        standingIds: [],
+        sourceType: honor.sourceType,
+        status: honor.status,
+        remark: honor.remark ?? ''
+      } satisfies TeamHonorGroup);
+
+    group.standings.push(standing);
+    group.honors.push(honor);
+    group.standingIds.push(honor.standingId);
+    groups.set(key, group);
+  });
+
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      standings: sortStandings(group.standings),
+      honors: sortTeamHonors(group.honors)
+    }))
+    .sort((left, right) => {
+      const leftFirst = left.standings[0];
+      const rightFirst = right.standings[0];
+      const leftSort =
+        optionStore.competitions.find((item) => item.id === left.competitionId)?.sortOrder ?? 0;
+      const rightSort =
+        optionStore.competitions.find((item) => item.id === right.competitionId)?.sortOrder ?? 0;
+
+      if (left.careerLabel !== right.careerLabel) {
+        return left.careerLabel.localeCompare(right.careerLabel, 'zh-Hans-CN');
+      }
+      if (leftSort !== rightSort) return leftSort - rightSort;
+
+      return (leftFirst?.edition.year ?? 0) - (rightFirst?.edition.year ?? 0);
+    });
+});
 const isGoalkeeperPlayer = computed(
   () =>
     isGoalkeeperPosition(player.value?.primaryRole) ||
@@ -412,58 +581,167 @@ async function confirmDeleteAwardRecipient(row: AwardRecipientRecord) {
   }
 }
 
-function openTeamHonorDialog(row?: PlayerTeamHonor) {
-  editingTeamHonor.value = row ?? null;
-  honorForm.standingId = row?.standingId ?? '';
-  honorForm.careerId = row?.careerId ?? '';
-  honorForm.sourceType = row?.sourceType ?? 'MANUAL';
-  honorForm.status = row?.status ?? 'CONFIRMED';
-  honorForm.remark = row?.remark ?? '';
+async function openTeamHonorDialog(group?: TeamHonorGroup) {
+  initializingHonorForm.value = true;
+  editingTeamHonorGroup.value = group ?? null;
+  honorForm.standingIds = [];
+  honorForm.careerId = group?.careerId ?? '';
+  honorForm.sourceType = group?.sourceType ?? 'MANUAL';
+  honorForm.status = group?.status ?? 'CONFIRMED';
+  honorForm.remark = group?.remark ?? '';
+  selectedCompetitionId.value = '';
   honorDialogVisible.value = true;
+  standingOptions.value = [];
 
-  if (row?.standing) {
-    standingOptions.value = [row.standing];
+  try {
+    if (honorForm.careerId) {
+      await loadStandingOptionsForCareer();
+    } else if (group?.standings.length) {
+      standingOptions.value = group.standings;
+    }
+
+    selectedCompetitionId.value = group?.competitionId ?? '';
+    honorForm.standingIds = group?.standingIds ? [...group.standingIds] : [];
+  } finally {
+    initializingHonorForm.value = false;
   }
 }
 
-async function searchStandingOptions(keyword = '') {
+async function loadStandingOptionsForCareer() {
+  const requestId = standingRequestId.value + 1;
+  standingRequestId.value = requestId;
+  const career = selectedCareer.value;
+
+  if (!career) {
+    standingOptions.value = [];
+    selectedCompetitionId.value = '';
+    honorForm.standingIds = [];
+    return;
+  }
+
+  const targetType = selectedCareerTargetType.value;
+  const teamFilter =
+    career.careerType === 'CLUB' ? { clubId: career.clubId } : { countryId: career.countryId };
+  const teamId = career.careerType === 'CLUB' ? career.clubId : career.countryId;
+
+  if (!targetType || !teamId) {
+    standingOptions.value = [];
+    selectedCompetitionId.value = '';
+    honorForm.standingIds = [];
+    return;
+  }
+
   standingSearching.value = true;
 
   try {
-    const result = await fetchTeamHonorStandingOptions({
-      page: 1,
-      pageSize: 30,
-      keyword: keyword.trim() || undefined
+    const nextStandingOptions = await fetchAllStandingOptions({
+      targetType,
+      ...teamFilter
     });
-    standingOptions.value = result.items;
+
+    if (requestId !== standingRequestId.value) return;
+
+    standingOptions.value = nextStandingOptions;
+
+    if (
+      selectedCompetitionId.value &&
+      !standingOptions.value.some(
+        (standing) => standing.edition.competition.id === selectedCompetitionId.value
+      )
+    ) {
+      selectedCompetitionId.value = '';
+      honorForm.standingIds = [];
+    }
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '赛事结果搜索失败。');
+    ElMessage.error(error instanceof Error ? error.message : '关联赛事荣誉加载失败。');
   } finally {
     standingSearching.value = false;
   }
 }
 
+async function fetchAllStandingOptions(
+  params: Omit<Parameters<typeof fetchTeamHonorStandingOptions>[0], 'page' | 'pageSize'>
+) {
+  const items: TeamHonorStandingOption[] = [];
+  let page = 1;
+  let total = 0;
+
+  do {
+    const result = await fetchTeamHonorStandingOptions({
+      ...params,
+      page,
+      pageSize: 100
+    });
+    items.push(...result.items);
+    total = result.total;
+    page += 1;
+  } while (items.length < total);
+
+  return items;
+}
+
 async function saveTeamHonor() {
-  if (!honorForm.standingId) {
-    ElMessage.warning('请选择赛事结果。');
+  if (!honorForm.careerId) {
+    ElMessage.warning('请选择关联经历。');
+    return;
+  }
+
+  if (!selectedCompetitionId.value) {
+    ElMessage.warning('请选择关联赛事。');
+    return;
+  }
+
+  if (!honorForm.standingIds.length) {
+    ElMessage.warning('请选择赛事届次名次。');
     return;
   }
 
   honorSaving.value = true;
 
   try {
-    const payload: PlayerTeamHonorPayload = {
-      standingId: honorForm.standingId,
+    const basePayload: Omit<PlayerTeamHonorPayload, 'standingId'> = {
       careerId: honorForm.careerId || null,
       sourceType: honorForm.sourceType,
       status: honorForm.status,
       remark: honorForm.remark.trim() || undefined
     };
 
-    if (editingTeamHonor.value) {
-      await updatePlayerTeamHonor(playerId.value, editingTeamHonor.value.id, payload);
+    if (editingTeamHonorGroup.value) {
+      const previousHonorByStandingId = new Map(
+        editingTeamHonorGroup.value.honors.map((honor) => [honor.standingId, honor])
+      );
+      const nextStandingIds = new Set(honorForm.standingIds);
+      const removedHonors = editingTeamHonorGroup.value.honors.filter(
+        (honor) => !nextStandingIds.has(honor.standingId)
+      );
+
+      await Promise.all([
+        ...removedHonors.map((honor) => deletePlayerTeamHonor(playerId.value, honor.id)),
+        ...honorForm.standingIds.map((standingId) => {
+          const existingHonor = previousHonorByStandingId.get(standingId);
+
+          if (existingHonor) {
+            return updatePlayerTeamHonor(playerId.value, existingHonor.id, {
+              ...basePayload,
+              standingId
+            });
+          }
+
+          return createPlayerTeamHonor(playerId.value, {
+            ...basePayload,
+            standingId
+          });
+        })
+      ]);
     } else {
-      await createPlayerTeamHonor(playerId.value, payload);
+      await Promise.all(
+        honorForm.standingIds.map((standingId) =>
+          createPlayerTeamHonor(playerId.value, {
+            ...basePayload,
+            standingId
+          })
+        )
+      );
     }
 
     honorDialogVisible.value = false;
@@ -476,19 +754,23 @@ async function saveTeamHonor() {
   }
 }
 
-async function confirmDeleteTeamHonor(row: PlayerTeamHonor) {
+async function confirmDeleteTeamHonor(group: TeamHonorGroup) {
   try {
-    await ElMessageBox.confirm('确定删除这条关联荣誉吗？', '删除关联荣誉', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    });
+    await ElMessageBox.confirm(
+      `确定删除「${group.teamName} / ${group.competitionName}」这一组关联荣誉吗？`,
+      '删除关联荣誉',
+      {
+        type: 'warning',
+        confirmButtonText: '删除',
+        cancelButtonText: '取消'
+      }
+    );
   } catch {
     return;
   }
 
   try {
-    await deletePlayerTeamHonor(playerId.value, row.id);
+    await Promise.all(group.honors.map((honor) => deletePlayerTeamHonor(playerId.value, honor.id)));
     await Promise.all([loadPlayer(), loadTeamHonors()]);
     ElMessage.success('关联荣誉已删除。');
   } catch (error) {
@@ -513,6 +795,14 @@ function formatCareerTeam(career: CareerForm) {
   return source?.name ?? '-';
 }
 
+function careerEntityType(career: CareerForm) {
+  return career.careerType === 'CLUB' ? 'club' : 'country';
+}
+
+function careerEntityId(career: CareerForm) {
+  return career.careerType === 'CLUB' ? career.clubId : career.countryId;
+}
+
 function formatCareerStat(value?: number) {
   return value === undefined || value === null ? '-' : value;
 }
@@ -523,7 +813,7 @@ function isGoalkeeperPosition(position?: string | null) {
 }
 
 function formatEdition(row: AwardRecipientRecord) {
-  return row.edition.season || row.edition.name || row.edition.year || '-';
+  return formatEditionShort(row.edition);
 }
 
 function formatAwardPlacement(row: AwardRecipientRecord) {
@@ -533,9 +823,92 @@ function formatAwardPlacement(row: AwardRecipientRecord) {
 function formatStandingLabel(standing: TeamHonorStandingOption) {
   const team = standing.club?.name ?? standing.country?.name ?? '-';
   const competition = standing.edition.competition.name;
-  const edition = standing.edition.season || standing.edition.name || standing.edition.year || '-';
+  const edition = formatEditionShort(standing.edition);
 
   return `${team} / ${competition} / ${edition} / ${placementLabels[standing.placement]}`;
+}
+
+function formatStandingChoice(standing: TeamHonorStandingOption) {
+  const edition = formatEditionShort(standing.edition);
+
+  return `${edition} / ${placementLabels[standing.placement]}`;
+}
+
+function formatEditionShort(edition: {
+  season?: string | null;
+  name?: string | null;
+  year?: number | null;
+}) {
+  if (edition.year) return String(edition.year);
+
+  return String(edition.season || edition.name || '-').replace(/年$/, '');
+}
+
+function formatPlayerCareerLabel(career: PlayerCareer) {
+  const team = career.club?.name ?? career.country?.name ?? '-';
+  const startYear = career.startYear ? String(career.startYear) : '';
+  const endYear = career.endYear ? String(career.endYear) : '';
+  const period = [startYear, endYear].filter(Boolean).join(' - ') || '-';
+  const type = career.careerType === 'CLUB' ? '俱乐部' : '国家队';
+
+  return `${team} / ${period} / ${type}`;
+}
+
+function sortStandings(standings: TeamHonorStandingOption[]) {
+  return [...standings].sort(compareStandings);
+}
+
+function sortTeamHonors(honors: PlayerTeamHonor[]) {
+  return [...honors].sort((left, right) => compareStandings(left.standing, right.standing));
+}
+
+function compareStandings(left: TeamHonorStandingOption, right: TeamHonorStandingOption) {
+  const leftYear = left.edition.year ?? 0;
+  const rightYear = right.edition.year ?? 0;
+
+  if (leftYear !== rightYear) return leftYear - rightYear;
+  if (left.standingOrder !== right.standingOrder) return left.standingOrder - right.standingOrder;
+
+  return placementSort(left.placement) - placementSort(right.placement);
+}
+
+function placementSort(placement: CompetitionStandingPlacement) {
+  const order: Record<CompetitionStandingPlacement, number> = {
+    CHAMPION: 1,
+    RUNNER_UP: 2,
+    THIRD_PLACE: 3,
+    FOURTH_PLACE: 4,
+    SEMI_FINALIST: 5
+  };
+
+  return order[placement];
+}
+
+function buildHonorGroupStandings(group: TeamHonorGroup): HonorStandingPlacementGroup[] {
+  const placementGroups = new Map<CompetitionStandingPlacement, HonorStandingEditionItem[]>();
+
+  group.standings.forEach((standing) => {
+    const edition = formatEditionShort(standing.edition);
+    const current = placementGroups.get(standing.placement) ?? [];
+    current.push({
+      id: standing.id,
+      label: edition,
+      externalUrl: standing.edition.externalUrl
+    });
+    placementGroups.set(standing.placement, current);
+  });
+
+  return [...placementGroups.entries()]
+    .sort(([left], [right]) => placementSort(left) - placementSort(right))
+    .map(([placement, editions]) => ({
+      placement,
+      placementLabel: placementLabels[placement],
+      editions
+    }));
+}
+
+function uniqueMeta(values: Array<string | number | null | undefined>) {
+  return [...new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))];
 }
 
 function formatTeamHonorStatus(status: PlayerTeamHonorStatus) {
@@ -563,12 +936,43 @@ watch(selectedAwardId, (awardId) => {
   void loadAwardEditions(awardId);
 });
 
+watch(
+  () => honorForm.careerId,
+  () => {
+    if (initializingHonorForm.value) return;
+
+    selectedCompetitionId.value = '';
+    honorForm.standingIds = [];
+
+    if (honorDialogVisible.value) {
+      void loadStandingOptionsForCareer();
+    }
+  }
+);
+
+watch(selectedCompetitionId, (competitionId) => {
+  if (initializingHonorForm.value) return;
+
+  if (!competitionId) {
+    honorForm.standingIds = [];
+    return;
+  }
+
+  honorForm.standingIds = honorForm.standingIds.filter((standingId) =>
+    standingOptions.value.some(
+      (standing) =>
+        standing.id === standingId &&
+        standing.edition.competition.id === selectedCompetitionId.value
+    )
+  );
+});
+
 onMounted(() => {
   void optionStore.ensureClubs();
+  void optionStore.ensureCompetitions();
   void optionStore.ensureCountries();
   void loadPlayer();
   void loadTeamHonors();
-  void searchStandingOptions();
 });
 </script>
 
@@ -622,13 +1026,21 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column label="球队 / 国家队" min-width="160" show-overflow-tooltip>
-            <template #default="{ row }">{{ formatCareerTeam(row) }}</template>
+            <template #default="{ row }">
+              <EntityLink
+                :id="careerEntityId(row)"
+                :type="careerEntityType(row)"
+                :name="formatCareerTeam(row)"
+              />
+            </template>
           </el-table-column>
           <el-table-column label="年份" width="120" align="center">
             <template #default="{ row }">{{ formatCareerPeriod(row) }}</template>
           </el-table-column>
           <el-table-column label="位置" width="100" align="center">
-            <template #default="{ row }">{{ row.position || '-' }}</template>
+            <template #default="{ row }">
+              <PositionTags :value="row.position" />
+            </template>
           </el-table-column>
           <el-table-column label="场次" width="80" align="center">
             <template #default="{ row }">{{ formatCareerStat(row.appearances) }}</template>
@@ -732,9 +1144,44 @@ onMounted(() => {
             新增关联荣誉
           </el-button>
         </div>
-        <el-table v-loading="teamHonorsLoading" :data="teamHonors" border>
-          <el-table-column label="荣誉" min-width="320">
-            <template #default="{ row }">{{ formatStandingLabel(row.standing) }}</template>
+        <el-table v-loading="teamHonorsLoading" :data="teamHonorGroups" border>
+          <el-table-column type="index" label="序号" width="70" align="center" />
+          <el-table-column label="球队 / 国家队" min-width="150" show-overflow-tooltip>
+            <template #default="{ row }">
+              <EntityLink :id="row.teamId" :type="row.teamType" :name="row.teamName" />
+            </template>
+          </el-table-column>
+          <el-table-column label="赛事" min-width="180" show-overflow-tooltip>
+            <template #default="{ row }">
+              <EntityLink :id="row.competitionId" type="competition" :name="row.competitionName" />
+            </template>
+          </el-table-column>
+          <el-table-column label="荣誉" min-width="300">
+            <template #default="{ row }">
+              <div class="honor-standings">
+                <span
+                  v-for="placementGroup in buildHonorGroupStandings(row)"
+                  :key="placementGroup.placement"
+                  class="honor-standings__group"
+                >
+                  <template v-for="(edition, index) in placementGroup.editions" :key="edition.id">
+                    <span v-if="index > 0">、</span>
+                    <a
+                      v-if="edition.externalUrl"
+                      class="honor-edition-link"
+                      :href="edition.externalUrl"
+                      target="_blank"
+                      rel="noreferrer"
+                      @click.stop
+                    >
+                      {{ edition.label }}
+                    </a>
+                    <span v-else>{{ edition.label }}</span>
+                  </template>
+                  {{ placementGroup.placementLabel }}
+                </span>
+              </div>
+            </template>
           </el-table-column>
           <el-table-column label="状态" width="100" align="center">
             <template #default="{ row }">
@@ -890,26 +1337,8 @@ onMounted(() => {
 
     <el-dialog v-model="honorDialogVisible" title="维护关联荣誉" width="760px" destroy-on-close>
       <el-form class="resume-form-grid" label-position="top">
-        <el-form-item label="赛事结果" class="resume-form-wide">
-          <el-select
-            v-model="honorForm.standingId"
-            filterable
-            remote
-            reserve-keyword
-            :remote-method="searchStandingOptions"
-            :loading="standingSearching"
-            placeholder="搜索赛事、届次、国家或俱乐部"
-          >
-            <el-option
-              v-for="standing in standingOptions"
-              :key="standing.id"
-              :label="formatStandingLabel(standing)"
-              :value="standing.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关联经历">
-          <el-select v-model="honorForm.careerId" clearable placeholder="可选">
+        <el-form-item label="关联经历" class="resume-form-wide">
+          <el-select v-model="honorForm.careerId" clearable placeholder="请选择关联经历">
             <el-option
               v-for="career in careerOptions"
               :key="career.value"
@@ -917,6 +1346,26 @@ onMounted(() => {
               :value="career.value"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="关联赛事" class="resume-form-wide">
+          <BaseOptionSelect
+            v-model="selectedCompetitionId"
+            :options="relatedCompetitionOptions"
+            :loading="standingSearching"
+            :disabled="!honorForm.careerId"
+            placeholder="先选择经历，再选择该球队相关赛事"
+          />
+        </el-form-item>
+        <el-form-item label="赛事届次名次" class="resume-form-wide">
+          <BaseOptionSelect
+            v-model="honorForm.standingIds"
+            :options="standingChoiceOptions"
+            multiple
+            :max-collapse-tags="4"
+            :loading="standingSearching"
+            :disabled="!selectedCompetitionId"
+            placeholder="选择年份或名次，支持搜索 1959"
+          />
         </el-form-item>
         <el-form-item label="来源">
           <el-select v-model="honorForm.sourceType">
@@ -1022,6 +1471,27 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.honor-standings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  line-height: 1.6;
+}
+
+.honor-standings__group {
+  white-space: nowrap;
+}
+
+.honor-edition-link {
+  color: var(--text-color-regular);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary);
+  }
 }
 
 .resume-switch-row {

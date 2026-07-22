@@ -458,16 +458,24 @@ export class PlayersService {
     const pagination = resolvePagination(query);
     const keyword = query.keyword?.trim();
     const targetType = this.parseOptionalCompetitionTargetType(query.targetType);
+    const competitionId = this.optionalText(query.competitionId);
+    const countryId = this.optionalText(query.countryId);
+    const clubId = this.optionalText(query.clubId);
+    const competitionWhere: Prisma.CompetitionWhereInput = {
+      ...(targetType ? { targetType } : {}),
+      ...(competitionId ? { id: competitionId } : {})
+    };
+    const hasCompetitionWhere = Object.keys(competitionWhere).length > 0;
     const where: Prisma.CompetitionStandingWhereInput = {
-      ...(targetType
+      ...(hasCompetitionWhere
         ? {
             edition: {
-              competition: {
-                targetType
-              }
+              competition: competitionWhere
             }
           }
         : {}),
+      ...(countryId ? { countryId } : {}),
+      ...(clubId ? { clubId } : {}),
       ...(keyword
         ? {
             OR: [
@@ -488,7 +496,12 @@ export class PlayersService {
       this.prisma.competitionStanding.findMany({
         where,
         include: TEAM_HONOR_STANDING_INCLUDE,
-        orderBy: [{ edition: { year: 'desc' } }, { standingOrder: 'asc' }, { placement: 'asc' }],
+        orderBy: [
+          { edition: { competition: { sortOrder: 'asc' } } },
+          { edition: { year: 'asc' } },
+          { standingOrder: 'asc' },
+          { placement: 'asc' }
+        ],
         skip: pagination.skip,
         take: pagination.take
       }),

@@ -18,6 +18,9 @@ export interface TeamHonorStandingOptionQuery {
   pageSize?: string;
   keyword?: string;
   targetType?: 'COUNTRY' | 'CLUB';
+  competitionId?: string;
+  countryId?: string;
+  clubId?: string;
 }
 
 export interface PlayerPayload {

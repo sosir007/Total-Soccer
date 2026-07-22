@@ -412,6 +412,9 @@ export interface TeamHonorStandingOptionParams {
   pageSize?: number;
   keyword?: string;
   targetType?: 'COUNTRY' | 'CLUB';
+  competitionId?: string;
+  countryId?: string;
+  clubId?: string;
 }
 
 export interface CountryListParams {

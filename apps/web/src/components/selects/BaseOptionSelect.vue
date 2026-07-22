@@ -19,6 +19,7 @@ const props = withDefaults(
     disabled?: boolean;
     filterable?: boolean;
     multiple?: boolean;
+    maxCollapseTags?: number;
   }>(),
   {
     loading: false,
@@ -26,7 +27,8 @@ const props = withDefaults(
     clearable: true,
     disabled: false,
     filterable: true,
-    multiple: false
+    multiple: false,
+    maxCollapseTags: 1
   }
 );
 
@@ -115,6 +117,7 @@ function isConfederation(value?: string | null) {
     :filterable="filterable"
     :filter-method="filterable ? handleFilter : undefined"
     :multiple="multiple"
+    :max-collapse-tags="maxCollapseTags"
     collapse-tags
     collapse-tags-tooltip
     popper-class="common-select-popper"

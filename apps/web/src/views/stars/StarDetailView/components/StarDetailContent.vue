@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import AbilityBadge from '@/components/AbilityBadge.vue';
 import DetailHero from '@/components/DetailHero.vue';
 import IconFont from '@/components/IconFont.vue';
@@ -7,10 +8,7 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
-import { getPlayerStatusLabel, getPlayerStatusVariant } from '@/utils/tag-theme';
-import StarAbilityInfoContent from './StarAbilityInfoContent.vue';
 import StarBasicInfoContent from './StarBasicInfoContent.vue';
-import StarCareerSummaryContent from './StarCareerSummaryContent.vue';
 import StarCareerTableContent from './StarCareerTableContent.vue';
 import StarPersonalHonorsContent from './StarPersonalHonorsContent.vue';
 import StarRelatedInfoContent from './StarRelatedInfoContent.vue';
@@ -25,6 +23,17 @@ const emit = defineEmits<{
   manageResume: [];
   back: [];
 }>();
+
+const displayCareers = computed(() =>
+  [...(props.player.profileClubCareers ?? []), ...(props.player.countryCareers ?? [])].sort(
+    (left, right) => {
+      if (left.sortOrder !== right.sortOrder) return left.sortOrder - right.sortOrder;
+
+      return (left.startYear ?? 0) - (right.startYear ?? 0);
+    }
+  )
+);
+const playerTypeName = computed(() => props.player.playerTypeRef?.name || props.player.playerType);
 
 function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
@@ -53,13 +62,11 @@ function playerExternalUrl() {
       <template #tags>
         <div class="detail-tags">
           <AbilityBadge type="PA" :value="player.pa" />
-          <AbilityBadge type="CA" :value="player.ca" />
           <SemanticTag variant="status-legend">
             荣誉分 {{ formatText(player.honorScore) }}
           </SemanticTag>
-          <SemanticTag variant="object-player">{{ formatRef(player.playerTypeRef) }}</SemanticTag>
-          <SemanticTag :variant="getPlayerStatusVariant(player)">
-            {{ getPlayerStatusLabel(player) }}
+          <SemanticTag v-if="playerTypeName" variant="object-player">
+            {{ playerTypeName }}
           </SemanticTag>
         </div>
       </template>
@@ -88,35 +95,16 @@ function playerExternalUrl() {
       <SectionCard title="关联信息" badge="资料库">
         <StarRelatedInfoContent :player="player" />
       </SectionCard>
-
-      <SectionCard title="能力与属性" badge="FM Data">
-        <StarAbilityInfoContent :player="player" />
-      </SectionCard>
-
-      <SectionCard title="生涯摘要" badge="备注">
-        <StarCareerSummaryContent :player="player" />
-      </SectionCard>
     </div>
 
-    <div class="detail-grid">
-      <SectionCard
-        title="俱乐部经历"
-        :badge="`${player.profileClubCareers?.length ?? 0} 段`"
-        :empty="!player.profileClubCareers?.length"
-        empty-text="暂无结构化俱乐部经历"
-      >
-        <StarCareerTableContent :careers="player.profileClubCareers" type="club" />
-      </SectionCard>
-
-      <SectionCard
-        title="国家队经历"
-        :badge="`${player.countryCareers?.length ?? 0} 段`"
-        :empty="!player.countryCareers?.length"
-        empty-text="暂无结构化国家队经历"
-      >
-        <StarCareerTableContent :careers="player.countryCareers" type="country" />
-      </SectionCard>
-    </div>
+    <SectionCard
+      title="经历"
+      :badge="`${displayCareers.length} 段`"
+      :empty="!displayCareers.length"
+      empty-text="暂无结构化经历"
+    >
+      <StarCareerTableContent :careers="displayCareers" type="mixed" />
+    </SectionCard>
 
     <SectionCard
       title="个人荣誉"

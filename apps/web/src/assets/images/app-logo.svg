@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="96" viewBox="0 0 112 96" fill="none" role="img" aria-labelledby="title">
+  <title id="title">天下足球 Logo</title>
+  <defs>
+    <linearGradient id="mark-green" x1="26" y1="18" x2="80" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#29A96C"/>
+      <stop offset="0.56" stop-color="#1F8B55"/>
+      <stop offset="1" stop-color="#0F5F3E"/>
+    </linearGradient>
+    <linearGradient id="mark-gold" x1="26" y1="20" x2="86" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EBC56E"/>
+      <stop offset="1" stop-color="#B87D24"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="9" y="8" width="94" height="84" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#16442D" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft-shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 23H84" stroke="url(#mark-gold)" stroke-width="9"/>
+    <path d="M21 42H91" stroke="url(#mark-green)" stroke-width="11"/>
+    <path d="M56 24V44" stroke="url(#mark-green)" stroke-width="11"/>
+    <path d="M56 43L31 75" stroke="url(#mark-green)" stroke-width="11"/>
+    <path d="M56 43L81 75" stroke="url(#mark-green)" stroke-width="11"/>
+    <circle cx="56" cy="76" r="6.5" fill="#F7FAF6" stroke="#1F8B55" stroke-width="3.5"/>
+    <path d="M56 69.5V82.5M49.5 76H62.5" stroke="#1F8B55" stroke-width="2.2" opacity="0.72"/>
+  </g>
+</svg>

@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import IconFont from '@/components/IconFont.vue';
+import appLogo from '@/assets/images/app-logo.svg';
 import { useAppStore } from '@/stores/app';
 import { FIXED_TAB_PATH, useRouteTabsStore } from '@/stores/route-tabs';
 
@@ -142,7 +143,7 @@ onMounted(() => {
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">天</div>
+        <img class="brand-mark" :src="appLogo" alt="" aria-hidden="true" />
         <div>
           <div class="brand-name">{{ appStore.projectName }}</div>
           <div class="brand-subtitle">Total Soccer DB</div>

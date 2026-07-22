@@ -28,16 +28,11 @@
 }
 
 .brand-mark {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  place-items: center;
-  border: 1px solid rgba(31, 139, 85, 0.22);
-  border-radius: 50%;
-  color: var(--color-brand-primary);
-  font-weight: 900;
-  background: linear-gradient(145deg, var(--color-surface-default), #e8f4eb);
-  box-shadow: var(--shadow-soft);
+  display: block;
+  width: 58px;
+  height: 50px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .brand-name {
@@ -353,4 +348,3 @@ h1 {
   background: var(--color-surface-default);
   cursor: pointer;
 }
-

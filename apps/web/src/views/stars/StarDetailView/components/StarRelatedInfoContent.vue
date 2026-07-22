@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import EntityLink from '@/components/EntityLink.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
-import { getConfederationVariant } from '@/utils/tag-theme';
+import {
+  getCareerStatusLabel,
+  getCareerStatusVariant,
+  getConfederationVariant
+} from '@/utils/tag-theme';
 
 const props = defineProps<{
   player: PlayerDetail;
@@ -23,20 +28,44 @@ function formatNationality() {
   return names?.length ? names.join('、') : formatText(props.player.nationality);
 }
 
-function formatBirthCity() {
-  const city = props.player.birthCityRef?.name ?? props.player.birthCity;
-  const country = props.player.birthCityRef?.country?.name ?? props.player.birthCountry?.name;
+const birthCityName = computed(() => props.player.birthCityRef?.name ?? props.player.birthCity);
+const birthCityCountry = computed(
+  () => props.player.birthCityRef?.country ?? props.player.birthCountry ?? null
+);
 
-  if (!city) {
-    return '-';
-  }
-
-  return country ? `${city}（${country}）` : city;
+function formatBirthCityName() {
+  return birthCityName.value || '-';
 }
+
+const clubCareerLinks = computed(() => {
+  const clubById = new Map<string, NonNullable<PlayerDetail['careers']>[number]['club']>();
+
+  (props.player.careers ?? []).forEach((career) => {
+    if (career.careerType !== 'CLUB') return;
+
+    if (career.club?.id && !clubById.has(career.club.id)) {
+      clubById.set(career.club.id, career.club);
+    }
+  });
+
+  return [...clubById.values()].filter(Boolean);
+});
 </script>
 
 <template>
   <dl class="detail-list">
+    <div>
+      <dt>足联</dt>
+      <dd>
+        <SemanticTag
+          v-if="formatRef(player.confederationRef) !== '-'"
+          :variant="getConfederationVariant(formatRef(player.confederationRef))"
+        >
+          {{ formatRef(player.confederationRef) }}
+        </SemanticTag>
+        <span v-else>-</span>
+      </dd>
+    </div>
     <div>
       <dt>代表国籍</dt>
       <dd>
@@ -63,25 +92,7 @@ function formatBirthCity() {
       </dd>
     </div>
     <div>
-      <dt>足联</dt>
-      <dd>
-        <SemanticTag
-          v-if="formatRef(player.confederationRef) !== '-'"
-          :variant="getConfederationVariant(formatRef(player.confederationRef))"
-        >
-          {{ formatRef(player.confederationRef) }}
-        </SemanticTag>
-        <span v-else>-</span>
-      </dd>
-    </div>
-    <div>
-      <dt>俱乐部</dt>
-      <dd>
-        <EntityLink :id="player.club?.id" type="club" :name="formatRef(player.club)" />
-      </dd>
-    </div>
-    <div>
-      <dt>主要球队</dt>
+      <dt>代表球队</dt>
       <dd>
         <EntityLink
           :id="player.representativeClubCareer?.club?.id ?? player.club?.id"
@@ -91,12 +102,73 @@ function formatBirthCity() {
       </dd>
     </div>
     <div>
+      <dt>初始球队</dt>
+      <dd>
+        <EntityLink
+          :id="player.initialClubRef?.id"
+          type="club"
+          :name="player.initialClubRef?.name || player.initialClub"
+        />
+      </dd>
+    </div>
+    <div>
+      <dt>球队经历</dt>
+      <dd>
+        <span v-if="clubCareerLinks.length" class="related-club-links">
+          <template v-for="(club, index) in clubCareerLinks" :key="club?.id ?? index">
+            <span v-if="index > 0">、</span>
+            <EntityLink :id="club?.id" type="club" :name="club?.name" />
+          </template>
+        </span>
+        <span v-else>{{ formatText(player.clubs) }}</span>
+      </dd>
+    </div>
+    <div>
       <dt>出生城市</dt>
-      <dd>{{ formatBirthCity() }}</dd>
+      <dd>
+        <template v-if="birthCityName">
+          {{ formatBirthCityName() }}
+          <template v-if="birthCityCountry">
+            （<EntityLink
+              :id="birthCityCountry.id"
+              type="country"
+              :name="birthCityCountry.name"
+            />）
+          </template>
+        </template>
+        <span v-else>-</span>
+      </dd>
     </div>
     <div>
       <dt>担任过职位</dt>
       <dd>{{ formatText(player.staffRoles) }}</dd>
     </div>
+    <div>
+      <dt>生涯</dt>
+      <dd>
+        <SemanticTag
+          v-if="player.retired !== null && player.retired !== undefined"
+          :variant="getCareerStatusVariant(player.retired)"
+          size="small"
+        >
+          {{ getCareerStatusLabel(player.retired) }}
+        </SemanticTag>
+        <span v-else>-</span>
+      </dd>
+    </div>
+    <div>
+      <dt>成就</dt>
+      <dd>{{ formatText(player.achievement) }}</dd>
+    </div>
+    <div>
+      <dt>备注</dt>
+      <dd>{{ formatText(player.remark) }}</dd>
+    </div>
   </dl>
 </template>
+
+<style scoped lang="scss">
+.related-club-links {
+  display: inline;
+}
+</style>
