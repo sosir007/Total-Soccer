@@ -143,6 +143,12 @@ const careerOptions = computed(() =>
     })
     .filter((item) => item.value)
 );
+const isGoalkeeperPlayer = computed(
+  () =>
+    isGoalkeeperPosition(player.value?.primaryRole) ||
+    isGoalkeeperPosition(player.value?.positions) ||
+    careerForms.value.some((career) => isGoalkeeperPosition(career.position))
+);
 
 async function loadPlayer() {
   if (!playerId.value) return;
@@ -226,11 +232,23 @@ function openCareerDialog(careerType: PlayerCareerType, index?: number) {
   careerDialogVisible.value = true;
 }
 
-function removeCareer(index: number) {
-  careerForms.value.splice(index, 1);
+async function removeCareer(index: number) {
+  try {
+    await ElMessageBox.confirm('确定删除这条经历吗？', '删除经历', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    });
+  } catch {
+    return;
+  }
+
+  const nextCareers = [...careerForms.value];
+  nextCareers.splice(index, 1);
+  await persistCareers(nextCareers, '经历已删除。');
 }
 
-function saveCareerDialog() {
+async function saveCareerDialog() {
   if (careerForm.careerType === 'CLUB' && !careerForm.clubId) {
     ElMessage.warning('请选择俱乐部。');
     return;
@@ -242,14 +260,21 @@ function saveCareerDialog() {
   }
 
   const nextCareer = { ...careerForm };
+  const nextCareers = [...careerForms.value];
+  const successMessage = editingCareerIndex.value === null ? '经历已新增。' : '经历已更新。';
 
   if (editingCareerIndex.value === null) {
-    careerForms.value.push(nextCareer);
+    nextCareers.push(nextCareer);
   } else {
-    careerForms.value.splice(editingCareerIndex.value, 1, nextCareer);
+    nextCareers.splice(editingCareerIndex.value, 1, nextCareer);
   }
 
-  careerDialogVisible.value = false;
+  const saved = await persistCareers(nextCareers, successMessage);
+
+  if (saved) {
+    careerDialogVisible.value = false;
+    editingCareerIndex.value = null;
+  }
 }
 
 function parseYear(value: string) {
@@ -258,8 +283,8 @@ function parseYear(value: string) {
   return Number.isFinite(year) ? year : null;
 }
 
-function buildCareerPayload(): PlayerCareerPayload[] {
-  return careerForms.value.flatMap((career, index) => {
+function buildCareerPayload(careers = careerForms.value): PlayerCareerPayload[] {
+  return careers.flatMap((career, index) => {
     if (career.careerType === 'CLUB' && !career.clubId) return [];
     if (career.careerType === 'COUNTRY' && !career.countryId) return [];
 
@@ -286,17 +311,19 @@ function buildCareerPayload(): PlayerCareerPayload[] {
   });
 }
 
-async function saveCareers() {
+async function persistCareers(careers: CareerForm[], successMessage: string) {
   savingCareers.value = true;
 
   try {
-    player.value = await savePlayerCareers(playerId.value, buildCareerPayload());
+    player.value = await savePlayerCareers(playerId.value, buildCareerPayload(careers));
     careerForms.value = (player.value.careers ?? []).map((career, index) =>
       careerToForm(career, index)
     );
-    ElMessage.success('结构化经历已保存。');
+    ElMessage.success(successMessage);
+    return true;
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '结构化经历保存失败。');
+    return false;
   } finally {
     savingCareers.value = false;
   }
@@ -486,16 +513,13 @@ function formatCareerTeam(career: CareerForm) {
   return source?.name ?? '-';
 }
 
-function formatCareerStats(career: CareerForm) {
-  const stats = [
-    career.appearances !== undefined ? `出场 ${career.appearances}` : '',
-    career.goals !== undefined ? `进球 ${career.goals}` : '',
-    career.assists !== undefined ? `助攻 ${career.assists}` : '',
-    career.cleanSheets !== undefined ? `零封 ${career.cleanSheets}` : '',
-    career.goalsConceded !== undefined ? `失球 ${career.goalsConceded}` : ''
-  ].filter(Boolean);
+function formatCareerStat(value?: number) {
+  return value === undefined || value === null ? '-' : value;
+}
 
-  return stats.join(' / ') || '-';
+function isGoalkeeperPosition(position?: string | null) {
+  const normalized = (position ?? '').trim().toUpperCase();
+  return normalized === 'GK' || normalized.includes('门将') || normalized.includes('守门');
 }
 
 function formatEdition(row: AwardRecipientRecord) {
@@ -575,17 +599,13 @@ onMounted(() => {
             <p>维护俱乐部经历、国家队经历和对应出场数据。</p>
           </div>
           <div class="header-actions">
-            <el-button @click="openCareerDialog('CLUB')">
+            <el-button :disabled="savingCareers" @click="openCareerDialog('CLUB')">
               <IconFont name="add" />
               新增俱乐部经历
             </el-button>
-            <el-button @click="openCareerDialog('COUNTRY')">
+            <el-button :disabled="savingCareers" @click="openCareerDialog('COUNTRY')">
               <IconFont name="add" />
               新增国家队经历
-            </el-button>
-            <el-button type="primary" :loading="savingCareers" @click="saveCareers">
-              <IconFont name="save" />
-              保存经历
             </el-button>
           </div>
         </div>
@@ -610,8 +630,20 @@ onMounted(() => {
           <el-table-column label="位置" width="100" align="center">
             <template #default="{ row }">{{ row.position || '-' }}</template>
           </el-table-column>
-          <el-table-column label="数据" min-width="220" show-overflow-tooltip>
-            <template #default="{ row }">{{ formatCareerStats(row) }}</template>
+          <el-table-column label="场次" width="80" align="center">
+            <template #default="{ row }">{{ formatCareerStat(row.appearances) }}</template>
+          </el-table-column>
+          <el-table-column v-if="!isGoalkeeperPlayer" label="进球" width="80" align="center">
+            <template #default="{ row }">{{ formatCareerStat(row.goals) }}</template>
+          </el-table-column>
+          <el-table-column v-if="!isGoalkeeperPlayer" label="助攻" width="80" align="center">
+            <template #default="{ row }">{{ formatCareerStat(row.assists) }}</template>
+          </el-table-column>
+          <el-table-column v-if="isGoalkeeperPlayer" label="零封" width="80" align="center">
+            <template #default="{ row }">{{ formatCareerStat(row.cleanSheets) }}</template>
+          </el-table-column>
+          <el-table-column v-if="isGoalkeeperPlayer" label="失球" width="80" align="center">
+            <template #default="{ row }">{{ formatCareerStat(row.goalsConceded) }}</template>
           </el-table-column>
           <el-table-column label="标记" width="190" align="center">
             <template #default="{ row }">
@@ -627,11 +659,16 @@ onMounted(() => {
           <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ $index }">
-              <el-button link type="primary" @click="openCareerDialog('CLUB', $index)">
+              <el-button
+                link
+                type="primary"
+                :disabled="savingCareers"
+                @click="openCareerDialog('CLUB', $index)"
+              >
                 <IconFont name="edit" />
                 编辑
               </el-button>
-              <el-button link type="danger" @click="removeCareer($index)">
+              <el-button link type="danger" :disabled="savingCareers" @click="removeCareer($index)">
                 <IconFont name="delete" />
                 删除
               </el-button>
@@ -808,8 +845,10 @@ onMounted(() => {
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="careerDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveCareerDialog">确定</el-button>
+        <el-button :disabled="savingCareers" @click="careerDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="savingCareers" @click="saveCareerDialog">
+          保存
+        </el-button>
       </template>
     </el-dialog>
 

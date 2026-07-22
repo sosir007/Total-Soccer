@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import AbilityBadge from '@/components/AbilityBadge.vue';
+import { computed } from 'vue';
+import LineupBoardContent from '@/components/LineupBoardContent.vue';
 import type { CareerTimelineGroup } from '@/services/types/catalog';
 
-defineProps<{
+const props = defineProps<{
   groups?: CareerTimelineGroup[];
 }>();
 
@@ -10,31 +11,26 @@ const emit = defineEmits<{
   openPlayer: [id?: string | null];
 }>();
 
-function formatText(value?: string | number | null) {
-  return value === null || value === undefined || value === '' ? '-' : value;
+const timelineGroups = computed(() =>
+  (props.groups ?? []).map((group) => ({
+    position: formatDecade(group.decade),
+    items: group.items
+  }))
+);
+
+function formatDecade(decade: string) {
+  return decade.replace(/^(\d{4})-(\d{4})$/, (_, start: string, end: string) => {
+    return `${start}-${end.slice(-2)}`;
+  });
 }
 </script>
 
 <template>
-  <div class="career-timeline">
-    <div v-for="group in groups" :key="group.decade" class="timeline-block">
-      <div class="timeline-decade">{{ group.decade }}</div>
-      <div class="timeline-lines">
-        <button
-          v-for="item in group.items"
-          :key="item.id"
-          class="timeline-player"
-          type="button"
-          @click="emit('openPlayer', item.player.id)"
-        >
-          <span>{{ item.position }}</span>
-          <strong>{{ item.player.chineseName }}</strong>
-          <em class="ability-inline-meta">
-            <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-            <span>{{ formatText(item.period) }}</span>
-          </em>
-        </button>
-      </div>
-    </div>
-  </div>
+  <LineupBoardContent
+    class="career-timeline-board"
+    :groups="timelineGroups"
+    meta-mode="period"
+    show-item-position
+    @open-player="emit('openPlayer', $event)"
+  />
 </template>

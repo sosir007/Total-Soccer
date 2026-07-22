@@ -22,19 +22,27 @@ function formatNumber(value?: number | null, digits = 0) {
 <template>
   <dl class="detail-list">
     <div>
-      <dt>关联球员</dt>
-      <dd>{{ formatNumber(club._count?.players ?? club.playerCount) }}</dd>
+      <dt>阵容球员数</dt>
+      <dd>{{ formatNumber(club.lineupPlayerCount) }}</dd>
     </div>
     <div>
-      <dt>统计球员数</dt>
+      <dt>代表球员数</dt>
       <dd>{{ formatNumber(club.playerCount) }}</dd>
     </div>
     <div>
-      <dt>球员平均 PA</dt>
+      <dt>阵容平均 PA</dt>
+      <dd>{{ formatNumber(club.lineupAveragePa, 2) }}</dd>
+    </div>
+    <div>
+      <dt>阵容总 PA</dt>
+      <dd>{{ formatNumber(club.lineupTotalPa) }}</dd>
+    </div>
+    <div>
+      <dt>代表平均 PA</dt>
       <dd>{{ formatNumber(club.averagePa, 2) }}</dd>
     </div>
     <div>
-      <dt>总 PA</dt>
+      <dt>代表总 PA</dt>
       <dd>{{ formatNumber(club.totalPa) }}</dd>
     </div>
     <div>

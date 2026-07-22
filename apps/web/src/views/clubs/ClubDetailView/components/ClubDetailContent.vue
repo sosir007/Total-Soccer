@@ -62,9 +62,9 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
     <template #tags>
       <div class="detail-tags">
         <SemanticTag variant="object-player">
-          球员 {{ formatNumber(club.playerCount) }}
+          阵容球员 {{ formatNumber(club.lineupPlayerCount) }}
         </SemanticTag>
-        <SemanticTag variant="neutral">平均 PA {{ formatNumber(club.averagePa, 2) }}</SemanticTag>
+        <SemanticTag variant="neutral"> 代表球员 {{ formatNumber(club.playerCount) }} </SemanticTag>
         <SemanticTag variant="status-legend">
           荣誉分 {{ formatNumber(club.honorScore, 2) }}
         </SemanticTag>
@@ -85,9 +85,14 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 
   <div class="metric-grid">
     <div class="metric-card">
-      <span>总 PA</span>
+      <span>阵容总 PA</span>
+      <strong>{{ formatNumber(club.lineupTotalPa) }}</strong>
+      <em>阵容履历球员能力总量</em>
+    </div>
+    <div class="metric-card">
+      <span>代表总 PA</span>
       <strong>{{ formatNumber(club.totalPa) }}</strong>
-      <em>俱乐部球员能力总量</em>
+      <em>代表俱乐部球员能力总量</em>
     </div>
     <div class="metric-card gold">
       <span>奖杯数</span>
@@ -98,11 +103,6 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
       <span>冠军数</span>
       <strong>{{ formatNumber(club.championCount) }}</strong>
       <em>冠军荣誉统计</em>
-    </div>
-    <div class="metric-card">
-      <span>关联球员</span>
-      <strong>{{ formatNumber(club._count?.players ?? club.playerCount) }}</strong>
-      <em>资料库关联数量</em>
     </div>
   </div>
 
@@ -154,6 +154,7 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
     >
       <LineupBoardContent
         :groups="club.lineupByPosition"
+        position-display="tags"
         @open-player="emit('openPlayer', $event)"
       />
     </SectionCard>
@@ -166,6 +167,7 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
     >
       <LineupBoardContent
         :groups="club.representativeLineupByPosition"
+        position-display="tags"
         @open-player="emit('openPlayer', $event)"
       />
     </SectionCard>

@@ -27,7 +27,7 @@ const filters = reactive({
   confederationId: '',
   countryId: '',
   includeHidden: false,
-  sortBy: 'totalPa',
+  sortBy: 'lineupTotalPa',
   sortOrder: 'desc' as 'asc' | 'desc'
 });
 
@@ -131,7 +131,7 @@ function handleSortChange({
   order?: 'ascending' | 'descending' | null;
 }) {
   filters.page = 1;
-  filters.sortBy = prop || 'totalPa';
+  filters.sortBy = prop || 'lineupTotalPa';
   filters.sortOrder = order === 'ascending' ? 'asc' : 'desc';
   void loadClubs();
 }
@@ -256,27 +256,7 @@ onMounted(() => {
           <el-table-column label="序号" width="60" align="center" fixed>
             <template #default="{ $index }">{{ rowIndex($index) }}</template>
           </el-table-column>
-          <el-table-column prop="name" label="俱乐部" min-width="170" fixed>
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.id"
-                type="club"
-                :title="row.name"
-                :subtitle="`UID ${row.uid}`"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="国家" min-width="160">
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.countryRef?.id"
-                type="country"
-                :title="formatRef(row.countryRef)"
-                :subtitle="`UID ${row.countryRef?.uid || '-'}`"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="足联" width="100">
+          <el-table-column label="足联" width="100" fixed>
             <template #default="{ row }">
               <SemanticTag
                 v-if="formatConfederation(row.federationRef)"
@@ -287,10 +267,37 @@ onMounted(() => {
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column prop="playerCount" label="球员数" width="100" sortable />
-          <el-table-column prop="totalPa" label="总 PA" width="110" sortable="custom" />
-          <el-table-column prop="averagePa" label="平均 PA" width="110" sortable="custom">
-            <template #default="{ row }">{{ formatNumber(row.averagePa, 2) }}</template>
+          <el-table-column label="国家" min-width="160" fixed>
+            <template #default="{ row }">
+              <EntityNameCell
+                :id="row.countryRef?.id"
+                type="country"
+                :title="formatRef(row.countryRef)"
+                :subtitle="`UID ${row.countryRef?.uid || '-'}`"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" label="俱乐部" min-width="170" fixed>
+            <template #default="{ row }">
+              <EntityNameCell
+                :id="row.id"
+                type="club"
+                :title="row.name"
+                :subtitle="`UID ${row.uid}`"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="lineupPlayerCount"
+            label="阵容球员"
+            width="110"
+            sortable="custom"
+          />
+          <el-table-column prop="playerCount" label="代表球员" width="110" sortable="custom" />
+          <el-table-column prop="lineupTotalPa" label="阵容总 PA" width="120" sortable="custom" />
+          <el-table-column prop="totalPa" label="代表总 PA" width="120" sortable="custom" />
+          <el-table-column prop="lineupAveragePa" label="平均 PA" width="110" sortable="custom">
+            <template #default="{ row }">{{ formatNumber(row.lineupAveragePa, 2) }}</template>
           </el-table-column>
           <el-table-column prop="trophyCount" label="奖杯数" width="100" sortable="custom" />
           <el-table-column prop="championCount" label="冠军数" width="100" sortable="custom" />

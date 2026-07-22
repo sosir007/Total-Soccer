@@ -349,6 +349,9 @@ export interface ClubListItem {
   playerCount?: number | null;
   totalPa?: number | null;
   averagePa?: number | null;
+  lineupPlayerCount?: number | null;
+  lineupTotalPa?: number | null;
+  lineupAveragePa?: number | null;
   trophyCount?: number | null;
   championCount?: number | null;
   runnerUpCount?: number | null;

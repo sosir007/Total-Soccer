@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CompetitionStandingPlacement } from '@prisma/client';
+import { CompetitionStandingPlacement, PlayerCareerType } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 
 export interface ParticipationStats {
@@ -103,6 +103,70 @@ export class CatalogStatsService {
             averagePa: group._avg.pa
           }
         ])
+    );
+  }
+
+  async getClubLineupParticipationStats(clubIds: string[]) {
+    const careers = await this.prisma.playerCareer.findMany({
+      where: {
+        clubId: {
+          in: clubIds
+        },
+        careerType: PlayerCareerType.CLUB,
+        showInProfile: true
+      },
+      select: {
+        clubId: true,
+        playerId: true,
+        player: {
+          select: {
+            pa: true
+          }
+        }
+      }
+    });
+
+    const clubMap = new Map<
+      string,
+      {
+        playerIds: Set<string>;
+        totalPa: number;
+        paCount: number;
+      }
+    >();
+
+    for (const career of careers) {
+      if (!career.clubId) {
+        continue;
+      }
+
+      const current = clubMap.get(career.clubId) ?? {
+        playerIds: new Set<string>(),
+        totalPa: 0,
+        paCount: 0
+      };
+
+      if (!current.playerIds.has(career.playerId)) {
+        current.playerIds.add(career.playerId);
+
+        if (typeof career.player.pa === 'number' && Number.isFinite(career.player.pa)) {
+          current.totalPa += career.player.pa;
+          current.paCount += 1;
+        }
+      }
+
+      clubMap.set(career.clubId, current);
+    }
+
+    return new Map(
+      [...clubMap.entries()].map(([clubId, value]) => [
+        clubId,
+        {
+          playerCount: value.playerIds.size,
+          totalPa: value.paCount ? value.totalPa : null,
+          averagePa: value.paCount ? value.totalPa / value.paCount : null
+        }
+      ])
     );
   }
 

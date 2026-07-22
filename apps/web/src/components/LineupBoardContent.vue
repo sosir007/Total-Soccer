@@ -8,10 +8,14 @@ withDefaults(
   defineProps<{
     groups?: LineupPositionGroup[];
     positionDisplay?: 'text' | 'tags';
+    metaMode?: 'stats' | 'period';
+    showItemPosition?: boolean;
   }>(),
   {
     groups: () => [],
-    positionDisplay: 'text'
+    positionDisplay: 'text',
+    metaMode: 'stats',
+    showItemPosition: false
   }
 );
 
@@ -19,17 +23,25 @@ const emit = defineEmits<{
   openPlayer: [id?: string | null];
 }>();
 
-function formatLineStats(item: CareerProfileLine) {
-  const normal = [item.appearances, item.goals, item.assists]
-    .map((value) => value ?? '-')
-    .join('/');
-  const goalkeeper = [item.cleanSheets, item.goalsConceded].some(
-    (value) => value !== null && value !== undefined
-  )
-    ? `，零封/失球 ${item.cleanSheets ?? '-'}/${item.goalsConceded ?? '-'}`
-    : '';
+function formatLineMeta(item: CareerProfileLine, mode: 'stats' | 'period') {
+  return mode === 'period' ? formatText(item.period) : formatLineStats(item);
+}
 
-  return `${normal}${goalkeeper}`;
+function formatLineStats(item: CareerProfileLine) {
+  const stats = isGoalkeeperPosition(item.position)
+    ? [item.appearances, item.cleanSheets, item.goalsConceded]
+    : [item.appearances, item.goals, item.assists];
+
+  return stats.map((value) => value ?? '-').join('/');
+}
+
+function formatText(value?: string | number | null) {
+  return value === null || value === undefined || value === '' ? '-' : value;
+}
+
+function isGoalkeeperPosition(position?: string | null) {
+  const normalized = (position ?? '').trim().toUpperCase();
+  return normalized === 'GK' || normalized.includes('门将') || normalized.includes('守门');
 }
 </script>
 
@@ -54,7 +66,8 @@ function formatLineStats(item: CareerProfileLine) {
           </strong>
           <div class="lineup-player-meta">
             <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-            <em>{{ formatLineStats(item) }}</em>
+            <em>{{ formatLineMeta(item, metaMode) }}</em>
+            <PositionTags v-if="showItemPosition" :value="item.position" />
           </div>
         </button>
       </div>

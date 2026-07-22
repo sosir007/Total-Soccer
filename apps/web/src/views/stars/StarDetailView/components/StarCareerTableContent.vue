@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import EntityLink from '@/components/EntityLink.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 
-defineProps<{
+const props = defineProps<{
   careers?: NonNullable<PlayerDetail['profileClubCareers']>;
   type: 'club' | 'country';
 }>();
+
+const isGoalkeeperCareerTable = computed(
+  () => props.careers?.some((career) => isGoalkeeperPosition(career.position)) ?? false
+);
 
 function formatCareerPeriod(career: {
   startSeason?: string | null;
@@ -25,23 +30,13 @@ function formatCareerPeriod(career: {
   return '-';
 }
 
-function formatCareerStats(career: {
-  appearances?: number | null;
-  goals?: number | null;
-  assists?: number | null;
-  cleanSheets?: number | null;
-  goalsConceded?: number | null;
-}) {
-  const normal = [career.appearances, career.goals, career.assists]
-    .map((item) => item ?? '-')
-    .join('/');
-  const goalkeeper = [career.cleanSheets, career.goalsConceded].some(
-    (item) => item !== null && item !== undefined
-  )
-    ? `，零封/失球 ${career.cleanSheets ?? '-'}/${career.goalsConceded ?? '-'}`
-    : '';
+function formatCareerStat(value?: number | null) {
+  return value === null || value === undefined ? '-' : value;
+}
 
-  return `${normal}${goalkeeper}`;
+function isGoalkeeperPosition(position?: string | null) {
+  const normalized = (position ?? '').trim().toUpperCase();
+  return normalized === 'GK' || normalized.includes('门将') || normalized.includes('守门');
 }
 </script>
 
@@ -57,8 +52,20 @@ function formatCareerStats(career: {
       <template #default="{ row }">{{ formatCareerPeriod(row) }}</template>
     </el-table-column>
     <el-table-column prop="position" label="位置" width="90" />
-    <el-table-column label="场/球/助" width="120">
-      <template #default="{ row }">{{ formatCareerStats(row) }}</template>
+    <el-table-column label="场次" width="80" align="center">
+      <template #default="{ row }">{{ formatCareerStat(row.appearances) }}</template>
+    </el-table-column>
+    <el-table-column v-if="!isGoalkeeperCareerTable" label="进球" width="80" align="center">
+      <template #default="{ row }">{{ formatCareerStat(row.goals) }}</template>
+    </el-table-column>
+    <el-table-column v-if="!isGoalkeeperCareerTable" label="助攻" width="80" align="center">
+      <template #default="{ row }">{{ formatCareerStat(row.assists) }}</template>
+    </el-table-column>
+    <el-table-column v-if="isGoalkeeperCareerTable" label="零封" width="80" align="center">
+      <template #default="{ row }">{{ formatCareerStat(row.cleanSheets) }}</template>
+    </el-table-column>
+    <el-table-column v-if="isGoalkeeperCareerTable" label="失球" width="80" align="center">
+      <template #default="{ row }">{{ formatCareerStat(row.goalsConceded) }}</template>
     </el-table-column>
     <el-table-column v-if="type === 'club'" label="标签" width="170">
       <template #default="{ row }">

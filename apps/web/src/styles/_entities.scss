@@ -146,28 +146,6 @@
   overflow-wrap: anywhere;
 }
 
-.career-timeline {
-  display: grid;
-  gap: 14px;
-}
-
-.timeline-block {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 14px;
-  padding: 14px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
-  background: var(--color-surface-default);
-}
-
-.timeline-decade {
-  color: var(--color-brand-primary);
-  font-size: 13px;
-  font-weight: 850;
-}
-
-.timeline-lines,
 .lineup-players {
   display: flex;
   flex-wrap: wrap;
@@ -175,13 +153,13 @@
   min-width: 0;
 }
 
-.timeline-player,
 .lineup-player {
   display: grid;
-  gap: 3px;
-  min-width: 160px;
-  max-width: 220px;
-  padding: 10px 12px;
+  gap: 8px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+  padding: 12px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   color: var(--text-color-regular);
@@ -190,21 +168,11 @@
   cursor: pointer;
 }
 
-.lineup-player {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
-  gap: 8px;
-  padding: 12px;
-}
-
-.timeline-player:hover,
 .lineup-player:hover {
   border-color: var(--color-border-brand-hover);
   box-shadow: var(--shadow-soft);
 }
 
-.timeline-player > strong,
 .lineup-player > strong {
   min-width: 0;
   overflow: hidden;
@@ -214,9 +182,7 @@
   white-space: nowrap;
 }
 
-.timeline-player > span,
 .lineup-player > span,
-.timeline-player > em,
 .lineup-player > em {
   overflow: hidden;
   color: var(--text-color-secondary);
@@ -240,6 +206,14 @@
 .lineup-player-meta em {
   flex: 1 1 auto;
   min-width: 0;
+  color: #999;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.lineup-player-meta .position-tags {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .ability-inline-meta {
@@ -281,6 +255,11 @@
   color: var(--color-brand-primary);
   font-size: 13px;
   font-weight: 900;
+}
+
+.career-timeline-board .lineup-position {
+  color: #666;
+  white-space: nowrap;
 }
 
 .lineup-empty {

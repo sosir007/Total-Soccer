@@ -1607,7 +1607,7 @@ export class CountriesService {
 
     return {
       careerTimeline: this.buildCareerTimeline(careers),
-      lineupByPosition: this.buildPlayerLineup(players)
+      lineupByPosition: this.buildPlayerLineup(players, careers)
     };
   }
 
@@ -1633,15 +1633,28 @@ export class CountriesService {
   }
 
   private buildPlayerLineup(
-    players: Array<Prisma.PlayerGetPayload<{ select: typeof PROFILE_PLAYER_SELECT }>>
+    players: Array<Prisma.PlayerGetPayload<{ select: typeof PROFILE_PLAYER_SELECT }>>,
+    careers: Array<
+      Prisma.PlayerCareerGetPayload<{
+        include: { player: { select: typeof PROFILE_PLAYER_SELECT } };
+      }>
+    >
   ) {
     const positionOrder = ['ST', 'AML', 'AMC', 'AMR', 'MC', 'DMC', 'DL', 'DC', 'DR', 'GK'];
     const map = new Map<string, ReturnType<typeof this.mapPlayerLine>[]>();
+    const careerByPlayerId = new Map<string, (typeof careers)[number]>();
+
+    for (const career of careers) {
+      if (!careerByPlayerId.has(career.playerId)) {
+        careerByPlayerId.set(career.playerId, career);
+      }
+    }
 
     for (const player of players) {
+      const career = careerByPlayerId.get(player.id);
       const position = this.resolvePlayerPosition(player);
       const rows = map.get(position) ?? [];
-      rows.push(this.mapPlayerLine(player));
+      rows.push(this.mapPlayerLine(player, career));
       map.set(position, rows);
     }
 
@@ -1671,12 +1684,23 @@ export class CountriesService {
     };
   }
 
-  private mapPlayerLine(player: Prisma.PlayerGetPayload<{ select: typeof PROFILE_PLAYER_SELECT }>) {
+  private mapPlayerLine(
+    player: Prisma.PlayerGetPayload<{ select: typeof PROFILE_PLAYER_SELECT }>,
+    career?: Prisma.PlayerCareerGetPayload<{
+      include: { player: { select: typeof PROFILE_PLAYER_SELECT } };
+    }>
+  ) {
     return {
       id: player.id,
       player,
       position: this.resolvePlayerPosition(player),
-      pa: player.pa
+      pa: player.pa,
+      period: career ? this.formatCareerPeriod(career) : null,
+      appearances: career?.appearances ?? null,
+      goals: career?.goals ?? null,
+      assists: career?.assists ?? null,
+      cleanSheets: career?.cleanSheets ?? null,
+      goalsConceded: career?.goalsConceded ?? null
     };
   }
 

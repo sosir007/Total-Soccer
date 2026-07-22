@@ -511,9 +511,16 @@ export class ClubsService {
   }
 
   private shouldSortComputedStats(sortBy?: string) {
-    return ['playerCount', 'totalPa', 'averagePa', 'trophyCount', 'championCount'].includes(
-      sortBy ?? ''
-    );
+    return [
+      'playerCount',
+      'totalPa',
+      'averagePa',
+      'lineupPlayerCount',
+      'lineupTotalPa',
+      'lineupAveragePa',
+      'trophyCount',
+      'championCount'
+    ].includes(sortBy ?? '');
   }
 
   private sortComputedStats<T extends { name?: string | null }>(items: T[], query: ClubListQuery) {
@@ -558,14 +565,17 @@ export class ClubsService {
     }
 
     const ids = items.map((item) => item.id);
-    const [participationStats, standingStats] = await Promise.all([
+    const [participationStats, lineupParticipationStats, standingStats] = await Promise.all([
       this.catalogStats.getClubParticipationStats(ids),
+      this.catalogStats.getClubLineupParticipationStats(ids),
       this.catalogStats.getClubStandingStats(ids)
     ]);
 
     return items.map((item) => {
       const participation =
         participationStats.get(item.id) ?? this.catalogStats.getEmptyParticipationStats();
+      const lineupParticipation =
+        lineupParticipationStats.get(item.id) ?? this.catalogStats.getEmptyParticipationStats();
       const standings = standingStats.get(item.id) ?? this.catalogStats.getEmptyStandingStats();
 
       return {
@@ -573,6 +583,9 @@ export class ClubsService {
         playerCount: participation.playerCount,
         totalPa: participation.totalPa,
         averagePa: participation.averagePa,
+        lineupPlayerCount: lineupParticipation.playerCount,
+        lineupTotalPa: lineupParticipation.totalPa,
+        lineupAveragePa: lineupParticipation.averagePa,
         trophyCount: standings.trophyCount,
         championCount: standings.championCount,
         runnerUpCount: standings.runnerUpCount,
