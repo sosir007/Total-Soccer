@@ -112,6 +112,7 @@ const awardForm = reactive(createEmptyAwardForm());
 const detailForm = reactive(createEmptyAwardForm());
 const editionForm = reactive({
   name: '',
+  competitionEditionId: '',
   season: '',
   year: undefined as number | undefined,
   externalUrl: '',
@@ -128,6 +129,17 @@ const rankedAwardLayout = computed(() =>
   sortedEditions.value.some((edition) =>
     (edition.recipients ?? []).some((recipient) => isRankedRecipient(recipient))
   )
+);
+const competitionEditionOptions = computed(() =>
+  (selectedAward.value?.competition?.editions ?? []).map((edition) => ({
+    id: edition.id,
+    value: edition.id,
+    label: edition.season || edition.name || String(edition.year ?? edition.id),
+    description: selectedAward.value?.competition?.name ?? undefined,
+    meta: [edition.season, edition.name, edition.year ? String(edition.year) : ''].filter(
+      Boolean
+    ) as string[]
+  }))
 );
 const routeAwardId = computed(() => String(route.params.id ?? ''));
 const isAwardDetailRoute = computed(() => route.name === 'tianji-award-detail-id');
@@ -439,6 +451,7 @@ function openCreateEditionDialog() {
 function openEditEditionDialog(edition: AwardEdition) {
   editingEdition.value = edition;
   editionForm.name = edition.name;
+  editionForm.competitionEditionId = edition.competitionEditionId ?? '';
   editionForm.season = edition.season ?? '';
   editionForm.year = edition.year ?? undefined;
   editionForm.externalUrl = edition.externalUrl ?? '';
@@ -481,6 +494,7 @@ async function saveEdition() {
   try {
     const payload = {
       name: editionForm.name.trim(),
+      competitionEditionId: editionForm.competitionEditionId || undefined,
       season: editionForm.season.trim() || undefined,
       year: editionForm.year,
       externalUrl: editionForm.externalUrl.trim() || undefined,
@@ -543,6 +557,7 @@ function populateAwardForm(
   form.level = award.level ?? '';
   form.ruleCategoryKey = award.category ? awardRuleKey(award.scopeType, award.category) : '';
   form.description = award.description ?? '';
+  form.competitionId = award.competitionId ?? '';
   form.confederationId = award.confederationId ?? '';
   form.countryId = award.countryId ?? '';
   form.lifecycleStatus = award.lifecycleStatus;
@@ -584,6 +599,7 @@ function buildAwardPayload(form: ReturnType<typeof createEmptyAwardForm>) {
     category: form.category.trim() || undefined,
     level: form.level.trim() || undefined,
     description: form.description.trim() || undefined,
+    competitionId: form.competitionId || undefined,
     confederationId: form.scopeType === 'CONFEDERATION' ? form.confederationId : undefined,
     countryId: form.scopeType === 'COUNTRY' ? form.countryId : undefined,
     lifecycleStatus: form.lifecycleStatus,
@@ -603,6 +619,7 @@ function createEmptyAwardForm() {
     level: '',
     ruleCategoryKey: '',
     description: '',
+    competitionId: '',
     confederationId: '',
     countryId: '',
     lifecycleStatus: 'CURRENT' as LifecycleStatus,
@@ -613,6 +630,7 @@ function createEmptyAwardForm() {
 
 function resetEditionForm() {
   editionForm.name = '';
+  editionForm.competitionEditionId = '';
   editionForm.season = '';
   editionForm.year = undefined;
   editionForm.externalUrl = '';
@@ -938,6 +956,7 @@ onMounted(() => {
       :player-option-meta="playerOptionMeta"
       :target-type="selectedAward?.targetType ?? 'PLAYER'"
       :target-type-labels="targetTypeLabels"
+      :competition-edition-options="competitionEditionOptions"
       @search-players="searchPlayerOptions"
       @save="saveEdition"
     />

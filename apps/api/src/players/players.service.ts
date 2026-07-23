@@ -16,6 +16,7 @@ import type {
   PlayerListQuery,
   PlayerPayload,
   PlayerTeamHonorPayload,
+  SavePlayerAwardRecipientGroupBody,
   SavePlayerCareersBody,
   TeamHonorStandingOptionQuery
 } from './players.types.js';
@@ -139,8 +140,26 @@ const PLAYER_LIST_INCLUDE = {
 const PLAYER_AWARD_RECIPIENT_INCLUDE = {
   edition: {
     include: {
+      competitionEdition: {
+        include: {
+          competition: true
+        }
+      },
       award: {
         include: {
+          competition: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              externalUrl: true,
+              targetType: true,
+              scopeType: true,
+              category: true,
+              level: true,
+              format: true
+            }
+          },
           confederation: {
             select: {
               id: true,
@@ -375,6 +394,59 @@ export class PlayersService {
     });
   }
 
+  async saveAwardRecipientGroup(id: string, body: SavePlayerAwardRecipientGroupBody) {
+    await this.assertPlayerExists(id);
+    const awardId = this.requiredText(body.awardId, '奖项');
+    await this.assertPlayerAwardExists(awardId);
+
+    const recipientRows = await this.buildAwardRecipientGroupRows(awardId, body.recipients ?? []);
+    const editionIds = recipientRows.map((row) => row.editionId);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.awardRecipient.deleteMany({
+        where: {
+          playerId: id,
+          targetType: AwardTargetType.PLAYER,
+          edition: {
+            awardId
+          },
+          ...(editionIds.length ? { editionId: { notIn: editionIds } } : {})
+        }
+      });
+
+      for (const row of recipientRows) {
+        await tx.awardRecipient.upsert({
+          where: {
+            editionId_targetType_playerId: {
+              editionId: row.editionId,
+              targetType: AwardTargetType.PLAYER,
+              playerId: id
+            }
+          },
+          create: {
+            editionId: row.editionId,
+            targetType: AwardTargetType.PLAYER,
+            playerId: id,
+            ...row.data
+          },
+          update: row.data
+        });
+      }
+    });
+
+    return this.prisma.awardRecipient.findMany({
+      where: {
+        playerId: id,
+        targetType: AwardTargetType.PLAYER,
+        edition: {
+          awardId
+        }
+      },
+      include: PLAYER_AWARD_RECIPIENT_INCLUDE,
+      orderBy: [{ edition: { year: 'asc' } }, { rank: 'asc' }, { placement: 'asc' }]
+    });
+  }
+
   async updateAwardRecipient(id: string, recipientId: string, body: PlayerAwardRecipientPayload) {
     await this.assertPlayerExists(id);
     await this.assertAwardRecipientBelongsToPlayer(recipientId, id);
@@ -551,6 +623,24 @@ export class PlayersService {
     }
   }
 
+  private async assertPlayerAwardExists(id: string) {
+    const award = await this.prisma.award.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        targetType: true
+      }
+    });
+
+    if (!award) {
+      throw new BadRequestException('奖项不存在。');
+    }
+
+    if (award.targetType !== AwardTargetType.PLAYER) {
+      throw new BadRequestException('球员详情只能绑定球员奖项。');
+    }
+  }
+
   private async assertAwardRecipientBelongsToPlayer(id: string, playerId: string) {
     const recipient = await this.prisma.awardRecipient.findUnique({
       where: { id },
@@ -575,6 +665,54 @@ export class PlayersService {
       externalUrl: this.optionalText(body.externalUrl),
       remark: this.optionalText(body.remark)
     } satisfies Prisma.AwardRecipientUncheckedUpdateInput;
+  }
+
+  private async buildAwardRecipientGroupRows(
+    awardId: string,
+    recipients: PlayerAwardRecipientPayload[]
+  ) {
+    const editionIds = [
+      ...new Set(
+        recipients
+          .map((recipient) => this.optionalText(recipient.editionId))
+          .filter((editionId): editionId is string => Boolean(editionId))
+      )
+    ];
+
+    if (!editionIds.length) {
+      return [];
+    }
+
+    const editions = await this.prisma.awardEdition.findMany({
+      where: {
+        id: { in: editionIds },
+        awardId,
+        award: {
+          targetType: AwardTargetType.PLAYER
+        }
+      },
+      select: { id: true }
+    });
+    const existingIds = new Set(editions.map((edition) => edition.id));
+
+    if (existingIds.size !== editionIds.length) {
+      throw new BadRequestException('奖项届次不存在或不属于当前奖项。');
+    }
+
+    return recipients.flatMap((recipient) => {
+      const editionId = this.optionalText(recipient.editionId);
+
+      if (!editionId) {
+        return [];
+      }
+
+      return [
+        {
+          editionId,
+          data: this.buildAwardRecipientData(recipient)
+        }
+      ];
+    });
   }
 
   private async assertStandingExists(id: string) {

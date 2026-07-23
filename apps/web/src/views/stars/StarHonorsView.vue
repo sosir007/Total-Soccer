@@ -8,7 +8,6 @@ import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import NoDataView from '@/components/NoDataView.vue';
-import SemanticTag from '@/components/SemanticTag.vue';
 import { buildExternalUrl } from '@/utils/external-link';
 
 const loading = ref(false);
@@ -221,9 +220,7 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column label="名次" width="110">
-            <template #default="{ row }">
-              <SemanticTag variant="status-top-award">{{ formatPlacement(row) }}</SemanticTag>
-            </template>
+            <template #default="{ row }">{{ formatPlacement(row) }}</template>
           </el-table-column>
           <el-table-column label="PA" width="90">
             <template #default="{ row }">

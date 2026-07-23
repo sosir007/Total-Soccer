@@ -2,33 +2,43 @@
 import type { CompetitionDetail, CompetitionTargetType } from '@/services/types/competitions';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
+  getCompetitionCategoryVariant,
+  getCompetitionLevelVariant,
+  getConfederationVariant,
   getLifecycleStatusLabel,
   getLifecycleStatusVariant,
   getBooleanLabel,
-  getBooleanVariant
+  getBooleanVariant,
+  type SemanticTagVariant
 } from '@/utils/tag-theme';
 
-defineProps<{
+const props = defineProps<{
   competition: CompetitionDetail;
   targetTypeLabels: Record<CompetitionTargetType, string>;
   formatScope: (item: CompetitionDetail) => string;
   formatText: (value?: string | number | boolean | null) => string | number | boolean;
   formatCompetitionFormat: (item: CompetitionDetail) => string;
 }>();
+
+function getTargetTypeVariant(targetType: CompetitionTargetType): SemanticTagVariant {
+  return targetType === 'CLUB' ? 'object-club' : 'object-country';
+}
+
+function getScopeVariant(item: CompetitionDetail): SemanticTagVariant {
+  if (item.scopeType === 'CONFEDERATION') {
+    return getConfederationVariant(props.formatScope(item));
+  }
+
+  if (item.scopeType === 'COUNTRY') return 'object-country';
+
+  return 'neutral';
+}
 </script>
 
 <template>
   <div class="panel">
     <div class="panel-header">
       <h3>赛事资料</h3>
-      <div class="panel-actions">
-        <SemanticTag :variant="competition.enabled ? 'status-enabled' : 'status-disabled'">
-          {{ competition.enabled ? '启用' : '停用' }}
-        </SemanticTag>
-        <SemanticTag :variant="getLifecycleStatusVariant(competition.lifecycleStatus)">
-          {{ getLifecycleStatusLabel(competition.lifecycleStatus) }}
-        </SemanticTag>
-      </div>
     </div>
 
     <div class="competition-info-grid">
@@ -37,28 +47,40 @@ defineProps<{
         <strong>{{ competition.code }}</strong>
       </div>
       <div class="competition-info-item">
-        <span>赛事名称</span>
-        <strong>{{ competition.name }}</strong>
-      </div>
-      <div class="competition-info-item">
         <span>别名</span>
         <strong>{{ formatText(competition.alias) }}</strong>
       </div>
       <div class="competition-info-item">
         <span>对象</span>
-        <strong>{{ targetTypeLabels[competition.targetType] }}</strong>
+        <strong>
+          <SemanticTag :variant="getTargetTypeVariant(competition.targetType)">
+            {{ targetTypeLabels[competition.targetType] }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="competition-info-item">
         <span>适用范围</span>
-        <strong>{{ formatScope(competition) }}</strong>
+        <strong>
+          <SemanticTag :variant="getScopeVariant(competition)">
+            {{ formatScope(competition) }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="competition-info-item">
         <span>分类</span>
-        <strong>{{ formatText(competition.category) }}</strong>
+        <strong>
+          <SemanticTag :variant="getCompetitionCategoryVariant(competition.category)">
+            {{ formatText(competition.category) }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="competition-info-item">
         <span>级别</span>
-        <strong>{{ formatText(competition.level) }}</strong>
+        <strong>
+          <SemanticTag :variant="getCompetitionLevelVariant(competition.level)">
+            {{ formatText(competition.level) }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="competition-info-item">
         <span>赛制</span>
@@ -69,6 +91,14 @@ defineProps<{
         <strong>
           <SemanticTag :variant="getLifecycleStatusVariant(competition.lifecycleStatus)">
             {{ getLifecycleStatusLabel(competition.lifecycleStatus) }}
+          </SemanticTag>
+        </strong>
+      </div>
+      <div class="competition-info-item">
+        <span>启用状态</span>
+        <strong>
+          <SemanticTag :variant="competition.enabled ? 'status-enabled' : 'status-disabled'">
+            {{ competition.enabled ? '启用' : '停用' }}
           </SemanticTag>
         </strong>
       </div>

@@ -6,12 +6,7 @@ import type {
   AwardScopeType,
   AwardTargetType
 } from '@/services/types/awards';
-import {
-  getCompetitionCategoryVariant,
-  getCompetitionLevelVariant,
-  getLifecycleStatusLabel,
-  getLifecycleStatusVariant
-} from '@/utils/tag-theme';
+import { getCompetitionLevelVariant, type SemanticTagVariant } from '@/utils/tag-theme';
 import IconFont from '@/components/IconFont.vue';
 
 defineProps<{
@@ -26,6 +21,13 @@ const emit = defineEmits<{
   back: [];
   edit: [];
 }>();
+
+function getTargetTypeVariant(targetType: AwardTargetType): SemanticTagVariant {
+  if (targetType === 'COUNTRY') return 'object-country';
+  if (targetType === 'CLUB') return 'object-club';
+
+  return 'object-player';
+}
 </script>
 
 <template>
@@ -37,15 +39,12 @@ const emit = defineEmits<{
       </a>
       <p>{{ award.code }} · {{ formatScope(award) }}</p>
       <div class="detail-tags">
-        <SemanticTag :variant="getCompetitionCategoryVariant(award.category)">
-          {{ award.category || '未分类' }}
-        </SemanticTag>
+        <span class="award-category-text">{{ award.category || '未分类' }}</span>
         <SemanticTag :variant="getCompetitionLevelVariant(award.level)">
           {{ award.level || '未分级' }}
         </SemanticTag>
-        <SemanticTag variant="status-info">{{ targetTypeLabels[award.targetType] }}</SemanticTag>
-        <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
-          {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
+        <SemanticTag :variant="getTargetTypeVariant(award.targetType)">
+          {{ targetTypeLabels[award.targetType] }}
         </SemanticTag>
         <SemanticTag variant="status-legend">{{ award.editions.length }} 个年份</SemanticTag>
       </div>
@@ -59,9 +58,17 @@ const emit = defineEmits<{
         <IconFont name="edit" />
         编辑资料
       </el-button>
-      <a class="external-text-link" :href="externalUrl" target="_blank" rel="noopener noreferrer">
-        外部链接
-      </a>
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.award-category-text {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--text-color-secondary);
+  font-size: 13px;
+  font-weight: 750;
+}
+</style>

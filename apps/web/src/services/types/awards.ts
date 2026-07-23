@@ -49,11 +49,31 @@ export interface AwardListItem {
   category?: string | null;
   level?: string | null;
   description?: string | null;
+  competitionId?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
   lifecycleStatus: LifecycleStatus;
   enabled: boolean;
   sortOrder: number;
+  competition?: {
+    id: string;
+    code: string;
+    name: string;
+    externalUrl?: string | null;
+    targetType: 'COUNTRY' | 'CLUB';
+    scopeType: 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
+    category?: string | null;
+    level?: string | null;
+    format?: string | null;
+    editions?: Array<{
+      id: string;
+      name: string;
+      season?: string | null;
+      year?: number | null;
+      quantity?: number | null;
+      externalUrl?: string | null;
+    }>;
+  } | null;
   confederation?: AwardNamedRef | null;
   country?: AwardNamedRef | null;
   _count?: {
@@ -64,11 +84,21 @@ export interface AwardListItem {
 export interface AwardEdition {
   id: string;
   awardId: string;
+  competitionEditionId?: string | null;
   name: string;
   season?: string | null;
   year?: number | null;
   externalUrl?: string | null;
   remark?: string | null;
+  competitionEdition?: {
+    id: string;
+    name: string;
+    season?: string | null;
+    year?: number | null;
+    externalUrl?: string | null;
+    quantity?: number | null;
+    competition: AwardListItem['competition'];
+  } | null;
   recipients?: AwardEditionRecipient[];
 }
 
@@ -118,6 +148,7 @@ export interface CreateAwardPayload {
   category?: string;
   level?: string;
   description?: string;
+  competitionId?: string;
   confederationId?: string;
   countryId?: string;
   lifecycleStatus?: LifecycleStatus;
@@ -127,6 +158,7 @@ export interface CreateAwardPayload {
 
 export interface CreateAwardEditionPayload {
   name: string;
+  competitionEditionId?: string;
   season?: string;
   year?: number;
   externalUrl?: string;

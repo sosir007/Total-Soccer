@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import EntityLink from '@/components/EntityLink.vue';
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
@@ -61,6 +61,12 @@ function getCareerEntityName(career: Career) {
   return career.careerType === 'CLUB' ? career.club?.name : career.country?.name;
 }
 
+function getCareerEntitySubtitle(career: Career) {
+  const uid = career.careerType === 'CLUB' ? career.club?.uid : career.country?.uid;
+
+  return uid ? `UID ${uid}` : undefined;
+}
+
 function isGoalkeeperPosition(position?: string | null) {
   const normalized = (position ?? '').trim().toUpperCase();
   return normalized === 'GK' || normalized.includes('门将') || normalized.includes('守门');
@@ -69,7 +75,7 @@ function isGoalkeeperPosition(position?: string | null) {
 
 <template>
   <el-table :data="careers" border>
-    <el-table-column type="index" label="序号" width="70" align="center" />
+    <el-table-column type="index" label="序号" width="60" align="center" />
     <el-table-column v-if="type === 'mixed'" label="类型" width="90" align="center">
       <template #default="{ row }">
         <SemanticTag :variant="row.careerType === 'CLUB' ? 'object-club' : 'object-country'">
@@ -77,16 +83,17 @@ function isGoalkeeperPosition(position?: string | null) {
         </SemanticTag>
       </template>
     </el-table-column>
-    <el-table-column :label="type === 'country' ? '国家队' : '球队 / 国家队'" min-width="150">
+    <el-table-column label="球队" min-width="150">
       <template #default="{ row }">
-        <EntityLink
+        <EntityNameCell
           :id="getCareerEntityId(row)"
           :type="getCareerEntityType(row)"
-          :name="getCareerEntityName(row)"
+          :title="getCareerEntityName(row)"
+          :subtitle="getCareerEntitySubtitle(row)"
         />
       </template>
     </el-table-column>
-    <el-table-column label="时间" min-width="120">
+    <el-table-column label="年份" min-width="120">
       <template #default="{ row }">{{ formatCareerPeriod(row) }}</template>
     </el-table-column>
     <el-table-column label="位置" width="100" align="center">
@@ -109,18 +116,16 @@ function isGoalkeeperPosition(position?: string | null) {
     <el-table-column v-if="isGoalkeeperCareerTable" label="失球" width="80" align="center">
       <template #default="{ row }">{{ formatCareerStat(row.goalsConceded) }}</template>
     </el-table-column>
-    <el-table-column v-if="type !== 'country'" label="标记" width="170">
+    <el-table-column label="标记" width="190" align="center">
       <template #default="{ row }">
-        <div v-if="row.careerType === 'CLUB'" class="career-tags">
-          <SemanticTag v-if="row.showInProfile" size="small" variant="status-enabled">
-            展示
-          </SemanticTag>
-          <SemanticTag v-if="row.isRepresentative" size="small" variant="status-representative">
+        <div class="career-tags">
+          <SemanticTag v-if="row.showInProfile" variant="status-enabled">展示</SemanticTag>
+          <SemanticTag v-if="row.isRepresentative" variant="status-representative">
             代表
           </SemanticTag>
-          <SemanticTag v-if="row.isLegend" size="small" variant="status-legend">名宿</SemanticTag>
+          <SemanticTag v-if="row.isLegend" variant="status-legend">传奇</SemanticTag>
+          <span v-if="!row.showInProfile && !row.isRepresentative && !row.isLegend">-</span>
         </div>
-        <span v-else>-</span>
       </template>
     </el-table-column>
   </el-table>
@@ -128,9 +133,9 @@ function isGoalkeeperPosition(position?: string | null) {
 
 <style scoped lang="scss">
 .career-tags {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   justify-content: center;
 }

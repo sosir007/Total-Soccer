@@ -639,6 +639,7 @@ model Competition {
   scopeConfederations CompetitionScopeConfederation[]
   scopeCountries      CompetitionScopeCountry[]
   typicalHonorRules   HonorRuleCompetition[]
+  awards              Award[]
   editions            CompetitionEdition[]
   createdAt           DateTime                        @default(now())
   updatedAt           DateTime                        @updatedAt
@@ -688,11 +689,13 @@ model Award {
   category        String?
   level           String?
   description     String?
+  competitionId   String?
   confederationId String?
   countryId       String?
   lifecycleStatus LifecycleStatus @default(CURRENT)
   enabled         Boolean         @default(true)
   sortOrder       Int             @default(0)
+  competition     Competition?    @relation(fields: [competitionId], references: [id])
   confederation   Confederation?  @relation("AwardScopeConfederation", fields: [confederationId], references: [id])
   country         Country?        @relation("AwardScopeCountry", fields: [countryId], references: [id])
   editions        AwardEdition[]
@@ -702,6 +705,7 @@ model Award {
   @@index([targetType])
   @@index([scopeType])
   @@index([category])
+  @@index([competitionId])
   @@index([confederationId])
   @@index([countryId])
   @@index([lifecycleStatus])
@@ -709,20 +713,23 @@ model Award {
 }
 
 model AwardEdition {
-  id          String           @id @default(cuid())
-  awardId     String
-  name        String
-  season      String?
-  year        Int?
-  externalUrl String?
-  remark      String?
-  award       Award            @relation(fields: [awardId], references: [id], onDelete: Cascade)
-  recipients  AwardRecipient[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                   String              @id @default(cuid())
+  awardId              String
+  competitionEditionId String?
+  name                 String
+  season               String?
+  year                 Int?
+  externalUrl          String?
+  remark               String?
+  award                Award               @relation(fields: [awardId], references: [id], onDelete: Cascade)
+  competitionEdition   CompetitionEdition? @relation(fields: [competitionEditionId], references: [id])
+  recipients           AwardRecipient[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
   @@unique([awardId, name])
   @@index([awardId])
+  @@index([competitionEditionId])
   @@index([year])
 }
 
@@ -768,6 +775,7 @@ model CompetitionEdition {
   remark        String?
   competition   Competition                    @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   standings     CompetitionStanding[]
+  awardEditions AwardEdition[]
   createdAt     DateTime                       @default(now())
   updatedAt     DateTime                       @updatedAt
 

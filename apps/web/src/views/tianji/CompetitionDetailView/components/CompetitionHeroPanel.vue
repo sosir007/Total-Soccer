@@ -42,9 +42,9 @@ const emit = defineEmits<{
         <SemanticTag :variant="getCompetitionLevelVariant(competition.level)">
           {{ competition.level || '未分级' }}
         </SemanticTag>
-        <SemanticTag v-if="shouldUseCompetitionFormat(competition)" variant="neutral">
+        <span v-if="shouldUseCompetitionFormat(competition)" class="detail-tag-text">
           {{ competition.format || '未设赛制' }}
-        </SemanticTag>
+        </span>
         <SemanticTag variant="status-legend">{{ getSummaryCountLabel() }}</SemanticTag>
       </div>
     </div>

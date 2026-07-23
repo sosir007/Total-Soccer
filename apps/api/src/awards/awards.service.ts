@@ -13,6 +13,19 @@ import type {
 } from './awards.types.js';
 
 const AWARD_INCLUDE = {
+  competition: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      externalUrl: true,
+      targetType: true,
+      scopeType: true,
+      category: true,
+      level: true,
+      format: true
+    }
+  },
   confederation: {
     select: {
       id: true,
@@ -38,9 +51,21 @@ const AWARD_INCLUDE = {
 
 const AWARD_DETAIL_INCLUDE = {
   ...AWARD_INCLUDE,
+  competition: {
+    include: {
+      editions: {
+        orderBy: [{ year: 'asc' }, { name: 'asc' }]
+      }
+    }
+  },
   editions: {
     orderBy: [{ year: 'desc' }, { name: 'desc' }],
     include: {
+      competitionEdition: {
+        include: {
+          competition: true
+        }
+      },
       recipients: {
         orderBy: [{ rank: 'asc' }, { placement: 'asc' }],
         include: {
@@ -147,8 +172,26 @@ const AWARD_RECIPIENT_INCLUDE = {
   },
   edition: {
     include: {
+      competitionEdition: {
+        include: {
+          competition: true
+        }
+      },
       award: {
         include: {
+          competition: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              externalUrl: true,
+              targetType: true,
+              scopeType: true,
+              category: true,
+              level: true,
+              format: true
+            }
+          },
           confederation: {
             select: {
               id: true,
@@ -286,7 +329,7 @@ export class AwardsService {
   }
 
   async createEdition(awardId: string, body: CreateAwardEditionBody) {
-    await this.assertAwardExists(awardId);
+    await this.assertCompetitionEditionMatchesAward(awardId, body.competitionEditionId);
 
     return this.prisma.awardEdition.create({
       data: this.buildEditionData(awardId, body),
@@ -297,7 +340,8 @@ export class AwardsService {
   }
 
   async updateEdition(id: string, body: UpdateAwardEditionBody) {
-    await this.assertEditionExists(id);
+    const edition = await this.assertEditionExists(id);
+    await this.assertCompetitionEditionMatchesAward(edition.awardId, body.competitionEditionId);
 
     return this.prisma.awardEdition.update({
       where: { id },
@@ -358,6 +402,7 @@ export class AwardsService {
         : {}),
       ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
       ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
+      ...(query.competitionId ? { competitionId: query.competitionId } : {}),
       ...(query.confederationId ? { confederationId: query.confederationId } : {}),
       ...(query.countryId ? { countryId: query.countryId } : {}),
       ...(query.lifecycleStatus
@@ -429,6 +474,7 @@ export class AwardsService {
       category: this.toNullableString(body.category),
       level: this.toNullableString(body.level),
       description: this.toNullableString(body.description),
+      competitionId: this.toNullableString(body.competitionId),
       confederationId:
         scopeType === AwardScopeType.CONFEDERATION
           ? this.toNullableString(body.confederationId)
@@ -445,22 +491,22 @@ export class AwardsService {
     const name = this.requiredString(body.name, '奖项届次名称');
 
     return {
-      award: {
-        connect: {
-          id: awardId
-        }
-      },
+      awardId,
+      competitionEditionId: this.toNullableString(body.competitionEditionId),
       name,
       season: this.toNullableString(body.season),
       year: this.toNullableNumber(body.year),
       externalUrl: this.toNullableString(body.externalUrl),
       remark: this.toNullableString(body.remark)
-    } satisfies Prisma.AwardEditionCreateInput;
+    } satisfies Prisma.AwardEditionUncheckedCreateInput;
   }
 
   private buildEditionUpdateData(body: UpdateAwardEditionBody) {
     return {
       ...(body.name !== undefined ? { name: this.requiredString(body.name, '奖项届次名称') } : {}),
+      ...(body.competitionEditionId !== undefined
+        ? { competitionEditionId: this.toNullableString(body.competitionEditionId) }
+        : {}),
       ...(body.season !== undefined ? { season: this.toNullableString(body.season) } : {}),
       ...(body.year !== undefined ? { year: this.toNullableNumber(body.year) } : {}),
       ...(body.externalUrl !== undefined
@@ -537,6 +583,7 @@ export class AwardsService {
       where: { id },
       select: {
         id: true,
+        awardId: true,
         award: {
           select: {
             targetType: true
@@ -550,6 +597,49 @@ export class AwardsService {
     }
 
     return edition;
+  }
+
+  private async assertCompetitionEditionMatchesAward(
+    awardId: string,
+    competitionEditionId?: string
+  ) {
+    const award = await this.prisma.award.findUnique({
+      where: { id: awardId },
+      select: {
+        id: true,
+        competitionId: true
+      }
+    });
+
+    if (!award) {
+      throw new NotFoundException('奖项不存在。');
+    }
+
+    const editionId = this.toNullableString(competitionEditionId);
+
+    if (!editionId) {
+      return;
+    }
+
+    if (!award.competitionId) {
+      throw new BadRequestException('非赛事奖项不能绑定赛事届次。');
+    }
+
+    const competitionEdition = await this.prisma.competitionEdition.findUnique({
+      where: { id: editionId },
+      select: {
+        id: true,
+        competitionId: true
+      }
+    });
+
+    if (!competitionEdition) {
+      throw new BadRequestException('赛事届次不存在。');
+    }
+
+    if (competitionEdition.competitionId !== award.competitionId) {
+      throw new BadRequestException('奖项届次绑定的赛事届次与奖项所属赛事不一致。');
+    }
   }
 
   private async assertTargetsExist(targetType: AwardTargetType, targetIds: string[]) {

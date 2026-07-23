@@ -5,6 +5,7 @@ export interface AwardListQuery {
   pageSize?: string;
   keyword?: string;
   scopeType?: AwardScopeType;
+  competitionId?: string;
   confederationId?: string;
   countryId?: string;
   targetType?: AwardTargetType;
@@ -35,6 +36,7 @@ export interface CreateAwardBody {
   category?: string;
   level?: string;
   description?: string;
+  competitionId?: string;
   confederationId?: string;
   countryId?: string;
   lifecycleStatus?: LifecycleStatus;
@@ -46,6 +48,7 @@ export type UpdateAwardBody = CreateAwardBody;
 
 export interface CreateAwardEditionBody {
   name?: string;
+  competitionEditionId?: string;
   season?: string;
   year?: number;
   externalUrl?: string;

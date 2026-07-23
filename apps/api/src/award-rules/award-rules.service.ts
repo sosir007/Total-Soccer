@@ -1,5 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { AwardScopeType, AwardTargetType, type AwardRule, type Prisma } from '@prisma/client';
+import {
+  AwardScopeType,
+  AwardTargetType,
+  HonorRuleConversionType,
+  type AwardRule,
+  type Prisma
+} from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { DEFAULT_AWARD_RULES, type AwardRuleDefaultDefinition } from './default-award-rules.js';
@@ -24,6 +30,21 @@ type ScoredAwardRecipient = {
   rule: AwardRule;
   score: number;
 };
+
+type CompetitionHonorRule = Prisma.HonorRuleGetPayload<{ include: { coefficients: true } }>;
+
+type AwardEventCompetition = Prisma.CompetitionGetPayload<{
+  include: {
+    scopeConfederations: true;
+    scopeCountries: true;
+    editions: {
+      select: {
+        year: true;
+        quantity: true;
+      };
+    };
+  };
+}>;
 
 @Injectable()
 export class AwardRulesService {
@@ -75,10 +96,15 @@ export class AwardRulesService {
 
   async recalculate() {
     await this.ensureDefaultRules();
-    const [players, rules, recipients] = await Promise.all([
+    const [players, rules, competitionHonorRules, recipients] = await Promise.all([
       this.prisma.player.findMany({ select: { id: true } }),
       this.prisma.awardRule.findMany({
         where: { enabled: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true },
+        include: { coefficients: true },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
       }),
       this.prisma.awardRecipient.findMany({
@@ -86,13 +112,27 @@ export class AwardRulesService {
         include: {
           edition: {
             include: {
-              award: {
+              competitionEdition: {
                 select: {
                   id: true,
-                  scopeType: true,
-                  category: true,
-                  confederationId: true,
-                  countryId: true
+                  year: true,
+                  quantity: true
+                }
+              },
+              award: {
+                include: {
+                  competition: {
+                    include: {
+                      scopeConfederations: true,
+                      scopeCountries: true,
+                      editions: {
+                        select: {
+                          year: true,
+                          quantity: true
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -134,7 +174,14 @@ export class AwardRulesService {
             category: rule.category
           }),
           rule,
-          score: rule.baseScore * rule.coefficient
+          score:
+            rule.baseScore *
+            rule.coefficient *
+            this.resolveEventAwardCoefficient({
+              competition: recipient.edition.award.competition,
+              competitionEdition: recipient.edition.competitionEdition,
+              honorRules: competitionHonorRules
+            })
         };
 
         scoredRecipients.push(scoredRecipient);
@@ -259,6 +306,159 @@ export class AwardRulesService {
       sortOrder: this.optionalInteger(body.sortOrder, '排序') ?? 0,
       remark: this.optionalText(body.remark)
     } satisfies Prisma.AwardRuleUncheckedCreateInput;
+  }
+
+  private resolveEventAwardCoefficient({
+    competition,
+    competitionEdition,
+    honorRules
+  }: {
+    competition: AwardEventCompetition | null;
+    competitionEdition: { year: number | null; quantity: number | null } | null;
+    honorRules: CompetitionHonorRule[];
+  }) {
+    if (!competition) {
+      return 1;
+    }
+
+    const rule = this.findMatchingCompetitionHonorRule(honorRules, competition);
+
+    if (!rule) {
+      return 1;
+    }
+
+    return (
+      this.resolveCompetitionQualityCoefficient(rule, competition) *
+      this.resolveCompetitionConversionCoefficient(
+        rule,
+        competition,
+        competitionEdition?.year ?? null,
+        competitionEdition?.quantity ?? null
+      )
+    );
+  }
+
+  private findMatchingCompetitionHonorRule(
+    honorRules: CompetitionHonorRule[],
+    competition: AwardEventCompetition
+  ) {
+    return [...honorRules]
+      .filter((rule) => {
+        if (rule.targetType !== competition.targetType) return false;
+        if (rule.scopeType && rule.scopeType !== competition.scopeType) return false;
+        if (!this.sameText(rule.category, competition.category)) return false;
+        if (!this.sameText(rule.level, competition.level)) return false;
+        if (!this.sameText(rule.format, competition.format)) return false;
+        return true;
+      })
+      .sort((left, right) => {
+        if (left.sortOrder !== right.sortOrder) return left.sortOrder - right.sortOrder;
+        return left.name.localeCompare(right.name, 'zh-Hans-CN');
+      })[0];
+  }
+
+  private resolveCompetitionQualityCoefficient(
+    rule: CompetitionHonorRule,
+    competition: AwardEventCompetition
+  ) {
+    const confederationIds = this.competitionConfederationIds(competition);
+    const countryIds = this.competitionCountryIds(competition);
+    const coefficient = rule.coefficients.find(
+      (item) =>
+        (item.confederationId && confederationIds.includes(item.confederationId)) ||
+        (item.countryId && countryIds.includes(item.countryId))
+    );
+
+    return coefficient?.coefficient ?? rule.qualityCoefficient;
+  }
+
+  private resolveCompetitionConversionCoefficient(
+    rule: CompetitionHonorRule,
+    competition: AwardEventCompetition,
+    year: number | null,
+    quantity: number | null
+  ) {
+    if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
+      return this.frequencyCoefficient(competition) * this.scaleCoefficient(competition, quantity);
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
+      if (!year) return 1;
+      if (year <= 1928) return 3;
+      if (year <= 1980) return 2;
+      if (year <= 1988) return 1.5;
+      return 1;
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {
+      if (!year) return 1;
+      return year < 2025 ? 0.5 : 1;
+    }
+
+    return 1;
+  }
+
+  private frequencyCoefficient(competition: AwardEventCompetition) {
+    const years = competition.editions.map((edition) => edition.year).filter(this.isNumber);
+
+    if (years.length < 2) {
+      return 1;
+    }
+
+    const firstYear = Math.min(...years);
+    const lastYear = Math.max(...years);
+    const averageGap = (lastYear - firstYear) / (years.length - 1);
+
+    return Math.min(averageGap / 4, 1);
+  }
+
+  private scaleCoefficient(competition: AwardEventCompetition, quantity: number | null) {
+    const resolvedQuantity =
+      quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
+
+    if (!resolvedQuantity) return 1;
+    if (resolvedQuantity >= 24) return 1;
+    if (resolvedQuantity >= 16) return 0.9;
+    if (resolvedQuantity >= 10) return 0.75;
+    if (resolvedQuantity >= 8) return 0.65;
+    if (resolvedQuantity >= 4) return 0.5;
+    if (resolvedQuantity === 3) return 0.35;
+    if (resolvedQuantity === 2) return 0.25;
+    return 0;
+  }
+
+  private median(values: Array<number | null>) {
+    const numbers = values.filter(this.isNumber).sort((a, b) => a - b);
+
+    if (!numbers.length) return null;
+
+    return numbers[Math.floor(numbers.length / 2)];
+  }
+
+  private competitionConfederationIds(competition: AwardEventCompetition) {
+    return [
+      competition.confederationId,
+      ...competition.scopeConfederations.map((item) => item.confederationId)
+    ].filter(this.isString);
+  }
+
+  private competitionCountryIds(competition: AwardEventCompetition) {
+    return [
+      competition.countryId,
+      ...competition.scopeCountries.map((item) => item.countryId)
+    ].filter(this.isString);
+  }
+
+  private sameText(left?: string | null, right?: string | null) {
+    return (left?.trim() ?? '') === (right?.trim() ?? '');
+  }
+
+  private isNumber(value: number | null): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  private isString(value: string | null): value is string {
+    return typeof value === 'string' && Boolean(value);
   }
 
   private async assertExists(id: string) {

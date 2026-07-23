@@ -4,7 +4,12 @@ import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
-import { getLifeStatusLabel, getLifeStatusVariant } from '@/utils/tag-theme';
+import {
+  getCareerStatusLabel,
+  getCareerStatusVariant,
+  getLifeStatusLabel,
+  getLifeStatusVariant
+} from '@/utils/tag-theme';
 
 const props = defineProps<{
   player: PlayerDetail;
@@ -15,14 +20,7 @@ function formatDate(value?: string | number | null) {
 }
 
 function formatLifeDateRange() {
-  const birthDate = props.player.birthDate ? formatDate(props.player.birthDate) : '';
-  const deathDate = props.player.deathDate ? formatDate(props.player.deathDate) : '';
-
-  if (birthDate && deathDate) return `${birthDate} ~ ${deathDate}`;
-  if (birthDate) return birthDate;
-  if (deathDate) return `~ ${deathDate}`;
-
-  return '-';
+  return `${formatDate(props.player.birthDate)} / ${formatDate(props.player.deathDate)}`;
 }
 
 function formatText(value?: string | number | null) {
@@ -69,6 +67,19 @@ function formatFoot() {
           {{ getLifeStatusLabel(true) }}
         </SemanticTag>
         <span v-else>{{ formatAge() }}</span>
+      </dd>
+    </div>
+    <div>
+      <dt>生涯</dt>
+      <dd>
+        <SemanticTag
+          v-if="player.retired !== null && player.retired !== undefined"
+          :variant="getCareerStatusVariant(player.retired)"
+          size="small"
+        >
+          {{ getCareerStatusLabel(player.retired) }}
+        </SemanticTag>
+        <span v-else>-</span>
       </dd>
     </div>
     <div>

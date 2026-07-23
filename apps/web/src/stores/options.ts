@@ -24,6 +24,7 @@ export interface SelectOption {
   chipTheme?: string | null;
   confederationName?: string | null;
   targetType?: string;
+  competitionId?: string | null;
 }
 
 type OptionType =
@@ -357,11 +358,16 @@ function awardToOption(award: AwardListItem): SelectOption {
     label: award.name,
     code: award.code,
     description: [scopeLabel, award.category, award.level].filter(Boolean).join(' / '),
-    meta: [award.code, award.description, award.confederation?.name, award.country?.name].filter(
-      Boolean
-    ) as string[],
+    meta: [
+      award.code,
+      award.description,
+      award.competition?.name,
+      award.confederation?.name,
+      award.country?.name
+    ].filter(Boolean) as string[],
     chipLabel: scopeLabel,
-    targetType: award.targetType
+    targetType: award.targetType,
+    competitionId: award.competitionId
   };
 }
 

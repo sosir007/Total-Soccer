@@ -2,10 +2,9 @@
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { CountryDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
-import { buildExternalUrl } from '@/utils/external-link';
 import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
 
-const props = defineProps<{
+defineProps<{
   country: CountryDetail;
 }>();
 
@@ -16,10 +15,6 @@ function formatRef(ref?: NamedRef | null) {
 function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
-
-function countryExternalUrl() {
-  return buildExternalUrl(props.country.externalUrl, props.country.name || '国家队');
-}
 </script>
 
 <template>
@@ -27,10 +22,6 @@ function countryExternalUrl() {
     <div>
       <dt>国家</dt>
       <dd>{{ country.name }}</dd>
-    </div>
-    <div>
-      <dt>UID</dt>
-      <dd>{{ country.uid }}</dd>
     </div>
     <div>
       <dt>足联</dt>
@@ -45,29 +36,16 @@ function countryExternalUrl() {
       </dd>
     </div>
     <div>
-      <dt>外部链接</dt>
-      <dd>
-        <a
-          class="external-text-link"
-          :href="countryExternalUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {{ country.externalUrl || 'Google 搜索' }}
-        </a>
-      </dd>
-    </div>
-    <div>
-      <dt>备注</dt>
-      <dd>{{ formatText(country.remark) }}</dd>
-    </div>
-    <div>
       <dt>列表展示</dt>
       <dd>
         <SemanticTag :variant="getBooleanVariant(country.visibleInCatalog !== false)">
           {{ getBooleanLabel(country.visibleInCatalog !== false) }}
         </SemanticTag>
       </dd>
+    </div>
+    <div>
+      <dt>备注</dt>
+      <dd>{{ formatText(country.remark) }}</dd>
     </div>
   </dl>
 </template>

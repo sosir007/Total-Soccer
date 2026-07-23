@@ -59,9 +59,6 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
         <SemanticTag variant="object-player">
           球员 {{ formatNumber(country.playerCount) }}
         </SemanticTag>
-        <SemanticTag variant="neutral">
-          平均 PA {{ formatNumber(country.averagePa, 2) }}
-        </SemanticTag>
         <SemanticTag variant="status-legend">
           荣誉分 {{ formatNumber(country.honorScore, 2) }}
         </SemanticTag>
@@ -86,25 +83,29 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
       <strong>{{ formatNumber(country.totalPa) }}</strong>
       <em>国家队球员能力总量</em>
     </div>
-    <div class="metric-card gold">
-      <span>冠军数</span>
-      <strong>{{ formatNumber(country.championCount) }}</strong>
-      <em>冠军荣誉累计</em>
+    <div class="metric-card honor-score-card">
+      <span>荣誉分</span>
+      <strong>{{ formatNumber(country.honorScore, 2) }}</strong>
+      <em>赛事分与附加分汇总</em>
     </div>
-    <div class="metric-card">
+    <div class="metric-card gold">
+      <span>冠军数 / 奖牌数</span>
+      <strong class="metric-split-value">
+        <span class="champion-count">{{ formatNumber(country.championCount) }}</span>
+        <span class="metric-separator">/</span>
+        <span class="medal-count">{{ formatNumber(country.medalCount) }}</span>
+      </strong>
+      <em>冠军 / 亚军 / 季军汇总</em>
+    </div>
+    <div class="metric-card gold">
       <span>大赛冠军</span>
       <strong>{{ formatNumber(country.majorChampionCount) }}</strong>
       <em>核心赛事冠军统计</em>
     </div>
-    <div class="metric-card">
-      <span>奖牌数</span>
-      <strong>{{ formatNumber(country.medalCount) }}</strong>
-      <em>冠军 / 亚军 / 季军汇总</em>
-    </div>
   </div>
 
   <div class="detail-grid">
-    <SectionCard title="基础资料" badge="国家圣殿">
+    <SectionCard title="基础资料" :badge="`UID ${country.uid}`">
       <NationBasicInfoContent :country="country" />
     </SectionCard>
 
@@ -146,3 +147,32 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
     />
   </SectionCard>
 </template>
+
+<style scoped lang="scss">
+.metric-split-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.metric-split-value .champion-count,
+.metric-split-value .metric-separator,
+.metric-split-value .medal-count {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.metric-card.honor-score-card strong {
+  color: var(--color-brand-primary);
+}
+
+.metric-card.gold .metric-split-value > .champion-count {
+  color: var(--color-accent-gold);
+}
+
+.metric-card.gold .metric-split-value > .metric-separator,
+.metric-card.gold .metric-split-value > .medal-count {
+  color: var(--text-color-primary);
+}
+</style>

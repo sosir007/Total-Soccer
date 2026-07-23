@@ -6,6 +6,7 @@ import type {
   PlayerListQuery,
   PlayerPayload,
   PlayerTeamHonorPayload,
+  SavePlayerAwardRecipientGroupBody,
   SavePlayerCareersBody,
   TeamHonorStandingOptionQuery
 } from './players.types.js';
@@ -61,6 +62,15 @@ export class PlayersController {
   @ApiOperation({ summary: '新增或更新球员个人奖项记录' })
   createAwardRecipient(@Param('id') id: string, @Body() body: PlayerAwardRecipientPayload) {
     return this.playersService.createAwardRecipient(id, body);
+  }
+
+  @Put(':id/award-recipient-groups')
+  @ApiOperation({ summary: '按奖项批量保存球员个人奖项记录' })
+  saveAwardRecipientGroup(
+    @Param('id') id: string,
+    @Body() body: SavePlayerAwardRecipientGroupBody
+  ) {
+    return this.playersService.saveAwardRecipientGroup(id, body);
   }
 
   @Put(':id/award-recipients/:recipientId')

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import EntityNameCell from '@/components/EntityNameCell.vue';
-import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
 
@@ -62,9 +61,7 @@ function awardEditionUrl(honor: PersonalHonor) {
       <template #default="{ row }">{{ row.edition.year || '-' }}</template>
     </el-table-column>
     <el-table-column label="名次" width="110">
-      <template #default="{ row }">
-        <SemanticTag variant="status-top-award">{{ formatAwardPlacement(row) }}</SemanticTag>
-      </template>
+      <template #default="{ row }">{{ formatAwardPlacement(row) }}</template>
     </el-table-column>
     <el-table-column label="备注" min-width="180">
       <template #default="{ row }">{{ formatText(row.remark) }}</template>

@@ -1,5 +1,5 @@
 import type { AwardRecipientRecord } from './awards';
-import type { NamedRef } from './common';
+import type { LifecycleStatus, NamedRef } from './common';
 import type { CompetitionStandingPlacement } from './competitions';
 
 export interface HonorEditionRef {
@@ -22,6 +22,10 @@ export interface HonorCompetitionRef {
   category?: string | null;
   level?: string | null;
   format?: string | null;
+  lifecycleStatus?: LifecycleStatus;
+  enabled?: boolean;
+  includeInStats?: boolean;
+  sortOrder?: number;
   confederation?: NamedRef | null;
   country?: NamedRef | null;
   scopeConfederations?: Array<{ confederation: NamedRef }>;
@@ -168,6 +172,11 @@ export interface PlayerTeamHonor {
   remark?: string | null;
   standing: TeamHonorStandingOption;
   career?: PlayerCareer | null;
+}
+
+export interface PlayerAwardRecipientGroupPayload {
+  awardId: string;
+  recipients: PlayerAwardRecipientPayload[];
 }
 
 export interface CareerProfileLine {

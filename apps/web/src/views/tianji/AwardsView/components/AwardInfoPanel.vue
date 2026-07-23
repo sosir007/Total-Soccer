@@ -7,10 +7,11 @@ import type {
 } from '@/services/types/awards';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
+  getCompetitionLevelVariant,
+  getConfederationVariant,
   getLifecycleStatusLabel,
   getLifecycleStatusVariant,
-  getBooleanLabel,
-  getBooleanVariant
+  type SemanticTagVariant
 } from '@/utils/tag-theme';
 
 const props = defineProps<{
@@ -50,20 +51,32 @@ function formatAwardRuleName(award: AwardDetail) {
 
   return `${props.scopeTypeLabels[award.scopeType]}${award.category}`;
 }
+
+function getTargetTypeVariant(targetType: AwardTargetType): SemanticTagVariant {
+  if (targetType === 'COUNTRY') return 'object-country';
+  if (targetType === 'CLUB') return 'object-club';
+
+  return 'object-player';
+}
+
+function getScopeVariant(award: AwardDetail): SemanticTagVariant {
+  if (award.scopeType === 'CONFEDERATION') {
+    return getConfederationVariant(props.formatScope(award));
+  }
+
+  if (award.scopeType === 'COUNTRY') return 'object-country';
+  if (award.scopeType === 'CLUB') return 'object-club';
+  if (award.scopeType === 'LEAGUE') return 'object-competition';
+  if (award.scopeType === 'MEDIA') return 'object-award';
+
+  return 'neutral';
+}
 </script>
 
 <template>
   <div class="panel">
     <div class="panel-header">
       <h3>奖项资料</h3>
-      <div class="panel-actions">
-        <SemanticTag :variant="award.enabled ? 'status-enabled' : 'status-disabled'">
-          {{ award.enabled ? '启用' : '停用' }}
-        </SemanticTag>
-        <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
-          {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
-        </SemanticTag>
-      </div>
     </div>
 
     <div class="award-info-grid">
@@ -72,12 +85,12 @@ function formatAwardRuleName(award: AwardDetail) {
         <strong>{{ award.code }}</strong>
       </div>
       <div class="award-info-item">
-        <span>奖项名称</span>
-        <strong>{{ award.name }}</strong>
-      </div>
-      <div class="award-info-item">
         <span>获奖对象</span>
-        <strong>{{ targetTypeLabels[award.targetType] }}</strong>
+        <strong>
+          <SemanticTag :variant="getTargetTypeVariant(award.targetType)">
+            {{ targetTypeLabels[award.targetType] }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="award-info-item">
         <span>评分规则</span>
@@ -85,11 +98,19 @@ function formatAwardRuleName(award: AwardDetail) {
       </div>
       <div class="award-info-item">
         <span>范围</span>
-        <strong>{{ formatScope(award) }}</strong>
+        <strong>
+          <SemanticTag :variant="getScopeVariant(award)">
+            {{ formatScope(award) }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="award-info-item">
         <span>奖项类型</span>
-        <strong>{{ formatText(award.level) }}</strong>
+        <strong>
+          <SemanticTag :variant="getCompetitionLevelVariant(award.level)">
+            {{ formatText(award.level) }}
+          </SemanticTag>
+        </strong>
       </div>
       <div class="award-info-item">
         <span>排序</span>
@@ -104,25 +125,11 @@ function formatAwardRuleName(award: AwardDetail) {
         </strong>
       </div>
       <div class="award-info-item">
-        <span>状态</span>
+        <span>启用状态</span>
         <strong>
-          <SemanticTag :variant="getBooleanVariant(award.enabled)">
-            {{ getBooleanLabel(award.enabled) }}
+          <SemanticTag :variant="award.enabled ? 'status-enabled' : 'status-disabled'">
+            {{ award.enabled ? '启用' : '停用' }}
           </SemanticTag>
-        </strong>
-      </div>
-      <div class="award-info-item">
-        <span>外链</span>
-        <strong>
-          <a
-            v-if="award.externalUrl"
-            :href="award.externalUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            打开外链
-          </a>
-          <template v-else>-</template>
         </strong>
       </div>
       <div class="award-info-item form-wide">
@@ -160,11 +167,6 @@ function formatAwardRuleName(award: AwardDetail) {
     font-size: 16px;
     line-height: 1.45;
     word-break: break-word;
-  }
-
-  a {
-    color: var(--color-primary);
-    text-decoration: none;
   }
 }
 

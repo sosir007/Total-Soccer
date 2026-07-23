@@ -4,11 +4,7 @@ import EntityLink from '@/components/EntityLink.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
-import {
-  getCareerStatusLabel,
-  getCareerStatusVariant,
-  getConfederationVariant
-} from '@/utils/tag-theme';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
   player: PlayerDetail;
@@ -142,19 +138,6 @@ const clubCareerLinks = computed(() => {
     <div>
       <dt>担任过职位</dt>
       <dd>{{ formatText(player.staffRoles) }}</dd>
-    </div>
-    <div>
-      <dt>生涯</dt>
-      <dd>
-        <SemanticTag
-          v-if="player.retired !== null && player.retired !== undefined"
-          :variant="getCareerStatusVariant(player.retired)"
-          size="small"
-        >
-          {{ getCareerStatusLabel(player.retired) }}
-        </SemanticTag>
-        <span v-else>-</span>
-      </dd>
     </div>
     <div>
       <dt>成就</dt>

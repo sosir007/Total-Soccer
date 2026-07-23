@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { ClubDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
-import { buildExternalUrl } from '@/utils/external-link';
-import { getConfederationVariant } from '@/utils/tag-theme';
+import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
 
-const props = defineProps<{
+defineProps<{
   club: ClubDetail;
 }>();
 
@@ -16,22 +16,10 @@ function formatRef(ref?: NamedRef | null) {
 function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
-
-function clubExternalUrl() {
-  return buildExternalUrl(props.club.externalUrl, props.club.name || '俱乐部');
-}
 </script>
 
 <template>
   <dl class="detail-list">
-    <div>
-      <dt>俱乐部</dt>
-      <dd>{{ club.name }}</dd>
-    </div>
-    <div>
-      <dt>UID</dt>
-      <dd>{{ club.uid }}</dd>
-    </div>
     <div>
       <dt>曾用名</dt>
       <dd>{{ formatText(club.formerName) }}</dd>
@@ -42,7 +30,15 @@ function clubExternalUrl() {
     </div>
     <div>
       <dt>国家</dt>
-      <dd>{{ formatRef(club.countryRef) }}</dd>
+      <dd>
+        <EntityNameCell
+          v-if="club.countryRef"
+          :id="club.countryRef.id"
+          type="country"
+          :title="club.countryRef.name"
+        />
+        <span v-else>-</span>
+      </dd>
     </div>
     <div>
       <dt>足联</dt>
@@ -57,16 +53,17 @@ function clubExternalUrl() {
       </dd>
     </div>
     <div>
-      <dt>外部链接</dt>
+      <dt>存在 / 展示</dt>
       <dd>
-        <a
-          class="external-text-link"
-          :href="clubExternalUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {{ club.externalUrl || 'Google 搜索' }}
-        </a>
+        <span class="club-status-tags">
+          <SemanticTag :variant="getBooleanVariant(club.exists)">
+            {{ getBooleanLabel(club.exists) }}
+          </SemanticTag>
+          <span class="club-status-separator">/</span>
+          <SemanticTag :variant="getBooleanVariant(club.visibleInCatalog)">
+            {{ getBooleanLabel(club.visibleInCatalog) }}
+          </SemanticTag>
+        </span>
       </dd>
     </div>
     <div>
@@ -75,3 +72,16 @@ function clubExternalUrl() {
     </div>
   </dl>
 </template>
+
+<style scoped lang="scss">
+.club-status-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.club-status-separator {
+  color: var(--text-color-secondary);
+}
+</style>

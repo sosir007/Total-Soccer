@@ -4,9 +4,15 @@ import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
-import { getLifecycleStatusLabel, getLifecycleStatusVariant } from '@/utils/tag-theme';
+import {
+  getCompetitionLevelVariant,
+  getConfederationVariant,
+  getLifecycleStatusLabel,
+  getLifecycleStatusVariant,
+  type SemanticTagVariant
+} from '@/utils/tag-theme';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     awards: AwardListItem[];
     total: number;
@@ -40,8 +46,28 @@ function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
 
-function formatTargetType(row: AwardListItem, labels: Record<AwardTargetType, string>) {
-  return labels[row.targetType] ?? '-';
+function getScopeVariant(row: AwardListItem): SemanticTagVariant {
+  if (row.scopeType === 'CONFEDERATION') {
+    return getConfederationVariant(row.confederation?.name ?? '');
+  }
+
+  if (row.scopeType === 'COUNTRY') return 'object-country';
+  if (row.scopeType === 'CLUB') return 'object-club';
+  if (row.scopeType === 'LEAGUE') return 'object-competition';
+  if (row.scopeType === 'MEDIA') return 'object-award';
+
+  return 'neutral';
+}
+
+function getTargetTypeVariant(row: AwardListItem): SemanticTagVariant {
+  if (row.targetType === 'COUNTRY') return 'object-country';
+  if (row.targetType === 'CLUB') return 'object-club';
+
+  return 'object-player';
+}
+
+function formatTargetType(row: AwardListItem) {
+  return props.targetTypeLabels[row.targetType] ?? '-';
 }
 
 function openExternalLink(row: AwardListItem) {
@@ -54,7 +80,7 @@ function openExternalLink(row: AwardListItem) {
 </script>
 
 <template>
-  <div :class="embedded ? 'list-panel-content' : 'panel'">
+  <div class="award-list-table" :class="embedded ? 'list-panel-content' : 'panel'">
     <div class="panel-header">
       <h3>奖项列表</h3>
       <div class="panel-actions">
@@ -84,16 +110,28 @@ function openExternalLink(row: AwardListItem) {
           </template>
         </el-table-column>
         <el-table-column label="范围" width="100" align="center" header-align="center">
-          <template #default="{ row }">{{ formatScope(row) }}</template>
+          <template #default="{ row }">
+            <SemanticTag :variant="getScopeVariant(row)">
+              {{ formatScope(row) }}
+            </SemanticTag>
+          </template>
         </el-table-column>
         <el-table-column label="获奖对象" width="96" align="center" header-align="center">
-          <template #default="{ row }">{{ formatTargetType(row, targetTypeLabels) }}</template>
+          <template #default="{ row }">
+            <SemanticTag :variant="getTargetTypeVariant(row)">
+              {{ formatTargetType(row) }}
+            </SemanticTag>
+          </template>
         </el-table-column>
         <el-table-column label="规则分类" min-width="170" show-overflow-tooltip>
           <template #default="{ row }">{{ formatText(row.category) }}</template>
         </el-table-column>
         <el-table-column label="奖项类型" width="110" align="center" header-align="center">
-          <template #default="{ row }">{{ formatText(row.level) }}</template>
+          <template #default="{ row }">
+            <SemanticTag :variant="getCompetitionLevelVariant(row.level)">
+              {{ formatText(row.level) }}
+            </SemanticTag>
+          </template>
         </el-table-column>
         <el-table-column label="状态" width="90" align="center" header-align="center">
           <template #default="{ row }">
@@ -164,3 +202,20 @@ function openExternalLink(row: AwardListItem) {
     </template>
   </div>
 </template>
+
+<style scoped lang="scss">
+.award-list-table {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.award-list-table :deep(.el-table) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.award-list-table :deep(.el-table__inner-wrapper) {
+  min-width: 0;
+}
+</style>

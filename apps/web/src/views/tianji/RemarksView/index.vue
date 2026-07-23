@@ -8,7 +8,6 @@ import type { RemarkItem, RemarkObjectType } from '@/services/types/remarks';
 import IconFont from '@/components/IconFont.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import NoDataView from '@/components/NoDataView.vue';
-import SemanticTag from '@/components/SemanticTag.vue';
 
 type RemarkEntityType = 'country' | 'club' | 'player' | 'competition' | 'award';
 
@@ -260,9 +259,7 @@ onMounted(() => {
             </template>
           </el-table-column>
           <el-table-column label="类型" width="120">
-            <template #default="{ row }">
-              <SemanticTag variant="neutral">{{ row.subType || row.objectTypeLabel }}</SemanticTag>
-            </template>
+            <template #default="{ row }">{{ row.subType || row.objectTypeLabel }}</template>
           </el-table-column>
           <el-table-column label="字段" width="86">
             <template #default="{ row }">{{ formatSourceField(row) }}</template>

@@ -100,6 +100,11 @@ export interface PlayerAwardRecipientPayload {
   remark?: string;
 }
 
+export interface SavePlayerAwardRecipientGroupBody {
+  awardId?: string;
+  recipients?: PlayerAwardRecipientPayload[];
+}
+
 export interface PlayerTeamHonorPayload {
   standingId?: string;
   careerId?: string | null;

@@ -64,7 +64,6 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
         <SemanticTag variant="object-player">
           阵容球员 {{ formatNumber(club.lineupPlayerCount) }}
         </SemanticTag>
-        <SemanticTag variant="neutral"> 代表球员 {{ formatNumber(club.playerCount) }} </SemanticTag>
         <SemanticTag variant="status-legend">
           荣誉分 {{ formatNumber(club.honorScore, 2) }}
         </SemanticTag>
@@ -94,20 +93,24 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
       <strong>{{ formatNumber(club.totalPa) }}</strong>
       <em>代表俱乐部球员能力总量</em>
     </div>
-    <div class="metric-card gold">
-      <span>奖杯数</span>
-      <strong>{{ formatNumber(club.trophyCount) }}</strong>
-      <em>俱乐部荣誉累计</em>
+    <div class="metric-card honor-score-card">
+      <span>荣誉分</span>
+      <strong>{{ formatNumber(club.honorScore, 2) }}</strong>
+      <em>赛事分与附加分汇总</em>
     </div>
-    <div class="metric-card">
-      <span>冠军数</span>
-      <strong>{{ formatNumber(club.championCount) }}</strong>
-      <em>冠军荣誉统计</em>
+    <div class="metric-card gold">
+      <span>冠军数 / 奖杯数</span>
+      <strong class="metric-split-value">
+        <span class="champion-count">{{ formatNumber(club.championCount) }}</span>
+        <span class="metric-separator">/</span>
+        <span class="trophy-count">{{ formatNumber(club.trophyCount) }}</span>
+      </strong>
+      <em>冠军与奖杯荣誉汇总</em>
     </div>
   </div>
 
   <div class="detail-grid">
-    <SectionCard title="基础资料" badge="豪门殿堂">
+    <SectionCard title="基础资料" :badge="`UID ${club.uid}`">
       <ClubBasicInfoContent :club="club" />
     </SectionCard>
 
@@ -173,3 +176,32 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
     </SectionCard>
   </div>
 </template>
+
+<style scoped lang="scss">
+.metric-split-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.metric-split-value .trophy-count,
+.metric-split-value .metric-separator,
+.metric-split-value .champion-count {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.metric-card.honor-score-card strong {
+  color: var(--color-brand-primary);
+}
+
+.metric-card.gold .metric-split-value > .champion-count {
+  color: var(--color-accent-gold);
+}
+
+.metric-card.gold .metric-split-value > .metric-separator,
+.metric-card.gold .metric-split-value > .trophy-count {
+  color: var(--text-color-primary);
+}
+</style>

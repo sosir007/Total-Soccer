@@ -2,7 +2,9 @@
 import { toRef } from 'vue';
 import type { PlayerListItem } from '@/services/types/catalog';
 import type { AwardTargetType } from '@/services/types/awards';
+import type { SelectOption } from '@/stores/options';
 import { ClubSelect, CountrySelect } from '@/components/selects';
+import BaseOptionSelect from '@/components/selects/BaseOptionSelect.vue';
 import IconFont from '@/components/IconFont.vue';
 
 interface RecipientFormRow {
@@ -19,6 +21,7 @@ const props = defineProps<{
   title: string;
   form: {
     name: string;
+    competitionEditionId: string;
     season: string;
     year?: number;
     externalUrl: string;
@@ -31,6 +34,7 @@ const props = defineProps<{
   playerOptionMeta: (player: PlayerListItem) => string;
   targetType: AwardTargetType;
   targetTypeLabels: Record<AwardTargetType, string>;
+  competitionEditionOptions: SelectOption[];
 }>();
 
 const visible = defineModel<boolean>('visible', { required: true });
@@ -67,6 +71,13 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
     <el-form class="competition-form-grid" label-position="top" @submit.prevent="emit('save')">
       <el-form-item label="名称" required>
         <el-input v-model="form.name" placeholder="2024 金球奖" />
+      </el-form-item>
+      <el-form-item label="关联赛事届次">
+        <BaseOptionSelect
+          v-model="form.competitionEditionId"
+          :options="competitionEditionOptions"
+          placeholder="非赛事奖项可不选"
+        />
       </el-form-item>
       <el-form-item label="年份">
         <el-input-number v-model="form.year" :min="1800" :max="2200" :controls="false" />

@@ -2,7 +2,7 @@
 import { toRef } from 'vue';
 import type { AwardScopeType, AwardTargetType } from '@/services/types/awards';
 import type { LifecycleStatus } from '@/services/types/common';
-import { ConfederationSelect, CountrySelect } from '@/components/selects';
+import { CompetitionSelect, ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const props = defineProps<{
   title: string;
@@ -19,6 +19,7 @@ const props = defineProps<{
     level: string;
     externalUrl: string;
     description: string;
+    competitionId: string;
     lifecycleStatus: LifecycleStatus;
     enabled: boolean;
     sortOrder: number;
@@ -104,6 +105,9 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item v-if="form.scopeType === 'COUNTRY'" label="国家">
         <CountrySelect v-model="form.countryId" placeholder="选择国家" :clearable="false" />
+      </el-form-item>
+      <el-form-item label="关联赛事">
+        <CompetitionSelect v-model="form.competitionId" placeholder="非赛事奖项可不选" />
       </el-form-item>
       <el-form-item label="奖项类型">
         <el-select v-model="form.level" clearable placeholder="选择奖项类型">

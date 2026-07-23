@@ -16,6 +16,7 @@ import type {
   HonorRecord,
   HonorSummaryResult,
   HonorSummaryRow,
+  PlayerAwardRecipientGroupPayload,
   PlayerAwardRecipientPayload,
   PlayerDetail,
   PlayerCareerPayload,
@@ -41,6 +42,7 @@ const API = {
     DETAIL: (id: string) => `${playerPrefix}/${id}`,
     CAREERS: (id: string) => `${playerPrefix}/${id}/careers`,
     AWARD_RECIPIENTS: (id: string) => `${playerPrefix}/${id}/award-recipients`,
+    AWARD_RECIPIENT_GROUPS: (id: string) => `${playerPrefix}/${id}/award-recipient-groups`,
     AWARD_RECIPIENT_DETAIL: (id: string, recipientId: string) =>
       `${playerPrefix}/${id}/award-recipients/${recipientId}`,
     TEAM_HONORS: (id: string) => `${playerPrefix}/${id}/team-honors`,
@@ -112,6 +114,18 @@ export async function updatePlayerAwardRecipient(
 ) {
   const response = await api.put<AwardRecipientRecord>(
     API.PLAYERS.AWARD_RECIPIENT_DETAIL(id, recipientId),
+    payload
+  );
+
+  return response;
+}
+
+export async function savePlayerAwardRecipientGroup(
+  id: string,
+  payload: PlayerAwardRecipientGroupPayload
+) {
+  const response = await api.put<AwardRecipientRecord[]>(
+    API.PLAYERS.AWARD_RECIPIENT_GROUPS(id),
     payload
   );
 

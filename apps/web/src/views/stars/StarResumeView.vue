@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  createPlayerAwardRecipient,
   createPlayerTeamHonor,
   deletePlayerAwardRecipient,
   deletePlayerTeamHonor,
   fetchPlayerDetail,
   fetchPlayerTeamHonors,
   fetchTeamHonorStandingOptions,
+  savePlayerAwardRecipientGroup,
   savePlayerCareers,
-  updatePlayerAwardRecipient,
   updatePlayerTeamHonor
 } from '@/services/modules/catalog';
 import { fetchAwardDetail } from '@/services/modules/awards';
-import type { AwardDetail, AwardRecipientRecord } from '@/services/types/awards';
+import type {
+  AwardDetail,
+  AwardListItem,
+  AwardRecipientRecord,
+  AwardScopeType
+} from '@/services/types/awards';
 import type {
   PlayerCareer,
   PlayerCareerPayload,
@@ -31,9 +35,8 @@ import type {
   CompetitionStandingPlacement,
   CompetitionTargetType
 } from '@/services/types/competitions';
-import { AwardSelect, ClubSelect, CountrySelect, PositionSelect } from '@/components/selects';
+import { ClubSelect, CountrySelect, PositionSelect } from '@/components/selects';
 import BaseOptionSelect from '@/components/selects/BaseOptionSelect.vue';
-import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
@@ -42,6 +45,14 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { useOptionStore } from '@/stores/options';
 import type { SelectOption } from '@/stores/options';
+import {
+  getCompetitionCategoryVariant,
+  getCompetitionLevelVariant,
+  getConfederationVariant,
+  getLifecycleStatusLabel,
+  getLifecycleStatusVariant,
+  type SemanticTagVariant
+} from '@/utils/tag-theme';
 
 interface CareerForm {
   careerType: PlayerCareerType;
@@ -71,12 +82,30 @@ interface TeamHonorGroup {
   teamType: 'club' | 'country';
   competitionId: string;
   competitionName: string;
+  competition: TeamHonorStandingOption['edition']['competition'];
   standings: TeamHonorStandingOption[];
   honors: PlayerTeamHonor[];
   standingIds: string[];
   honorText: string;
   sourceType: PlayerTeamHonorSourceType;
   status: PlayerTeamHonorStatus;
+  remark: string;
+}
+
+interface AwardRecipientGroup {
+  id: string;
+  award: AwardListItem;
+  recipients: AwardRecipientRecord[];
+  editionIds: string[];
+  honorText: string;
+  remark: string;
+}
+
+interface AwardEditionRecipientForm {
+  editionId: string;
+  rank?: number;
+  placement: string;
+  externalUrl: string;
   remark: string;
 }
 
@@ -97,6 +126,45 @@ const statusOptions: Array<{ label: string; value: PlayerTeamHonorStatus }> = [
   { label: '待确认', value: 'PENDING' },
   { label: '不计入', value: 'EXCLUDED' }
 ];
+const competitionTargetOrder: Record<CompetitionTargetType, number> = {
+  CLUB: 10,
+  COUNTRY: 20
+};
+const competitionScopeOrder: Record<string, number> = {
+  GLOBAL: 10,
+  CONFEDERATION: 20,
+  COUNTRY: 30,
+  CUSTOM: 40
+};
+const competitionCategoryOrder: Record<string, number> = {
+  国际: 10,
+  洲际: 20,
+  国内: 30,
+  其他: 40
+};
+const competitionLevelOrder: Record<string, number> = {
+  一级: 10,
+  二级: 20,
+  三级: 30,
+  四级: 40
+};
+const competitionFormatOrder: Record<string, number> = {
+  联赛: 10,
+  杯赛: 20,
+  其他: 30
+};
+const competitionLifecycleOrder: Record<string, number> = {
+  CURRENT: 10,
+  DISCONTINUED: 20
+};
+const awardScopeOptions: Array<{ label: string; value: AwardScopeType }> = [
+  { label: '全球', value: 'WORLD' },
+  { label: '洲际', value: 'CONFEDERATION' },
+  { label: '国家', value: 'COUNTRY' },
+  { label: '联赛', value: 'LEAGUE' },
+  { label: '俱乐部', value: 'CLUB' },
+  { label: '媒体', value: 'MEDIA' }
+];
 
 const route = useRoute();
 const router = useRouter();
@@ -116,9 +184,15 @@ const activeTab = ref('careers');
 const careerDialogVisible = ref(false);
 const editingCareerIndex = ref<number | null>(null);
 const awardDialogVisible = ref(false);
-const editingAwardRecipient = ref<AwardRecipientRecord | null>(null);
+const editingAwardGroup = ref<AwardRecipientGroup | null>(null);
+const awardMode = ref<'EVENT' | 'ANNUAL'>('EVENT');
+const selectedAwardCompetitionId = ref('');
+const selectedAwardScopeType = ref<AwardScopeType | ''>('');
+const selectedAwardConfederationId = ref('');
+const selectedAwardCountryId = ref('');
 const selectedAwardId = ref('');
 const awardEditions = ref<AwardDetail['editions']>([]);
+const initializingAwardForm = ref(false);
 const honorDialogVisible = ref(false);
 const editingTeamHonorGroup = ref<TeamHonorGroup | null>(null);
 const standingOptions = ref<TeamHonorStandingOption[]>([]);
@@ -127,11 +201,8 @@ const initializingHonorForm = ref(false);
 const standingRequestId = ref(0);
 
 const awardForm = reactive({
-  editionId: '',
-  rank: undefined as number | undefined,
-  placement: '',
-  externalUrl: '',
-  remark: ''
+  editionIds: [] as string[],
+  recipients: {} as Record<string, AwardEditionRecipientForm>
 });
 const honorForm = reactive({
   standingIds: [] as string[],
@@ -243,6 +314,115 @@ const standingChoiceOptions = computed<SelectOption[]>(() =>
       ])
     }))
 );
+const eventAwardCompetitionOptions = computed<SelectOption[]>(() =>
+  optionStore.competitionOptions.filter((competition) =>
+    optionStore.awards.some(
+      (award) => award.targetType === 'PLAYER' && award.competitionId === competition.id
+    )
+  )
+);
+const filteredAwardOptions = computed<SelectOption[]>(() =>
+  optionStore.awardOptions.filter((option) => {
+    const award = optionStore.awards.find((item) => item.id === option.id);
+
+    if (!award || award.targetType !== 'PLAYER') {
+      return false;
+    }
+
+    if (awardMode.value === 'EVENT') {
+      return (
+        Boolean(selectedAwardCompetitionId.value) &&
+        award.competitionId === selectedAwardCompetitionId.value
+      );
+    }
+
+    if (award.competitionId) {
+      return false;
+    }
+
+    if (selectedAwardScopeType.value && award.scopeType !== selectedAwardScopeType.value) {
+      return false;
+    }
+
+    if (
+      selectedAwardScopeType.value === 'CONFEDERATION' &&
+      selectedAwardConfederationId.value &&
+      award.confederationId !== selectedAwardConfederationId.value
+    ) {
+      return false;
+    }
+
+    if (
+      selectedAwardScopeType.value === 'COUNTRY' &&
+      selectedAwardCountryId.value &&
+      award.countryId !== selectedAwardCountryId.value
+    ) {
+      return false;
+    }
+
+    return true;
+  })
+);
+const awardEditionOptions = computed<SelectOption[]>(() =>
+  awardEditions.value.map((edition) => ({
+    id: edition.id,
+    value: edition.id,
+    label: formatAwardEditionOption(edition),
+    description: edition.competitionEdition?.competition?.name ?? undefined,
+    meta: uniqueMeta([
+      edition.season,
+      edition.name,
+      edition.year ? String(edition.year) : '',
+      edition.competitionEdition?.competition?.name
+    ])
+  }))
+);
+const selectedAwardRecipientForms = computed(() =>
+  awardForm.editionIds
+    .map((editionId) => awardForm.recipients[editionId])
+    .filter((item): item is AwardEditionRecipientForm => Boolean(item))
+);
+const personalHonorGroups = computed<AwardRecipientGroup[]>(() => {
+  const groups = new Map<string, AwardRecipientGroup>();
+
+  (player.value?.personalHonors ?? []).forEach((recipient) => {
+    const award = recipient.edition.award;
+    const group =
+      groups.get(award.id) ??
+      ({
+        id: award.id,
+        award,
+        recipients: [],
+        editionIds: [],
+        honorText: '',
+        remark: ''
+      } satisfies AwardRecipientGroup);
+
+    group.recipients.push(recipient);
+    group.editionIds.push(recipient.editionId);
+    groups.set(award.id, group);
+  });
+
+  return [...groups.values()]
+    .map((group) => {
+      const recipients = sortAwardRecipients(group.recipients);
+
+      return {
+        ...group,
+        recipients,
+        editionIds: recipients.map((recipient) => recipient.editionId),
+        honorText: formatAwardGroupText(recipients),
+        remark: formatAwardGroupRemark(recipients)
+      };
+    })
+    .sort((left, right) => {
+      if (left.award.sortOrder !== right.award.sortOrder) {
+        return left.award.sortOrder - right.award.sortOrder;
+      }
+
+      return left.award.name.localeCompare(right.award.name, 'zh-Hans-CN');
+    });
+});
 const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
   const groups = new Map<string, TeamHonorGroup>();
 
@@ -263,6 +443,7 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
         teamType: standing.club ? 'club' : 'country',
         competitionId: competition.id,
         competitionName: competition.name,
+        competition,
         standings: [],
         honors: [],
         standingIds: [],
@@ -299,16 +480,11 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
       const rightFirst = right.standings[0];
       const leftTypeSort = left.teamType === 'club' ? 0 : 1;
       const rightTypeSort = right.teamType === 'club' ? 0 : 1;
-      const leftSort =
-        optionStore.competitions.find((item) => item.id === left.competitionId)?.sortOrder ?? 0;
-      const rightSort =
-        optionStore.competitions.find((item) => item.id === right.competitionId)?.sortOrder ?? 0;
 
       if (leftTypeSort !== rightTypeSort) return leftTypeSort - rightTypeSort;
-      if (left.careerLabel !== right.careerLabel) {
-        return left.careerLabel.localeCompare(right.careerLabel, 'zh-Hans-CN');
-      }
-      if (leftSort !== rightSort) return leftSort - rightSort;
+      const competitionOrder = compareCompetitionOrder(left.competition, right.competition);
+      if (competitionOrder !== 0) return competitionOrder;
+      if (left.teamName !== right.teamName) return left.teamName.localeCompare(right.teamName);
 
       return (leftFirst?.edition.year ?? 0) - (rightFirst?.edition.year ?? 0);
     });
@@ -499,25 +675,45 @@ async function persistCareers(careers: CareerForm[], successMessage: string) {
   }
 }
 
-function openAwardDialog(row?: AwardRecipientRecord) {
-  editingAwardRecipient.value = row ?? null;
-  selectedAwardId.value = row?.edition.award.id ?? '';
-  awardForm.editionId = row?.editionId ?? '';
-  awardForm.rank = row?.rank ?? undefined;
-  awardForm.placement = row?.placement ?? '';
-  awardForm.externalUrl = row?.externalUrl ?? '';
-  awardForm.remark = row?.remark ?? '';
+function openAwardDialog(group?: AwardRecipientGroup) {
+  initializingAwardForm.value = true;
+  editingAwardGroup.value = group ?? null;
+  const award = group?.award;
+
+  awardMode.value = award?.competitionId ? 'EVENT' : 'ANNUAL';
+  selectedAwardCompetitionId.value = award?.competitionId ?? '';
+  selectedAwardScopeType.value = award?.competitionId ? '' : (award?.scopeType ?? '');
+  selectedAwardConfederationId.value = award?.confederationId ?? '';
+  selectedAwardCountryId.value = award?.countryId ?? '';
+  selectedAwardId.value = award?.id ?? '';
+  awardForm.editionIds = group?.editionIds ? [...group.editionIds] : [];
+  awardForm.recipients = {};
+
+  group?.recipients.forEach((recipient) => {
+    awardForm.recipients[recipient.editionId] = {
+      editionId: recipient.editionId,
+      rank: recipient.rank ?? undefined,
+      placement: recipient.placement ?? '',
+      externalUrl: recipient.externalUrl ?? '',
+      remark: recipient.remark ?? ''
+    };
+  });
   awardDialogVisible.value = true;
 
   if (selectedAwardId.value) {
     void loadAwardEditions(selectedAwardId.value);
   }
+
+  void nextTick(() => {
+    initializingAwardForm.value = false;
+  });
 }
 
 async function loadAwardEditions(awardId: string) {
   if (!awardId) {
     awardEditions.value = [];
-    awardForm.editionId = '';
+    awardForm.editionIds = [];
+    awardForm.recipients = {};
     return;
   }
 
@@ -530,7 +726,12 @@ async function loadAwardEditions(awardId: string) {
 }
 
 async function saveAwardRecipient() {
-  if (!awardForm.editionId) {
+  if (!selectedAwardId.value) {
+    ElMessage.warning('请选择奖项。');
+    return;
+  }
+
+  if (!awardForm.editionIds.length) {
     ElMessage.warning('请选择奖项年份。');
     return;
   }
@@ -538,19 +739,16 @@ async function saveAwardRecipient() {
   awardSaving.value = true;
 
   try {
-    const payload = {
-      editionId: awardForm.editionId,
-      rank: awardForm.rank ?? null,
-      placement: awardForm.placement.trim() || undefined,
-      externalUrl: awardForm.externalUrl.trim() || undefined,
-      remark: awardForm.remark.trim() || undefined
-    };
-
-    if (editingAwardRecipient.value) {
-      await updatePlayerAwardRecipient(playerId.value, editingAwardRecipient.value.id, payload);
-    } else {
-      await createPlayerAwardRecipient(playerId.value, payload);
-    }
+    await savePlayerAwardRecipientGroup(playerId.value, {
+      awardId: selectedAwardId.value,
+      recipients: selectedAwardRecipientForms.value.map((recipient) => ({
+        editionId: recipient.editionId,
+        rank: recipient.rank ?? null,
+        placement: recipient.placement.trim() || undefined,
+        externalUrl: recipient.externalUrl.trim() || undefined,
+        remark: recipient.remark.trim() || undefined
+      }))
+    });
 
     awardDialogVisible.value = false;
     await loadPlayer();
@@ -562,19 +760,25 @@ async function saveAwardRecipient() {
   }
 }
 
-async function confirmDeleteAwardRecipient(row: AwardRecipientRecord) {
+async function confirmDeleteAwardRecipient(group: AwardRecipientGroup) {
   try {
-    await ElMessageBox.confirm('确定删除这条个人奖项记录吗？', '删除个人奖项', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消'
-    });
+    await ElMessageBox.confirm(
+      `确定删除「${group.award.name}」这一组个人奖项吗？`,
+      '删除个人奖项',
+      {
+        type: 'warning',
+        confirmButtonText: '删除',
+        cancelButtonText: '取消'
+      }
+    );
   } catch {
     return;
   }
 
   try {
-    await deletePlayerAwardRecipient(playerId.value, row.id);
+    await Promise.all(
+      group.recipients.map((recipient) => deletePlayerAwardRecipient(playerId.value, recipient.id))
+    );
     await loadPlayer();
     ElMessage.success('个人奖项已删除。');
   } catch (error) {
@@ -791,6 +995,87 @@ function formatTeamHonorType(type: TeamHonorGroup['teamType']) {
   return type === 'club' ? '俱乐部' : '国家队';
 }
 
+function formatTeamHonorCompetitionSubtitle(row: TeamHonorGroup) {
+  return row.competition.code || '-';
+}
+
+function getTeamHonorTypeVariant(type: TeamHonorGroup['teamType']): SemanticTagVariant {
+  return type === 'club' ? 'object-club' : 'object-country';
+}
+
+function getAwardScopeLabel(award: AwardListItem) {
+  if (award.scopeType === 'CONFEDERATION') {
+    return award.confederation?.name ?? '足联';
+  }
+
+  if (award.scopeType === 'COUNTRY') {
+    return award.country?.name ?? '国家';
+  }
+
+  return awardScopeOptions.find((item) => item.value === award.scopeType)?.label ?? award.scopeType;
+}
+
+function getAwardScopeVariant(award: AwardListItem): SemanticTagVariant {
+  if (award.scopeType === 'CONFEDERATION') {
+    return getConfederationVariant(getAwardScopeLabel(award));
+  }
+
+  if (award.scopeType === 'COUNTRY') return 'object-country';
+  if (award.scopeType === 'CLUB') return 'object-club';
+  if (award.scopeType === 'LEAGUE') return 'object-competition';
+  if (award.scopeType === 'MEDIA') return 'object-award';
+
+  return 'neutral';
+}
+
+function formatOptionalText(value?: string | number | boolean | null) {
+  return value === undefined || value === null || value === '' ? '-' : String(value);
+}
+
+function formatCompetitionEnabled(enabled?: boolean) {
+  if (enabled === true) return '启用';
+  if (enabled === false) return '停用';
+
+  return '-';
+}
+
+function getCompetitionEnabledVariant(enabled?: boolean): SemanticTagVariant {
+  if (enabled === true) return 'status-enabled';
+  if (enabled === false) return 'status-disabled';
+
+  return 'neutral';
+}
+
+function compareCompetitionOrder(
+  left: TeamHonorStandingOption['edition']['competition'],
+  right: TeamHonorStandingOption['edition']['competition']
+) {
+  const leftManagedIndex = optionStore.competitions.findIndex((item) => item.id === left.id);
+  const rightManagedIndex = optionStore.competitions.findIndex((item) => item.id === right.id);
+
+  if (leftManagedIndex >= 0 && rightManagedIndex >= 0 && leftManagedIndex !== rightManagedIndex) {
+    return leftManagedIndex - rightManagedIndex;
+  }
+
+  return (
+    rank(competitionTargetOrder, left.targetType) -
+      rank(competitionTargetOrder, right.targetType) ||
+    rank(competitionScopeOrder, left.scopeType) - rank(competitionScopeOrder, right.scopeType) ||
+    rank(competitionCategoryOrder, left.category) -
+      rank(competitionCategoryOrder, right.category) ||
+    rank(competitionLevelOrder, left.level) - rank(competitionLevelOrder, right.level) ||
+    rank(competitionFormatOrder, left.format) - rank(competitionFormatOrder, right.format) ||
+    rank(competitionLifecycleOrder, left.lifecycleStatus) -
+      rank(competitionLifecycleOrder, right.lifecycleStatus) ||
+    (left.sortOrder ?? 0) - (right.sortOrder ?? 0) ||
+    left.name.localeCompare(right.name, 'zh-Hans-CN')
+  );
+}
+
+function rank(order: Record<string, number>, value?: string | null) {
+  return value ? (order[value] ?? 9999) : 9999;
+}
+
 function formatCareerTeam(career: CareerForm) {
   const source =
     career.careerType === 'CLUB'
@@ -800,12 +1085,28 @@ function formatCareerTeam(career: CareerForm) {
   return source?.name ?? '-';
 }
 
+function formatCareerTeamSubtitle(career: CareerForm) {
+  const source =
+    career.careerType === 'CLUB'
+      ? optionStore.clubs.find((club) => club.id === career.clubId)
+      : optionStore.countries.find((country) => country.id === career.countryId);
+
+  return source?.uid ? `UID ${source.uid}` : undefined;
+}
+
 function careerEntityType(career: CareerForm) {
   return career.careerType === 'CLUB' ? 'club' : 'country';
 }
 
 function careerEntityId(career: CareerForm) {
   return career.careerType === 'CLUB' ? career.clubId : career.countryId;
+}
+
+function teamHonorEntitySubtitle(row: TeamHonorGroup) {
+  const firstStanding = row.standings[0];
+  const uid = row.teamType === 'club' ? firstStanding?.club?.uid : firstStanding?.country?.uid;
+
+  return uid ? `UID ${uid}` : undefined;
 }
 
 function formatCareerStat(value?: number) {
@@ -817,12 +1118,41 @@ function isGoalkeeperPosition(position?: string | null) {
   return normalized === 'GK' || normalized.includes('门将') || normalized.includes('守门');
 }
 
-function formatEdition(row: AwardRecipientRecord) {
-  return formatEditionShort(row.edition);
-}
-
 function formatAwardPlacement(row: AwardRecipientRecord) {
   return row.placement || (row.rank ? `第 ${row.rank} 名` : '-');
+}
+
+function sortAwardRecipients(recipients: AwardRecipientRecord[]) {
+  return [...recipients].sort((left, right) => {
+    const leftYear = left.edition.year ?? 0;
+    const rightYear = right.edition.year ?? 0;
+
+    if (leftYear !== rightYear) return leftYear - rightYear;
+
+    return formatEditionShort(left.edition).localeCompare(
+      formatEditionShort(right.edition),
+      'zh-Hans-CN'
+    );
+  });
+}
+
+function formatAwardGroupText(recipients: AwardRecipientRecord[]) {
+  return sortAwardRecipients(recipients)
+    .map(
+      (recipient) => `${formatEditionShort(recipient.edition)} ${formatAwardPlacement(recipient)}`
+    )
+    .join('、');
+}
+
+function formatAwardGroupRemark(recipients: AwardRecipientRecord[]) {
+  return uniqueMeta(recipients.map((recipient) => recipient.remark)).join('；');
+}
+
+function formatAwardEditionOption(edition: AwardDetail['editions'][number]) {
+  const editionLabel = formatEditionShort(edition);
+  const competitionLabel = edition.competitionEdition?.competition?.name;
+
+  return [editionLabel, competitionLabel].filter(Boolean).join(' / ');
 }
 
 function formatStandingLabel(standing: TeamHonorStandingOption) {
@@ -923,7 +1253,7 @@ function formatTeamHonorSource(sourceType: PlayerTeamHonorSourceType) {
 
 function statusVariant(status: PlayerTeamHonorStatus) {
   if (status === 'CONFIRMED') return 'status-enabled';
-  if (status === 'PENDING') return 'status-pending';
+  if (status === 'PENDING') return 'neutral';
   return 'status-disabled';
 }
 
@@ -937,6 +1267,59 @@ function goBack() {
 watch(selectedAwardId, (awardId) => {
   void loadAwardEditions(awardId);
 });
+
+watch(awardMode, () => {
+  if (initializingAwardForm.value) return;
+
+  selectedAwardId.value = '';
+  selectedAwardCompetitionId.value = '';
+  selectedAwardScopeType.value = '';
+  selectedAwardConfederationId.value = '';
+  selectedAwardCountryId.value = '';
+});
+
+watch(selectedAwardCompetitionId, () => {
+  if (initializingAwardForm.value) return;
+
+  if (awardMode.value === 'EVENT') {
+    selectedAwardId.value = '';
+  }
+});
+
+watch(selectedAwardScopeType, () => {
+  if (initializingAwardForm.value) return;
+
+  if (awardMode.value === 'ANNUAL') {
+    selectedAwardId.value = '';
+    selectedAwardConfederationId.value = '';
+    selectedAwardCountryId.value = '';
+  }
+});
+
+watch([selectedAwardConfederationId, selectedAwardCountryId], () => {
+  if (initializingAwardForm.value) return;
+
+  if (awardMode.value === 'ANNUAL') {
+    selectedAwardId.value = '';
+  }
+});
+
+watch(
+  () => [...awardForm.editionIds],
+  (editionIds) => {
+    editionIds.forEach((editionId) => {
+      if (!awardForm.recipients[editionId]) {
+        awardForm.recipients[editionId] = {
+          editionId,
+          rank: undefined,
+          placement: '',
+          externalUrl: '',
+          remark: ''
+        };
+      }
+    });
+  }
+);
 
 watch(
   () => honorForm.careerId,
@@ -970,7 +1353,9 @@ watch(selectedCompetitionId, (competitionId) => {
 });
 
 onMounted(() => {
+  void optionStore.ensureAwards();
   void optionStore.ensureClubs();
+  void optionStore.ensureConfederations();
   void optionStore.ensureCompetitions();
   void optionStore.ensureCountries();
   void loadPlayer();
@@ -1027,12 +1412,13 @@ onMounted(() => {
               </SemanticTag>
             </template>
           </el-table-column>
-          <el-table-column label="球队 / 国家队" min-width="160" show-overflow-tooltip>
+          <el-table-column label="球队" min-width="160" show-overflow-tooltip>
             <template #default="{ row }">
-              <EntityLink
+              <EntityNameCell
                 :id="careerEntityId(row)"
                 :type="careerEntityType(row)"
-                :name="formatCareerTeam(row)"
+                :title="formatCareerTeam(row)"
+                :subtitle="formatCareerTeamSubtitle(row)"
               />
             </template>
           </el-table-column>
@@ -1102,23 +1488,43 @@ onMounted(() => {
             新增个人奖项
           </el-button>
         </div>
-        <el-table :data="player?.personalHonors ?? []" border>
+        <el-table :data="personalHonorGroups" border>
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column label="范围" width="110" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getAwardScopeVariant(row.award)">
+                {{ getAwardScopeLabel(row.award) }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
           <el-table-column label="奖项" min-width="220">
             <template #default="{ row }">
               <EntityNameCell
-                :id="row.edition.award.id"
+                :id="row.award.id"
                 type="award"
-                :title="row.edition.award.name"
-                :subtitle="row.edition.award.category || row.edition.award.code"
+                :title="row.award.name"
+                :subtitle="row.award.code"
               />
             </template>
           </el-table-column>
-          <el-table-column label="年份 / 届次" min-width="150">
-            <template #default="{ row }">{{ formatEdition(row) }}</template>
+          <el-table-column label="规则分类" min-width="160" show-overflow-tooltip>
+            <template #default="{ row }">{{ formatOptionalText(row.award.category) }}</template>
           </el-table-column>
-          <el-table-column label="名次" width="110" align="center">
-            <template #default="{ row }">{{ formatAwardPlacement(row) }}</template>
+          <el-table-column label="奖项类型" width="110" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getCompetitionLevelVariant(row.award.level)">
+                {{ formatOptionalText(row.award.level) }}
+              </SemanticTag>
+            </template>
           </el-table-column>
+          <el-table-column label="奖项状态" width="96" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getLifecycleStatusVariant(row.award.lifecycleStatus)">
+                {{ getLifecycleStatusLabel(row.award.lifecycleStatus) }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="honorText" label="荣誉" min-width="300" show-overflow-tooltip />
           <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
@@ -1147,26 +1553,64 @@ onMounted(() => {
           </el-button>
         </div>
         <el-table v-loading="teamHonorsLoading" :data="teamHonorGroups" border>
-          <el-table-column type="index" label="序号" width="70" align="center" />
-          <el-table-column label="类型" width="90" align="center">
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column label="对象" width="90" align="center" header-align="center">
             <template #default="{ row }">
-              <SemanticTag :variant="row.teamType === 'club' ? 'object-club' : 'object-country'">
+              <SemanticTag :variant="getTeamHonorTypeVariant(row.teamType)">
                 {{ formatTeamHonorType(row.teamType) }}
               </SemanticTag>
             </template>
           </el-table-column>
-          <el-table-column label="球队 / 国家队" min-width="150" show-overflow-tooltip>
-            <template #default="{ row }">
-              <EntityLink :id="row.teamId" :type="row.teamType" :name="row.teamName" />
-            </template>
-          </el-table-column>
           <el-table-column label="赛事" min-width="180" show-overflow-tooltip>
             <template #default="{ row }">
-              <EntityLink :id="row.competitionId" type="competition" :name="row.competitionName" />
+              <EntityNameCell
+                :id="row.competitionId"
+                type="competition"
+                :title="row.competitionName"
+                :subtitle="formatTeamHonorCompetitionSubtitle(row)"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="球队" min-width="150" show-overflow-tooltip>
+            <template #default="{ row }">
+              <EntityNameCell
+                :id="row.teamId"
+                :type="row.teamType"
+                :title="row.teamName"
+                :subtitle="teamHonorEntitySubtitle(row)"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column label="分类" width="90" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getCompetitionCategoryVariant(row.competition.category)">
+                {{ formatOptionalText(row.competition.category) }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
+          <el-table-column label="级别" width="90" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getCompetitionLevelVariant(row.competition.level)">
+                {{ formatOptionalText(row.competition.level) }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="90" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getCompetitionEnabledVariant(row.competition.enabled)">
+                {{ formatCompetitionEnabled(row.competition.enabled) }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
+          <el-table-column label="赛事状态" width="96" align="center" header-align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="getLifecycleStatusVariant(row.competition.lifecycleStatus)">
+                {{ getLifecycleStatusLabel(row.competition.lifecycleStatus) }}
+              </SemanticTag>
             </template>
           </el-table-column>
           <el-table-column prop="honorText" label="荣誉" min-width="300" show-overflow-tooltip />
-          <el-table-column label="状态" width="100" align="center">
+          <el-table-column label="确认状态" width="100" align="center">
             <template #default="{ row }">
               <SemanticTag :variant="statusVariant(row.status)">
                 {{ formatTeamHonorStatus(row.status) }}
@@ -1282,32 +1726,73 @@ onMounted(() => {
       </template>
     </el-dialog>
 
-    <el-dialog v-model="awardDialogVisible" title="维护个人奖项" width="720px" destroy-on-close>
+    <el-dialog v-model="awardDialogVisible" title="维护个人奖项" width="820px" destroy-on-close>
       <el-form class="resume-form-grid" label-position="top">
-        <el-form-item label="奖项">
-          <AwardSelect v-model="selectedAwardId" placeholder="请选择奖项" />
+        <el-form-item label="奖项类型" class="resume-form-wide">
+          <el-segmented
+            v-model="awardMode"
+            :options="[
+              { label: '赛事奖项', value: 'EVENT' },
+              { label: '年度奖项', value: 'ANNUAL' }
+            ]"
+          />
         </el-form-item>
-        <el-form-item label="奖项年份">
-          <el-select v-model="awardForm.editionId" filterable placeholder="请选择奖项年份">
-            <el-option
-              v-for="edition in awardEditions"
-              :key="edition.id"
-              :label="edition.season || edition.name || edition.year || edition.id"
-              :value="edition.id"
+        <el-form-item v-if="awardMode === 'EVENT'" label="关联赛事">
+          <BaseOptionSelect
+            v-model="selectedAwardCompetitionId"
+            :options="eventAwardCompetitionOptions"
+            :loading="optionStore.loading.competitions || optionStore.loading.awards"
+            placeholder="请选择赛事"
+          />
+        </el-form-item>
+        <el-form-item v-if="awardMode === 'EVENT'" label="奖项">
+          <BaseOptionSelect
+            v-model="selectedAwardId"
+            :options="filteredAwardOptions"
+            :loading="optionStore.loading.awards"
+            placeholder="请选择奖项"
+          />
+        </el-form-item>
+        <template v-else>
+          <el-form-item label="范围">
+            <el-select v-model="selectedAwardScopeType" clearable placeholder="请选择范围">
+              <el-option
+                v-for="option in awardScopeOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item v-if="selectedAwardScopeType === 'CONFEDERATION'" label="足联">
+            <BaseOptionSelect
+              v-model="selectedAwardConfederationId"
+              :options="optionStore.confederationOptions"
+              :loading="optionStore.loading.confederations"
+              placeholder="请选择足联"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="排名">
-          <el-input-number v-model="awardForm.rank" :controls="false" :min="1" />
-        </el-form-item>
-        <el-form-item label="名次文字">
-          <el-input v-model="awardForm.placement" placeholder="例如 金球奖 / 第二名 / 入选" />
-        </el-form-item>
-        <el-form-item label="外链" class="resume-form-wide">
-          <el-input v-model="awardForm.externalUrl" placeholder="https://..." />
-        </el-form-item>
-        <el-form-item label="备注" class="resume-form-wide">
-          <el-input v-model="awardForm.remark" />
+          </el-form-item>
+          <el-form-item v-if="selectedAwardScopeType === 'COUNTRY'" label="国家">
+            <CountrySelect v-model="selectedAwardCountryId" placeholder="请选择国家" />
+          </el-form-item>
+          <el-form-item label="奖项" class="resume-form-wide">
+            <BaseOptionSelect
+              v-model="selectedAwardId"
+              :options="filteredAwardOptions"
+              :loading="optionStore.loading.awards"
+              placeholder="请选择奖项"
+            />
+          </el-form-item>
+        </template>
+        <el-form-item label="奖项届次" class="resume-form-wide">
+          <BaseOptionSelect
+            v-model="awardForm.editionIds"
+            :options="awardEditionOptions"
+            multiple
+            :max-collapse-tags="4"
+            :disabled="!selectedAwardId"
+            placeholder="请选择年份或赛季，支持搜索 1973"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
