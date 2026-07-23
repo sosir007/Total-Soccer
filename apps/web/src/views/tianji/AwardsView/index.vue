@@ -121,7 +121,14 @@ const editionForm = reactive({
 
 const hasRows = computed(() => awards.value.length > 0);
 const editionDialogTitle = computed(() => (editingEdition.value ? '编辑奖项年份' : '新增奖项年份'));
-const sortedEditions = computed(() => selectedAward.value?.editions ?? []);
+const sortedEditions = computed(() =>
+  [...(selectedAward.value?.editions ?? [])].sort(compareAwardEditions)
+);
+const rankedAwardLayout = computed(() =>
+  sortedEditions.value.some((edition) =>
+    (edition.recipients ?? []).some((recipient) => isRankedRecipient(recipient))
+  )
+);
 const routeAwardId = computed(() => String(route.params.id ?? ''));
 const isAwardDetailRoute = computed(() => route.name === 'tianji-award-detail-id');
 const isAwardsRoute = computed(
@@ -692,6 +699,41 @@ function formatRecipientPlacement(recipient: NonNullable<AwardEdition['recipient
   return recipient.placement || (recipient.rank ? `第 ${recipient.rank} 名` : '');
 }
 
+function compareAwardEditions(left: AwardEdition, right: AwardEdition) {
+  const leftYear = left.year ?? Number.MAX_SAFE_INTEGER;
+  const rightYear = right.year ?? Number.MAX_SAFE_INTEGER;
+
+  if (leftYear !== rightYear) {
+    return leftYear - rightYear;
+  }
+
+  return (left.season || left.name || '').localeCompare(right.season || right.name || '', 'zh-CN');
+}
+
+function isRankedRecipient(recipient: NonNullable<AwardEdition['recipients']>[number]) {
+  if (recipient.rank === 1 || recipient.rank === 2 || recipient.rank === 3) {
+    return true;
+  }
+
+  const placement = recipient.placement?.trim();
+  const rankedPlacements = [
+    '第一名',
+    '第1名',
+    '冠军',
+    '金奖',
+    '第二名',
+    '第2名',
+    '亚军',
+    '银奖',
+    '第三名',
+    '第3名',
+    '季军',
+    '铜奖'
+  ];
+
+  return Boolean(placement && rankedPlacements.includes(placement));
+}
+
 function awardExternalUrl() {
   return buildExternalUrl(selectedAward.value?.externalUrl, selectedAward.value?.name || '奖项');
 }
@@ -877,7 +919,7 @@ onMounted(() => {
 
         <AwardEditionsPanel
           :editions="sortedEditions"
-          :ranked-layout="selectedAward.code === 'IFFHS_WORLD_BEST_CLUB'"
+          :ranked-layout="rankedAwardLayout"
           :format-edition-recipients="formatEditionRecipients"
           :format-recipient-placement="formatRecipientPlacement"
           @create="openCreateEditionDialog"

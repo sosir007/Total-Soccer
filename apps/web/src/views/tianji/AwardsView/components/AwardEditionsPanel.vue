@@ -226,7 +226,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
     return '-';
   }
 
-  return `${count}（${row.entries[rank].map((entry) => entry.label).join('、')}）`;
+  return `${count} 次：${row.entries[rank].map((entry) => entry.label).join('、')}`;
 }
 </script>
 
@@ -246,6 +246,9 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
     <NoDataView v-if="!editions.length" text="暂无奖项年份" />
 
     <el-table v-else-if="rankedLayout" :data="editions" border>
+      <el-table-column label="序号" width="60" align="center">
+        <template #default="{ $index }">{{ $index + 1 }}</template>
+      </el-table-column>
       <el-table-column label="年份" width="100" sortable>
         <template #default="{ row }">{{ formatEditionYear(row) }}</template>
       </el-table-column>
@@ -338,6 +341,9 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
     </el-table>
 
     <el-table v-else :data="editions" border>
+      <el-table-column label="序号" width="60" align="center">
+        <template #default="{ $index }">{{ $index + 1 }}</template>
+      </el-table-column>
       <el-table-column label="时间" width="150" sortable>
         <template #default="{ row }">
           <div class="award-edition-time">

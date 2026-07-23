@@ -13,6 +13,7 @@
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema prisma/schema.prisma",
     "seed:competitions": "tsx src/scripts/seed-competitions.ts",
+    "seed:player-awards": "tsx src/scripts/seed-player-awards.ts",
     "seed:team-awards": "tsx src/scripts/seed-team-awards.ts",
     "seed:club-season-links": "tsx src/scripts/seed-club-season-links.ts"
   },
