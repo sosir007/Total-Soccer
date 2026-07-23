@@ -74,21 +74,10 @@ interface TeamHonorGroup {
   standings: TeamHonorStandingOption[];
   honors: PlayerTeamHonor[];
   standingIds: string[];
+  honorText: string;
   sourceType: PlayerTeamHonorSourceType;
   status: PlayerTeamHonorStatus;
   remark: string;
-}
-
-interface HonorStandingEditionItem {
-  id: string;
-  label: string;
-  externalUrl?: string | null;
-}
-
-interface HonorStandingPlacementGroup {
-  placement: CompetitionStandingPlacement;
-  placementLabel: string;
-  editions: HonorStandingEditionItem[];
 }
 
 const placementLabels: Record<CompetitionStandingPlacement, string> = {
@@ -277,6 +266,7 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
         standings: [],
         honors: [],
         standingIds: [],
+        honorText: '',
         sourceType: honor.sourceType,
         status: honor.status,
         remark: honor.remark ?? ''
@@ -292,13 +282,15 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
   return [...groups.values()]
     .map((group) => {
       const honors = sortTeamHonors(group.honors);
+      const standings = sortStandings(group.standings);
 
       return {
         ...group,
-        standings: sortStandings(group.standings),
+        standings,
         honors,
         sourceType: honors[0]?.sourceType ?? group.sourceType,
         status: honors[0]?.status ?? group.status,
+        honorText: formatTeamHonorGroupText(standings),
         remark: formatTeamHonorGroupRemark(honors)
       };
     })
@@ -901,27 +893,20 @@ function placementSort(placement: CompetitionStandingPlacement) {
   return order[placement];
 }
 
-function buildHonorGroupStandings(group: TeamHonorGroup): HonorStandingPlacementGroup[] {
-  const placementGroups = new Map<CompetitionStandingPlacement, HonorStandingEditionItem[]>();
+function formatTeamHonorGroupText(standings: TeamHonorStandingOption[]) {
+  const placementGroups = new Map<CompetitionStandingPlacement, string[]>();
 
-  group.standings.forEach((standing) => {
+  standings.forEach((standing) => {
     const edition = formatEditionShort(standing.edition);
     const current = placementGroups.get(standing.placement) ?? [];
-    current.push({
-      id: standing.id,
-      label: edition,
-      externalUrl: standing.edition.externalUrl
-    });
+    current.push(edition);
     placementGroups.set(standing.placement, current);
   });
 
   return [...placementGroups.entries()]
     .sort(([left], [right]) => placementSort(left) - placementSort(right))
-    .map(([placement, editions]) => ({
-      placement,
-      placementLabel: placementLabels[placement],
-      editions
-    }));
+    .map(([placement, editions]) => `${editions.join('、')} ${placementLabels[placement]}`)
+    .join('；');
 }
 
 function uniqueMeta(values: Array<string | number | null | undefined>) {
@@ -1180,33 +1165,7 @@ onMounted(() => {
               <EntityLink :id="row.competitionId" type="competition" :name="row.competitionName" />
             </template>
           </el-table-column>
-          <el-table-column label="荣誉" min-width="300">
-            <template #default="{ row }">
-              <div class="honor-standings">
-                <span
-                  v-for="placementGroup in buildHonorGroupStandings(row)"
-                  :key="placementGroup.placement"
-                  class="honor-standings__group"
-                >
-                  <template v-for="(edition, index) in placementGroup.editions" :key="edition.id">
-                    <span v-if="index > 0">、</span>
-                    <a
-                      v-if="edition.externalUrl"
-                      class="honor-edition-link"
-                      :href="edition.externalUrl"
-                      target="_blank"
-                      rel="noreferrer"
-                      @click.stop
-                    >
-                      {{ edition.label }}
-                    </a>
-                    <span v-else>{{ edition.label }}</span>
-                  </template>
-                  {{ placementGroup.placementLabel }}
-                </span>
-              </div>
-            </template>
-          </el-table-column>
+          <el-table-column prop="honorText" label="荣誉" min-width="300" show-overflow-tooltip />
           <el-table-column label="状态" width="100" align="center">
             <template #default="{ row }">
               <SemanticTag :variant="statusVariant(row.status)">
@@ -1495,27 +1454,6 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-}
-
-.honor-standings {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  align-items: center;
-  line-height: 1.6;
-}
-
-.honor-standings__group {
-  white-space: nowrap;
-}
-
-.honor-edition-link {
-  color: var(--text-color-regular);
-  text-decoration: none;
-
-  &:hover {
-    color: var(--color-primary);
-  }
 }
 
 .resume-switch-row {

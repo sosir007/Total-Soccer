@@ -225,6 +225,24 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'campeonato-paulista',
+    label: '保利斯塔锦标赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-campeonato-paulista.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/campeonato-paulista.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'torneio-rio-sao-paulo',
+    label: '里约-圣保罗锦标赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-torneio-rio-sao-paulo.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/torneio-rio-sao-paulo.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'north-american-soccer-league',
     label: '北美足球联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-north-american-soccer-league.ts',
