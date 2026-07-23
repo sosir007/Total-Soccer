@@ -261,9 +261,7 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
     const standing = honor.standing;
     const competition = standing.edition.competition;
     const careerId = honor.careerId ?? '';
-    const key = [careerId, competition.id, honor.sourceType, honor.status, honor.remark ?? ''].join(
-      '|'
-    );
+    const key = [careerId, competition.id].join('|');
     const careerLabel = honor.career ? formatPlayerCareerLabel(honor.career) : '-';
     const group =
       groups.get(key) ??
@@ -287,23 +285,34 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
     group.standings.push(standing);
     group.honors.push(honor);
     group.standingIds.push(honor.standingId);
+    group.remark = formatTeamHonorGroupRemark(group.honors);
     groups.set(key, group);
   });
 
   return [...groups.values()]
-    .map((group) => ({
-      ...group,
-      standings: sortStandings(group.standings),
-      honors: sortTeamHonors(group.honors)
-    }))
+    .map((group) => {
+      const honors = sortTeamHonors(group.honors);
+
+      return {
+        ...group,
+        standings: sortStandings(group.standings),
+        honors,
+        sourceType: honors[0]?.sourceType ?? group.sourceType,
+        status: honors[0]?.status ?? group.status,
+        remark: formatTeamHonorGroupRemark(honors)
+      };
+    })
     .sort((left, right) => {
       const leftFirst = left.standings[0];
       const rightFirst = right.standings[0];
+      const leftTypeSort = left.teamType === 'club' ? 0 : 1;
+      const rightTypeSort = right.teamType === 'club' ? 0 : 1;
       const leftSort =
         optionStore.competitions.find((item) => item.id === left.competitionId)?.sortOrder ?? 0;
       const rightSort =
         optionStore.competitions.find((item) => item.id === right.competitionId)?.sortOrder ?? 0;
 
+      if (leftTypeSort !== rightTypeSort) return leftTypeSort - rightTypeSort;
       if (left.careerLabel !== right.careerLabel) {
         return left.careerLabel.localeCompare(right.careerLabel, 'zh-Hans-CN');
       }
@@ -786,6 +795,10 @@ function formatCareerType(type: PlayerCareerType) {
   return type === 'CLUB' ? '俱乐部' : '国家队';
 }
 
+function formatTeamHonorType(type: TeamHonorGroup['teamType']) {
+  return type === 'club' ? '俱乐部' : '国家队';
+}
+
 function formatCareerTeam(career: CareerForm) {
   const source =
     career.careerType === 'CLUB'
@@ -860,6 +873,10 @@ function sortStandings(standings: TeamHonorStandingOption[]) {
 
 function sortTeamHonors(honors: PlayerTeamHonor[]) {
   return [...honors].sort((left, right) => compareStandings(left.standing, right.standing));
+}
+
+function formatTeamHonorGroupRemark(honors: PlayerTeamHonor[]) {
+  return uniqueMeta(honors.map((honor) => honor.remark)).join('；');
 }
 
 function compareStandings(left: TeamHonorStandingOption, right: TeamHonorStandingOption) {
@@ -1146,6 +1163,13 @@ onMounted(() => {
         </div>
         <el-table v-loading="teamHonorsLoading" :data="teamHonorGroups" border>
           <el-table-column type="index" label="序号" width="70" align="center" />
+          <el-table-column label="类型" width="90" align="center">
+            <template #default="{ row }">
+              <SemanticTag :variant="row.teamType === 'club' ? 'object-club' : 'object-country'">
+                {{ formatTeamHonorType(row.teamType) }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
           <el-table-column label="球队 / 国家队" min-width="150" show-overflow-tooltip>
             <template #default="{ row }">
               <EntityLink :id="row.teamId" :type="row.teamType" :name="row.teamName" />
