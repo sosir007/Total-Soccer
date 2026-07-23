@@ -1,4 +1,9 @@
-import { AwardScopeType, AwardTargetType, LifecycleStatus } from '@prisma/client';
+import {
+  AwardScopeType,
+  AwardTargetType,
+  CompetitionEditionStandingMode,
+  LifecycleStatus
+} from '@prisma/client';
 import { AwardRulesService } from '../award-rules/award-rules.service.js';
 import { PrismaService } from '../database/prisma.service.js';
 
@@ -19,6 +24,14 @@ const COPA_AMERICA_BEST_PLAYER_EXTERNAL_URL =
 const COPA_AMERICA_TOP_SCORER_AWARD_CODE = 'COPA_AMERICA_TOP_SCORER';
 const COPA_AMERICA_TOP_SCORER_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica_awards#Golden_Boot';
+const NASL_MVP_AWARD_CODE = 'NASL_MOST_VALUABLE_PLAYER';
+const NASL_MVP_EXTERNAL_URL =
+  'https://www.sportingnews.com/us/soccer/news/tsn-archives-pele-landslide-winner-nasl-mvp-sept-11-1976-issue/fh9j4ahe4opejebwwe7d0cls';
+const NASL_ALL_STAR_TEAM_AWARD_CODE = 'NASL_ALL_STAR_TEAM';
+const NASL_ALL_STAR_TEAM_EXTERNAL_URL = 'https://www.nationalsoccerhof.com/players/pele.html';
+const NASL_ASSISTS_LEADER_AWARD_CODE = 'NASL_ASSISTS_LEADER';
+const NASL_ASSISTS_LEADER_EXTERNAL_URL = 'https://www.statscrew.com/soccer/leaders/l-NASL/y-1976';
+const NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE = 'NORTH_AMERICAN_SOCCER_LEAGUE_1968_1984';
 
 const PELE_NAME_KEYWORD = '贝利';
 
@@ -79,6 +92,41 @@ const COPA_AMERICA_TOP_SCORER_PELE_RESULTS = [
   }
 ] as const;
 
+const NASL_MVP_PELE_RESULTS = [
+  {
+    year: 1976,
+    placement: 'MVP',
+    remark: '1976年旧北美足球联赛最有价值球员，贝利效力纽约宇宙。'
+  }
+] as const;
+
+const NASL_ALL_STAR_TEAM_PELE_RESULTS = [
+  {
+    year: 1975,
+    placement: '入选',
+    remark: '1975年旧北美足球联赛全明星阵容一队，贝利效力纽约宇宙。'
+  },
+  {
+    year: 1976,
+    placement: '入选',
+    remark: '1976年旧北美足球联赛全明星阵容一队，贝利效力纽约宇宙。'
+  },
+  {
+    year: 1977,
+    placement: '入选',
+    remark: '1977年旧北美足球联赛全明星阵容一队，贝利效力纽约宇宙。'
+  }
+] as const;
+
+const NASL_ASSISTS_LEADER_PELE_RESULTS = [
+  {
+    year: 1976,
+    rank: 1,
+    placement: '助攻王',
+    remark: '1976年旧北美足球联赛助攻榜第一，贝利效力纽约宇宙，18 次助攻。'
+  }
+] as const;
+
 async function main() {
   const conmebol = await prisma.confederation.findFirst({
     where: {
@@ -106,12 +154,18 @@ async function main() {
 
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
+  const northAmericanSoccerLeague = await findCompetition(
+    NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE
+  );
 
   await seedSouthAmericanFootballerOfTheYear(conmebol.id, pele.id);
   await seedFifaWorldCupGoldenBall(pele.id, fifaWorldCup.id);
   await seedFifaWorldCupBestYoungPlayer(pele.id, fifaWorldCup.id);
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
+  await seedNaslMostValuablePlayer(pele.id, northAmericanSoccerLeague.id);
+  await seedNaslAllStarTeam(pele.id, northAmericanSoccerLeague.id);
+  await seedNaslAssistsLeader(pele.id, northAmericanSoccerLeague.id);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();
@@ -603,6 +657,347 @@ async function seedCopaAmericaTopScorer(conmebolId: string, competitionId: strin
 
   console.log(
     `Seeded ${COPA_AMERICA_TOP_SCORER_AWARD_CODE}: ${COPA_AMERICA_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedNaslMostValuablePlayer(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: NASL_MVP_AWARD_CODE },
+    create: {
+      code: NASL_MVP_AWARD_CODE,
+      name: '北美足球联赛最有价值球员',
+      externalUrl: NASL_MVP_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联一级综合奖',
+      level: '一级',
+      description:
+        '旧北美足球联赛赛季最有价值球员奖，系统按国内顶级联赛赛季 MVP / 最佳球员口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 7100
+    },
+    update: {
+      name: '北美足球联赛最有价值球员',
+      externalUrl: NASL_MVP_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联一级综合奖',
+      level: '一级',
+      description:
+        '旧北美足球联赛赛季最有价值球员奖，系统按国内顶级联赛赛季 MVP / 最佳球员口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 7100
+    }
+  });
+
+  for (const result of NASL_MVP_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: NASL_MVP_EXTERNAL_URL,
+        remark: '为绑定旧 NASL 赛季个人奖项创建；本届不补写球队 standings。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: NASL_MVP_EXTERNAL_URL,
+        remark: '为绑定旧 NASL 赛季个人奖项创建；本届不补写球队 standings。'
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: NASL_MVP_EXTERNAL_URL,
+        remark: '旧 NASL 赛季 MVP。'
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: NASL_MVP_EXTERNAL_URL,
+        remark: '旧 NASL 赛季 MVP。'
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: 1,
+        placement: result.placement,
+        externalUrl: NASL_MVP_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: 1,
+        placement: result.placement,
+        externalUrl: NASL_MVP_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(`Seeded ${NASL_MVP_AWARD_CODE}: ${NASL_MVP_PELE_RESULTS.length} Pele recipients.`);
+}
+
+async function seedNaslAllStarTeam(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: NASL_ALL_STAR_TEAM_AWARD_CODE },
+    create: {
+      code: NASL_ALL_STAR_TEAM_AWARD_CODE,
+      name: '北美足球联赛全明星阵容',
+      externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级阵容奖',
+      level: '二级',
+      description: '旧北美足球联赛赛季全明星阵容一队，系统按国内顶级联赛赛季最佳阵容口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 7200
+    },
+    update: {
+      name: '北美足球联赛全明星阵容',
+      externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级阵容奖',
+      level: '二级',
+      description: '旧北美足球联赛赛季全明星阵容一队，系统按国内顶级联赛赛季最佳阵容口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 7200
+    }
+  });
+
+  for (const result of NASL_ALL_STAR_TEAM_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: '为绑定旧 NASL 赛季个人奖项创建；本届不补写球队 standings。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: '为绑定旧 NASL 赛季个人奖项创建；本届不补写球队 standings。'
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: '旧 NASL 赛季全明星阵容一队。'
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: '旧 NASL 赛季全明星阵容一队。'
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        placement: result.placement,
+        externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: null,
+        placement: result.placement,
+        externalUrl: NASL_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${NASL_ALL_STAR_TEAM_AWARD_CODE}: ${NASL_ALL_STAR_TEAM_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedNaslAssistsLeader(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: NASL_ASSISTS_LEADER_AWARD_CODE },
+    create: {
+      code: NASL_ASSISTS_LEADER_AWARD_CODE,
+      name: '北美足球联赛助攻王',
+      externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '旧北美足球联赛赛季助攻榜第一，系统按国内顶级联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 7300
+    },
+    update: {
+      name: '北美足球联赛助攻王',
+      externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '旧北美足球联赛赛季助攻榜第一，系统按国内顶级联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 7300
+    }
+  });
+
+  for (const result of NASL_ASSISTS_LEADER_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+        remark: '为绑定旧 NASL 赛季个人奖项创建；本届不补写球队 standings。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+        remark: '为绑定旧 NASL 赛季个人奖项创建；本届不补写球队 standings。'
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+        remark: '旧 NASL 赛季助攻王。'
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+        remark: '旧 NASL 赛季助攻王。'
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: NASL_ASSISTS_LEADER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${NASL_ASSISTS_LEADER_AWARD_CODE}: ${NASL_ASSISTS_LEADER_PELE_RESULTS.length} Pele recipients.`
   );
 }
 
