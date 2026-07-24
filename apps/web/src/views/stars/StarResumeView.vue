@@ -1258,6 +1258,9 @@ function statusVariant(status: PlayerTeamHonorStatus) {
 }
 
 function goBack() {
+  const currentPath = route.fullPath;
+  routeTabsStore.remove(currentPath);
+
   void router.push({
     name: 'stars-detail-id',
     params: { id: playerId.value }

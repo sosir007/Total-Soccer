@@ -27,6 +27,14 @@ const COPA_AMERICA_TOP_SCORER_EXTERNAL_URL =
 const BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE = 'BRAZIL_SERIE_A_TOP_SCORER';
 const BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://rsssfbrasil.com/tablesae/brtops.htm';
 const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
+const CAMPEONATO_PAULISTA_TOP_SCORER_AWARD_CODE = 'CAMPEONATO_PAULISTA_TOP_SCORER';
+const CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL =
+  'https://futebolpaulista.com.br/Noticias/Detalhe.aspx?Noticia=16359';
+const CAMPEONATO_PAULISTA_COMPETITION_CODE = 'CAMPEONATO_PAULISTA';
+const TORNEIO_RIO_SAO_PAULO_TOP_SCORER_AWARD_CODE = 'TORNEIO_RIO_SAO_PAULO_TOP_SCORER';
+const TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL =
+  'https://www.netvasco.com.br/mauroprais/futbr/artilrsp.html';
+const TORNEIO_RIO_SAO_PAULO_COMPETITION_CODE = 'TORNEIO_RIO_SAO_PAULO';
 const CONMEBOL_LIBERTADORES_TOP_SCORER_AWARD_CODE = 'CONMEBOL_LIBERTADORES_TOP_SCORER';
 const CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL =
   'https://www.rsssf.org/sacups/copalibtops.html';
@@ -117,6 +125,99 @@ const BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS = [
     placement: '最佳射手',
     goals: 8,
     remark: '1964年巴西全国冠军统一口径最佳射手，贝利效力桑托斯，RSSSF Brasil 口径为 8 球。'
+  }
+] as const;
+
+const CAMPEONATO_PAULISTA_TOP_SCORER_PELE_RESULTS = [
+  {
+    year: 1957,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '17 / 36 球',
+    remark:
+      '1957年保利斯塔锦标赛最佳射手，贝利效力桑托斯；进球数资料存在 17 / 36 球差异，最佳射手名次无争议。'
+  },
+  {
+    year: 1958,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '58 球',
+    remark: '1958年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 58 球。'
+  },
+  {
+    year: 1959,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '44 / 45 / 46 球',
+    remark:
+      '1959年保利斯塔锦标赛最佳射手，贝利效力桑托斯；资料常见 44 / 45 球，圣保罗足协修订口径为 46 球。'
+  },
+  {
+    year: 1960,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '32 / 33 / 34 球',
+    remark:
+      '1960年保利斯塔锦标赛最佳射手，贝利效力桑托斯；资料常见 33 / 34 球，圣保罗足协修订口径为 32 球。'
+  },
+  {
+    year: 1961,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '47 球',
+    remark: '1961年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 47 球。'
+  },
+  {
+    year: 1962,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '37 球',
+    remark: '1962年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 37 球。'
+  },
+  {
+    year: 1963,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '22 球',
+    remark: '1963年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 22 球。'
+  },
+  {
+    year: 1964,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '34 球',
+    remark: '1964年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 34 球。'
+  },
+  {
+    year: 1965,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '49 球',
+    remark: '1965年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 49 球。'
+  },
+  {
+    year: 1969,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '26 球',
+    remark: '1969年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 26 球。'
+  },
+  {
+    year: 1973,
+    rank: 1,
+    placement: '最佳射手',
+    goalsText: '11 球',
+    remark: '1973年保利斯塔锦标赛最佳射手，贝利效力桑托斯，常见口径为 11 球。'
+  }
+] as const;
+
+const TORNEIO_RIO_SAO_PAULO_TOP_SCORER_PELE_RESULTS = [
+  {
+    year: 1963,
+    rank: 1,
+    placement: '最佳射手',
+    goals: 14,
+    remark: '1963年里约-圣保罗锦标赛最佳射手，贝利效力桑托斯，14 球。'
   }
 ] as const;
 
@@ -211,6 +312,8 @@ async function main() {
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
+  const campeonatoPaulista = await findCompetition(CAMPEONATO_PAULISTA_COMPETITION_CODE);
+  const torneioRioSaoPaulo = await findCompetition(TORNEIO_RIO_SAO_PAULO_COMPETITION_CODE);
   const conmebolLibertadores = await findCompetition(CONMEBOL_LIBERTADORES_COMPETITION_CODE);
   const europeanSouthAmericanCup = await findCompetition(
     EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE
@@ -225,6 +328,8 @@ async function main() {
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
   await seedBrazilSerieATopScorer(pele.id, brazilSerieA.id);
+  await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
+  await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
   await seedEuropeanSouthAmericanCupTopScorer(pele.id, europeanSouthAmericanCup.id);
   await seedNaslMostValuablePlayer(pele.id, northAmericanSoccerLeague.id);
@@ -833,6 +938,234 @@ async function seedBrazilSerieATopScorer(peleId: string, competitionId: string) 
 
   console.log(
     `Seeded ${BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE}: ${BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedCampeonatoPaulistaTopScorer(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: CAMPEONATO_PAULISTA_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: CAMPEONATO_PAULISTA_TOP_SCORER_AWARD_CODE,
+      name: '保利斯塔锦标赛最佳射手',
+      externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '二级国联二级专项奖',
+      level: '二级',
+      description:
+        '保利斯塔锦标赛赛季最佳射手；该赛事为巴西圣保罗州级顶级联赛，系统按二级国内联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 8020
+    },
+    update: {
+      name: '保利斯塔锦标赛最佳射手',
+      externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '二级国联二级专项奖',
+      level: '二级',
+      description:
+        '保利斯塔锦标赛赛季最佳射手；该赛事为巴西圣保罗州级顶级联赛，系统按二级国内联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 8020
+    }
+  });
+
+  for (const result of CAMPEONATO_PAULISTA_TOP_SCORER_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定保利斯塔锦标赛个人奖项创建或补齐；球队 standings 由赛事补录脚本维护。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+        remark: `保利斯塔锦标赛最佳射手，${result.goalsText}。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+        remark: `保利斯塔锦标赛最佳射手，${result.goalsText}。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${CAMPEONATO_PAULISTA_TOP_SCORER_AWARD_CODE}: ${CAMPEONATO_PAULISTA_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedTorneioRioSaoPauloTopScorer(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_AWARD_CODE,
+      name: '里约-圣保罗锦标赛最佳射手',
+      externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '国杯一级奖',
+      level: '一级',
+      description:
+        '里约-圣保罗锦标赛赛季最佳射手；该赛事为巴西历史跨州地区杯赛，赛事本体按俱乐部国内三级杯赛计分，个人奖项暂复用国内杯赛个人奖口径。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 9000
+    },
+    update: {
+      name: '里约-圣保罗锦标赛最佳射手',
+      externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '国杯一级奖',
+      level: '一级',
+      description:
+        '里约-圣保罗锦标赛赛季最佳射手；该赛事为巴西历史跨州地区杯赛，赛事本体按俱乐部国内三级杯赛计分，个人奖项暂复用国内杯赛个人奖口径。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 9000
+    }
+  });
+
+  for (const result of TORNEIO_RIO_SAO_PAULO_TOP_SCORER_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.FINAL_ONLY,
+        externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定里约-圣保罗锦标赛个人奖项创建或补齐；球队 standings 由赛事补录脚本维护。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.FINAL_ONLY
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+        remark: `里约-圣保罗锦标赛最佳射手，${result.goals} 球。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+        remark: `里约-圣保罗锦标赛最佳射手，${result.goals} 球。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: TORNEIO_RIO_SAO_PAULO_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${TORNEIO_RIO_SAO_PAULO_TOP_SCORER_AWARD_CODE}: ${TORNEIO_RIO_SAO_PAULO_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
   );
 }
 
