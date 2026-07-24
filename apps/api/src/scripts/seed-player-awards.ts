@@ -24,6 +24,17 @@ const COPA_AMERICA_BEST_PLAYER_EXTERNAL_URL =
 const COPA_AMERICA_TOP_SCORER_AWARD_CODE = 'COPA_AMERICA_TOP_SCORER';
 const COPA_AMERICA_TOP_SCORER_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/Copa_Am%C3%A9rica_awards#Golden_Boot';
+const BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE = 'BRAZIL_SERIE_A_TOP_SCORER';
+const BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://rsssfbrasil.com/tablesae/brtops.htm';
+const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
+const CONMEBOL_LIBERTADORES_TOP_SCORER_AWARD_CODE = 'CONMEBOL_LIBERTADORES_TOP_SCORER';
+const CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL =
+  'https://www.rsssf.org/sacups/copalibtops.html';
+const CONMEBOL_LIBERTADORES_COMPETITION_CODE = 'CONMEBOL_LIBERTADORES';
+const EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_AWARD_CODE = 'EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER';
+const EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL =
+  'https://www.rsssf.org/tablest/toyota.html';
+const EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE = 'EUROPEAN_SOUTH_AMERICAN_CUP';
 const NASL_MVP_AWARD_CODE = 'NASL_MOST_VALUABLE_PLAYER';
 const NASL_MVP_EXTERNAL_URL =
   'https://www.sportingnews.com/us/soccer/news/tsn-archives-pele-landslide-winner-nasl-mvp-sept-11-1976-issue/fh9j4ahe4opejebwwe7d0cls';
@@ -92,6 +103,51 @@ const COPA_AMERICA_TOP_SCORER_PELE_RESULTS = [
   }
 ] as const;
 
+const BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS = [
+  {
+    year: 1961,
+    rank: 1,
+    placement: '最佳射手',
+    goals: 9,
+    remark: '1961年巴西全国冠军统一口径最佳射手，贝利效力桑托斯，RSSSF Brasil 口径为 9 球。'
+  },
+  {
+    year: 1964,
+    rank: 1,
+    placement: '最佳射手',
+    goals: 8,
+    remark: '1964年巴西全国冠军统一口径最佳射手，贝利效力桑托斯，RSSSF Brasil 口径为 8 球。'
+  }
+] as const;
+
+const CONMEBOL_LIBERTADORES_TOP_SCORER_PELE_RESULTS = [
+  {
+    year: 1965,
+    rank: 1,
+    placement: '最佳射手',
+    remark:
+      '1965年南美解放者杯最佳射手，贝利效力桑托斯；进球数资料存在 7 / 8 球差异，最佳射手名次无争议。'
+  }
+] as const;
+
+const EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_PELE_RESULTS = [
+  {
+    year: 1962,
+    rank: 1,
+    placement: '最佳射手',
+    goals: 5,
+    remark: '1962年欧洲/南美洲杯最佳射手，贝利效力桑托斯，两回合对本菲卡合计 5 球。'
+  },
+  {
+    year: 1963,
+    rank: 1,
+    placement: '并列最佳射手',
+    goals: 2,
+    remark:
+      '1963年欧洲/南美洲杯并列最佳射手，贝利效力桑托斯，2 球；与 Pepe、Amarildo、Bruno Mora 并列。'
+  }
+] as const;
+
 const NASL_MVP_PELE_RESULTS = [
   {
     year: 1976,
@@ -154,6 +210,11 @@ async function main() {
 
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
+  const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
+  const conmebolLibertadores = await findCompetition(CONMEBOL_LIBERTADORES_COMPETITION_CODE);
+  const europeanSouthAmericanCup = await findCompetition(
+    EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE
+  );
   const northAmericanSoccerLeague = await findCompetition(
     NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE
   );
@@ -163,6 +224,9 @@ async function main() {
   await seedFifaWorldCupBestYoungPlayer(pele.id, fifaWorldCup.id);
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
+  await seedBrazilSerieATopScorer(pele.id, brazilSerieA.id);
+  await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
+  await seedEuropeanSouthAmericanCupTopScorer(pele.id, europeanSouthAmericanCup.id);
   await seedNaslMostValuablePlayer(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAllStarTeam(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAssistsLeader(pele.id, northAmericanSoccerLeague.id);
@@ -657,6 +721,344 @@ async function seedCopaAmericaTopScorer(conmebolId: string, competitionId: strin
 
   console.log(
     `Seeded ${COPA_AMERICA_TOP_SCORER_AWARD_CODE}: ${COPA_AMERICA_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedBrazilSerieATopScorer(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE,
+      name: '巴西甲级联赛最佳射手',
+      externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '巴西全国冠军统一口径赛季最佳射手，系统按国内顶级联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7300
+    },
+    update: {
+      name: '巴西甲级联赛最佳射手',
+      externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '巴西全国冠军统一口径赛季最佳射手，系统按国内顶级联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7300
+    }
+  });
+
+  for (const result of BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定巴西甲级联赛个人奖项创建或补齐；球队 standings 由赛事补录脚本维护。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: `巴西甲级联赛最佳射手，${result.goals} 球。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: `巴西甲级联赛最佳射手，${result.goals} 球。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE}: ${BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedConmebolLibertadoresTopScorer(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: CONMEBOL_LIBERTADORES_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: CONMEBOL_LIBERTADORES_TOP_SCORER_AWARD_CODE,
+      name: '南美解放者杯最佳射手',
+      externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '洲联二级专项奖',
+      level: '二级',
+      description: '南美解放者杯赛季最佳射手，系统按俱乐部洲际赛事专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 6300
+    },
+    update: {
+      name: '南美解放者杯最佳射手',
+      externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '洲联二级专项奖',
+      level: '二级',
+      description: '南美解放者杯赛季最佳射手，系统按俱乐部洲际赛事专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 6300
+    }
+  });
+
+  for (const result of CONMEBOL_LIBERTADORES_TOP_SCORER_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.FINAL_ONLY,
+        externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定南美解放者杯个人奖项创建或补齐；球队 standings 由赛事补录脚本维护。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.FINAL_ONLY
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+        remark: '南美解放者杯最佳射手；进球数资料存在 7 / 8 球差异。'
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+        remark: '南美解放者杯最佳射手；进球数资料存在 7 / 8 球差异。'
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: CONMEBOL_LIBERTADORES_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${CONMEBOL_LIBERTADORES_TOP_SCORER_AWARD_CODE}: ${CONMEBOL_LIBERTADORES_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedEuropeanSouthAmericanCupTopScorer(peleId: string, competitionId: string) {
+  const award = await prisma.award.upsert({
+    where: { code: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_AWARD_CODE,
+      name: '欧洲/南美洲杯最佳射手',
+      externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '俱乐部国际赛事三级专项奖',
+      level: '三级',
+      description:
+        '欧洲/南美洲杯赛季最佳射手；因赛事本体为俱乐部国际三级杯赛，系统按俱乐部国际赛事三级专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 5350
+    },
+    update: {
+      name: '欧洲/南美洲杯最佳射手',
+      externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '俱乐部国际赛事三级专项奖',
+      level: '三级',
+      description:
+        '欧洲/南美洲杯赛季最佳射手；因赛事本体为俱乐部国际三级杯赛，系统按俱乐部国际赛事三级专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 5350
+    }
+  });
+
+  for (const result of EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_PELE_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        competitionId,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.FINAL_ONLY,
+        externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定欧洲/南美洲杯个人奖项创建或补齐；球队 standings 由赛事补录脚本维护。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.FINAL_ONLY
+      }
+    });
+
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+        remark: `欧洲/南美洲杯${result.placement}，${result.goals} 球。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: String(result.year),
+        year: result.year,
+        externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+        remark: `欧洲/南美洲杯${result.placement}，${result.goals} 球。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId: peleId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId: peleId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_AWARD_CODE}: ${EUROPEAN_SOUTH_AMERICAN_CUP_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
   );
 }
 

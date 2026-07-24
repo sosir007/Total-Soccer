@@ -4,8 +4,10 @@ import {
   CompetitionScopeType,
   CompetitionStandingPlacement,
   CompetitionTargetType,
+  HonorRuleConversionType,
   LifecycleStatus,
-  Prisma
+  Prisma,
+  type HonorRule
 } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -102,12 +104,26 @@ const COMPETITION_INCLUDE = {
     select: {
       editions: true
     }
+  },
+  editions: {
+    select: {
+      year: true,
+      quantity: true
+    }
   }
 } satisfies Prisma.CompetitionInclude;
 
 type CompetitionListItem = Prisma.CompetitionGetPayload<{
   include: typeof COMPETITION_INCLUDE;
 }>;
+
+type CompetitionScoreRule = HonorRule & {
+  coefficients: Array<{
+    confederationId: string | null;
+    countryId: string | null;
+    coefficient: number;
+  }>;
+};
 
 function compareCompetitionListItems(a: CompetitionListItem, b: CompetitionListItem) {
   return (
@@ -263,16 +279,25 @@ export class CompetitionsService {
         ? {}
         : { includeInStats: query.includeInStats === 'true' })
     };
-    const [allItems, total] = await this.prisma.$transaction([
+    const [allItems, total, rules] = await this.prisma.$transaction([
       this.prisma.competition.findMany({
         where,
         include: COMPETITION_INCLUDE
       }),
-      this.prisma.competition.count({ where })
+      this.prisma.competition.count({ where }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true },
+        include: { coefficients: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      })
     ]);
     const items = allItems
       .sort(compareCompetitionListItems)
-      .slice(pagination.skip, pagination.skip + pagination.take);
+      .slice(pagination.skip, pagination.skip + pagination.take)
+      .map((item) => ({
+        ...item,
+        ...this.resolveCompetitionListScore(rules, item)
+      }));
 
     return {
       items,
@@ -280,6 +305,225 @@ export class CompetitionsService {
       pageSize: pagination.pageSize,
       total
     };
+  }
+
+  private resolveCompetitionListScore(
+    rules: CompetitionScoreRule[],
+    competition: CompetitionListItem
+  ) {
+    const rule = this.resolveScoreRule(rules, competition);
+
+    if (!rule) {
+      return {
+        score: null,
+        scoreDescription: null
+      };
+    }
+
+    const championScore = rule.championScore ?? rule.baseScore;
+    const latestEdition = this.latestEdition(competition.editions);
+    const qualityCoefficient = this.resolveQualityCoefficient(rule, competition);
+    const conversion = this.resolveConversionCoefficientDetail(
+      rule,
+      competition,
+      latestEdition?.year ?? null,
+      latestEdition?.quantity ?? null
+    );
+    const score = this.round(championScore * qualityCoefficient * conversion.coefficient);
+    const parts = [
+      ...(this.isOne(qualityCoefficient)
+        ? []
+        : [`质量系数 ${this.formatScoreNumber(qualityCoefficient)}`]),
+      ...conversion.parts
+    ];
+
+    return {
+      score,
+      scoreDescription: parts.length
+        ? `基础分 ${this.formatScoreNumber(championScore)} × ${parts.join(' × ')} = ${this.formatScoreNumber(score)}`
+        : null
+    };
+  }
+
+  private resolveScoreRule(rules: CompetitionScoreRule[], competition: CompetitionListItem) {
+    return rules
+      .filter((rule) => this.scoreRuleMatches(rule, competition))
+      .sort((a, b) => this.scoreRuleSpecificity(b) - this.scoreRuleSpecificity(a))[0];
+  }
+
+  private scoreRuleMatches(rule: CompetitionScoreRule, competition: CompetitionListItem) {
+    return (
+      rule.targetType === competition.targetType &&
+      this.sameText(rule.category, competition.category) &&
+      this.sameText(rule.level, competition.level) &&
+      this.formatMatches(rule.format, competition) &&
+      (!rule.scopeType || rule.scopeType === competition.scopeType) &&
+      (!rule.confederationId ||
+        this.competitionConfederationIds(competition).includes(rule.confederationId)) &&
+      (!rule.countryId || this.competitionCountryIds(competition).includes(rule.countryId))
+    );
+  }
+
+  private scoreRuleSpecificity(rule: CompetitionScoreRule) {
+    return [
+      rule.confederationId,
+      rule.countryId,
+      rule.scopeType,
+      rule.format,
+      rule.level,
+      rule.category
+    ].filter(Boolean).length;
+  }
+
+  private resolveQualityCoefficient(rule: CompetitionScoreRule, competition: CompetitionListItem) {
+    const confederationIds = this.competitionConfederationIds(competition);
+    const countryIds = this.competitionCountryIds(competition);
+    const coefficient = rule.coefficients.find(
+      (item) =>
+        (item.confederationId && confederationIds.includes(item.confederationId)) ||
+        (item.countryId && countryIds.includes(item.countryId))
+    );
+
+    return coefficient?.coefficient ?? rule.qualityCoefficient;
+  }
+
+  private resolveConversionCoefficientDetail(
+    rule: CompetitionScoreRule,
+    competition: CompetitionListItem,
+    year: number | null,
+    quantity: number | null
+  ) {
+    if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
+      const frequencyCoefficient = this.frequencyCoefficient(competition);
+      const scaleCoefficient = this.scaleCoefficient(competition, quantity);
+
+      return {
+        coefficient: frequencyCoefficient * scaleCoefficient,
+        parts: [
+          `频率系数 ${this.formatScoreNumber(frequencyCoefficient)}`,
+          `规模系数 ${this.formatScoreNumber(scaleCoefficient)}`
+        ]
+      };
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
+      const coefficient = !year ? 1 : year <= 1928 ? 3 : year <= 1980 ? 2 : year <= 1988 ? 1.5 : 1;
+      const suffix = year ? `（按最新届次 ${year} 年）` : '';
+
+      return {
+        coefficient,
+        parts: [`年代系数 ${this.formatScoreNumber(coefficient)}${suffix}`]
+      };
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {
+      const coefficient = year && year < 2025 ? 0.5 : 1;
+      const suffix = year ? `（按最新届次 ${year} 年）` : '';
+
+      return {
+        coefficient,
+        parts: [`赛制阶段系数 ${this.formatScoreNumber(coefficient)}${suffix}`]
+      };
+    }
+
+    return {
+      coefficient: 1,
+      parts: []
+    };
+  }
+
+  private frequencyCoefficient(competition: CompetitionListItem) {
+    const years = competition.editions.map((edition) => edition.year).filter(this.isNumber);
+
+    if (years.length < 2) {
+      return 1;
+    }
+
+    const firstYear = Math.min(...years);
+    const lastYear = Math.max(...years);
+    const averageGap = (lastYear - firstYear) / (years.length - 1);
+
+    return Math.min(averageGap / 4, 1);
+  }
+
+  private scaleCoefficient(competition: CompetitionListItem, quantity: number | null | undefined) {
+    const resolvedQuantity =
+      quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
+
+    if (!resolvedQuantity) return 1;
+    if (resolvedQuantity >= 24) return 1;
+    if (resolvedQuantity >= 16) return 0.9;
+    if (resolvedQuantity >= 10) return 0.75;
+    if (resolvedQuantity >= 8) return 0.65;
+    if (resolvedQuantity >= 4) return 0.5;
+    if (resolvedQuantity === 3) return 0.35;
+    if (resolvedQuantity === 2) return 0.25;
+    return 0;
+  }
+
+  private latestEdition(editions: Array<{ year: number | null; quantity: number | null }>) {
+    return editions
+      .filter((edition) => this.isNumber(edition.year))
+      .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))[0];
+  }
+
+  private median(values: Array<number | null>) {
+    const numbers = values.filter(this.isNumber).sort((a, b) => a - b);
+
+    if (!numbers.length) return null;
+
+    return numbers[Math.floor(numbers.length / 2)];
+  }
+
+  private competitionConfederationIds(competition: CompetitionListItem) {
+    return [
+      competition.confederationId,
+      ...competition.scopeConfederations.map((item) => item.confederation.id)
+    ].filter(this.isString);
+  }
+
+  private competitionCountryIds(competition: CompetitionListItem) {
+    return [
+      competition.countryId,
+      ...competition.scopeCountries.map((item) => item.country.id)
+    ].filter(this.isString);
+  }
+
+  private formatMatches(ruleFormat: string | null, competition: CompetitionListItem) {
+    if (this.sameText(ruleFormat, competition.format)) {
+      return true;
+    }
+
+    return (
+      competition.format === '其他' && ruleFormat === '杯赛' && competition.category !== '国内'
+    );
+  }
+
+  private sameText(left?: string | null, right?: string | null) {
+    return (left?.trim() ?? '') === (right?.trim() ?? '');
+  }
+
+  private round(value: number) {
+    return Math.round(value * 100) / 100;
+  }
+
+  private formatScoreNumber(value: number) {
+    const rounded = this.round(value);
+    return Number.isInteger(rounded)
+      ? rounded.toString()
+      : rounded.toFixed(2).replace(/\.?0+$/, '');
+  }
+
+  private isOne(value: number) {
+    return Math.abs(value - 1) < 0.000001;
+  }
+
+  private isNumber(value: number | null): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  private isString(value: string | null): value is string {
+    return typeof value === 'string' && Boolean(value);
   }
 
   async findOne(id: string) {

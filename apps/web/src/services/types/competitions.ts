@@ -47,6 +47,8 @@ export interface CompetitionListItem {
   lifecycleStatus: LifecycleStatus;
   enabled: boolean;
   includeInStats: boolean;
+  score?: number | null;
+  scoreDescription?: string | null;
   sortOrder: number;
   confederation?: NamedRef | null;
   country?: NamedRef | null;

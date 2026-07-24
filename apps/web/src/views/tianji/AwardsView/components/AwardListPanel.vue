@@ -70,6 +70,14 @@ function formatTargetType(row: AwardListItem) {
   return props.targetTypeLabels[row.targetType] ?? '-';
 }
 
+function formatScore(value?: number | null) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return '-';
+  }
+
+  return Number.isInteger(value) ? value.toString() : value.toFixed(2).replace(/\.?0+$/, '');
+}
+
 function openExternalLink(row: AwardListItem) {
   if (!row.externalUrl) {
     return;
@@ -131,6 +139,16 @@ function openExternalLink(row: AwardListItem) {
             <SemanticTag :variant="getCompetitionLevelVariant(row.level)">
               {{ formatText(row.level) }}
             </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="分值" width="88" align="center" header-align="center">
+          <template #default="{ row }">
+            <el-tooltip v-if="row.scoreDescription" :content="row.scoreDescription" placement="top">
+              <span class="score-value score-value--with-tooltip">
+                {{ formatScore(row.score) }}
+              </span>
+            </el-tooltip>
+            <span v-else class="score-value">{{ formatScore(row.score) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="90" align="center" header-align="center">
@@ -217,5 +235,15 @@ function openExternalLink(row: AwardListItem) {
 
 .award-list-table :deep(.el-table__inner-wrapper) {
   min-width: 0;
+}
+
+.score-value {
+  color: var(--text-primary);
+}
+
+.score-value--with-tooltip {
+  cursor: help;
+  text-decoration: underline dotted var(--border-strong);
+  text-underline-offset: 3px;
 }
 </style>

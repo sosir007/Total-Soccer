@@ -242,12 +242,20 @@ export const DEFAULT_AWARD_RULES: AwardRuleDefaultDefinition[] = [
     sortOrder: 3520
   }),
   ...rankedCategory({
+    codePrefix: 'CLUB_GLOBAL_LEVEL_3_SPECIALTY',
+    namePrefix: '俱乐部国际赛事三级专项奖',
+    scopeType: AwardScopeType.CLUB,
+    category: '俱乐部国际赛事三级专项奖',
+    baseScore: 2,
+    sortOrder: 3530
+  }),
+  ...rankedCategory({
     codePrefix: 'CLUB_GLOBAL_LEVEL_3_SUPPLEMENT',
     namePrefix: '俱乐部国际赛事三级补充奖',
     scopeType: AwardScopeType.CLUB,
     category: '俱乐部国际赛事三级补充奖',
     baseScore: 2,
-    sortOrder: 3530
+    sortOrder: 3540
   }),
 
   ...rankedCategory({

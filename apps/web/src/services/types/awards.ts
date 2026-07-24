@@ -54,6 +54,8 @@ export interface AwardListItem {
   countryId?: string | null;
   lifecycleStatus: LifecycleStatus;
   enabled: boolean;
+  score?: number | null;
+  scoreDescription?: string | null;
   sortOrder: number;
   competition?: {
     id: string;
