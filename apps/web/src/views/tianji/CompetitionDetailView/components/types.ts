@@ -34,6 +34,8 @@ export interface EditionRow {
 export interface CompetitionDetailForm {
   code: string;
   name: string;
+  englishName: string;
+  shortName: string;
   alias: string;
   externalUrl: string;
   targetType: CompetitionTargetType;

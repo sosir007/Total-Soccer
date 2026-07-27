@@ -11,6 +11,7 @@ import {
   getLifecycleStatusVariant,
   type SemanticTagVariant
 } from '@/utils/tag-theme';
+import { formatEntityName } from '@/utils/entity-name';
 
 withDefaults(
   defineProps<{
@@ -51,7 +52,9 @@ function getTargetTypeVariant(row: CompetitionListItem): SemanticTagVariant {
 }
 
 function formatCompetitionSubtitle(row: CompetitionListItem) {
-  return row.alias ? `${row.code} · ${row.alias}` : row.code;
+  const base = row.alias ? `${row.code} · ${row.alias}` : row.code;
+
+  return row.englishName ? `${base} · ${row.englishName}` : base;
 }
 
 function formatScore(value?: number | null) {
@@ -101,7 +104,7 @@ function openExternalLink(row: CompetitionListItem) {
             <EntityNameCell
               :id="row.id"
               type="competition"
-              :title="row.name"
+              :title="formatEntityName(row)"
               :subtitle="formatCompetitionSubtitle(row)"
             />
           </template>

@@ -41,6 +41,12 @@ const emit = defineEmits<{
       <el-form-item label="赛事名称">
         <el-input v-model="form.name" />
       </el-form-item>
+      <el-form-item label="英文名">
+        <el-input v-model="form.englishName" />
+      </el-form-item>
+      <el-form-item label="简称">
+        <el-input v-model="form.shortName" />
+      </el-form-item>
       <el-form-item label="别名">
         <el-input v-model="form.alias" placeholder="世界杯" />
       </el-form-item>

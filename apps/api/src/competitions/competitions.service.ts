@@ -240,6 +240,8 @@ export class CompetitionsService {
         OR: [
           { code: { contains: keyword, mode: 'insensitive' } },
           { name: { contains: keyword, mode: 'insensitive' } },
+          { englishName: { contains: keyword, mode: 'insensitive' } },
+          { shortName: { contains: keyword, mode: 'insensitive' } },
           { alias: { contains: keyword, mode: 'insensitive' } },
           { category: { contains: keyword, mode: 'insensitive' } },
           { level: { contains: keyword, mode: 'insensitive' } },
@@ -723,6 +725,8 @@ export class CompetitionsService {
       data: {
         code,
         name,
+        englishName: this.toNullableString(body.englishName),
+        shortName: this.toNullableString(body.shortName),
         alias: this.toNullableString(body.alias),
         targetType,
         scopeType,

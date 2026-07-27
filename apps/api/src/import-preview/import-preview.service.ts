@@ -74,7 +74,9 @@ const CONFEDERATION_BY_COUNTRY: Record<string, string> = {
   印度: '亚足联',
   圣马力诺: '欧足联',
   波黑: '欧足联',
+  波斯尼亚和黑塞哥维那: '欧足联',
   俄罗斯: '欧足联',
+  阿拉伯联合酋长国: '亚足联',
   埃及: '非足联'
 };
 
@@ -556,10 +558,21 @@ export class ImportPreviewService {
         this.toNullableString(this.cellByHeader(headers, row, '足联')) ??
         this.inferConfederationByCountry(this.cellByHeader(headers, row, '国家'));
       const name = this.cellByHeader(headers, row, '国家') || uid || importKey;
+      const englishName = this.toNullableString(this.cellByHeader(headers, row, '英文名'));
+      const shortName = this.toNullableString(this.cellByHeader(headers, row, '简称'));
+      const existingCountry = await tx.country.findUnique({
+        where: { importKey },
+        select: {
+          englishName: true,
+          shortName: true
+        }
+      });
 
       const data = {
         uid: uid || '-',
         name,
+        englishName: this.keepExistingText(existingCountry?.englishName, englishName),
+        shortName: this.keepExistingText(existingCountry?.shortName, shortName),
         federation,
         federationId: federation ? (confederationIdByName.get(federation) ?? null) : null,
         playerCount: this.toNullableNumber(this.cellByHeader(headers, row, '总数')),
@@ -620,6 +633,15 @@ export class ImportPreviewService {
       const federation =
         this.toNullableString(this.cellByHeader(headers, row, '国家UID')) ??
         this.inferConfederationByCountry(countryName);
+      const englishName = this.toNullableString(this.cellByHeader(headers, row, '英文名'));
+      const shortName = this.toNullableString(this.cellByHeader(headers, row, '简称'));
+      const existingClub = await tx.club.findUnique({
+        where: { importKey },
+        select: {
+          englishName: true,
+          shortName: true
+        }
+      });
       const countryId = countryName
         ? await this.ensureCountryRef(tx, countryRefs, {
             countryName,
@@ -631,6 +653,8 @@ export class ImportPreviewService {
       const data = {
         uid: uid || '-',
         name: this.cellByHeader(headers, row, '球队') || uid || importKey,
+        englishName: this.keepExistingText(existingClub?.englishName, englishName),
+        shortName: this.keepExistingText(existingClub?.shortName, shortName),
         exists: true,
         countryUid: this.toNullableString(this.cellByHeader(headers, row, '国家UID')),
         countryId,
@@ -1313,6 +1337,10 @@ export class ImportPreviewService {
   private toNullableString(value: unknown): string | null {
     const text = this.toCellString(value);
     return text && text !== '-' ? text : null;
+  }
+
+  private keepExistingText(currentValue?: string | null, nextValue?: string | null) {
+    return currentValue && currentValue.trim() ? currentValue : (nextValue ?? undefined);
   }
 
   private toNullableNumber(value: unknown): number | null {

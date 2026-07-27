@@ -9,6 +9,7 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import type { ClubDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
+import { formatEntityName } from '@/utils/entity-name';
 import ClubBasicInfoContent from './ClubBasicInfoContent.vue';
 import ClubDatabaseStatsContent from './ClubDatabaseStatsContent.vue';
 import ClubHonorDetailsContent from './ClubHonorDetailsContent.vue';
@@ -39,8 +40,16 @@ function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
 }
 
+function formatSubtitle(englishName?: string | null) {
+  if (englishName) {
+    return `${englishName} · UID ${props.club.uid}`;
+  }
+
+  return `UID ${props.club.uid}`;
+}
+
 function clubExternalUrl() {
-  return buildExternalUrl(props.club.externalUrl, props.club.name || '俱乐部');
+  return buildExternalUrl(props.club.externalUrl, formatEntityName(props.club) || '俱乐部');
 }
 
 function countSeasonLinks() {
@@ -55,8 +64,8 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 <template>
   <DetailHero
     :kicker="formatRef(club.federationRef)"
-    :title="club.name"
-    :subtitle="`UID ${club.uid}`"
+    :title="formatEntityName(club)"
+    :subtitle="formatSubtitle(club.englishName)"
     :external-url="clubExternalUrl()"
   >
     <template #tags>

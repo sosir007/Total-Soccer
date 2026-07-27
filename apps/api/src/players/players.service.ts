@@ -27,6 +27,8 @@ import type {
   TeamHonorStandingOptionQuery
 } from './players.types.js';
 
+const FIFA_WORLD_CUP_GOLDEN_BALL_CODE = 'FIFA_WORLD_CUP_GOLDEN_BALL';
+
 const PLAYER_CAREER_INCLUDE = {
   club: {
     select: {
@@ -50,6 +52,7 @@ const PLAYER_CAREER_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
       federationRef: {
         select: {
@@ -85,6 +88,7 @@ const PLAYER_LIST_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
       federationRef: {
         select: {
@@ -141,7 +145,8 @@ const PLAYER_LIST_INCLUDE = {
     select: {
       id: true,
       uid: true,
-      name: true
+      name: true,
+      shortName: true
     }
   },
   birthCityRef: {
@@ -153,7 +158,8 @@ const PLAYER_LIST_INCLUDE = {
         select: {
           id: true,
           uid: true,
-          name: true
+          name: true,
+          shortName: true
         }
       }
     }
@@ -164,7 +170,8 @@ const PLAYER_LIST_INCLUDE = {
         select: {
           id: true,
           uid: true,
-          name: true
+          name: true,
+          shortName: true
         }
       }
     }
@@ -390,6 +397,12 @@ type PlayerHonorListEntry = {
     sortYear: number;
     placement: string | null;
   }>;
+  sortOrder: number;
+};
+type PlayerHonorListUnit = {
+  title: string;
+  label: string;
+  sortYear: number;
   sortOrder: number;
 };
 type ScoredPlayerAward = {
@@ -1164,13 +1177,18 @@ export class PlayersService {
 
   private buildPlayerHonorListRow(player: PlayerHonorSummaryPlayer) {
     const entryMap = this.createEmptyPlayerHonorListEntryMap();
+    const hideLowerDomesticLeagueHonors = this.shouldHideLowerDomesticLeagueHonors(player);
 
     for (const recipient of player.awardRecipients) {
       const award = recipient.edition.award;
+      if (this.shouldHideHonorListAward(award, hideLowerDomesticLeagueHonors)) {
+        continue;
+      }
+
       const period = this.resolveAwardEditionPeriod(recipient.edition);
 
       this.addPlayerHonorListEntry(entryMap, this.resolveHonorListAwardColumn(award), {
-        title: award.name,
+        title: this.formatHonorListAwardTitle(recipient),
         subjectName: null,
         periods: [
           {
@@ -1186,11 +1204,15 @@ export class PlayersService {
     for (const teamHonor of player.teamHonors) {
       const standing = teamHonor.standing;
       const competition = standing.edition.competition;
+      if (this.shouldHideHonorListCompetition(competition, hideLowerDomesticLeagueHonors)) {
+        continue;
+      }
+
       const period =
         standing.edition.season || String(standing.edition.year ?? standing.edition.name);
 
       this.addPlayerHonorListEntry(entryMap, this.resolveHonorListTeamColumn(competition), {
-        title: competition.name,
+        title: this.formatEntityDisplayName(competition),
         subjectName: this.resolveTeamHonorListSubject(player, teamHonor),
         periods: [
           {
@@ -1261,10 +1283,13 @@ export class PlayersService {
             (left.periods[0]?.sortYear ?? 0) - (right.periods[0]?.sortYear ?? 0) ||
             left.title.localeCompare(right.title, 'zh-CN')
         );
-      const items = entries.map((entry) => this.formatHonorListEntry(entry));
+      const items =
+        column.sourceType === 'AWARD'
+          ? this.formatAwardHonorListEntries(entries, column)
+          : entries.map((entry) => this.formatHonorListEntry(entry, column));
 
       cells[column.key] = {
-        text: items.join('；'),
+        text: items.join(column.sourceType === 'AWARD' ? '，' : '；'),
         items
       };
 
@@ -1284,8 +1309,9 @@ export class PlayersService {
     );
   }
 
-  private formatHonorListEntry(entry: PlayerHonorListEntry) {
+  private formatHonorListEntry(entry: PlayerHonorListEntry, column: PlayerHonorListColumn) {
     const placementGroups = new Map<string, PlayerHonorListEntry['periods']>();
+    const title = this.formatHonorListTitle(entry.title, column);
 
     for (const period of entry.periods) {
       const placement = this.resolveVisibleHonorPlacement(period.placement, entry.title);
@@ -1298,11 +1324,208 @@ export class PlayersService {
       const periodText = periods.map((period) => period.label).join('、');
       const subjectText = this.formatHonorListSubject(entry.subjectName, periods.length);
       const placementText = placement ? ` ${placement}` : '';
+      const honorText = `${subjectText}${title}`.trim();
 
-      return `${periodText} ${subjectText}${entry.title}${placementText}`;
+      return `${periodText}${honorText ? ` ${honorText}` : ''}${placementText}`;
     });
 
     return segments.join('，');
+  }
+
+  private formatEntityDisplayName(entity: { name: string; shortName?: string | null }) {
+    return entity.shortName?.trim() || entity.name;
+  }
+
+  /**
+   * 荣誉清单展示压缩：同一球员已经有 2 种以上国内一级联赛奖杯时，
+   * 国内二级/以下联赛奖杯及其赛事绑定奖项不再展示，避免低级联赛把清单撑得过长。
+   */
+  private shouldHideLowerDomesticLeagueHonors(player: PlayerHonorSummaryPlayer) {
+    const primaryDomesticLeagueCompetitionIds = new Set<string>();
+
+    for (const teamHonor of player.teamHonors) {
+      const competition = teamHonor.standing.edition.competition;
+
+      if (
+        this.resolveTeamHonorScoreBucket(competition) === 'domesticLeagueScore' &&
+        competition.level === '一级'
+      ) {
+        primaryDomesticLeagueCompetitionIds.add(competition.id);
+      }
+    }
+
+    return primaryDomesticLeagueCompetitionIds.size > 1;
+  }
+
+  private shouldHideHonorListAward(
+    award: PlayerAwardRecipientRecord['edition']['award'],
+    hideLowerDomesticLeagueHonors: boolean
+  ) {
+    return (
+      hideLowerDomesticLeagueHonors &&
+      Boolean(award.competition && this.shouldHideHonorListCompetition(award.competition, true))
+    );
+  }
+
+  private shouldHideHonorListCompetition(
+    competition: PlayerAwardCompetition | PlayerHonorCompetition,
+    hideLowerDomesticLeagueHonors: boolean
+  ) {
+    return (
+      hideLowerDomesticLeagueHonors &&
+      this.resolveTeamHonorScoreBucket(competition) === 'domesticLeagueScore' &&
+      competition.level !== '一级'
+    );
+  }
+
+  /**
+   * 荣誉清单只负责展示文本，不影响计分或原始记录。
+   * 规则：
+   * - 奖项/赛事名称优先使用 shortName，缺省回退 name。
+   * - 列语境已表达“世界杯/洲际杯”等分组时，正文去掉重复前缀。
+   * - 同一奖项多年份优先按奖项合并；剩余单年奖项再按年份合并。
+   * - 只有多次时才显示“2次 / 3次”。
+   * - 特殊奖项可在生成清单标题时转换名次，例如世界杯金球奖第二名展示为银球奖。
+   */
+  private formatAwardHonorListEntries(
+    entries: PlayerHonorListEntry[],
+    column: PlayerHonorListColumn
+  ) {
+    const units = entries.flatMap((entry) => this.toAwardHonorListUnits(entry, column));
+    const titleGroups = new Map<string, PlayerHonorListUnit[]>();
+
+    for (const unit of units) {
+      const group = titleGroups.get(unit.title) ?? [];
+      group.push(unit);
+      titleGroups.set(unit.title, group);
+    }
+
+    const consumed = new Set<PlayerHonorListUnit>();
+    const outputs: Array<{ text: string; sortYear: number; sortOrder: number; title: string }> = [];
+
+    for (const [title, group] of titleGroups.entries()) {
+      if (group.length <= 1) {
+        continue;
+      }
+
+      group.forEach((unit) => consumed.add(unit));
+      const sortedGroup = [...group].sort(
+        (left, right) => left.sortYear - right.sortYear || left.label.localeCompare(right.label)
+      );
+      const periodText = sortedGroup.map((unit) => unit.label).join('、');
+      const countText = sortedGroup.length > 1 ? `${sortedGroup.length}次` : '';
+
+      outputs.push({
+        text: `${periodText} ${countText}${title}`.trim(),
+        sortYear: sortedGroup[0]?.sortYear ?? 0,
+        sortOrder: Math.min(...sortedGroup.map((unit) => unit.sortOrder)),
+        title
+      });
+    }
+
+    const yearGroups = new Map<string, PlayerHonorListUnit[]>();
+    for (const unit of units) {
+      if (consumed.has(unit)) {
+        continue;
+      }
+
+      const group = yearGroups.get(unit.label) ?? [];
+      group.push(unit);
+      yearGroups.set(unit.label, group);
+    }
+
+    for (const [label, group] of yearGroups.entries()) {
+      group.forEach((unit) => consumed.add(unit));
+      const sortedGroup = [...group].sort(
+        (left, right) =>
+          left.sortOrder - right.sortOrder ||
+          left.sortYear - right.sortYear ||
+          left.title.localeCompare(right.title, 'zh-CN')
+      );
+
+      outputs.push({
+        text:
+          group.length > 1
+            ? `${label} ${this.combineHonorListTitles(sortedGroup.map((unit) => unit.title))}`
+            : `${label} ${sortedGroup[0]?.title ?? ''}`.trim(),
+        sortYear: sortedGroup[0]?.sortYear ?? 0,
+        sortOrder: Math.min(...sortedGroup.map((unit) => unit.sortOrder)),
+        title: sortedGroup[0]?.title ?? ''
+      });
+    }
+
+    return outputs
+      .sort(
+        (left, right) =>
+          left.sortYear - right.sortYear ||
+          left.sortOrder - right.sortOrder ||
+          left.title.localeCompare(right.title, 'zh-CN')
+      )
+      .map((item) => item.text);
+  }
+
+  private toAwardHonorListUnits(entry: PlayerHonorListEntry, column: PlayerHonorListColumn) {
+    const title = this.formatHonorListTitle(entry.title, column);
+
+    return entry.periods.map((period) => {
+      const placement = this.resolveVisibleHonorPlacement(period.placement, entry.title);
+      const placementText = placement ? ` ${placement}` : '';
+
+      return {
+        title: `${title}${placementText}`.trim(),
+        label: period.label,
+        sortYear: period.sortYear,
+        sortOrder: entry.sortOrder
+      };
+    });
+  }
+
+  private formatHonorListTitle(title: string, column: PlayerHonorListColumn) {
+    const group = column.group.trim();
+
+    if (!group || group === '奖项' || group === '个人其他') {
+      return title;
+    }
+
+    if (title === group) {
+      return '';
+    }
+
+    return title.startsWith(group) ? title.slice(group.length).trim() : title;
+  }
+
+  private combineHonorListTitles(titles: string[]) {
+    const uniqueTitles = [...new Set(titles.filter(Boolean))];
+
+    if (uniqueTitles.length <= 1) {
+      return uniqueTitles[0] ?? '';
+    }
+
+    const prefix = this.resolveHonorTitleMergePrefix(uniqueTitles);
+
+    if (!prefix) {
+      return uniqueTitles.join('、');
+    }
+
+    return `${prefix}${uniqueTitles.map((title) => title.slice(prefix.length)).join('、')}`;
+  }
+
+  private resolveHonorTitleMergePrefix(titles: string[]) {
+    const bestAwardIndex = titles[0]?.indexOf('最佳') ?? -1;
+
+    if (bestAwardIndex > 0 && titles.every((title) => title.indexOf('最佳') === bestAwardIndex)) {
+      return titles[0].slice(0, bestAwardIndex);
+    }
+
+    let prefix = titles[0] ?? '';
+
+    for (const title of titles.slice(1)) {
+      while (prefix && !title.startsWith(prefix)) {
+        prefix = prefix.slice(0, -1);
+      }
+    }
+
+    return prefix.length >= 2 ? prefix : '';
   }
 
   private resolveHonorListAwardColumn(award: PlayerAwardRecipientRecord['edition']['award']) {
@@ -1344,6 +1567,10 @@ export class PlayersService {
   }
 
   private formatAwardRecipientPlacement(recipient: PlayerAwardRecipientRecord) {
+    if (recipient.edition.award.code === FIFA_WORLD_CUP_GOLDEN_BALL_CODE) {
+      return null;
+    }
+
     const placement = recipient.placement?.trim();
 
     if (placement) {
@@ -1351,6 +1578,36 @@ export class PlayersService {
     }
 
     return recipient.rank ? this.formatAwardRank(recipient.rank) : null;
+  }
+
+  private formatHonorListAwardTitle(recipient: PlayerAwardRecipientRecord) {
+    const award = recipient.edition.award;
+
+    if (award.code === FIFA_WORLD_CUP_GOLDEN_BALL_CODE) {
+      const specialLabel = this.resolveWorldCupGoldenBallLabel(recipient);
+
+      if (specialLabel) {
+        return `世界杯${specialLabel}`;
+      }
+    }
+
+    return this.formatEntityDisplayName(award);
+  }
+
+  private resolveWorldCupGoldenBallLabel(
+    recipient: Pick<PlayerAwardRecipientRecord, 'rank' | 'placement'>
+  ) {
+    if (recipient.rank === 1) return '金球奖';
+    if (recipient.rank === 2) return '银球奖';
+    if (recipient.rank === 3) return '铜球奖';
+
+    const normalizedPlacement = (recipient.placement ?? '').replace(/\s+/g, '').trim();
+
+    if (['第一名', '第1名', '1', '金球奖'].includes(normalizedPlacement)) return '金球奖';
+    if (['第二名', '第2名', '2', '银球奖'].includes(normalizedPlacement)) return '银球奖';
+    if (['第三名', '第3名', '3', '铜球奖'].includes(normalizedPlacement)) return '铜球奖';
+
+    return null;
   }
 
   private formatAwardRank(rank: number) {
@@ -1379,9 +1636,18 @@ export class PlayersService {
 
     if (
       !normalizedPlacement ||
-      ['冠军', '第一名', '第1名', '1', '获奖', '优胜者', '金奖', '金球奖', '最佳球员'].includes(
-        normalizedPlacement
-      )
+      [
+        '冠军',
+        '第一名',
+        '第1名',
+        '1',
+        '获奖',
+        '优胜者',
+        '金奖',
+        '金球奖',
+        '最佳球员',
+        '入选'
+      ].includes(normalizedPlacement)
     ) {
       return null;
     }

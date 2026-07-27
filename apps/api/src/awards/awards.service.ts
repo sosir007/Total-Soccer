@@ -917,6 +917,8 @@ export class AwardsService {
             OR: [
               { code: { contains: keyword, mode: 'insensitive' } },
               { name: { contains: keyword, mode: 'insensitive' } },
+              { englishName: { contains: keyword, mode: 'insensitive' } },
+              { shortName: { contains: keyword, mode: 'insensitive' } },
               { category: { contains: keyword, mode: 'insensitive' } },
               { level: { contains: keyword, mode: 'insensitive' } },
               { description: { contains: keyword, mode: 'insensitive' } }
@@ -991,6 +993,8 @@ export class AwardsService {
     return {
       code,
       name,
+      englishName: this.toNullableString(body.englishName),
+      shortName: this.toNullableString(body.shortName),
       externalUrl: this.toNullableString(body.externalUrl),
       targetType: this.parseTargetType(body.targetType ?? AwardTargetType.PLAYER),
       scopeType,

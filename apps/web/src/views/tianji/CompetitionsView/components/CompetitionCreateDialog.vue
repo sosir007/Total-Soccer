@@ -16,6 +16,8 @@ const props = defineProps<{
   form: {
     code: string;
     name: string;
+    englishName: string;
+    shortName: string;
     alias: string;
     honorRuleId: string;
     externalUrl: string;
@@ -65,6 +67,12 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item label="赛事名称">
         <el-input v-model="form.name" placeholder="国际足联世界杯" />
+      </el-form-item>
+      <el-form-item label="英文名">
+        <el-input v-model="form.englishName" placeholder="FIFA World Cup" />
+      </el-form-item>
+      <el-form-item label="简称">
+        <el-input v-model="form.shortName" placeholder="世界杯" />
       </el-form-item>
       <el-form-item label="别名">
         <el-input v-model="form.alias" placeholder="世界杯" />

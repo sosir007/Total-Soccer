@@ -25,6 +25,12 @@ import type { AwardRuleItem } from '@/services/types/award-rules';
 import { fetchPlayers } from '@/services/modules/catalog';
 import type { PlayerListItem } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
+import { formatEntityName } from '@/utils/entity-name';
+import {
+  formatAwardRecipientPlacementDisplay,
+  getAwardRankColumnLabel,
+  isWorldCupGoldenBallAward
+} from '@/utils/award-display';
 import AwardCreateDialog from './components/AwardCreateDialog.vue';
 import AwardDetailDialog from './components/AwardDetailDialog.vue';
 import AwardDetailHero from './components/AwardDetailHero.vue';
@@ -550,6 +556,8 @@ function populateAwardForm(
 ) {
   form.code = award.code;
   form.name = award.name;
+  form.englishName = award.englishName ?? '';
+  form.shortName = award.shortName ?? '';
   form.externalUrl = award.externalUrl ?? '';
   form.targetType = award.targetType;
   form.scopeType = award.scopeType;
@@ -593,6 +601,8 @@ function buildAwardPayload(form: ReturnType<typeof createEmptyAwardForm>) {
   return {
     code: form.code.trim(),
     name: form.name.trim(),
+    englishName: form.englishName.trim() || undefined,
+    shortName: form.shortName.trim() || undefined,
     externalUrl: form.externalUrl.trim() || undefined,
     targetType: form.targetType,
     scopeType: form.scopeType,
@@ -612,6 +622,8 @@ function createEmptyAwardForm() {
   return {
     code: '',
     name: '',
+    englishName: '',
+    shortName: '',
     externalUrl: '',
     targetType: 'PLAYER' as AwardTargetType,
     scopeType: 'WORLD' as AwardScopeType,
@@ -688,7 +700,7 @@ function formatScope(award: AwardListItem | AwardDetail) {
   }
 
   if (award.scopeType === 'COUNTRY') {
-    return award.country?.name ?? '国家';
+    return award.country ? formatEntityName(award.country) : '国家';
   }
 
   return scopeTypeLabels[award.scopeType];
@@ -703,7 +715,7 @@ function formatEditionRecipients(edition: AwardEdition) {
 
   return recipients
     .map((recipient) => {
-      const placement = recipient.placement || (recipient.rank ? `第 ${recipient.rank} 名` : '');
+      const placement = formatRecipientPlacement(recipient);
       return [placement, formatRecipientTargetName(recipient)].filter(Boolean).join(' ');
     })
     .join('、');
@@ -714,8 +726,20 @@ function formatRecipientTargetName(recipient: NonNullable<AwardEdition['recipien
 }
 
 function formatRecipientPlacement(recipient: NonNullable<AwardEdition['recipients']>[number]) {
-  return recipient.placement || (recipient.rank ? `第 ${recipient.rank} 名` : '');
+  return formatAwardRecipientPlacementDisplay(selectedAward.value, recipient, '');
 }
+
+const rankColumnLabels = computed(() => {
+  if (!isWorldCupGoldenBallAward(selectedAward.value)) {
+    return undefined;
+  }
+
+  return {
+    1: getAwardRankColumnLabel(selectedAward.value, 1, '第一名'),
+    2: getAwardRankColumnLabel(selectedAward.value, 2, '第二名'),
+    3: getAwardRankColumnLabel(selectedAward.value, 3, '第三名')
+  };
+});
 
 function compareAwardEditions(left: AwardEdition, right: AwardEdition) {
   const leftYear = left.year ?? Number.MAX_SAFE_INTEGER;
@@ -753,7 +777,10 @@ function isRankedRecipient(recipient: NonNullable<AwardEdition['recipients']>[nu
 }
 
 function awardExternalUrl() {
-  return buildExternalUrl(selectedAward.value?.externalUrl, selectedAward.value?.name || '奖项');
+  return buildExternalUrl(
+    selectedAward.value?.externalUrl,
+    formatEntityName(selectedAward.value) || '奖项'
+  );
 }
 
 function formatText(value?: string | number | boolean | null) {
@@ -938,6 +965,7 @@ onMounted(() => {
         <AwardEditionsPanel
           :editions="sortedEditions"
           :ranked-layout="rankedAwardLayout"
+          :rank-column-labels="rankColumnLabels"
           :format-edition-recipients="formatEditionRecipients"
           :format-recipient-placement="formatRecipientPlacement"
           @create="openCreateEditionDialog"

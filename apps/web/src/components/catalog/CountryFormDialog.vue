@@ -20,6 +20,8 @@ const saving = ref(false);
 const form = reactive({
   uid: '',
   name: '',
+  englishName: '',
+  shortName: '',
   confederationId: '',
   externalUrl: '',
   remark: '',
@@ -35,6 +37,8 @@ watch(
 
     form.uid = props.country?.uid ?? '';
     form.name = props.country?.name ?? '';
+    form.englishName = props.country?.englishName ?? '';
+    form.shortName = props.country?.shortName ?? '';
     form.confederationId = props.country?.federationRef?.id ?? '';
     form.externalUrl = props.country?.externalUrl ?? '';
     form.remark = props.country?.remark ?? '';
@@ -55,6 +59,8 @@ async function submit() {
     const payload: CountryPayload = {
       uid: form.uid.trim(),
       name: form.name.trim(),
+      englishName: form.englishName.trim() || undefined,
+      shortName: form.shortName.trim() || undefined,
       confederationId: form.confederationId || undefined,
       externalUrl: form.externalUrl.trim() || undefined,
       remark: form.remark.trim() || undefined,
@@ -90,6 +96,12 @@ async function submit() {
         </el-form-item>
         <el-form-item label="国家名称" required>
           <el-input v-model="form.name" placeholder="请输入国家名称" />
+        </el-form-item>
+        <el-form-item label="英文名">
+          <el-input v-model="form.englishName" placeholder="请输入英文名" />
+        </el-form-item>
+        <el-form-item label="简称">
+          <el-input v-model="form.shortName" placeholder="请输入简称" />
         </el-form-item>
         <el-form-item label="足联">
           <ConfederationSelect v-model="form.confederationId" />

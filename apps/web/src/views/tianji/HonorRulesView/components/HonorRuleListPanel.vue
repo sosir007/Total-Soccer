@@ -8,6 +8,7 @@ import type {
 import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
+import { formatEntityName } from '@/utils/entity-name';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
@@ -51,7 +52,7 @@ function formatNumber(value?: number | null) {
 function formatScope(row: HonorRuleItem) {
   if (row.scopeType === 'GLOBAL') return '全球';
   if (row.scopeType === 'CONFEDERATION') return row.confederation?.name ?? '足联';
-  if (row.scopeType === 'COUNTRY') return row.country?.name ?? '国家';
+  if (row.scopeType === 'COUNTRY') return row.country ? formatEntityName(row.country) : '国家';
   if (row.scopeType === 'CUSTOM') return '自定义';
 
   return '全部';
@@ -75,7 +76,8 @@ function formatCoefficients(row: HonorRuleItem) {
   const labels = [...coefficients]
     .sort((left, right) => coefficientOrder(left, row) - coefficientOrder(right, row))
     .map((item) => {
-      const subject = item.confederation?.name ?? item.country?.name ?? '默认';
+      const subject =
+        item.confederation?.name ?? (item.country ? formatEntityName(item.country) : '默认');
 
       return `${subject} ${formatNumber(item.coefficient)}`;
     });

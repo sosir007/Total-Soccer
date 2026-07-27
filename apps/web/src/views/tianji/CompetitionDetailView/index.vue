@@ -25,6 +25,7 @@ import type { LifecycleStatus } from '@/services/types/common';
 import IconFont from '@/components/IconFont.vue';
 import { useOptionStore } from '@/stores/options';
 import { useRouteTabsStore } from '@/stores/route-tabs';
+import { formatEntityName } from '@/utils/entity-name';
 import CompetitionDetailDialog from './components/CompetitionDetailDialog.vue';
 import CompetitionEditionTable from './components/CompetitionEditionTable.vue';
 import CompetitionHeroPanel from './components/CompetitionHeroPanel.vue';
@@ -114,6 +115,8 @@ const competitionId = computed(() => String(route.params.id ?? ''));
 const detailForm = reactive({
   code: '',
   name: '',
+  englishName: '',
+  shortName: '',
   alias: '',
   externalUrl: '',
   targetType: 'COUNTRY' as CompetitionTargetType,
@@ -338,6 +341,8 @@ function populateDetailForm() {
 
   detailForm.code = competition.value.code;
   detailForm.name = competition.value.name;
+  detailForm.englishName = competition.value.englishName ?? '';
+  detailForm.shortName = competition.value.shortName ?? '';
   detailForm.alias = competition.value.alias ?? '';
   detailForm.externalUrl = competition.value.externalUrl ?? '';
   detailForm.targetType = competition.value.targetType;
@@ -390,6 +395,8 @@ function buildCompetitionPayload() {
   return {
     code: detailForm.code.trim(),
     name: detailForm.name.trim(),
+    englishName: detailForm.englishName.trim() || undefined,
+    shortName: detailForm.shortName.trim() || undefined,
     alias: detailForm.alias.trim() || undefined,
     externalUrl: detailForm.externalUrl.trim() || undefined,
     targetType: detailForm.targetType,
@@ -500,9 +507,11 @@ function formatScope(item: CompetitionDetail) {
   }
 
   if (item.scopeType === 'COUNTRY') {
-    const names = (item.scopeCountries ?? []).map((scope) => scope.country.name).filter(Boolean);
+    const names = (item.scopeCountries ?? [])
+      .map((scope) => formatEntityName(scope.country))
+      .filter(Boolean);
 
-    return names.length ? names.join('、') : (item.country?.name ?? '国家');
+    return names.length ? names.join('、') : item.country ? formatEntityName(item.country) : '国家';
   }
 
   return scopeTypeLabels[item.scopeType];

@@ -4,6 +4,7 @@ import EntityLink from '@/components/EntityLink.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
+import { formatEntityName } from '@/utils/entity-name';
 import { getConfederationVariant } from '@/utils/tag-theme';
 
 const props = defineProps<{
@@ -19,7 +20,9 @@ function formatText(value?: string | number | null) {
 }
 
 function formatNationality() {
-  const names = props.player.nationalities?.map((item) => item.country.name).filter(Boolean);
+  const names = props.player.nationalities
+    ?.map((item) => formatEntityName(item.country, true))
+    .filter(Boolean);
 
   return names?.length ? names.join('、') : formatText(props.player.nationality);
 }
@@ -81,7 +84,7 @@ const clubCareerLinks = computed(() => {
             :id="item.country.id"
             :key="item.country.id"
             type="country"
-            :name="item.country.name"
+            :name="formatEntityName(item.country, true)"
           />
         </div>
         <span v-else>{{ formatNationality() }}</span>
@@ -93,7 +96,11 @@ const clubCareerLinks = computed(() => {
         <EntityLink
           :id="player.representativeClubCareer?.club?.id ?? player.club?.id"
           type="club"
-          :name="formatText(player.representativeClubCareer?.club?.name || player.primaryClub)"
+          :name="
+            player.representativeClubCareer?.club
+              ? formatEntityName(player.representativeClubCareer.club)
+              : formatText(player.primaryClub)
+          "
         />
       </dd>
     </div>
@@ -103,7 +110,9 @@ const clubCareerLinks = computed(() => {
         <EntityLink
           :id="player.initialClubRef?.id"
           type="club"
-          :name="player.initialClubRef?.name || player.initialClub"
+          :name="
+            player.initialClubRef ? formatEntityName(player.initialClubRef) : player.initialClub
+          "
         />
       </dd>
     </div>
@@ -113,7 +122,7 @@ const clubCareerLinks = computed(() => {
         <span v-if="clubCareerLinks.length" class="related-club-links">
           <template v-for="(club, index) in clubCareerLinks" :key="club?.id ?? index">
             <span v-if="index > 0">、</span>
-            <EntityLink :id="club?.id" type="club" :name="club?.name" />
+            <EntityLink :id="club?.id" type="club" :name="formatEntityName(club)" />
           </template>
         </span>
         <span v-else>{{ formatText(player.clubs) }}</span>
@@ -128,7 +137,7 @@ const clubCareerLinks = computed(() => {
             （<EntityLink
               :id="birthCityCountry.id"
               type="country"
-              :name="birthCityCountry.name"
+              :name="formatEntityName(birthCityCountry, true)"
             />）
           </template>
         </template>

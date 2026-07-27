@@ -11,6 +11,7 @@ import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { ConfederationSelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
+import { formatEntityName } from '@/utils/entity-name';
 import { getConfederationVariant } from '@/utils/tag-theme';
 
 const optionStore = useOptionStore();
@@ -96,7 +97,7 @@ async function openEditDialog(country: CountryListItem) {
 async function confirmDelete(country: CountryListItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除「${country.name}」吗？如果已有球员、城市、赛事或荣誉关联，系统会阻止删除。`,
+      `确定要删除「${formatEntityName(country)}」吗？如果已有球员、城市、赛事或荣誉关联，系统会阻止删除。`,
       '删除国家',
       {
         confirmButtonText: '确认删除',
@@ -147,6 +148,10 @@ function formatNumber(value?: number | null, digits = 0) {
 
 function formatConfederation(ref?: NamedRef | null) {
   return ref?.name ?? '';
+}
+
+function formatCountrySubtitle(row: CountryListItem) {
+  return `UID ${row.uid}`;
 }
 
 function openExternalLink(row: CountryListItem) {
@@ -268,7 +273,7 @@ onMounted(() => {
                 :id="row.id"
                 type="country"
                 :title="row.name"
-                :subtitle="`UID ${row.uid}`"
+                :subtitle="formatCountrySubtitle(row)"
               />
             </template>
           </el-table-column>

@@ -8,6 +8,7 @@ import type {
 } from '@/services/types/awards';
 import { getCompetitionLevelVariant, type SemanticTagVariant } from '@/utils/tag-theme';
 import IconFont from '@/components/IconFont.vue';
+import { formatEntityName } from '@/utils/entity-name';
 
 defineProps<{
   award: AwardDetail;
@@ -35,8 +36,9 @@ function getTargetTypeVariant(targetType: AwardTargetType): SemanticTagVariant {
     <div>
       <div class="detail-kicker">{{ scopeTypeLabels[award.scopeType] }}</div>
       <a class="external-title-link" :href="externalUrl" target="_blank" rel="noopener noreferrer">
-        <h2>{{ award.name }}</h2>
+        <h2>{{ formatEntityName(award) }}</h2>
       </a>
+      <p v-if="award.englishName" class="detail-subtitle">{{ award.englishName }}</p>
       <p>{{ award.code }} · {{ formatScope(award) }}</p>
       <div class="detail-tags">
         <span class="award-category-text">{{ award.category || '未分类' }}</span>

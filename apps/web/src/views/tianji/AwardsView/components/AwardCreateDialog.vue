@@ -10,6 +10,8 @@ const props = defineProps<{
   form: {
     code: string;
     name: string;
+    englishName: string;
+    shortName: string;
     targetType: AwardTargetType;
     ruleCategoryKey: string;
     scopeType: AwardScopeType;
@@ -55,6 +57,12 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item label="奖项名称">
         <el-input v-model="form.name" placeholder="金球奖" />
+      </el-form-item>
+      <el-form-item label="英文名">
+        <el-input v-model="form.englishName" placeholder="Ballon d'Or" />
+      </el-form-item>
+      <el-form-item label="简称">
+        <el-input v-model="form.shortName" placeholder="金球" />
       </el-form-item>
       <el-form-item label="获奖对象">
         <el-select v-model="form.targetType" placeholder="选择获奖对象">

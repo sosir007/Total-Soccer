@@ -10,6 +10,7 @@ import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerListItem } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
+import { formatEntityName } from '@/utils/entity-name';
 import {
   getCareerStatusLabel,
   getCareerStatusVariant,
@@ -95,14 +96,17 @@ function formatAge(player: PlayerListItem) {
 }
 
 function formatNationality(player: PlayerListItem) {
-  const names = player.nationalities?.map((item) => item.country.name).filter(Boolean);
+  const names = player.nationalities
+    ?.map((item) => (item.country ? formatEntityName(item.country) : ''))
+    .filter(Boolean);
 
   return names?.length ? names.join('、') : formatText(player.nationality);
 }
 
 function formatBirthCity(player: PlayerListItem) {
   const city = player.birthCityRef?.name ?? player.birthCity;
-  const country = player.birthCityRef?.country?.name ?? player.birthCountry?.name;
+  const countryRef = player.birthCityRef?.country ?? player.birthCountry;
+  const country = countryRef ? formatEntityName(countryRef) : '';
 
   if (!city) {
     return '-';
@@ -120,7 +124,10 @@ function getRepresentativeClub(player: PlayerListItem) {
 }
 
 function formatRepresentativeClubName(player: PlayerListItem) {
-  return player.representativeClubName ?? player.primaryClub ?? '-';
+  const club = getRepresentativeClub(player);
+  return club
+    ? formatEntityName(club)
+    : (player.representativeClubName ?? player.primaryClub ?? '-');
 }
 
 function formatRepresentativeClubUid(player: PlayerListItem) {
@@ -134,7 +141,8 @@ function getInitialClub(player: PlayerListItem) {
 }
 
 function formatInitialClubName(player: PlayerListItem) {
-  return getInitialClub(player)?.name ?? formatText(player.initialClub);
+  const club = getInitialClub(player);
+  return club ? formatEntityName(club) : formatText(player.initialClub);
 }
 
 function formatInitialClubUid(player: PlayerListItem) {
@@ -274,7 +282,7 @@ function openExternalLink(row: PlayerListItem) {
               v-if="row.country"
               :id="row.country.id"
               type="country"
-              :title="row.country.name"
+              :title="formatEntityName(row.country)"
               :subtitle="`UID ${row.country.uid || row.countryUid || '-'}`"
             />
             <EntityNameCell
@@ -294,7 +302,7 @@ function openExternalLink(row: PlayerListItem) {
                 :id="item.country.id"
                 :key="item.country.id"
                 type="country"
-                :name="item.country.name"
+                :name="formatEntityName(item.country)"
               />
             </div>
             <span v-else>{{ formatNationality(row) }}</span>

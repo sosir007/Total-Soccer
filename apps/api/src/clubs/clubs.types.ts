@@ -24,6 +24,8 @@ export type ClubHonorSummaryQuery = Omit<ClubHonorListQuery, 'placement' | 'year
 export interface ClubPayload {
   uid?: string;
   name?: string;
+  englishName?: string;
+  shortName?: string;
   formerName?: string;
   alias?: string;
   countryId?: string;

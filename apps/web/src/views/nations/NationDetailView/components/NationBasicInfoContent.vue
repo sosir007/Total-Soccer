@@ -20,8 +20,12 @@ function formatText(value?: string | number | null) {
 <template>
   <dl class="detail-list">
     <div>
-      <dt>国家</dt>
-      <dd>{{ country.name }}</dd>
+      <dt>英文名</dt>
+      <dd>{{ formatText(country.englishName) }}</dd>
+    </div>
+    <div>
+      <dt>简称</dt>
+      <dd>{{ formatText(country.shortName) }}</dd>
     </div>
     <div>
       <dt>足联</dt>

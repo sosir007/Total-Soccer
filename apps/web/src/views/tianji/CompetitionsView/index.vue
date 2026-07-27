@@ -23,6 +23,7 @@ import { useOptionStore } from '@/stores/options';
 import CompetitionCreateDialog from './components/CompetitionCreateDialog.vue';
 import CompetitionFilterPanel from './components/CompetitionFilterPanel.vue';
 import CompetitionListTable from './components/CompetitionListTable.vue';
+import { formatEntityName } from '@/utils/entity-name';
 
 const targetTypeOptions: Array<{ label: string; value: CompetitionTargetType }> = [
   { label: '国家队', value: 'COUNTRY' },
@@ -98,6 +99,8 @@ const filters = reactive({
 const competitionForm = reactive({
   code: '',
   name: '',
+  englishName: '',
+  shortName: '',
   alias: '',
   honorRuleId: '',
   externalUrl: '',
@@ -229,6 +232,8 @@ async function openEditCompetitionDialog(row: CompetitionListItem) {
   editingId.value = row.id;
   competitionForm.code = row.code;
   competitionForm.name = row.name;
+  competitionForm.englishName = row.englishName ?? '';
+  competitionForm.shortName = row.shortName ?? '';
   competitionForm.alias = row.alias ?? '';
   competitionForm.honorRuleId = resolveHonorRuleOptionId(row);
   competitionForm.externalUrl = row.externalUrl ?? '';
@@ -346,6 +351,8 @@ function buildCompetitionPayload() {
   return {
     code: competitionForm.code.trim(),
     name: competitionForm.name.trim(),
+    englishName: competitionForm.englishName.trim() || undefined,
+    shortName: competitionForm.shortName.trim() || undefined,
     alias: competitionForm.alias.trim() || undefined,
     externalUrl: competitionForm.externalUrl.trim() || undefined,
     targetType: competitionForm.targetType,
@@ -379,6 +386,8 @@ function shouldUseCompetitionFormat(form: {
 function resetCompetitionForm() {
   competitionForm.code = '';
   competitionForm.name = '';
+  competitionForm.englishName = '';
+  competitionForm.shortName = '';
   competitionForm.alias = '';
   competitionForm.honorRuleId = '';
   competitionForm.externalUrl = '';
@@ -543,10 +552,14 @@ function formatScope(competition: CompetitionListItem) {
 
   if (competition.scopeType === 'COUNTRY') {
     const names = (competition.scopeCountries ?? [])
-      .map((scope) => scope.country.name)
+      .map((scope) => formatEntityName(scope.country))
       .filter(Boolean);
 
-    return names.length ? names.join('、') : (competition.country?.name ?? '国家');
+    return names.length
+      ? names.join('、')
+      : competition.country
+        ? formatEntityName(competition.country)
+        : '国家';
   }
 
   return scopeTypeLabels[competition.scopeType];

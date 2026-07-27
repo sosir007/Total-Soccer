@@ -3,7 +3,8 @@ import EntityNameCell from '@/components/EntityNameCell.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { ClubDetail } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
-import { getBooleanLabel, getBooleanVariant, getConfederationVariant } from '@/utils/tag-theme';
+import { formatEntityName } from '@/utils/entity-name';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 defineProps<{
   club: ClubDetail;
@@ -21,6 +22,14 @@ function formatText(value?: string | number | null) {
 <template>
   <dl class="detail-list">
     <div>
+      <dt>英文名</dt>
+      <dd>{{ formatText(club.englishName) }}</dd>
+    </div>
+    <div>
+      <dt>简称</dt>
+      <dd>{{ formatText(club.shortName) }}</dd>
+    </div>
+    <div>
       <dt>曾用名</dt>
       <dd>{{ formatText(club.formerName) }}</dd>
     </div>
@@ -35,7 +44,7 @@ function formatText(value?: string | number | null) {
           v-if="club.countryRef"
           :id="club.countryRef.id"
           type="country"
-          :title="club.countryRef.name"
+          :title="formatEntityName(club.countryRef)"
         />
         <span v-else>-</span>
       </dd>
@@ -53,35 +62,8 @@ function formatText(value?: string | number | null) {
       </dd>
     </div>
     <div>
-      <dt>存在 / 展示</dt>
-      <dd>
-        <span class="club-status-tags">
-          <SemanticTag :variant="getBooleanVariant(club.exists)">
-            {{ getBooleanLabel(club.exists) }}
-          </SemanticTag>
-          <span class="club-status-separator">/</span>
-          <SemanticTag :variant="getBooleanVariant(club.visibleInCatalog)">
-            {{ getBooleanLabel(club.visibleInCatalog) }}
-          </SemanticTag>
-        </span>
-      </dd>
-    </div>
-    <div>
       <dt>备注</dt>
       <dd>{{ formatText(club.remark) }}</dd>
     </div>
   </dl>
 </template>
-
-<style scoped lang="scss">
-.club-status-tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.club-status-separator {
-  color: var(--text-color-secondary);
-}
-</style>

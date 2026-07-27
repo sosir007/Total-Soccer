@@ -4,6 +4,7 @@ import type { BaseConfigItem } from '@/services/types/base-config';
 import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
+import { formatEntityName } from '@/utils/entity-name';
 
 interface BaseConfigFilters {
   page: number;
@@ -55,7 +56,7 @@ const filters = toRef(props, 'filters');
           <template #default="{ row }">{{ row.name || '-' }}</template>
         </el-table-column>
         <el-table-column v-if="isCity" label="管理国家" min-width="120">
-          <template #default="{ row }">{{ row.country?.name || '-' }}</template>
+          <template #default="{ row }">{{ formatEntityName(row.country) }}</template>
         </el-table-column>
         <el-table-column v-if="isPosition" prop="group" label="位置组" width="100">
           <template #default="{ row }">{{ row.group || '-' }}</template>

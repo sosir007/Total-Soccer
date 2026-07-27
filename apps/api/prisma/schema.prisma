@@ -213,6 +213,8 @@ model Country {
   uid                     String
   uidSort                 Int?
   name                    String
+  englishName             String?
+  shortName               String?
   externalUrl             String?
   remark                  String?
   federation              String?
@@ -254,6 +256,8 @@ model Country {
 
   @@index([federation])
   @@index([federationId])
+  @@index([englishName])
+  @@index([shortName])
   @@index([uidSort])
   @@index([visibleInCatalog])
   @@index([isHistorical])
@@ -305,6 +309,8 @@ model Club {
   importKey          String                @unique
   uid                String
   name               String
+  englishName        String?
+  shortName          String?
   formerName         String?
   alias              String?
   externalUrl        String?
@@ -341,6 +347,8 @@ model Club {
   @@index([country])
   @@index([federation])
   @@index([federationId])
+  @@index([englishName])
+  @@index([shortName])
   @@index([visibleInCatalog])
 }
 
@@ -620,6 +628,8 @@ model Competition {
   id                  String                          @id @default(cuid())
   code                String                          @unique
   name                String
+  englishName         String?
+  shortName           String?
   alias               String?
   externalUrl         String?
   targetType          CompetitionTargetType
@@ -645,6 +655,8 @@ model Competition {
   updatedAt           DateTime                        @updatedAt
 
   @@index([targetType])
+  @@index([englishName])
+  @@index([shortName])
   @@index([alias])
   @@index([scopeType])
   @@index([category])
@@ -683,6 +695,8 @@ model Award {
   id              String          @id @default(cuid())
   code            String          @unique
   name            String
+  englishName     String?
+  shortName       String?
   externalUrl     String?
   targetType      AwardTargetType @default(PLAYER)
   scopeType       AwardScopeType  @default(WORLD)
@@ -703,6 +717,8 @@ model Award {
   updatedAt       DateTime        @updatedAt
 
   @@index([targetType])
+  @@index([englishName])
+  @@index([shortName])
   @@index([scopeType])
   @@index([category])
   @@index([competitionId])

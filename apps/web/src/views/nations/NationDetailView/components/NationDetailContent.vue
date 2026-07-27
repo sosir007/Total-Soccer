@@ -10,6 +10,7 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import type { CountryDetail, LineupPositionGroup } from '@/services/types/catalog';
 import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
+import { formatEntityName } from '@/utils/entity-name';
 import NationBasicInfoContent from './NationBasicInfoContent.vue';
 import NationDatabaseStatsContent from './NationDatabaseStatsContent.vue';
 
@@ -38,8 +39,16 @@ function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
 }
 
+function formatSubtitle(englishName?: string | null) {
+  if (englishName) {
+    return `${englishName} · UID ${props.country.uid}`;
+  }
+
+  return `UID ${props.country.uid}`;
+}
+
 function countryExternalUrl() {
-  return buildExternalUrl(props.country.externalUrl, props.country.name || '国家队');
+  return buildExternalUrl(props.country.externalUrl, formatEntityName(props.country) || '国家队');
 }
 
 function countLineupItems(groups?: LineupPositionGroup[]) {
@@ -50,8 +59,8 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 <template>
   <DetailHero
     :kicker="formatRef(country.federationRef)"
-    :title="country.name"
-    :subtitle="`UID ${country.uid}`"
+    :title="formatEntityName(country)"
+    :subtitle="formatSubtitle(country.englishName)"
     :external-url="countryExternalUrl()"
   >
     <template #tags>

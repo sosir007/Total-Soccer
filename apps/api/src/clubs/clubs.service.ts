@@ -377,6 +377,8 @@ export class ClubsService {
         ? {
             OR: [
               { name: { contains: keyword, mode: 'insensitive' } },
+              { englishName: { contains: keyword, mode: 'insensitive' } },
+              { shortName: { contains: keyword, mode: 'insensitive' } },
               { formerName: { contains: keyword, mode: 'insensitive' } },
               { alias: { contains: keyword, mode: 'insensitive' } },
               { uid: { contains: keyword, mode: 'insensitive' } },
@@ -397,6 +399,8 @@ export class ClubsService {
       Prisma.ClubUncheckedCreateInput,
       | 'uid'
       | 'name'
+      | 'englishName'
+      | 'shortName'
       | 'formerName'
       | 'alias'
       | 'externalUrl'
@@ -417,6 +421,8 @@ export class ClubsService {
     return {
       uid,
       name,
+      englishName: this.optionalText(body.englishName),
+      shortName: this.optionalText(body.shortName),
       formerName: this.optionalText(body.formerName),
       alias: this.optionalText(body.alias),
       externalUrl: this.optionalText(body.externalUrl),

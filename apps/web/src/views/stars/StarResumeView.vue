@@ -45,6 +45,8 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import { useRouteTabsStore } from '@/stores/route-tabs';
 import { useOptionStore } from '@/stores/options';
 import type { SelectOption } from '@/stores/options';
+import { formatEntityName } from '@/utils/entity-name';
+import { formatAwardRecipientPlacementDisplay } from '@/utils/award-display';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
@@ -269,7 +271,7 @@ const relatedCompetitionOptions = computed<SelectOption[]>(() => {
     if (!competitionMap.has(competition.id)) {
       competitionMap.set(competition.id, {
         id: competition.id,
-        name: competition.name,
+        name: formatEntityName(competition),
         description: [competition.category, competition.level, competition.format]
           .filter(Boolean)
           .join(' / '),
@@ -310,7 +312,7 @@ const standingChoiceOptions = computed<SelectOption[]>(() =>
         placementLabels[standing.placement],
         standing.club?.name,
         standing.country?.name,
-        standing.edition.competition.name
+        formatEntityName(standing.edition.competition)
       ])
     }))
 );
@@ -362,6 +364,9 @@ const filteredAwardOptions = computed<SelectOption[]>(() =>
 
     return true;
   })
+);
+const selectedAward = computed(
+  () => optionStore.awards.find((award) => award.id === selectedAwardId.value) ?? null
 );
 const awardEditionOptions = computed<SelectOption[]>(() =>
   awardEditions.value.map((edition) => ({
@@ -442,7 +447,7 @@ const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
         teamId: standing.club?.id ?? standing.country?.id ?? null,
         teamType: standing.club ? 'club' : 'country',
         competitionId: competition.id,
-        competitionName: competition.name,
+        competitionName: formatEntityName(competition),
         competition,
         standings: [],
         honors: [],
@@ -763,7 +768,7 @@ async function saveAwardRecipient() {
 async function confirmDeleteAwardRecipient(group: AwardRecipientGroup) {
   try {
     await ElMessageBox.confirm(
-      `确定删除「${group.award.name}」这一组个人奖项吗？`,
+      `确定删除「${formatEntityName(group.award)}」这一组个人奖项吗？`,
       '删除个人奖项',
       {
         type: 'warning',
@@ -1009,7 +1014,7 @@ function getAwardScopeLabel(award: AwardListItem) {
   }
 
   if (award.scopeType === 'COUNTRY') {
-    return award.country?.name ?? '国家';
+    return award.country ? formatEntityName(award.country) : '国家';
   }
 
   return awardScopeOptions.find((item) => item.value === award.scopeType)?.label ?? award.scopeType;
@@ -1119,7 +1124,7 @@ function isGoalkeeperPosition(position?: string | null) {
 }
 
 function formatAwardPlacement(row: AwardRecipientRecord) {
-  return row.placement || (row.rank ? `第 ${row.rank} 名` : '-');
+  return formatAwardRecipientPlacementDisplay(row.edition.award, row);
 }
 
 function sortAwardRecipients(recipients: AwardRecipientRecord[]) {
@@ -1150,14 +1155,29 @@ function formatAwardGroupRemark(recipients: AwardRecipientRecord[]) {
 
 function formatAwardEditionOption(edition: AwardDetail['editions'][number]) {
   const editionLabel = formatEditionShort(edition);
-  const competitionLabel = edition.competitionEdition?.competition?.name;
+  const competitionLabel = edition.competitionEdition?.competition
+    ? formatEntityName(edition.competitionEdition.competition)
+    : '';
+  const recipient = findCurrentPlayerAwardRecipient(edition);
+  const placementLabel = recipient
+    ? formatAwardRecipientPlacementDisplay(selectedAward.value, recipient, '')
+    : '';
 
-  return [editionLabel, competitionLabel].filter(Boolean).join(' / ');
+  return [editionLabel, competitionLabel, placementLabel].filter(Boolean).join(' / ');
+}
+
+function findCurrentPlayerAwardRecipient(edition: AwardDetail['editions'][number]) {
+  return (
+    edition.recipients?.find(
+      (recipient) =>
+        recipient.playerId === playerId.value || recipient.player?.id === playerId.value
+    ) ?? null
+  );
 }
 
 function formatStandingLabel(standing: TeamHonorStandingOption) {
   const team = standing.club?.name ?? standing.country?.name ?? '-';
-  const competition = standing.edition.competition.name;
+  const competition = formatEntityName(standing.edition.competition);
   const edition = formatEditionShort(standing.edition);
 
   return `${team} / ${competition} / ${edition} / ${placementLabels[standing.placement]}`;
@@ -1505,7 +1525,7 @@ onMounted(() => {
               <EntityNameCell
                 :id="row.award.id"
                 type="award"
-                :title="row.award.name"
+                :title="formatEntityName(row.award)"
                 :subtitle="row.award.code"
               />
             </template>

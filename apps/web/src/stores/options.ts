@@ -9,6 +9,7 @@ import type { CompetitionListItem } from '@/services/types/competitions';
 import { fetchClubs, fetchCountries } from '@/services/modules/catalog';
 import type { ClubListItem, CountryListItem } from '@/services/types/catalog';
 import type { PaginationResult } from '@/services/types/common';
+import { formatEntityName } from '@/utils/entity-name';
 import { getPositionVariant } from '@/utils/tag-theme';
 
 export interface SelectOption {
@@ -308,10 +309,10 @@ function countryToOption(country: CountryListItem): SelectOption {
   return {
     id: country.id,
     value: country.id,
-    label: country.name,
+    label: formatEntityName(country),
     uid: country.uid,
     description: confederation,
-    meta: [formatUid(country.uid)],
+    meta: [formatUid(country.uid), country.shortName].filter(Boolean) as string[],
     chipLabel: confederation,
     confederationName: confederation
   };
@@ -324,7 +325,7 @@ function clubToOption(club: ClubListItem): SelectOption {
   return {
     id: club.id,
     value: club.id,
-    label: club.name,
+    label: formatEntityName(club),
     uid: club.uid,
     description: country,
     meta: [formatUid(club.uid), country, club.formerName, club.alias].filter(Boolean) as string[],
@@ -337,7 +338,7 @@ function competitionToOption(competition: CompetitionListItem): SelectOption {
   return {
     id: competition.id,
     value: competition.id,
-    label: competition.name,
+    label: formatEntityName(competition),
     code: competition.code,
     description: [competition.category, competition.level, competition.format]
       .filter(Boolean)
@@ -355,7 +356,7 @@ function awardToOption(award: AwardListItem): SelectOption {
   return {
     id: award.id,
     value: award.id,
-    label: award.name,
+    label: formatEntityName(award),
     code: award.code,
     description: [scopeLabel, award.category, award.level].filter(Boolean).join(' / '),
     meta: [
@@ -385,7 +386,7 @@ function baseConfigToOption(item: BaseConfigItem, value = item.id): SelectOption
 }
 
 function cityToOption(item: BaseConfigItem): SelectOption {
-  const countryName = item.country?.name;
+  const countryName = item.country ? formatEntityName(item.country) : '';
 
   return {
     id: item.id,
@@ -494,7 +495,7 @@ function formatUid(uid?: string | null) {
 
 function formatAwardScope(award: AwardListItem) {
   if (award.country?.name) {
-    return award.country.name;
+    return formatEntityName(award.country);
   }
 
   if (award.confederation?.name) {

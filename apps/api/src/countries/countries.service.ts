@@ -207,39 +207,22 @@ export class CountriesService {
     const where = this.buildWhere(query);
     const orderBy = this.buildOrderBy(query);
 
-    if (this.shouldSortComputedStats(query.sortBy)) {
-      const items = await this.prisma.country.findMany({
-        where,
-        include: COUNTRY_INCLUDE,
-        orderBy
-      });
-      const computedItems = await this.attachComputedStats(items);
-      const sortedItems = this.sortComputedStats(computedItems, query);
-
-      return {
-        items: sortedItems.slice(pagination.skip, pagination.skip + pagination.take),
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        total: sortedItems.length
-      };
-    }
-
-    const [items, total] = await this.prisma.$transaction([
-      this.prisma.country.findMany({
-        where,
-        include: COUNTRY_INCLUDE,
-        orderBy,
-        skip: pagination.skip,
-        take: pagination.take
-      }),
-      this.prisma.country.count({ where })
-    ]);
+    const items = await this.prisma.country.findMany({
+      where,
+      include: COUNTRY_INCLUDE,
+      orderBy
+    });
+    const uniqueItems = this.dedupeCountriesByUid(items);
+    const computedItems = await this.attachComputedStats(uniqueItems);
+    const sortedItems = this.shouldSortComputedStats(query.sortBy)
+      ? this.sortComputedStats(computedItems, query)
+      : computedItems;
 
     return {
-      items: await this.attachComputedStats(items),
+      items: sortedItems.slice(pagination.skip, pagination.skip + pagination.take),
       page: pagination.page,
       pageSize: pagination.pageSize,
-      total
+      total: sortedItems.length
     };
   }
 
@@ -255,15 +238,18 @@ export class CountriesService {
       throw new NotFoundException('国家不存在。');
     }
 
-    const [computedCountry] = await this.attachComputedStats([country]);
+    const canonicalCountry = await this.resolveCanonicalCountry(country);
+    const [computedCountry] = await this.attachComputedStats([canonicalCountry]);
 
     return {
       ...computedCountry,
-      honorRecords: await this.getCountryHonorRecords(country.id, 10),
-      honorGroups: await this.getCountryHonorGroups(country.id),
+      honorRecords: await this.getCountryHonorRecords(canonicalCountry.id, 10),
+      honorGroups: await this.getCountryHonorGroups(canonicalCountry.id),
       bonusHonorDetails:
-        (await this.getCountryBonusHonorDetailMap([country.id])).get(country.id) ?? [],
-      ...(await this.getCountryCareerProfile(country.id))
+        (await this.getCountryBonusHonorDetailMap([canonicalCountry.id])).get(
+          canonicalCountry.id
+        ) ?? [],
+      ...(await this.getCountryCareerProfile(canonicalCountry.id))
     };
   }
 
@@ -377,6 +363,8 @@ export class CountriesService {
       andConditions.push({
         OR: [
           { name: { contains: keyword, mode: 'insensitive' } },
+          { englishName: { contains: keyword, mode: 'insensitive' } },
+          { shortName: { contains: keyword, mode: 'insensitive' } },
           { uid: { contains: keyword, mode: 'insensitive' } },
           { federation: { contains: keyword, mode: 'insensitive' } }
         ]
@@ -415,6 +403,8 @@ export class CountriesService {
       | 'uid'
       | 'uidSort'
       | 'name'
+      | 'englishName'
+      | 'shortName'
       | 'externalUrl'
       | 'remark'
       | 'federation'
@@ -430,6 +420,8 @@ export class CountriesService {
       uid,
       uidSort: this.toUidSort(uid),
       name,
+      englishName: this.optionalText(body.englishName),
+      shortName: this.optionalText(body.shortName),
       externalUrl: this.optionalText(body.externalUrl),
       remark: this.optionalText(body.remark),
       federation: confederation?.name ?? null,
@@ -531,6 +523,54 @@ export class CountriesService {
     return ['playerCount', 'totalPa', 'averagePa', 'medalCount', 'championCount'].includes(
       sortBy ?? ''
     );
+  }
+
+  private dedupeCountriesByUid<T extends { uid: string; shortName?: string | null; id: string }>(
+    items: T[]
+  ) {
+    const groups = new Map<string, T[]>();
+
+    for (const item of items) {
+      const group = groups.get(item.uid) ?? [];
+      group.push(item);
+      groups.set(item.uid, group);
+    }
+
+    return [...groups.values()].map((group) => this.pickPreferredCountry(group));
+  }
+
+  private pickPreferredCountry<T extends { shortName?: string | null; id: string }>(items: T[]) {
+    if (items.length <= 1) {
+      return items[0];
+    }
+
+    return [...items].sort((a, b) => {
+      const aScore = a.shortName ? 1 : 0;
+      const bScore = b.shortName ? 1 : 0;
+
+      if (aScore !== bScore) {
+        return bScore - aScore;
+      }
+
+      return a.id.localeCompare(b.id);
+    })[0];
+  }
+
+  private async resolveCanonicalCountry<
+    T extends { id: string; uid: string; shortName?: string | null }
+  >(country: T) {
+    const sameUidCountries = await this.prisma.country.findMany({
+      where: { uid: country.uid },
+      include: COUNTRY_INCLUDE
+    });
+
+    if (sameUidCountries.length <= 1) {
+      return country;
+    }
+
+    const preferredCountry = this.pickPreferredCountry(sameUidCountries);
+
+    return preferredCountry ?? country;
   }
 
   private sortComputedStats<T extends { name?: string | null }>(

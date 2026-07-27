@@ -48,7 +48,18 @@ const COUNTRY_SEEDS: Record<string, SeedCountry> = {
   韩国: { uid: '135', name: '韩国', confederationCode: 'AFC' },
   中国台北: { uid: '138', name: '中国台北', confederationCode: 'AFC' },
   泰国: { uid: '140', name: '泰国', confederationCode: 'AFC' },
-  阿联酋: { uid: '143', name: '阿联酋', confederationCode: 'AFC' },
+  阿联酋: {
+    uid: '143',
+    name: '阿拉伯联合酋长国',
+    shortName: '阿联酋',
+    confederationCode: 'AFC'
+  },
+  阿拉伯联合酋长国: {
+    uid: '143',
+    name: '阿拉伯联合酋长国',
+    shortName: '阿联酋',
+    confederationCode: 'AFC'
+  },
   乌兹别克斯坦: { uid: '144', name: '乌兹别克斯坦', confederationCode: 'AFC' },
   越南: { uid: '145', name: '越南', confederationCode: 'AFC' },
   澳大利亚: { uid: '1435', name: '澳大利亚', confederationCode: 'AFC' },
@@ -105,6 +116,18 @@ const COUNTRY_SEEDS: Record<string, SeedCountry> = {
   瑞典: { uid: '797', name: '瑞典', confederationCode: 'UEFA' },
   瑞士: { uid: '798', name: '瑞士', confederationCode: 'UEFA' },
   土耳其: { uid: '799', name: '土耳其', confederationCode: 'UEFA' },
+  波黑: {
+    uid: '759',
+    name: '波斯尼亚和黑塞哥维那',
+    shortName: '波黑',
+    confederationCode: 'UEFA'
+  },
+  波斯尼亚和黑塞哥维那: {
+    uid: '759',
+    name: '波斯尼亚和黑塞哥维那',
+    shortName: '波黑',
+    confederationCode: 'UEFA'
+  },
   威尔士: { uid: '801', name: '威尔士', confederationCode: 'UEFA' },
   塞尔维亚: { uid: '802', name: '塞尔维亚', confederationCode: 'UEFA' },
   斯洛伐克: { uid: '803', name: '斯洛伐克', confederationCode: 'UEFA' },

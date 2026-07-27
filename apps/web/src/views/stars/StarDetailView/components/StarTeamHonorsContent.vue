@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
+import { formatEntityName } from '@/utils/entity-name';
 
 type TeamHonor = NonNullable<PlayerDetail['teamHonors']>[number];
 
@@ -74,7 +75,7 @@ function formatSourceType(row: TeamHonor) {
         <EntityLink
           :id="row.standing.edition.competition.id"
           type="competition"
-          :name="row.standing.edition.competition.name"
+          :name="formatEntityName(row.standing.edition.competition)"
         />
       </template>
     </el-table-column>

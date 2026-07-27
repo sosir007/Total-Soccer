@@ -7,6 +7,7 @@ import type {
 import IconFont from '@/components/IconFont.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { getCompetitionCategoryVariant, getCompetitionLevelVariant } from '@/utils/tag-theme';
+import { formatEntityName } from '@/utils/entity-name';
 
 defineProps<{
   competition: CompetitionDetail;
@@ -33,7 +34,8 @@ const emit = defineEmits<{
         {{ targetTypeLabels[competition.targetType] }} /
         {{ scopeTypeLabels[competition.scopeType] }}
       </div>
-      <h2>{{ competition.name }}</h2>
+      <h2>{{ formatEntityName(competition) }}</h2>
+      <p v-if="competition.englishName" class="detail-subtitle">{{ competition.englishName }}</p>
       <p>{{ competition.code }} · {{ formatScope(competition) }}</p>
       <div class="detail-tags">
         <SemanticTag :variant="getCompetitionCategoryVariant(competition.category)">

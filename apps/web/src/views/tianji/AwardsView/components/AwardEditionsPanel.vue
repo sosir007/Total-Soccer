@@ -4,6 +4,7 @@ import type { AwardEdition, AwardEditionRecipient } from '@/services/types/award
 import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
+import { formatEntityName } from '@/utils/entity-name';
 
 type RecipientRankColumn = 1 | 2 | 3;
 
@@ -26,6 +27,7 @@ const rankColumns: RecipientRankColumn[] = [1, 2, 3];
 const props = defineProps<{
   editions: AwardEdition[];
   rankedLayout: boolean;
+  rankColumnLabels?: Partial<Record<RecipientRankColumn, string>>;
   formatEditionRecipients: (edition: AwardEdition) => string;
   formatRecipientPlacement: (recipient: NonNullable<AwardEdition['recipients']>[number]) => string;
 }>();
@@ -39,6 +41,16 @@ const statisticsRows = computed(() => buildStatisticsRows(props.editions));
 
 function getRecipientByRank(edition: AwardEdition, rank: RecipientRankColumn) {
   return edition.recipients?.find((recipient) => getRecipientRank(recipient) === rank) ?? null;
+}
+
+function getRankColumnLabel(rank: RecipientRankColumn) {
+  const fallbackLabels: Record<RecipientRankColumn, string> = {
+    1: '第一名',
+    2: '第二名',
+    3: '第三名'
+  };
+
+  return props.rankColumnLabels?.[rank] ?? fallbackLabels[rank];
 }
 
 function getRecipientRank(recipient: AwardEditionRecipient): RecipientRankColumn | null {
@@ -119,7 +131,7 @@ function getRecipientEntity(recipient: AwardEditionRecipient) {
       key: `country:${recipient.country.id}`,
       id: recipient.country.id,
       type: 'country' as const,
-      name: recipient.country.name
+      name: formatEntityName(recipient.country)
     };
   }
 
@@ -128,7 +140,7 @@ function getRecipientEntity(recipient: AwardEditionRecipient) {
       key: `club:${recipient.club.id}`,
       id: recipient.club.id,
       type: 'club' as const,
-      name: recipient.club.name
+      name: formatEntityName(recipient.club)
     };
   }
 
@@ -252,7 +264,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       <el-table-column label="年份" width="100" sortable>
         <template #default="{ row }">{{ formatEditionYear(row) }}</template>
       </el-table-column>
-      <el-table-column label="第一名" min-width="180" show-overflow-tooltip>
+      <el-table-column :label="getRankColumnLabel(1)" min-width="180" show-overflow-tooltip>
         <template #default="{ row }">
           <template v-if="getRecipientByRank(row, 1)">
             <EntityLink
@@ -265,19 +277,19 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
               v-else-if="getRecipientByRank(row, 1)?.country"
               :id="getRecipientByRank(row, 1)?.country?.id"
               type="country"
-              :name="getRecipientByRank(row, 1)?.country?.name"
+              :name="formatEntityName(getRecipientByRank(row, 1)?.country)"
             />
             <EntityLink
               v-else-if="getRecipientByRank(row, 1)?.club"
               :id="getRecipientByRank(row, 1)?.club?.id"
               type="club"
-              :name="getRecipientByRank(row, 1)?.club?.name"
+              :name="formatEntityName(getRecipientByRank(row, 1)?.club)"
             />
           </template>
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="第二名" min-width="180" show-overflow-tooltip>
+      <el-table-column :label="getRankColumnLabel(2)" min-width="180" show-overflow-tooltip>
         <template #default="{ row }">
           <template v-if="getRecipientByRank(row, 2)">
             <EntityLink
@@ -290,19 +302,19 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
               v-else-if="getRecipientByRank(row, 2)?.country"
               :id="getRecipientByRank(row, 2)?.country?.id"
               type="country"
-              :name="getRecipientByRank(row, 2)?.country?.name"
+              :name="formatEntityName(getRecipientByRank(row, 2)?.country)"
             />
             <EntityLink
               v-else-if="getRecipientByRank(row, 2)?.club"
               :id="getRecipientByRank(row, 2)?.club?.id"
               type="club"
-              :name="getRecipientByRank(row, 2)?.club?.name"
+              :name="formatEntityName(getRecipientByRank(row, 2)?.club)"
             />
           </template>
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="第三名" min-width="180" show-overflow-tooltip>
+      <el-table-column :label="getRankColumnLabel(3)" min-width="180" show-overflow-tooltip>
         <template #default="{ row }">
           <template v-if="getRecipientByRank(row, 3)">
             <EntityLink
@@ -315,13 +327,13 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
               v-else-if="getRecipientByRank(row, 3)?.country"
               :id="getRecipientByRank(row, 3)?.country?.id"
               type="country"
-              :name="getRecipientByRank(row, 3)?.country?.name"
+              :name="formatEntityName(getRecipientByRank(row, 3)?.country)"
             />
             <EntityLink
               v-else-if="getRecipientByRank(row, 3)?.club"
               :id="getRecipientByRank(row, 3)?.club?.id"
               type="club"
-              :name="getRecipientByRank(row, 3)?.club?.name"
+              :name="formatEntityName(getRecipientByRank(row, 3)?.club)"
             />
           </template>
           <span v-else>-</span>
@@ -373,13 +385,13 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
                 v-else-if="recipient.country"
                 :id="recipient.country.id"
                 type="country"
-                :name="recipient.country.name"
+                :name="formatEntityName(recipient.country)"
               />
               <EntityLink
                 v-else-if="recipient.club"
                 :id="recipient.club.id"
                 type="club"
-                :name="recipient.club.name"
+                :name="formatEntityName(recipient.club)"
               />
               <span v-else>-</span>
             </span>
@@ -417,17 +429,32 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
             <EntityLink :id="row.id" :type="row.type" :name="row.name" />
           </template>
         </el-table-column>
-        <el-table-column label="第一名" min-width="190" align="center" show-overflow-tooltip>
+        <el-table-column
+          :label="getRankColumnLabel(1)"
+          min-width="190"
+          align="center"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             <span class="edition-stat-cell rank-first">{{ formatStatCell(row, 1) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="第二名" min-width="190" align="center" show-overflow-tooltip>
+        <el-table-column
+          :label="getRankColumnLabel(2)"
+          min-width="190"
+          align="center"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             <span class="edition-stat-cell rank-second">{{ formatStatCell(row, 2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="第三名" min-width="190" align="center" show-overflow-tooltip>
+        <el-table-column
+          :label="getRankColumnLabel(3)"
+          min-width="190"
+          align="center"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             <span class="edition-stat-cell rank-third">{{ formatStatCell(row, 3) }}</span>
           </template>

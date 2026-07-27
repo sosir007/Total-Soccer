@@ -20,6 +20,8 @@ const saving = ref(false);
 const form = reactive({
   uid: '',
   name: '',
+  englishName: '',
+  shortName: '',
   formerName: '',
   alias: '',
   countryId: '',
@@ -38,6 +40,8 @@ watch(
 
     form.uid = props.club?.uid ?? '';
     form.name = props.club?.name ?? '';
+    form.englishName = props.club?.englishName ?? '';
+    form.shortName = props.club?.shortName ?? '';
     form.formerName = props.club?.formerName ?? '';
     form.alias = props.club?.alias ?? '';
     form.countryId = props.club?.countryRef?.id ?? '';
@@ -61,6 +65,8 @@ async function submit() {
     const payload: ClubPayload = {
       uid: form.uid.trim(),
       name: form.name.trim(),
+      englishName: form.englishName.trim() || undefined,
+      shortName: form.shortName.trim() || undefined,
       formerName: form.formerName.trim() || undefined,
       alias: form.alias.trim() || undefined,
       countryId: form.countryId || undefined,
@@ -99,6 +105,12 @@ async function submit() {
         </el-form-item>
         <el-form-item label="俱乐部名称" required>
           <el-input v-model="form.name" placeholder="请输入俱乐部名称" />
+        </el-form-item>
+        <el-form-item label="英文名">
+          <el-input v-model="form.englishName" placeholder="请输入英文名" />
+        </el-form-item>
+        <el-form-item label="简称">
+          <el-input v-model="form.shortName" placeholder="请输入简称" />
         </el-form-item>
         <el-form-item label="曾用名">
           <el-input v-model="form.formerName" placeholder="多个曾用名可用 / 或 ; 分隔" />

@@ -11,6 +11,7 @@ import {
   getLifecycleStatusVariant,
   type SemanticTagVariant
 } from '@/utils/tag-theme';
+import { formatEntityName } from '@/utils/entity-name';
 
 const props = withDefaults(
   defineProps<{
@@ -114,7 +115,12 @@ function openExternalLink(row: AwardListItem) {
         </el-table-column>
         <el-table-column label="奖项" min-width="220" fixed="left">
           <template #default="{ row }">
-            <EntityNameCell :id="row.id" type="award" :title="row.name" :subtitle="row.code" />
+            <EntityNameCell
+              :id="row.id"
+              type="award"
+              :title="formatEntityName(row)"
+              :subtitle="row.englishName ? `${row.code} · ${row.englishName}` : row.code"
+            />
           </template>
         </el-table-column>
         <el-table-column label="范围" width="100" align="center" header-align="center">

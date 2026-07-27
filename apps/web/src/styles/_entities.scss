@@ -19,6 +19,13 @@
   font-weight: 850;
 }
 
+.detail-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .detail-tags {
   display: flex;
   flex-wrap: wrap;

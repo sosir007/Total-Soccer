@@ -43,6 +43,8 @@ export interface AwardListItem {
   id: string;
   code: string;
   name: string;
+  englishName?: string | null;
+  shortName?: string | null;
   externalUrl?: string | null;
   targetType: AwardTargetType;
   scopeType: AwardScopeType;
@@ -144,6 +146,8 @@ export interface AwardRecipientRecord extends AwardEditionRecipient {
 export interface CreateAwardPayload {
   code: string;
   name: string;
+  englishName?: string;
+  shortName?: string;
   externalUrl?: string;
   targetType: AwardTargetType;
   scopeType: AwardScopeType;

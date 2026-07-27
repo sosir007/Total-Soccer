@@ -2,6 +2,8 @@
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
+import { formatEntityName } from '@/utils/entity-name';
+import { formatAwardRecipientPlacementDisplay } from '@/utils/award-display';
 
 type PersonalHonor = NonNullable<PlayerDetail['personalHonors']>[number];
 
@@ -18,17 +20,13 @@ function formatAwardEdition(honor: PersonalHonor) {
 }
 
 function formatAwardPlacement(honor: PersonalHonor) {
-  if (honor.placement) {
-    return honor.placement;
-  }
-
-  return honor.rank ? `第 ${honor.rank} 名` : '-';
+  return formatAwardRecipientPlacementDisplay(honor.edition.award, honor);
 }
 
 function awardEditionUrl(honor: PersonalHonor) {
   return buildExternalUrl(
     honor.edition.externalUrl || honor.externalUrl,
-    `${honor.edition.award.name} ${formatAwardEdition(honor)}`
+    `${formatEntityName(honor.edition.award)} ${formatAwardEdition(honor)}`
   );
 }
 </script>
@@ -40,7 +38,7 @@ function awardEditionUrl(honor: PersonalHonor) {
         <EntityNameCell
           :id="row.edition.award.id"
           type="award"
-          :title="row.edition.award.name"
+          :title="formatEntityName(row.edition.award)"
           :subtitle="row.edition.award.category || row.edition.award.code"
         />
       </template>

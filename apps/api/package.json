@@ -15,7 +15,8 @@
     "seed:competitions": "tsx src/scripts/seed-competitions.ts",
     "seed:player-awards": "tsx src/scripts/seed-player-awards.ts",
     "seed:team-awards": "tsx src/scripts/seed-team-awards.ts",
-    "seed:club-season-links": "tsx src/scripts/seed-club-season-links.ts"
+    "seed:club-season-links": "tsx src/scripts/seed-club-season-links.ts",
+    "fix:country-display-names": "tsx src/scripts/fix-country-display-names.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

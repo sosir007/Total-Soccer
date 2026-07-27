@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue';
 import BaseOptionSelect from './BaseOptionSelect.vue';
 import { useOptionStore } from '@/stores/options';
+import { formatEntityName } from '@/utils/entity-name';
 
 const model = defineModel<string | string[]>({ default: '' });
 const props = withDefaults(
@@ -66,9 +67,10 @@ const localOptions = computed(() => {
     .map((country) => ({
       id: country.id,
       value: country.id,
-      label: country.name,
+      label: formatEntityName(country),
       uid: country.uid,
-      description: country.federation ?? undefined
+      description: country.federation ?? undefined,
+      meta: [country.shortName].filter(Boolean) as string[]
     }));
 });
 

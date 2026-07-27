@@ -11,6 +11,7 @@ import NoDataView from '@/components/NoDataView.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { ConfederationSelect, CountrySelect } from '@/components/selects';
 import { useOptionStore } from '@/stores/options';
+import { formatEntityName } from '@/utils/entity-name';
 import { getConfederationVariant } from '@/utils/tag-theme';
 
 const optionStore = useOptionStore();
@@ -98,7 +99,7 @@ async function openEditDialog(club: ClubListItem) {
 async function confirmDelete(club: ClubListItem) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除「${club.name}」吗？如果已有球员、经历、赛事或荣誉关联，系统会阻止删除。`,
+      `确定要删除「${formatEntityName(club)}」吗？如果已有球员、经历、赛事或荣誉关联，系统会阻止删除。`,
       '删除俱乐部',
       {
         confirmButtonText: '确认删除',
@@ -148,11 +149,15 @@ function formatNumber(value?: number | null, digits = 0) {
 }
 
 function formatRef(ref?: NamedRef | null) {
-  return ref?.name ?? '-';
+  return formatEntityName(ref);
 }
 
 function formatConfederation(ref?: NamedRef | null) {
   return ref?.name ?? '';
+}
+
+function formatClubSubtitle(row: ClubListItem) {
+  return `UID ${row.uid}`;
 }
 
 function openExternalLink(row: ClubListItem) {
@@ -282,8 +287,8 @@ onMounted(() => {
               <EntityNameCell
                 :id="row.id"
                 type="club"
-                :title="row.name"
-                :subtitle="`UID ${row.uid}`"
+                :title="formatEntityName(row)"
+                :subtitle="formatClubSubtitle(row)"
               />
             </template>
           </el-table-column>

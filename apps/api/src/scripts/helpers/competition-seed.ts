@@ -16,6 +16,8 @@ export type SeedConfederation = {
 export type SeedCountry = {
   uid: string;
   name: string;
+  englishName?: string | null;
+  shortName?: string | null;
   confederationCode: string;
   visibleInCatalogForNew?: boolean;
 };
@@ -33,6 +35,8 @@ type SeedCountryRef = {
 export type SeedClub = {
   uid?: string;
   name: string;
+  englishName?: string | null;
+  shortName?: string | null;
   formerName?: string | null;
   alias?: string | null;
   countryName?: string;
@@ -231,7 +235,17 @@ export async function runCompetitionSeed<T extends SeedEdition>({
       ...competition.create,
       ...primaryCompetitionRelations
     },
-    update: buildCompetitionUpdateData(competition, primaryCompetitionRelations),
+    update: buildCompetitionUpdateData(
+      competition,
+      primaryCompetitionRelations,
+      await prisma.competition.findUnique({
+        where: { code: competition.code },
+        select: {
+          englishName: true,
+          shortName: true
+        }
+      })
+    ),
     select: { id: true }
   });
 
@@ -570,11 +584,18 @@ async function upsertCountry(
   const uidSort = toUidSort(input.uid);
 
   if (existing) {
+    const profileValue = <T extends string | null | undefined>(
+      nextValue: T,
+      currentValue: string | null
+    ) => (hasText(currentValue) ? currentValue : (nextValue ?? null));
+
     return prisma.country.update({
       where: { id: existing.id },
       data: {
         uid: existing.uid === '-' && input.uid !== '-' ? input.uid : existing.uid,
         uidSort: existing.uid === '-' && input.uid !== '-' ? uidSort : existing.uidSort,
+        englishName: profileValue(input.englishName, existing.englishName),
+        shortName: profileValue(input.shortName, existing.shortName),
         federationId: existing.federationId ?? input.confederationId,
         federation: existing.federation ?? input.confederationName,
         isHistorical: input.isHistorical,
@@ -591,6 +612,8 @@ async function upsertCountry(
       uid: input.uid,
       uidSort,
       name: input.name,
+      englishName: input.englishName ?? null,
+      shortName: input.shortName ?? null,
       federationId: input.confederationId,
       federation: input.confederationName,
       visibleInCatalog: input.visibleInCatalogForNew ?? false,
@@ -615,12 +638,18 @@ async function upsertClub(
   if (existing) {
     const profileValue = <T>(nextValue: T | undefined, currentValue: T) =>
       input.forceProfileFields && nextValue !== undefined ? nextValue : currentValue;
+    const seedNameValue = <T extends string | null | undefined>(
+      nextValue: T,
+      currentValue: string | null
+    ) => (hasText(currentValue) ? currentValue : (nextValue ?? null));
 
     return prisma.club.update({
       where: { id: existing.id },
       data: {
         uid: input.forceUid ? uid : existing.uid,
         name: input.forceName ? input.name : existing.name,
+        englishName: seedNameValue(input.englishName, existing.englishName),
+        shortName: seedNameValue(input.shortName, existing.shortName),
         formerName: profileValue(input.formerName, existing.formerName),
         alias: profileValue(input.alias, existing.alias),
         externalUrl: profileValue(input.externalUrl, existing.externalUrl),
@@ -643,6 +672,8 @@ async function upsertClub(
       importKey: `seed:club:${uid === '-' ? input.name : uid}`,
       uid,
       name: input.name,
+      englishName: input.englishName ?? null,
+      shortName: input.shortName ?? null,
       formerName: input.formerName ?? null,
       alias: input.alias ?? null,
       externalUrl: input.externalUrl ?? null,
@@ -663,6 +694,8 @@ async function findExistingCountry(prisma: PrismaClient, uid: string, name: stri
     id: true,
     uid: true,
     uidSort: true,
+    englishName: true,
+    shortName: true,
     federationId: true,
     federation: true,
     visibleInCatalog: true
@@ -690,6 +723,8 @@ async function findExistingClub(prisma: PrismaClient, uid: string, name: string)
     id: true,
     uid: true,
     name: true,
+    englishName: true,
+    shortName: true,
     formerName: true,
     alias: true,
     externalUrl: true,
@@ -818,11 +853,25 @@ function resolvePrimaryCompetitionRelations(
 
 function buildCompetitionUpdateData<T extends SeedEdition>(
   competition: CompetitionSeedOptions<T>['competition'],
-  primaryCompetitionRelations: Prisma.CompetitionUncheckedUpdateInput
+  primaryCompetitionRelations: Prisma.CompetitionUncheckedUpdateInput,
+  existingCompetition?: { englishName: string | null; shortName: string | null } | null
 ): Prisma.CompetitionUncheckedUpdateInput {
+  const existingEnglishName = resolveText(existingCompetition?.englishName);
+  const existingShortName = resolveText(existingCompetition?.shortName);
+
   if (competition.forceProfileFields) {
     return {
       ...competition.update,
+      englishName: existingEnglishName
+        ? existingEnglishName
+        : 'englishName' in competition.update
+          ? (competition.update.englishName as string | null | undefined)
+          : undefined,
+      shortName: existingShortName
+        ? existingShortName
+        : 'shortName' in competition.update
+          ? (competition.update.shortName as string | null | undefined)
+          : undefined,
       ...primaryCompetitionRelations
     };
   }
@@ -835,6 +884,16 @@ function buildCompetitionUpdateData<T extends SeedEdition>(
   if ('category' in update) structuralUpdate.category = update.category;
   if ('level' in update) structuralUpdate.level = update.level;
   if ('format' in update) structuralUpdate.format = update.format;
+  if ('englishName' in update) {
+    structuralUpdate.englishName = existingEnglishName
+      ? existingEnglishName
+      : (update.englishName as string | null | undefined);
+  }
+  if ('shortName' in update) {
+    structuralUpdate.shortName = existingShortName
+      ? existingShortName
+      : (update.shortName as string | null | undefined);
+  }
   if ('lifecycleStatus' in update) structuralUpdate.lifecycleStatus = update.lifecycleStatus;
   if ('sortOrder' in update) structuralUpdate.sortOrder = update.sortOrder;
   if ('confederationId' in update) structuralUpdate.confederationId = update.confederationId;
@@ -844,6 +903,14 @@ function buildCompetitionUpdateData<T extends SeedEdition>(
     ...structuralUpdate,
     ...primaryCompetitionRelations
   };
+}
+
+function hasText(value?: string | null) {
+  return Boolean(value?.trim());
+}
+
+function resolveText(value?: string | null) {
+  return value && value.trim() ? value : null;
 }
 
 function validateEditionStandings(

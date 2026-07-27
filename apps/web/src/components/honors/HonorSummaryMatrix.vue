@@ -10,6 +10,7 @@ import type {
 } from '@/services/types/catalog';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementLabels } from '@/utils/honor';
+import { formatEntityName } from '@/utils/entity-name';
 import { getConfederationVariant, getPlacementTextColor } from '@/utils/tag-theme';
 import HonorPlacementLabel from './HonorPlacementLabel.vue';
 
@@ -684,7 +685,7 @@ function getPlacementDetailGroups(
   const groupMap = new Map<string, HonorSummaryDetail[]>();
 
   for (const detail of details) {
-    const competitionName = detail.competitionName || competition.name;
+    const competitionName = detail.competitionName || formatEntityName(competition);
     const group = groupMap.get(competitionName) ?? [];
     group.push(detail);
     groupMap.set(competitionName, group);
@@ -767,7 +768,7 @@ function getCompetitionScoreBreakdown(
       props.competitions.find((item) => item.id === competitionId) ?? competition;
 
     return {
-      name: getScoreBreakdownNameFromCounts(counts, sourceCompetition.name),
+      name: getScoreBreakdownNameFromCounts(counts, formatEntityName(sourceCompetition)),
       score: counts.score ?? 0,
       entries: getScoreBreakdownEntries(counts)
     };
@@ -776,7 +777,7 @@ function getCompetitionScoreBreakdown(
 
 function getScoreBreakdownName(row: HonorSummaryRow, competition: HonorSummaryDisplayCompetition) {
   const counts = getDisplayCompetitionCounts(row, competition);
-  return getScoreBreakdownNameFromCounts(counts, competition.name);
+  return getScoreBreakdownNameFromCounts(counts, formatEntityName(competition));
 }
 
 function getScoreBreakdownNameFromCounts(counts: HonorSummaryCounts, fallbackName: string) {
@@ -857,7 +858,7 @@ function openScoreDialog(row: HonorSummaryRow) {
         <EntityNameCell
           :id="row.countryRef?.id"
           type="country"
-          :title="row.countryRef?.name"
+          :title="formatEntityName(row.countryRef)"
           :subtitle="`UID ${row.countryRef?.uid || '-'}`"
         />
       </template>
@@ -879,14 +880,14 @@ function openScoreDialog(row: HonorSummaryRow) {
         <EntityNameCell
           :id="row.id"
           type="club"
-          :title="row.name"
+          :title="formatEntityName(row)"
           :subtitle="`UID ${row.uid || '-'}`"
         />
       </template>
     </el-table-column>
 
     <template v-for="competition in displayCompetitions" :key="competition.id">
-      <el-table-column :label="competition.name" align="center" header-align="center">
+      <el-table-column :label="formatEntityName(competition)" align="center" header-align="center">
         <template
           v-for="placement in getCompetitionPlacementFields(competition)"
           :key="`${competition.id}-${placement.value}`"

@@ -6,6 +6,7 @@ import type { HonorGroupedPlacementEntry, HonorGroupedRecord } from '@/services/
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementOptions } from '@/utils/honor';
 import { getCompetitionCategoryVariant, getPlacementTextColor } from '@/utils/tag-theme';
+import { formatEntityName } from '@/utils/entity-name';
 import HonorPlacementLabel from './HonorPlacementLabel.vue';
 
 defineProps<{
@@ -38,7 +39,11 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
   <div v-else class="honor-group-list">
     <div v-for="group in groups" :key="group.competition.id" class="honor-group">
       <div class="honor-group-title">
-        <EntityLink :id="group.competition.id" type="competition" :name="group.competition.name" />
+        <EntityLink
+          :id="group.competition.id"
+          type="competition"
+          :name="formatEntityName(group.competition)"
+        />
         <SemanticTag
           size="small"
           :variant="getCompetitionCategoryVariant(group.competition.category)"

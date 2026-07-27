@@ -10,6 +10,7 @@ import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
 import HonorPlacementLabel from '@/components/honors/HonorPlacementLabel.vue';
 import NoDataView from '@/components/NoDataView.vue';
+import { formatEntityName } from '@/utils/entity-name';
 import { getPlacementTextColor } from '@/utils/tag-theme';
 import type { PlacementField } from './types';
 
@@ -112,8 +113,8 @@ function getStandingStatEntity(standing: CompetitionStanding) {
       ? (standing.country.detailRedirectCountryId ?? standing.country.id)
       : standing.country.id;
     const name = standing.country.isHistorical
-      ? (standing.country.detailRedirectCountry?.name ?? standing.country.name)
-      : standing.country.name;
+      ? formatEntityName(standing.country.detailRedirectCountry ?? standing.country)
+      : formatEntityName(standing.country);
 
     return {
       key: `country:${id}`,
@@ -128,7 +129,7 @@ function getStandingStatEntity(standing: CompetitionStanding) {
       key: `club:${standing.club.id}`,
       id: standing.club.id,
       type: 'club' as const,
-      name: standing.club.name
+      name: formatEntityName(standing.club)
     };
   }
 

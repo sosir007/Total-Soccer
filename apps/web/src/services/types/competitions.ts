@@ -34,6 +34,8 @@ export interface CompetitionListItem {
   id: string;
   code: string;
   name: string;
+  englishName?: string | null;
+  shortName?: string | null;
   alias?: string | null;
   externalUrl?: string | null;
   targetType: CompetitionTargetType;
@@ -97,6 +99,8 @@ export interface CompetitionDetail extends CompetitionListItem {
 export interface CreateCompetitionPayload {
   code: string;
   name: string;
+  englishName?: string;
+  shortName?: string;
   alias?: string;
   externalUrl?: string;
   targetType: CompetitionTargetType;

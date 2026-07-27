@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import SemanticTag from '@/components/SemanticTag.vue';
 import type { ClubDetail } from '@/services/types/catalog';
+import { getBooleanLabel, getBooleanVariant } from '@/utils/tag-theme';
 
 defineProps<{
   club: ClubDetail;
@@ -19,6 +21,20 @@ function formatNumber(value?: number | null, digits = 0) {
 
 <template>
   <dl class="detail-list">
+    <div>
+      <dt>存在 / 展示</dt>
+      <dd>
+        <span class="club-status-tags">
+          <SemanticTag :variant="getBooleanVariant(club.exists)">
+            {{ getBooleanLabel(club.exists) }}
+          </SemanticTag>
+          <span class="club-status-separator">/</span>
+          <SemanticTag :variant="getBooleanVariant(club.visibleInCatalog)">
+            {{ getBooleanLabel(club.visibleInCatalog) }}
+          </SemanticTag>
+        </span>
+      </dd>
+    </div>
     <div>
       <dt>阵容球员数</dt>
       <dd>{{ formatNumber(club.lineupPlayerCount) }}</dd>
@@ -45,3 +61,16 @@ function formatNumber(value?: number | null, digits = 0) {
     </div>
   </dl>
 </template>
+
+<style scoped lang="scss">
+.club-status-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.club-status-separator {
+  color: var(--text-color-secondary);
+}
+</style>

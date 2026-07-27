@@ -9,6 +9,8 @@ const props = defineProps<{
   form: {
     code: string;
     name: string;
+    englishName: string;
+    shortName: string;
     targetType: AwardTargetType;
     externalUrl: string;
     ruleCategoryKey: string;
@@ -54,6 +56,12 @@ const emit = defineEmits<{
       </el-form-item>
       <el-form-item label="奖项名称">
         <el-input v-model="form.name" />
+      </el-form-item>
+      <el-form-item label="英文名">
+        <el-input v-model="form.englishName" />
+      </el-form-item>
+      <el-form-item label="简称">
+        <el-input v-model="form.shortName" />
       </el-form-item>
       <el-form-item label="获奖对象">
         <el-select v-model="form.targetType" placeholder="选择获奖对象">

@@ -85,6 +85,14 @@ function getScopeVariant(award: AwardDetail): SemanticTagVariant {
         <strong>{{ award.code }}</strong>
       </div>
       <div class="award-info-item">
+        <span>英文名</span>
+        <strong>{{ formatText(award.englishName) }}</strong>
+      </div>
+      <div class="award-info-item">
+        <span>简称</span>
+        <strong>{{ formatText(award.shortName) }}</strong>
+      </div>
+      <div class="award-info-item">
         <span>获奖对象</span>
         <strong>
           <SemanticTag :variant="getTargetTypeVariant(award.targetType)">

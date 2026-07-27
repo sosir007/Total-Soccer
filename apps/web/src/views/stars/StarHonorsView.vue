@@ -17,6 +17,7 @@ import NoDataView from '@/components/NoDataView.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { ClubSelect, CountrySelect } from '@/components/selects';
+import { formatEntityName } from '@/utils/entity-name';
 import { getConfederationVariant } from '@/utils/tag-theme';
 
 const loading = ref(false);
@@ -146,12 +147,35 @@ function formatHonorCell(row: PlayerHonorListRow, key: PlayerHonorListColumn['ke
   return row.cells[key]?.text || '-';
 }
 
+function getHonorListColumnWidth(group: string, column: PlayerHonorListColumn) {
+  if (
+    group === '国内联赛' &&
+    ['domesticLeagueTrophy', 'domesticLeagueAward'].includes(column.key)
+  ) {
+    return 300;
+  }
+
+  return 240;
+}
+
 function formatTeamPeriod(period?: string | null) {
   return period ? `（${period}）` : '';
 }
 
-function formatTeamTagLabel(team: { name?: string | null; period?: string | null }) {
-  return `${team.name ?? '-'}${formatTeamPeriod(team.period)}`;
+function formatTeamTagLabel(team: {
+  name?: string | null;
+  shortName?: string | null;
+  period?: string | null;
+}) {
+  return `${formatEntityName(team)}${formatTeamPeriod(team.period)}`;
+}
+
+function formatCountryTeamTagLabel(team: {
+  name?: string | null;
+  shortName?: string | null;
+  period?: string | null;
+}) {
+  return `${formatEntityName(team, true)}${formatTeamPeriod(team.period)}`;
 }
 
 function getTeamTagVariant(team: {
@@ -260,7 +284,7 @@ onMounted(() => {
                 <EntityNameCell
                   :id="row.country?.id"
                   type="country"
-                  :title="row.country?.name"
+                  :title="formatEntityName(row.country)"
                   :subtitle="`UID ${row.country?.uid || '-'}`"
                 />
               </template>
@@ -404,7 +428,7 @@ onMounted(() => {
                       :id="team.id"
                       class="honor-team-tag-link"
                       type="country"
-                      :name="team.name"
+                      :name="formatCountryTeamTagLabel(team)"
                       :title="formatTeamTagLabel(team)"
                     >
                       <SemanticTag
@@ -412,7 +436,7 @@ onMounted(() => {
                         :variant="getTeamTagVariant(team)"
                         size="small"
                       >
-                        {{ formatTeamTagLabel(team) }}
+                        {{ formatCountryTeamTagLabel(team) }}
                       </SemanticTag>
                     </EntityLink>
                   </template>
@@ -429,7 +453,7 @@ onMounted(() => {
                       :id="team.id"
                       class="honor-team-tag-link"
                       type="club"
-                      :name="team.name"
+                      :name="formatEntityName(team)"
                       :title="formatTeamTagLabel(team)"
                     >
                       <SemanticTag
@@ -457,7 +481,8 @@ onMounted(() => {
                 v-for="column in group.columns"
                 :key="column.key"
                 :label="column.label"
-                width="240"
+                :width="getHonorListColumnWidth(group.group, column)"
+                show-overflow-tooltip
               >
                 <template #default="{ row }">
                   <span class="honor-text-cell" :title="formatHonorCell(row, column.key)">

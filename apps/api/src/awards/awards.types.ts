@@ -30,6 +30,8 @@ export interface AwardRecipientListQuery {
 export interface CreateAwardBody {
   code?: string;
   name?: string;
+  englishName?: string;
+  shortName?: string;
   externalUrl?: string;
   targetType?: AwardTargetType;
   scopeType?: AwardScopeType;

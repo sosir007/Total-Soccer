@@ -24,6 +24,8 @@ export type CountryHonorSummaryQuery = Omit<CountryHonorListQuery, 'placement' |
 export interface CountryPayload {
   uid?: string;
   name?: string;
+  englishName?: string;
+  shortName?: string;
   confederationId?: string;
   externalUrl?: string;
   remark?: string;

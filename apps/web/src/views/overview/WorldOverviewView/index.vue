@@ -8,6 +8,7 @@ import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import NoDataView from '@/components/NoDataView.vue';
 import SectionCard from '@/components/SectionCard.vue';
+import { formatEntityName } from '@/utils/entity-name';
 import { chartPalette } from '@/utils/tag-theme';
 
 const loading = ref(false);
@@ -53,7 +54,8 @@ function formatRankMeta(item: DashboardRankItem, type: 'country' | 'club') {
   const score = formatNumber(item.honorScore, 2);
   const countLabel = type === 'country' ? '奖牌' : '奖杯';
   const count = type === 'country' ? item.medalCount : item.trophyCount;
-  const relation = type === 'country' ? item.federationRef?.name : item.countryRef?.name;
+  const relation =
+    type === 'country' ? item.federationRef?.name : formatEntityName(item.countryRef);
 
   return `${relation ?? '未关联'} · ${countLabel} ${formatNumber(count)} · 荣誉分 ${score}`;
 }
@@ -289,7 +291,7 @@ onBeforeUnmount(() => {
               >
                 <strong>{{ index + 1 }}</strong>
                 <div>
-                  <EntityLink :id="country.id" type="country" :name="country.name" />
+                  <EntityLink :id="country.id" type="country" :name="formatEntityName(country)" />
                   <em>{{ formatRankMeta(country, 'country') }}</em>
                 </div>
               </div>
@@ -306,7 +308,7 @@ onBeforeUnmount(() => {
               <div v-for="(club, index) in overview.topClubs" :key="club.id" class="rank-item">
                 <strong>{{ index + 1 }}</strong>
                 <div>
-                  <EntityLink :id="club.id" type="club" :name="club.name" />
+                  <EntityLink :id="club.id" type="club" :name="formatEntityName(club)" />
                   <em>{{ formatRankMeta(club, 'club') }}</em>
                 </div>
               </div>

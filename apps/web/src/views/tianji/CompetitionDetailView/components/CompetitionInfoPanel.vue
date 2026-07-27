@@ -47,6 +47,14 @@ function getScopeVariant(item: CompetitionDetail): SemanticTagVariant {
         <strong>{{ competition.code }}</strong>
       </div>
       <div class="competition-info-item">
+        <span>英文名</span>
+        <strong>{{ formatText(competition.englishName) }}</strong>
+      </div>
+      <div class="competition-info-item">
+        <span>简称</span>
+        <strong>{{ formatText(competition.shortName) }}</strong>
+      </div>
+      <div class="competition-info-item">
         <span>别名</span>
         <strong>{{ formatText(competition.alias) }}</strong>
       </div>

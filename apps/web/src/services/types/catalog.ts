@@ -258,11 +258,13 @@ export interface PlayerListItem {
   staffRoles?: string | null;
   achievement?: string | null;
   remark?: string | null;
-  country?: NamedRef | null;
-  birthCountry?: NamedRef | null;
-  birthCityRef?: (NamedRef & { country?: NamedRef | null }) | null;
+  country?: (NamedRef & { shortName?: string | null }) | null;
+  birthCountry?: (NamedRef & { shortName?: string | null }) | null;
+  birthCityRef?:
+    | (NamedRef & { country?: (NamedRef & { shortName?: string | null }) | null })
+    | null;
   nationalities?: Array<{
-    country: NamedRef;
+    country: NamedRef & { shortName?: string | null };
   }>;
   club?: (NamedRef & { exists: boolean }) | null;
   initialClubRef?: (NamedRef & { exists: boolean }) | null;
@@ -382,12 +384,14 @@ export interface PlayerHonorListRow {
   countryTeams: Array<{
     id?: string | null;
     name?: string | null;
+    shortName?: string | null;
     federationRef?: NamedRef | null;
     period?: string | null;
   }>;
   trophyClubs: Array<{
     id?: string | null;
     name?: string | null;
+    shortName?: string | null;
     federationRef?: NamedRef | null;
     period?: string | null;
   }>;
@@ -437,6 +441,8 @@ export interface CountryListItem {
   id: string;
   uid: string;
   name: string;
+  englishName?: string | null;
+  shortName?: string | null;
   externalUrl?: string | null;
   remark?: string | null;
   visibleInCatalog?: boolean | null;
@@ -476,6 +482,8 @@ export interface ClubListItem {
   id: string;
   uid: string;
   name: string;
+  englishName?: string | null;
+  shortName?: string | null;
   formerName?: string | null;
   alias?: string | null;
   externalUrl?: string | null;
@@ -624,6 +632,8 @@ export interface HonorSummaryResult<TItem> {
 export interface CountryPayload {
   uid: string;
   name: string;
+  englishName?: string;
+  shortName?: string;
   confederationId?: string;
   externalUrl?: string;
   remark?: string;
@@ -633,6 +643,8 @@ export interface CountryPayload {
 export interface ClubPayload {
   uid: string;
   name: string;
+  englishName?: string;
+  shortName?: string;
   formerName?: string;
   alias?: string;
   countryId?: string;

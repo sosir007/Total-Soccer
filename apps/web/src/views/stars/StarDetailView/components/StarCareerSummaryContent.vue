@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import EntityLink from '@/components/EntityLink.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
+import { formatEntityName } from '@/utils/entity-name';
 import {
   getCareerStatusLabel,
   getCareerStatusVariant,
@@ -41,7 +42,9 @@ function formatText(value?: string | number | null) {
         <EntityLink
           :id="player.initialClubRef?.id"
           type="club"
-          :name="player.initialClubRef?.name || player.initialClub"
+          :name="
+            player.initialClubRef ? formatEntityName(player.initialClubRef) : player.initialClub
+          "
         />
       </dd>
     </div>
@@ -51,7 +54,7 @@ function formatText(value?: string | number | null) {
         <span v-if="clubCareerLinks.length" class="summary-club-links">
           <template v-for="(club, index) in clubCareerLinks" :key="club?.id ?? index">
             <span v-if="index > 0">、</span>
-            <EntityLink :id="club?.id" type="club" :name="club?.name" />
+            <EntityLink :id="club?.id" type="club" :name="formatEntityName(club)" />
           </template>
         </span>
         <span v-else>{{ formatText(player.clubs) }}</span>
