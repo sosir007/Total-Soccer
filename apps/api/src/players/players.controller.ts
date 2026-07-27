@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PlayersService } from './players.service.js';
 import type {
   PlayerAwardRecipientPayload,
+  PlayerHonorSummaryQuery,
   PlayerListQuery,
   PlayerPayload,
   PlayerTeamHonorPayload,
@@ -32,6 +33,18 @@ export class PlayersController {
   @ApiOperation({ summary: '查询可关联的球队或国家队荣誉结果' })
   findTeamHonorStandingOptions(@Query() query: TeamHonorStandingOptionQuery) {
     return this.playersService.findTeamHonorStandingOptions(query);
+  }
+
+  @Get('honor-summary')
+  @ApiOperation({ summary: '获取球员荣誉分矩阵汇总' })
+  findHonorSummary(@Query() query: PlayerHonorSummaryQuery) {
+    return this.playersService.findHonorSummary(query);
+  }
+
+  @Get('honor-list-summary')
+  @ApiOperation({ summary: '获取球员荣誉清单汇总' })
+  findHonorListSummary(@Query() query: PlayerHonorSummaryQuery) {
+    return this.playersService.findHonorListSummary(query);
   }
 
   @Get(':id')

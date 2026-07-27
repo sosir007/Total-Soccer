@@ -1,8 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
+  AwardScopeType,
   AwardTargetType,
+  CompetitionScopeType,
+  CompetitionStandingPlacement,
   CompetitionTargetType,
+  HonorRuleConversionType,
+  HonorRulePlacementScope,
   PlayerCareerType,
   PlayerTeamHonorSourceType,
   PlayerTeamHonorStatus,
@@ -13,6 +18,7 @@ import { resolvePagination, toNumber } from '../common/pagination.js';
 import type {
   PlayerAwardRecipientPayload,
   PlayerCareerPayload,
+  PlayerHonorSummaryQuery,
   PlayerListQuery,
   PlayerPayload,
   PlayerTeamHonorPayload,
@@ -28,7 +34,15 @@ const PLAYER_CAREER_INCLUDE = {
       uid: true,
       name: true,
       externalUrl: true,
-      exists: true
+      exists: true,
+      federationRef: {
+        select: {
+          id: true,
+          uid: true,
+          code: true,
+          name: true
+        }
+      }
     }
   },
   country: {
@@ -36,7 +50,15 @@ const PLAYER_CAREER_INCLUDE = {
       id: true,
       uid: true,
       name: true,
-      externalUrl: true
+      externalUrl: true,
+      federationRef: {
+        select: {
+          id: true,
+          uid: true,
+          code: true,
+          name: true
+        }
+      }
     }
   }
 } satisfies Prisma.PlayerCareerInclude;
@@ -46,7 +68,15 @@ const CLUB_NAME_REF_SELECT = {
   uid: true,
   name: true,
   externalUrl: true,
-  exists: true
+  exists: true,
+  federationRef: {
+    select: {
+      id: true,
+      uid: true,
+      code: true,
+      name: true
+    }
+  }
 } satisfies Prisma.ClubSelect;
 
 const PLAYER_LIST_INCLUDE = {
@@ -55,7 +85,15 @@ const PLAYER_LIST_INCLUDE = {
       id: true,
       uid: true,
       name: true,
-      externalUrl: true
+      externalUrl: true,
+      federationRef: {
+        select: {
+          id: true,
+          uid: true,
+          code: true,
+          name: true
+        }
+      }
     }
   },
   club: {
@@ -148,16 +186,15 @@ const PLAYER_AWARD_RECIPIENT_INCLUDE = {
       award: {
         include: {
           competition: {
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              externalUrl: true,
-              targetType: true,
-              scopeType: true,
-              category: true,
-              level: true,
-              format: true
+            include: {
+              scopeConfederations: true,
+              scopeCountries: true,
+              editions: {
+                select: {
+                  year: true,
+                  quantity: true
+                }
+              }
             }
           },
           confederation: {
@@ -185,7 +222,18 @@ const PLAYER_AWARD_RECIPIENT_INCLUDE = {
 const TEAM_HONOR_STANDING_INCLUDE = {
   edition: {
     include: {
-      competition: true
+      competition: {
+        include: {
+          scopeConfederations: true,
+          scopeCountries: true,
+          editions: {
+            select: {
+              year: true,
+              quantity: true
+            }
+          }
+        }
+      }
     }
   },
   country: {
@@ -193,7 +241,15 @@ const TEAM_HONOR_STANDING_INCLUDE = {
       id: true,
       uid: true,
       name: true,
-      externalUrl: true
+      externalUrl: true,
+      federationRef: {
+        select: {
+          id: true,
+          uid: true,
+          code: true,
+          name: true
+        }
+      }
     }
   },
   club: {
@@ -202,7 +258,15 @@ const TEAM_HONOR_STANDING_INCLUDE = {
       uid: true,
       name: true,
       externalUrl: true,
-      exists: true
+      exists: true,
+      federationRef: {
+        select: {
+          id: true,
+          uid: true,
+          code: true,
+          name: true
+        }
+      }
     }
   }
 } satisfies Prisma.CompetitionStandingInclude;
@@ -254,6 +318,127 @@ const PLAYER_DETAIL_INCLUDE = {
   }
 } satisfies Prisma.PlayerInclude;
 
+type PlayerHonorSummaryPlayer = Prisma.PlayerGetPayload<{
+  include: typeof PLAYER_DETAIL_INCLUDE;
+}>;
+type PlayerAwardRecipientRecord = PlayerHonorSummaryPlayer['awardRecipients'][number];
+type PlayerTeamHonorRecord = PlayerHonorSummaryPlayer['teamHonors'][number];
+type PlayerAwardCompetition = NonNullable<
+  PlayerAwardRecipientRecord['edition']['award']['competition']
+>;
+type PlayerHonorCompetition = PlayerTeamHonorRecord['standing']['edition']['competition'];
+type PlayerAwardRule = Prisma.AwardRuleGetPayload<Record<string, never>>;
+type PlayerHonorRule = Prisma.HonorRuleGetPayload<{ include: { coefficients: true } }>;
+type PlayerHonorScoreBucketKey =
+  | 'worldAwardScore'
+  | 'continentalAwardScore'
+  | 'countryAwardScore'
+  | 'leagueAwardScore'
+  | 'clubAwardScore'
+  | 'mediaAwardScore'
+  | 'worldCupScore'
+  | 'continentalCupScore'
+  | 'continentalLeagueScore'
+  | 'domesticLeagueScore'
+  | 'domesticCupScore'
+  | 'countryCupScore'
+  | 'internationalClubScore'
+  | 'otherTeamHonorScore';
+type PlayerHonorSummaryScoreMap = Record<PlayerHonorScoreBucketKey, number>;
+type PlayerHonorSummaryColumn = {
+  key: PlayerHonorScoreBucketKey;
+  label: string;
+  group: string;
+  sourceType: 'AWARD' | 'TEAM';
+};
+type PlayerHonorListColumnKey =
+  | 'worldAward'
+  | 'continentalAward'
+  | 'countryAward'
+  | 'mediaAward'
+  | 'worldCupTrophy'
+  | 'worldCupAward'
+  | 'continentalCupTrophy'
+  | 'continentalCupAward'
+  | 'continentalLeagueTrophy'
+  | 'continentalLeagueAward'
+  | 'domesticLeagueTrophy'
+  | 'domesticLeagueAward'
+  | 'domesticCupTrophy'
+  | 'domesticCupAward'
+  | 'otherCountryTrophy'
+  | 'otherCountryAward'
+  | 'otherClubTrophy'
+  | 'otherClubAward'
+  | 'otherPersonalHonor';
+type PlayerHonorListColumn = {
+  key: PlayerHonorListColumnKey;
+  label: string;
+  group: string;
+  sourceType: 'AWARD' | 'TEAM' | 'OTHER';
+};
+type PlayerHonorListCell = {
+  text: string;
+  items: string[];
+};
+type PlayerHonorListCellMap = Record<PlayerHonorListColumnKey, PlayerHonorListCell>;
+type PlayerHonorListEntry = {
+  title: string;
+  subjectName: string | null;
+  periods: Array<{
+    label: string;
+    sortYear: number;
+    placement: string | null;
+  }>;
+  sortOrder: number;
+};
+type ScoredPlayerAward = {
+  playerId: string;
+  bucketKey: PlayerHonorScoreBucketKey;
+  groupKey: string;
+  rule: PlayerAwardRule;
+  score: number;
+};
+
+const PLAYER_HONOR_SUMMARY_COLUMNS: PlayerHonorSummaryColumn[] = [
+  { key: 'worldAwardScore', label: '国际奖', group: '个人奖项', sourceType: 'AWARD' },
+  { key: 'continentalAwardScore', label: '洲际奖', group: '个人奖项', sourceType: 'AWARD' },
+  { key: 'countryAwardScore', label: '国家奖', group: '个人奖项', sourceType: 'AWARD' },
+  { key: 'leagueAwardScore', label: '联赛奖', group: '个人奖项', sourceType: 'AWARD' },
+  { key: 'clubAwardScore', label: '俱乐部奖', group: '个人奖项', sourceType: 'AWARD' },
+  { key: 'mediaAwardScore', label: '附加奖', group: '个人奖项', sourceType: 'AWARD' },
+  { key: 'worldCupScore', label: '世界杯', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'continentalCupScore', label: '洲际杯', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'continentalLeagueScore', label: '洲际联赛', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'domesticLeagueScore', label: '国内联赛', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'domesticCupScore', label: '国内杯', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'countryCupScore', label: '国家杯', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'internationalClubScore', label: '国际俱乐部', group: '团队荣誉', sourceType: 'TEAM' },
+  { key: 'otherTeamHonorScore', label: '其他团队', group: '团队荣誉', sourceType: 'TEAM' }
+];
+
+const PLAYER_HONOR_LIST_COLUMNS: PlayerHonorListColumn[] = [
+  { key: 'worldAward', label: '世界', group: '奖项', sourceType: 'AWARD' },
+  { key: 'continentalAward', label: '洲际', group: '奖项', sourceType: 'AWARD' },
+  { key: 'countryAward', label: '国家', group: '奖项', sourceType: 'AWARD' },
+  { key: 'mediaAward', label: '媒体/附加', group: '奖项', sourceType: 'AWARD' },
+  { key: 'worldCupTrophy', label: '奖杯', group: '世界杯', sourceType: 'TEAM' },
+  { key: 'worldCupAward', label: '奖项', group: '世界杯', sourceType: 'AWARD' },
+  { key: 'continentalCupTrophy', label: '奖杯', group: '洲际杯', sourceType: 'TEAM' },
+  { key: 'continentalCupAward', label: '奖项', group: '洲际杯', sourceType: 'AWARD' },
+  { key: 'continentalLeagueTrophy', label: '奖杯', group: '洲际联赛', sourceType: 'TEAM' },
+  { key: 'continentalLeagueAward', label: '奖项', group: '洲际联赛', sourceType: 'AWARD' },
+  { key: 'domesticLeagueTrophy', label: '奖杯', group: '国内联赛', sourceType: 'TEAM' },
+  { key: 'domesticLeagueAward', label: '奖项', group: '国内联赛', sourceType: 'AWARD' },
+  { key: 'domesticCupTrophy', label: '奖杯', group: '国内杯赛', sourceType: 'TEAM' },
+  { key: 'domesticCupAward', label: '奖项', group: '国内杯赛', sourceType: 'AWARD' },
+  { key: 'otherCountryTrophy', label: '奖杯', group: '其他国家队', sourceType: 'TEAM' },
+  { key: 'otherCountryAward', label: '奖项', group: '其他国家队', sourceType: 'AWARD' },
+  { key: 'otherClubTrophy', label: '奖杯', group: '其他俱乐部', sourceType: 'TEAM' },
+  { key: 'otherClubAward', label: '奖项', group: '其他俱乐部', sourceType: 'AWARD' },
+  { key: 'otherPersonalHonor', label: '成就', group: '个人其他', sourceType: 'OTHER' }
+];
+
 @Injectable()
 export class PlayersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -280,6 +465,91 @@ export class PlayersService {
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
+    };
+  }
+
+  async findHonorSummary(query: PlayerHonorSummaryQuery) {
+    const pagination = resolvePagination(query);
+    const where = this.buildHonorSummaryWhere(query);
+    const [players, awardRules, honorRules] = await Promise.all([
+      this.prisma.player.findMany({
+        where,
+        include: PLAYER_DETAIL_INCLUDE,
+        orderBy: [{ pa: { sort: 'desc', nulls: 'last' } }, { chineseName: 'asc' }, { uid: 'asc' }]
+      }),
+      this.prisma.awardRule.findMany({
+        where: { enabled: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true },
+        include: { coefficients: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      })
+    ]);
+    const rows = players
+      .map((player) => this.buildPlayerHonorSummaryRow(player, awardRules, honorRules))
+      .filter((row) => row.totalScore > 0 || row.awardCount > 0 || row.teamHonorCount > 0)
+      .sort((left, right) => {
+        if (left.totalScore !== right.totalScore) return right.totalScore - left.totalScore;
+        if ((left.pa ?? 0) !== (right.pa ?? 0)) return (right.pa ?? 0) - (left.pa ?? 0);
+        return left.chineseName.localeCompare(right.chineseName, 'zh-CN');
+      });
+
+    return {
+      items: rows.slice(pagination.skip, pagination.skip + pagination.take),
+      columns: PLAYER_HONOR_SUMMARY_COLUMNS,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total: rows.length
+    };
+  }
+
+  async findHonorListSummary(query: PlayerHonorSummaryQuery) {
+    const pagination = resolvePagination(query);
+    const where = this.buildHonorSummaryWhere(query);
+    const [players, awardRules, honorRules] = await Promise.all([
+      this.prisma.player.findMany({
+        where,
+        include: PLAYER_DETAIL_INCLUDE,
+        orderBy: [{ pa: { sort: 'desc', nulls: 'last' } }, { chineseName: 'asc' }, { uid: 'asc' }]
+      }),
+      this.prisma.awardRule.findMany({
+        where: { enabled: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true },
+        include: { coefficients: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      })
+    ]);
+    const rows = players
+      .map((player) => {
+        const scoreRow = this.buildPlayerHonorSummaryRow(player, awardRules, honorRules);
+
+        return {
+          ...this.buildPlayerHonorListRow(player),
+          awardCount: scoreRow.awardCount,
+          teamHonorCount: scoreRow.teamHonorCount,
+          awardScore: scoreRow.awardScore,
+          teamHonorScore: scoreRow.teamHonorScore,
+          totalScore: scoreRow.totalScore
+        };
+      })
+      .filter((row) => row.totalScore > 0 || row.awardCount > 0 || row.teamHonorCount > 0)
+      .sort((left, right) => {
+        if (left.totalScore !== right.totalScore) return right.totalScore - left.totalScore;
+        if ((left.pa ?? 0) !== (right.pa ?? 0)) return (right.pa ?? 0) - (left.pa ?? 0);
+        return left.chineseName.localeCompare(right.chineseName, 'zh-CN');
+      });
+
+    return {
+      items: rows.slice(pagination.skip, pagination.skip + pagination.take),
+      columns: PLAYER_HONOR_LIST_COLUMNS,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total: rows.length
     };
   }
 
@@ -835,6 +1105,982 @@ export class PlayersService {
           }
         : {})
     };
+  }
+
+  private buildHonorSummaryWhere(query: PlayerHonorSummaryQuery): Prisma.PlayerWhereInput {
+    const keyword = query.keyword?.trim();
+
+    return {
+      ...(keyword
+        ? {
+            OR: [
+              { chineseName: { contains: keyword, mode: 'insensitive' } },
+              { englishName: { contains: keyword, mode: 'insensitive' } },
+              { uid: { contains: keyword, mode: 'insensitive' } },
+              { nationality: { contains: keyword, mode: 'insensitive' } },
+              { representedCountry: { contains: keyword, mode: 'insensitive' } },
+              { primaryClub: { contains: keyword, mode: 'insensitive' } }
+            ]
+          }
+        : {}),
+      ...(query.countryId ? { countryId: query.countryId } : {}),
+      ...(query.clubId ? { clubId: query.clubId } : {})
+    };
+  }
+
+  private buildPlayerHonorSummaryRow(
+    player: PlayerHonorSummaryPlayer,
+    awardRules: PlayerAwardRule[],
+    honorRules: PlayerHonorRule[]
+  ) {
+    const scores = this.createEmptyPlayerHonorScores();
+    const awardScore = this.addPlayerAwardScores(
+      scores,
+      player.awardRecipients,
+      awardRules,
+      honorRules
+    );
+    const teamHonorScore = this.addPlayerTeamHonorScores(scores, player.teamHonors, honorRules);
+    const totalScore = this.round(awardScore + teamHonorScore);
+
+    return {
+      id: player.id,
+      uid: player.uid,
+      chineseName: player.chineseName,
+      englishName: player.englishName,
+      pa: player.pa,
+      primaryRole: player.primaryRole,
+      positions: player.positions,
+      country: player.country,
+      club: player.club,
+      awardCount: player.awardRecipients.length,
+      teamHonorCount: player.teamHonors.length,
+      awardScore: this.round(awardScore),
+      teamHonorScore: this.round(teamHonorScore),
+      totalScore,
+      scores
+    };
+  }
+
+  private buildPlayerHonorListRow(player: PlayerHonorSummaryPlayer) {
+    const entryMap = this.createEmptyPlayerHonorListEntryMap();
+
+    for (const recipient of player.awardRecipients) {
+      const award = recipient.edition.award;
+      const period = this.resolveAwardEditionPeriod(recipient.edition);
+
+      this.addPlayerHonorListEntry(entryMap, this.resolveHonorListAwardColumn(award), {
+        title: award.name,
+        subjectName: null,
+        periods: [
+          {
+            label: period,
+            sortYear: recipient.edition.year ?? this.resolveSortYear(period),
+            placement: this.formatAwardRecipientPlacement(recipient)
+          }
+        ],
+        sortOrder: award.sortOrder
+      });
+    }
+
+    for (const teamHonor of player.teamHonors) {
+      const standing = teamHonor.standing;
+      const competition = standing.edition.competition;
+      const period =
+        standing.edition.season || String(standing.edition.year ?? standing.edition.name);
+
+      this.addPlayerHonorListEntry(entryMap, this.resolveHonorListTeamColumn(competition), {
+        title: competition.name,
+        subjectName: this.resolveTeamHonorListSubject(player, teamHonor),
+        periods: [
+          {
+            label: period,
+            sortYear: standing.edition.year ?? this.resolveSortYear(period),
+            placement: this.formatStandingPlacement(standing.placement)
+          }
+        ],
+        sortOrder: competition.sortOrder
+      });
+    }
+
+    return {
+      id: player.id,
+      uid: player.uid,
+      chineseName: player.chineseName,
+      englishName: player.englishName,
+      birthDate: player.birthDate,
+      pa: player.pa,
+      primaryRole: player.primaryRole,
+      positions: player.positions,
+      country: player.country,
+      club: player.club,
+      countryTeams: this.buildPlayerHonorListCountryTeams(player),
+      trophyClubs: this.buildPlayerHonorListTrophyClubs(player),
+      cells: this.toPlayerHonorListCells(entryMap)
+    };
+  }
+
+  private createEmptyPlayerHonorListEntryMap() {
+    return PLAYER_HONOR_LIST_COLUMNS.reduce(
+      (map, column) => {
+        map[column.key] = new Map<string, PlayerHonorListEntry>();
+        return map;
+      },
+      {} as Record<PlayerHonorListColumnKey, Map<string, PlayerHonorListEntry>>
+    );
+  }
+
+  private addPlayerHonorListEntry(
+    entryMap: Record<PlayerHonorListColumnKey, Map<string, PlayerHonorListEntry>>,
+    columnKey: PlayerHonorListColumnKey,
+    entry: PlayerHonorListEntry
+  ) {
+    const key = `${entry.title}::${entry.subjectName ?? ''}`;
+    const existing = entryMap[columnKey].get(key);
+
+    if (existing) {
+      existing.periods.push(...entry.periods);
+      return;
+    }
+
+    entryMap[columnKey].set(key, entry);
+  }
+
+  private toPlayerHonorListCells(
+    entryMap: Record<PlayerHonorListColumnKey, Map<string, PlayerHonorListEntry>>
+  ): PlayerHonorListCellMap {
+    return PLAYER_HONOR_LIST_COLUMNS.reduce((cells, column) => {
+      const entries = [...entryMap[column.key].values()]
+        .map((entry) => ({
+          ...entry,
+          periods: this.dedupeAndSortHonorPeriods(entry.periods)
+        }))
+        .sort(
+          (left, right) =>
+            left.sortOrder - right.sortOrder ||
+            (left.periods[0]?.sortYear ?? 0) - (right.periods[0]?.sortYear ?? 0) ||
+            left.title.localeCompare(right.title, 'zh-CN')
+        );
+      const items = entries.map((entry) => this.formatHonorListEntry(entry));
+
+      cells[column.key] = {
+        text: items.join('；'),
+        items
+      };
+
+      return cells;
+    }, {} as PlayerHonorListCellMap);
+  }
+
+  private dedupeAndSortHonorPeriods(periods: PlayerHonorListEntry['periods']) {
+    const uniquePeriods = new Map<string, (typeof periods)[number]>();
+
+    for (const period of periods) {
+      uniquePeriods.set(`${period.label}::${period.placement ?? ''}`, period);
+    }
+
+    return [...uniquePeriods.values()].sort(
+      (left, right) => left.sortYear - right.sortYear || left.label.localeCompare(right.label)
+    );
+  }
+
+  private formatHonorListEntry(entry: PlayerHonorListEntry) {
+    const placementGroups = new Map<string, PlayerHonorListEntry['periods']>();
+
+    for (const period of entry.periods) {
+      const placement = this.resolveVisibleHonorPlacement(period.placement, entry.title);
+      const group = placementGroups.get(placement ?? '') ?? [];
+      group.push(period);
+      placementGroups.set(placement ?? '', group);
+    }
+
+    const segments = [...placementGroups.entries()].map(([placement, periods]) => {
+      const periodText = periods.map((period) => period.label).join('、');
+      const subjectText = this.formatHonorListSubject(entry.subjectName, periods.length);
+      const placementText = placement ? ` ${placement}` : '';
+
+      return `${periodText} ${subjectText}${entry.title}${placementText}`;
+    });
+
+    return segments.join('，');
+  }
+
+  private resolveHonorListAwardColumn(award: PlayerAwardRecipientRecord['edition']['award']) {
+    if (award.competition) {
+      const teamBucket = this.resolveTeamHonorScoreBucket(award.competition);
+
+      if (teamBucket === 'worldCupScore') return 'worldCupAward';
+      if (teamBucket === 'continentalCupScore') return 'continentalCupAward';
+      if (teamBucket === 'continentalLeagueScore') return 'continentalLeagueAward';
+      if (teamBucket === 'domesticLeagueScore') return 'domesticLeagueAward';
+      if (teamBucket === 'domesticCupScore') return 'domesticCupAward';
+      if (award.competition.targetType === CompetitionTargetType.COUNTRY) {
+        return 'otherCountryAward';
+      }
+
+      return 'otherClubAward';
+    }
+
+    if (award.scopeType === AwardScopeType.WORLD) return 'worldAward';
+    if (award.scopeType === AwardScopeType.CONFEDERATION) return 'continentalAward';
+    if (award.scopeType === AwardScopeType.COUNTRY) return 'countryAward';
+
+    return 'mediaAward';
+  }
+
+  private resolveHonorListTeamColumn(
+    competition: PlayerAwardCompetition | PlayerHonorCompetition
+  ): PlayerHonorListColumnKey {
+    const teamBucket = this.resolveTeamHonorScoreBucket(competition);
+
+    if (teamBucket === 'worldCupScore') return 'worldCupTrophy';
+    if (teamBucket === 'continentalCupScore') return 'continentalCupTrophy';
+    if (teamBucket === 'continentalLeagueScore') return 'continentalLeagueTrophy';
+    if (teamBucket === 'domesticLeagueScore') return 'domesticLeagueTrophy';
+    if (teamBucket === 'domesticCupScore') return 'domesticCupTrophy';
+    if (competition.targetType === CompetitionTargetType.COUNTRY) return 'otherCountryTrophy';
+
+    return 'otherClubTrophy';
+  }
+
+  private formatAwardRecipientPlacement(recipient: PlayerAwardRecipientRecord) {
+    const placement = recipient.placement?.trim();
+
+    if (placement) {
+      return placement;
+    }
+
+    return recipient.rank ? this.formatAwardRank(recipient.rank) : null;
+  }
+
+  private formatAwardRank(rank: number) {
+    const rankLabels: Record<number, string> = {
+      1: '第一名',
+      2: '第二名',
+      3: '第三名',
+      4: '第四名'
+    };
+
+    return rankLabels[rank] ?? `第${rank}名`;
+  }
+
+  private formatStandingPlacement(placement: CompetitionStandingPlacement) {
+    if (placement === CompetitionStandingPlacement.CHAMPION) return '冠军';
+    if (placement === CompetitionStandingPlacement.RUNNER_UP) return '亚军';
+    if (placement === CompetitionStandingPlacement.THIRD_PLACE) return '季军';
+    if (placement === CompetitionStandingPlacement.FOURTH_PLACE) return '殿军';
+    if (placement === CompetitionStandingPlacement.SEMI_FINALIST) return '四强';
+
+    return placement;
+  }
+
+  private resolveVisibleHonorPlacement(placement: string | null, title: string) {
+    const normalizedPlacement = this.normalizeText(placement);
+
+    if (
+      !normalizedPlacement ||
+      ['冠军', '第一名', '第1名', '1', '获奖', '优胜者', '金奖', '金球奖', '最佳球员'].includes(
+        normalizedPlacement
+      )
+    ) {
+      return null;
+    }
+
+    const normalizedTitle = this.normalizeText(title);
+    const dedupedPlacement = normalizedPlacement.replace(/^并列/, '');
+
+    if (dedupedPlacement && normalizedTitle.includes(dedupedPlacement)) {
+      return null;
+    }
+
+    return placement;
+  }
+
+  private formatHonorListSubject(subjectName: string | null, count: number) {
+    if (!subjectName) {
+      return '';
+    }
+
+    return count > 1 ? `${subjectName}${count}次` : `${subjectName} `;
+  }
+
+  private resolveTeamHonorListSubject(
+    player: PlayerHonorSummaryPlayer,
+    teamHonor: PlayerTeamHonorRecord
+  ) {
+    const standing = teamHonor.standing;
+
+    if (standing.club?.name) {
+      return standing.club.name;
+    }
+
+    if (
+      standing.country?.name &&
+      !this.hasSingleRepresentativeCountry(player, standing.country.id)
+    ) {
+      return standing.country.name;
+    }
+
+    return null;
+  }
+
+  private hasSingleRepresentativeCountry(player: PlayerHonorSummaryPlayer, countryId: string) {
+    const countryIds = new Set(
+      player.careers
+        .filter((career) => career.careerType === PlayerCareerType.COUNTRY && career.countryId)
+        .map((career) => career.countryId)
+    );
+
+    if (!countryIds.size && player.countryId) {
+      countryIds.add(player.countryId);
+    }
+
+    return countryIds.size === 1 && countryIds.has(countryId);
+  }
+
+  private buildPlayerHonorListCountryTeams(player: PlayerHonorSummaryPlayer) {
+    const countryCareers = player.careers
+      .filter((career) => career.careerType === PlayerCareerType.COUNTRY && career.country)
+      .map((career) => ({
+        id: career.country?.id ?? null,
+        name: career.country?.name ?? null,
+        federationRef: career.country?.federationRef ?? null,
+        period: this.formatCompactCareerPeriod(career)
+      }));
+
+    if (countryCareers.length) {
+      return this.dedupeHonorTeamRefs(countryCareers);
+    }
+
+    return player.country
+      ? [
+          {
+            id: player.country.id,
+            name: player.country.name,
+            federationRef: player.country.federationRef ?? null,
+            period: null
+          }
+        ]
+      : [];
+  }
+
+  private buildPlayerHonorListTrophyClubs(player: PlayerHonorSummaryPlayer) {
+    const trophyClubIds = new Set(
+      player.teamHonors
+        .map((teamHonor) => teamHonor.standing.club?.id)
+        .filter((id): id is string => Boolean(id))
+    );
+    const clubs = player.careers
+      .filter(
+        (career) =>
+          career.careerType === PlayerCareerType.CLUB &&
+          career.club &&
+          trophyClubIds.has(career.club.id)
+      )
+      .map((career) => ({
+        id: career.club?.id ?? null,
+        name: career.club?.name ?? null,
+        federationRef: career.club?.federationRef ?? null,
+        period: this.formatCompactCareerPeriod(career)
+      }));
+
+    for (const teamHonor of player.teamHonors) {
+      const club = teamHonor.standing.club;
+
+      if (!club || clubs.some((item) => item.id === club.id)) {
+        continue;
+      }
+
+      clubs.push({
+        id: club.id,
+        name: club.name,
+        federationRef: club.federationRef ?? null,
+        period: teamHonor.career ? this.formatCompactCareerPeriod(teamHonor.career) : null
+      });
+    }
+
+    return this.dedupeHonorTeamRefs(clubs);
+  }
+
+  private dedupeHonorTeamRefs<
+    T extends { id: string | null; name: string | null; period: string | null }
+  >(refs: T[]) {
+    const uniqueRefs = new Map<string, T>();
+
+    for (const ref of refs) {
+      const key = `${ref.id ?? ref.name ?? ''}::${ref.period ?? ''}`;
+
+      if (ref.name && !uniqueRefs.has(key)) {
+        uniqueRefs.set(key, ref);
+      }
+    }
+
+    return [...uniqueRefs.values()];
+  }
+
+  private formatCompactCareerPeriod(career: {
+    startYear?: number | null;
+    endYear?: number | null;
+    startSeason?: string | null;
+    endSeason?: string | null;
+  }) {
+    if (career.startSeason || career.endSeason) {
+      return [career.startSeason, career.endSeason].filter(Boolean).join('-') || null;
+    }
+
+    if (!career.startYear && !career.endYear) {
+      return null;
+    }
+
+    if (career.startYear && career.endYear) {
+      const endYearText =
+        Math.floor(career.startYear / 100) === Math.floor(career.endYear / 100)
+          ? String(career.endYear).slice(2)
+          : String(career.endYear);
+
+      return `${career.startYear}-${endYearText}`;
+    }
+
+    return career.startYear ? `${career.startYear}-` : `-${career.endYear}`;
+  }
+
+  private resolveSortYear(value?: string | null) {
+    const match = value?.match(/\d{4}/);
+
+    return match ? Number(match[0]) : 0;
+  }
+
+  private createEmptyPlayerHonorScores(): PlayerHonorSummaryScoreMap {
+    return PLAYER_HONOR_SUMMARY_COLUMNS.reduce((scores, column) => {
+      scores[column.key] = 0;
+      return scores;
+    }, {} as PlayerHonorSummaryScoreMap);
+  }
+
+  private addPlayerAwardScores(
+    scores: PlayerHonorSummaryScoreMap,
+    recipients: PlayerAwardRecipientRecord[],
+    awardRules: PlayerAwardRule[],
+    honorRules: PlayerHonorRule[]
+  ) {
+    const sortedRules = this.sortPlayerAwardRulesBySpecificity(awardRules);
+    const scoredAwards: ScoredPlayerAward[] = [];
+    const lineupGroups = new Set<string>();
+
+    for (const recipient of recipients) {
+      const rule = this.findMatchingPlayerAwardRule(sortedRules, {
+        scopeType: recipient.edition.award.scopeType,
+        category: recipient.edition.award.category,
+        placement: recipient.placement,
+        rank: recipient.rank
+      });
+
+      if (!rule) {
+        continue;
+      }
+
+      const scoredAward = {
+        playerId: recipient.playerId ?? '',
+        bucketKey: this.resolveAwardScoreBucket(recipient.edition.award.scopeType),
+        groupKey: this.buildAwardCombinationGroupKey({
+          playerId: recipient.playerId ?? '',
+          period: this.resolveAwardEditionPeriod(recipient.edition),
+          scopeType: recipient.edition.award.scopeType,
+          confederationId: recipient.edition.award.confederationId,
+          countryId: recipient.edition.award.countryId,
+          category: rule.category
+        }),
+        rule,
+        score:
+          rule.baseScore *
+          rule.coefficient *
+          this.resolveEventAwardCoefficient({
+            competition: recipient.edition.award.competition,
+            competitionEdition: recipient.edition.competitionEdition,
+            honorRules
+          })
+      } satisfies ScoredPlayerAward;
+
+      scoredAwards.push(scoredAward);
+
+      if (this.isPlayerAwardLineupRule(rule)) {
+        lineupGroups.add(scoredAward.groupKey);
+      }
+    }
+
+    let total = 0;
+
+    for (const award of scoredAwards) {
+      const score =
+        this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey)
+          ? award.score * 0.5
+          : award.score;
+
+      scores[award.bucketKey] = this.round(scores[award.bucketKey] + score);
+      total += score;
+    }
+
+    return this.round(total);
+  }
+
+  private addPlayerTeamHonorScores(
+    scores: PlayerHonorSummaryScoreMap,
+    teamHonors: PlayerTeamHonorRecord[],
+    honorRules: PlayerHonorRule[]
+  ) {
+    let total = 0;
+
+    for (const teamHonor of teamHonors) {
+      const standing = teamHonor.standing;
+      const score = this.resolveCompetitionStandingScore(
+        honorRules,
+        standing.edition.competition,
+        standing.placement,
+        standing.edition.year,
+        standing.edition.quantity
+      );
+
+      if (!score) {
+        continue;
+      }
+
+      const bucketKey = this.resolveTeamHonorScoreBucket(standing.edition.competition);
+      scores[bucketKey] = this.round(scores[bucketKey] + score);
+      total += score;
+    }
+
+    return this.round(total);
+  }
+
+  private resolveAwardScoreBucket(scopeType: AwardScopeType): PlayerHonorScoreBucketKey {
+    if (scopeType === AwardScopeType.WORLD) return 'worldAwardScore';
+    if (scopeType === AwardScopeType.CONFEDERATION) return 'continentalAwardScore';
+    if (scopeType === AwardScopeType.COUNTRY) return 'countryAwardScore';
+    if (scopeType === AwardScopeType.LEAGUE) return 'leagueAwardScore';
+    if (scopeType === AwardScopeType.CLUB) return 'clubAwardScore';
+    return 'mediaAwardScore';
+  }
+
+  private resolveTeamHonorScoreBucket(
+    competition: PlayerAwardCompetition | PlayerHonorCompetition
+  ): PlayerHonorScoreBucketKey {
+    if (
+      competition.targetType === CompetitionTargetType.COUNTRY &&
+      competition.scopeType === CompetitionScopeType.GLOBAL &&
+      competition.category === '国际' &&
+      competition.level === '一级'
+    ) {
+      return 'worldCupScore';
+    }
+
+    if (
+      competition.targetType === CompetitionTargetType.COUNTRY &&
+      competition.category === '洲际'
+    ) {
+      return 'continentalCupScore';
+    }
+
+    if (competition.targetType === CompetitionTargetType.COUNTRY) {
+      return 'countryCupScore';
+    }
+
+    if (competition.category === '国际') {
+      return 'internationalClubScore';
+    }
+
+    if (competition.category === '洲际') {
+      return 'continentalLeagueScore';
+    }
+
+    if (competition.category === '国内' && competition.format === '联赛') {
+      return 'domesticLeagueScore';
+    }
+
+    if (competition.category === '国内' && competition.format === '杯赛') {
+      return 'domesticCupScore';
+    }
+
+    return 'otherTeamHonorScore';
+  }
+
+  private sortPlayerAwardRulesBySpecificity(rules: PlayerAwardRule[]) {
+    return [...rules].sort((left, right) => {
+      const specificity =
+        this.playerAwardRuleSpecificity(right) - this.playerAwardRuleSpecificity(left);
+
+      if (specificity !== 0) {
+        return specificity;
+      }
+
+      return left.sortOrder - right.sortOrder || left.name.localeCompare(right.name, 'zh-CN');
+    });
+  }
+
+  private findMatchingPlayerAwardRule(
+    rules: PlayerAwardRule[],
+    recipient: {
+      scopeType: AwardScopeType;
+      category: string | null;
+      placement: string | null;
+      rank: number | null;
+    }
+  ) {
+    return rules.find((rule) => {
+      if (rule.scopeType && rule.scopeType !== recipient.scopeType) {
+        return false;
+      }
+
+      if (
+        rule.category &&
+        this.normalizeText(rule.category) !== this.normalizeText(recipient.category)
+      ) {
+        return false;
+      }
+
+      if (rule.rank !== null && rule.rank !== recipient.rank) {
+        return false;
+      }
+
+      if (rule.placement) {
+        const placement = this.normalizeText(recipient.placement);
+        const rulePlacement = this.normalizeText(rule.placement);
+
+        if (!placement || !placement.includes(rulePlacement)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  private playerAwardRuleSpecificity(rule: PlayerAwardRule) {
+    return [rule.scopeType, rule.category, rule.placement, rule.rank].filter(
+      (item) => item !== null && item !== undefined && item !== ''
+    ).length;
+  }
+
+  private resolveEventAwardCoefficient({
+    competition,
+    competitionEdition,
+    honorRules
+  }: {
+    competition: PlayerAwardCompetition | null;
+    competitionEdition: { year: number | null; quantity: number | null } | null;
+    honorRules: PlayerHonorRule[];
+  }) {
+    if (!competition) {
+      return 1;
+    }
+
+    const rule = this.findMatchingCompetitionHonorRule(honorRules, competition);
+
+    if (!rule) {
+      return 1;
+    }
+
+    return (
+      this.resolveCompetitionQualityCoefficient(rule, competition) *
+      this.resolveCompetitionConversionCoefficient(
+        rule,
+        competition,
+        competitionEdition?.year ?? null,
+        competitionEdition?.quantity ?? null
+      )
+    );
+  }
+
+  private resolveCompetitionStandingScore(
+    rules: PlayerHonorRule[],
+    competition: PlayerHonorCompetition,
+    placement: CompetitionStandingPlacement,
+    year: number | null,
+    quantity: number | null
+  ) {
+    const rule = this.findMatchingCompetitionHonorRule(rules, competition, placement);
+
+    if (!rule) {
+      return null;
+    }
+
+    const placementScore = this.resolvePlacementScore(rule, placement);
+
+    if (placementScore === null || placementScore <= 0) {
+      return null;
+    }
+
+    return this.round(
+      placementScore *
+        this.resolveCompetitionQualityCoefficient(rule, competition) *
+        this.resolveCompetitionConversionCoefficient(rule, competition, year, quantity)
+    );
+  }
+
+  private findMatchingCompetitionHonorRule(
+    rules: PlayerHonorRule[],
+    competition: PlayerAwardCompetition | PlayerHonorCompetition,
+    placement?: CompetitionStandingPlacement
+  ) {
+    return rules
+      .filter((rule) => {
+        if (!this.competitionHonorRuleMatches(rule, competition)) {
+          return false;
+        }
+
+        return placement ? this.competitionHonorRuleAllowsPlacement(rule, placement) : true;
+      })
+      .sort(
+        (left, right) =>
+          this.competitionHonorRuleSpecificity(right) - this.competitionHonorRuleSpecificity(left)
+      )[0];
+  }
+
+  private competitionHonorRuleMatches(
+    rule: PlayerHonorRule,
+    competition: PlayerAwardCompetition | PlayerHonorCompetition
+  ) {
+    return (
+      rule.targetType === competition.targetType &&
+      this.sameText(rule.category, competition.category) &&
+      this.sameText(rule.level, competition.level) &&
+      this.competitionFormatMatches(rule.format, competition) &&
+      (!rule.scopeType || rule.scopeType === competition.scopeType) &&
+      (!rule.confederationId ||
+        this.competitionConfederationIds(competition).includes(rule.confederationId)) &&
+      (!rule.countryId || this.competitionCountryIds(competition).includes(rule.countryId))
+    );
+  }
+
+  private competitionFormatMatches(
+    ruleFormat: string | null,
+    competition: PlayerAwardCompetition | PlayerHonorCompetition
+  ) {
+    if (this.sameText(ruleFormat, competition.format)) {
+      return true;
+    }
+
+    return (
+      competition.format === '其他' && ruleFormat === '杯赛' && competition.category !== '国内'
+    );
+  }
+
+  private competitionHonorRuleSpecificity(rule: PlayerHonorRule) {
+    return [
+      rule.confederationId,
+      rule.countryId,
+      rule.scopeType,
+      rule.format,
+      rule.level,
+      rule.category
+    ].filter(Boolean).length;
+  }
+
+  private resolvePlacementScore(rule: PlayerHonorRule, placement: CompetitionStandingPlacement) {
+    if (!this.competitionHonorRuleAllowsPlacement(rule, placement)) {
+      return null;
+    }
+
+    if (placement === CompetitionStandingPlacement.CHAMPION)
+      return rule.championScore ?? rule.baseScore;
+    if (placement === CompetitionStandingPlacement.RUNNER_UP) return rule.runnerUpScore;
+    if (placement === CompetitionStandingPlacement.THIRD_PLACE) return rule.thirdPlaceScore;
+    if (placement === CompetitionStandingPlacement.FOURTH_PLACE) return rule.fourthPlaceScore;
+    if (placement === CompetitionStandingPlacement.SEMI_FINALIST) return rule.semiFinalistScore;
+
+    return null;
+  }
+
+  private competitionHonorRuleAllowsPlacement(
+    rule: PlayerHonorRule,
+    placement: CompetitionStandingPlacement
+  ) {
+    if (placement === CompetitionStandingPlacement.CHAMPION) return true;
+
+    if (placement === CompetitionStandingPlacement.RUNNER_UP) {
+      return rule.placementScope !== HonorRulePlacementScope.CHAMPION_ONLY;
+    }
+
+    if (placement === CompetitionStandingPlacement.THIRD_PLACE) {
+      const thirdPlaceScopes: HonorRulePlacementScope[] = [
+        HonorRulePlacementScope.TOP_THREE,
+        HonorRulePlacementScope.TOP_FOUR,
+        HonorRulePlacementScope.LEAGUE_TOP_THREE
+      ];
+
+      return thirdPlaceScopes.includes(rule.placementScope);
+    }
+
+    if (placement === CompetitionStandingPlacement.FOURTH_PLACE) {
+      return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;
+    }
+
+    return rule.placementScope === HonorRulePlacementScope.TOP_FOUR;
+  }
+
+  private resolveCompetitionQualityCoefficient(
+    rule: PlayerHonorRule,
+    competition: PlayerAwardCompetition | PlayerHonorCompetition
+  ) {
+    const confederationIds = this.competitionConfederationIds(competition);
+    const countryIds = this.competitionCountryIds(competition);
+    const coefficient = rule.coefficients.find(
+      (item) =>
+        (item.confederationId && confederationIds.includes(item.confederationId)) ||
+        (item.countryId && countryIds.includes(item.countryId))
+    );
+
+    return coefficient?.coefficient ?? rule.qualityCoefficient;
+  }
+
+  private resolveCompetitionConversionCoefficient(
+    rule: PlayerHonorRule,
+    competition: PlayerAwardCompetition | PlayerHonorCompetition,
+    year: number | null,
+    quantity: number | null
+  ) {
+    if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
+      return this.frequencyCoefficient(competition) * this.scaleCoefficient(competition, quantity);
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
+      if (!year) return 1;
+      if (year <= 1928) return 3;
+      if (year <= 1980) return 2;
+      if (year <= 1988) return 1.5;
+      return 1;
+    }
+
+    if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {
+      if (!year) return 1;
+      return year < 2025 ? 0.5 : 1;
+    }
+
+    return 1;
+  }
+
+  private frequencyCoefficient(competition: PlayerAwardCompetition | PlayerHonorCompetition) {
+    const years = competition.editions.map((edition) => edition.year).filter(this.isNumber);
+
+    if (years.length < 2) {
+      return 1;
+    }
+
+    const firstYear = Math.min(...years);
+    const lastYear = Math.max(...years);
+    const averageGap = (lastYear - firstYear) / (years.length - 1);
+
+    return Math.min(averageGap / 4, 1);
+  }
+
+  private scaleCoefficient(
+    competition: PlayerAwardCompetition | PlayerHonorCompetition,
+    quantity: number | null
+  ) {
+    const resolvedQuantity =
+      quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
+
+    if (!resolvedQuantity) return 1;
+    if (resolvedQuantity >= 24) return 1;
+    if (resolvedQuantity >= 16) return 0.9;
+    if (resolvedQuantity >= 10) return 0.75;
+    if (resolvedQuantity >= 8) return 0.65;
+    if (resolvedQuantity >= 4) return 0.5;
+    if (resolvedQuantity === 3) return 0.35;
+    if (resolvedQuantity === 2) return 0.25;
+    return 0;
+  }
+
+  private median(values: Array<number | null>) {
+    const numbers = values.filter(this.isNumber).sort((left, right) => left - right);
+
+    if (!numbers.length) return null;
+
+    return numbers[Math.floor(numbers.length / 2)];
+  }
+
+  private competitionConfederationIds(
+    competition: PlayerAwardCompetition | PlayerHonorCompetition
+  ) {
+    return [
+      competition.confederationId,
+      ...competition.scopeConfederations.map((item) => item.confederationId)
+    ].filter(this.isString);
+  }
+
+  private competitionCountryIds(competition: PlayerAwardCompetition | PlayerHonorCompetition) {
+    return [
+      competition.countryId,
+      ...competition.scopeCountries.map((item) => item.countryId)
+    ].filter(this.isString);
+  }
+
+  private buildAwardCombinationGroupKey({
+    playerId,
+    period,
+    scopeType,
+    confederationId,
+    countryId,
+    category
+  }: {
+    playerId: string;
+    period: string;
+    scopeType: AwardScopeType;
+    confederationId: string | null;
+    countryId: string | null;
+    category: string | null;
+  }) {
+    return [
+      playerId,
+      period,
+      scopeType,
+      confederationId ?? '',
+      countryId ?? '',
+      this.awardCategoryFamily(category)
+    ].join('|');
+  }
+
+  private resolveAwardEditionPeriod(edition: {
+    year: number | null;
+    season: string | null;
+    name: string;
+  }) {
+    return edition.year?.toString() ?? edition.season ?? edition.name;
+  }
+
+  private awardCategoryFamily(category: string | null) {
+    return this.normalizeText(category)
+      .replace(/一级综合奖|二级阵容奖|二级门将专项奖|二级专项奖|三级补充奖|一级奖/g, '')
+      .replace(/\s+/g, '');
+  }
+
+  private isPlayerAwardLineupRule(rule: PlayerAwardRule) {
+    return this.normalizeText(rule.category).includes('阵容奖');
+  }
+
+  private isPlayerAwardSpecialtyRule(rule: PlayerAwardRule) {
+    const category = this.normalizeText(rule.category);
+
+    return category.includes('专项奖') || category.includes('门将专项奖');
+  }
+
+  private sameText(left?: string | null, right?: string | null) {
+    return (left?.trim() ?? '') === (right?.trim() ?? '');
+  }
+
+  private normalizeText(value?: string | null) {
+    return value?.trim().toLocaleLowerCase('zh-CN') ?? '';
+  }
+
+  private isNumber(value: number | null): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  private isString(value: string | null): value is string {
+    return typeof value === 'string' && Boolean(value);
+  }
+
+  private round(value: number) {
+    return Math.round(value * 100) / 100;
   }
 
   private async buildPlayerData(body: PlayerPayload): Promise<{

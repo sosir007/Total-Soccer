@@ -13,6 +13,14 @@ export interface PlayerListQuery {
   sortOrder?: string;
 }
 
+export interface PlayerHonorSummaryQuery {
+  page?: string;
+  pageSize?: string;
+  keyword?: string;
+  countryId?: string;
+  clubId?: string;
+}
+
 export interface TeamHonorStandingOptionQuery {
   page?: string;
   pageSize?: string;

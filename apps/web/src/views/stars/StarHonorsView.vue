@@ -1,58 +1,86 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
-import { fetchAwardRecipients } from '@/services/modules/awards';
-import type { AwardRecipientRecord, AwardScopeType } from '@/services/types/awards';
+import { fetchPlayerHonorListSummary, fetchPlayerHonorSummary } from '@/services/modules/catalog';
+import type {
+  PlayerHonorListColumn,
+  PlayerHonorListRow,
+  PlayerHonorSummaryColumn,
+  PlayerHonorSummaryRow
+} from '@/services/types/catalog';
 import AbilityBadge from '@/components/AbilityBadge.vue';
-import IconFont from '@/components/IconFont.vue';
 import EntityLink from '@/components/EntityLink.vue';
 import EntityNameCell from '@/components/EntityNameCell.vue';
+import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
-import { buildExternalUrl } from '@/utils/external-link';
+import PositionTags from '@/components/PositionTags.vue';
+import SemanticTag from '@/components/SemanticTag.vue';
+import { ClubSelect, CountrySelect } from '@/components/selects';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 const loading = ref(false);
 const errorMessage = ref('');
-const records = ref<AwardRecipientRecord[]>([]);
+const activeTab = ref<'score' | 'list'>('score');
+const summaryRows = ref<PlayerHonorSummaryRow[]>([]);
+const summaryColumns = ref<PlayerHonorSummaryColumn[]>([]);
+const listRows = ref<PlayerHonorListRow[]>([]);
+const listColumns = ref<PlayerHonorListColumn[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
-  scopeType: '' as '' | AwardScopeType,
-  placement: '',
-  year: undefined as number | undefined
+  countryId: '',
+  clubId: ''
 });
 
-const scopeOptions: Array<{ label: string; value: AwardScopeType }> = [
-  { label: '世界', value: 'WORLD' },
-  { label: '洲际', value: 'CONFEDERATION' },
-  { label: '国家', value: 'COUNTRY' },
-  { label: '联赛', value: 'LEAGUE' },
-  { label: '俱乐部', value: 'CLUB' },
-  { label: '媒体', value: 'MEDIA' }
-];
+const hasSummaryRows = computed(() => summaryRows.value.length > 0);
+const hasListRows = computed(() => listRows.value.length > 0);
+const awardColumns = computed(() =>
+  summaryColumns.value.filter((column) => column.sourceType === 'AWARD')
+);
+const teamColumns = computed(() =>
+  summaryColumns.value.filter((column) => column.sourceType === 'TEAM')
+);
+const groupedListColumns = computed(() => {
+  const groups: Array<{ group: string; columns: PlayerHonorListColumn[] }> = [];
 
-const scopeLabels = Object.fromEntries(
-  scopeOptions.map((item) => [item.value, item.label])
-) as Record<AwardScopeType, string>;
+  for (const column of listColumns.value) {
+    const group = groups.find((item) => item.group === column.group);
 
-const hasRows = computed(() => records.value.length > 0);
+    if (group) {
+      group.columns.push(column);
+    } else {
+      groups.push({ group: column.group, columns: [column] });
+    }
+  }
+
+  return groups;
+});
 
 async function loadHonors() {
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    const result = await fetchAwardRecipients({
+    const params = {
       page: filters.page,
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
-      scopeType: filters.scopeType || undefined,
-      placement: filters.placement || undefined,
-      year: filters.year
-    });
-    records.value = result.items;
-    total.value = result.total;
+      countryId: filters.countryId || undefined,
+      clubId: filters.clubId || undefined
+    };
+    const [summaryResult, listResult] = await Promise.all([
+      fetchPlayerHonorSummary(params),
+      fetchPlayerHonorListSummary(params)
+    ]);
+
+    summaryRows.value = summaryResult.items;
+    summaryColumns.value = summaryResult.columns;
+    listRows.value = listResult.items;
+    listColumns.value = listResult.columns;
+    total.value = Math.max(summaryResult.total, listResult.total);
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '巨星荣誉加载失败。';
     ElMessage.error(errorMessage.value);
@@ -69,37 +97,67 @@ function submitFilters() {
 function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
-  filters.scopeType = '';
-  filters.placement = '';
-  filters.year = undefined;
+  filters.countryId = '';
+  filters.clubId = '';
   void loadHonors();
 }
 
-function editionUrl(record: AwardRecipientRecord) {
-  return buildExternalUrl(
-    record.edition.externalUrl || record.externalUrl,
-    `${record.edition.award.name} ${formatEdition(record)}`
-  );
+function rowIndex(index: number) {
+  return (filters.page - 1) * filters.pageSize + index + 1;
 }
 
-function formatEdition(record: AwardRecipientRecord) {
-  return record.edition.season || record.edition.name || record.edition.year || '-';
-}
-
-function formatPlacement(record: AwardRecipientRecord) {
-  if (record.placement) {
-    return record.placement;
+function formatScore(value?: number | null) {
+  if (!value) {
+    return '-';
   }
 
-  return record.rank ? `第 ${record.rank} 名` : '-';
+  return new Intl.NumberFormat('zh-CN', {
+    maximumFractionDigits: 2
+  }).format(value);
 }
 
-function formatScope(value: AwardScopeType) {
-  return scopeLabels[value] ?? value;
+function formatDate(value?: string | number | null) {
+  if (!value) {
+    return '-';
+  }
+
+  const date = dayjs(value);
+
+  return date.isValid() ? date.format('YYYY-MM-DD') : String(value);
 }
 
-function formatText(value?: string | number | null) {
-  return value === null || value === undefined || value === '' ? '-' : value;
+function formatBirthDecade(value?: string | number | null) {
+  if (!value) {
+    return '-';
+  }
+
+  const date = dayjs(value);
+
+  if (!date.isValid()) {
+    return '-';
+  }
+
+  const decadeStart = Math.floor(date.year() / 10) * 10;
+
+  return `${decadeStart}-${String(decadeStart + 9).slice(2)}`;
+}
+
+function formatHonorCell(row: PlayerHonorListRow, key: PlayerHonorListColumn['key']) {
+  return row.cells[key]?.text || '-';
+}
+
+function formatTeamPeriod(period?: string | null) {
+  return period ? `（${period}）` : '';
+}
+
+function formatTeamTagLabel(team: { name?: string | null; period?: string | null }) {
+  return `${team.name ?? '-'}${formatTeamPeriod(team.period)}`;
+}
+
+function getTeamTagVariant(team: {
+  federationRef?: { name?: string | null; code?: string | null } | null;
+}) {
+  return getConfederationVariant(team.federationRef?.name ?? team.federationRef?.code ?? '');
 }
 
 watch(
@@ -120,9 +178,8 @@ onMounted(() => {
       <div class="panel-header">
         <div>
           <h2>巨星荣誉</h2>
-          <p>查看球员个人奖项和年度评选结果，统计来源为奖项体系录入记录。</p>
+          <p>按球员汇总个人奖项分和已确认团队荣誉分，表格单元格展示对应分桶分值。</p>
         </div>
-        <span class="status-pill">真实数据</span>
       </div>
 
       <el-form class="filter-grid" label-position="top" @submit.prevent="submitFilters">
@@ -130,22 +187,15 @@ onMounted(() => {
           <el-input
             v-model="filters.keyword"
             clearable
-            placeholder="球员 / 奖项 / 届次 / 名次"
+            placeholder="球员 / UID / 国家 / 俱乐部"
             @keyup.enter="submitFilters"
           />
         </el-form-item>
-        <el-form-item label="奖项范围">
-          <el-select v-model="filters.scopeType" clearable placeholder="全部范围">
-            <el-option
-              v-for="scope in scopeOptions"
-              :key="scope.value"
-              :label="scope.label"
-              :value="scope.value"
-            />
-          </el-select>
+        <el-form-item label="国家">
+          <CountrySelect v-model="filters.countryId" />
         </el-form-item>
-        <el-form-item label="名次">
-          <el-input v-model="filters.placement" clearable placeholder="冠军 / 第一名 / 金球奖" />
+        <el-form-item label="俱乐部">
+          <ClubSelect v-model="filters.clubId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">
@@ -157,9 +207,6 @@ onMounted(() => {
             重置
           </el-button>
         </div>
-        <el-form-item label="年份">
-          <el-input-number v-model="filters.year" :min="1800" :max="2200" placeholder="全部年份" />
-        </el-form-item>
       </el-form>
     </div>
 
@@ -169,87 +216,261 @@ onMounted(() => {
 
     <div class="panel">
       <div class="panel-header">
-        <h3>个人荣誉明细</h3>
-        <span class="status-pill">{{ total }} 条记录</span>
+        <h3>{{ activeTab === 'score' ? '荣誉分矩阵' : '荣誉清单' }}</h3>
+        <span class="status-pill">{{ total }} 名球员</span>
       </div>
 
-      <el-skeleton v-if="loading && !hasRows" :rows="8" animated />
+      <el-tabs v-model="activeTab" class="honor-tabs">
+        <el-tab-pane label="荣誉分矩阵" name="score">
+          <el-skeleton v-if="loading && !hasSummaryRows" :rows="8" animated />
 
-      <NoDataView
-        v-else-if="!hasRows"
-        text="暂无巨星荣誉，可以先通过奖项接口创建奖项、届次，并录入获奖球员。"
-      />
+          <NoDataView
+            v-else-if="!hasSummaryRows"
+            text="暂无巨星荣誉，可以先在履历管理中录入个人奖项或确认团队荣誉。"
+          />
 
-      <template v-else>
-        <el-table :data="records" border>
-          <el-table-column label="奖项" min-width="170" fixed>
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.edition.award.id"
-                type="award"
-                :title="row.edition.award.name"
-                :subtitle="`${formatScope(row.edition.award.scopeType)} / ${
-                  row.edition.award.category || row.edition.award.code
-                }`"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="年份 / 届次" min-width="140">
-            <template #default="{ row }">
-              <a
-                class="external-text-link"
-                :href="editionUrl(row)"
-                target="_blank"
-                rel="noopener noreferrer"
+          <el-table v-else :data="summaryRows" border class="player-honor-summary-table">
+            <el-table-column label="序号" width="60" fixed align="center">
+              <template #default="{ $index }">
+                {{ rowIndex($index) }}
+              </template>
+            </el-table-column>
+
+            <el-table-column
+              prop="primaryRole"
+              label="位置"
+              width="80"
+              fixed
+              align="center"
+              sortable
+            >
+              <template #default="{ row }">
+                <PositionTags :value="row.primaryRole || row.positions" />
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="pa" label="PA" width="80" fixed align="center" sortable>
+              <template #default="{ row }">
+                <AbilityBadge type="PA" :value="row.pa" size="small" />
+              </template>
+            </el-table-column>
+
+            <el-table-column label="国家" width="150" fixed>
+              <template #default="{ row }">
+                <EntityNameCell
+                  :id="row.country?.id"
+                  type="country"
+                  :title="row.country?.name"
+                  :subtitle="`UID ${row.country?.uid || '-'}`"
+                />
+              </template>
+            </el-table-column>
+
+            <el-table-column label="球员" width="180" fixed>
+              <template #default="{ row }">
+                <EntityNameCell
+                  :id="row.id"
+                  type="player"
+                  :title="row.chineseName"
+                  :subtitle="row.englishName || `UID ${row.uid}`"
+                />
+              </template>
+            </el-table-column>
+
+            <el-table-column label="个人奖项" align="center" header-align="center">
+              <el-table-column
+                v-for="column in awardColumns"
+                :key="column.key"
+                :label="column.label"
+                width="90"
+                align="center"
+                header-align="center"
               >
-                {{ formatEdition(row) }}
-              </a>
-            </template>
-          </el-table-column>
-          <el-table-column label="年份" width="90">
-            <template #default="{ row }">{{ row.edition.year || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="球员" min-width="150">
-            <template #default="{ row }">
-              <EntityNameCell
-                :id="row.player.id"
-                type="player"
-                :title="row.player.chineseName"
-                :subtitle="row.player.englishName || row.player.uid"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="名次" width="110">
-            <template #default="{ row }">{{ formatPlacement(row) }}</template>
-          </el-table-column>
-          <el-table-column label="PA" width="90">
-            <template #default="{ row }">
-              <AbilityBadge type="PA" :value="row.player.pa" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="国家" min-width="120">
-            <template #default="{ row }">
-              <EntityLink
-                :id="row.player.country?.id"
-                type="country"
-                :name="formatText(row.player.country?.name)"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="俱乐部" min-width="140">
-            <template #default="{ row }">
-              <EntityLink
-                :id="row.player.club?.id"
-                type="club"
-                :name="formatText(row.player.club?.name)"
-              />
-            </template>
-          </el-table-column>
-          <el-table-column label="备注" min-width="160">
-            <template #default="{ row }">{{ formatText(row.remark) }}</template>
-          </el-table-column>
-        </el-table>
+                <template #default="{ row }">
+                  <span class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
+                </template>
+              </el-table-column>
+            </el-table-column>
 
+            <el-table-column label="团队荣誉" align="center" header-align="center">
+              <el-table-column
+                v-for="column in teamColumns"
+                :key="column.key"
+                :label="column.label"
+                width="100"
+                align="center"
+                header-align="center"
+              >
+                <template #default="{ row }">
+                  <span class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
+                </template>
+              </el-table-column>
+            </el-table-column>
+
+            <el-table-column label="奖项数" width="80" align="center">
+              <template #default="{ row }">
+                {{ row.awardCount || '-' }}
+              </template>
+            </el-table-column>
+
+            <el-table-column label="团队荣誉" width="90" align="center">
+              <template #default="{ row }">
+                {{ row.teamHonorCount || '-' }}
+              </template>
+            </el-table-column>
+
+            <el-table-column label="奖项分" width="80" align="center" fixed="right">
+              <template #default="{ row }">
+                <span class="score-cell">{{ formatScore(row.awardScore) }}</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="团队分" width="80" align="center" fixed="right">
+              <template #default="{ row }">
+                <span class="score-cell">{{ formatScore(row.teamHonorScore) }}</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="总分" width="80" align="center" fixed="right">
+              <template #default="{ row }">
+                <span class="score-cell is-total">{{ formatScore(row.totalScore) }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+
+        <el-tab-pane label="荣誉清单" name="list">
+          <el-skeleton v-if="loading && !hasListRows" :rows="8" animated />
+
+          <NoDataView
+            v-else-if="!hasListRows"
+            text="暂无荣誉清单，可以先在履历管理中录入个人奖项或确认团队荣誉。"
+          />
+
+          <el-table v-else :data="listRows" border class="player-honor-list-table">
+            <el-table-column label="序号" width="60" fixed align="center">
+              <template #default="{ $index }">
+                {{ rowIndex($index) }}
+              </template>
+            </el-table-column>
+
+            <el-table-column label="年代" width="90" fixed align="center">
+              <template #default="{ row }">
+                {{ formatBirthDecade(row.birthDate) }}
+              </template>
+            </el-table-column>
+
+            <el-table-column
+              prop="primaryRole"
+              label="位置"
+              width="80"
+              fixed
+              align="center"
+              sortable
+            >
+              <template #default="{ row }">
+                <PositionTags :value="row.primaryRole || row.positions" />
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="pa" label="PA" width="80" fixed align="center" sortable>
+              <template #default="{ row }">
+                <AbilityBadge type="PA" :value="row.pa" size="small" />
+              </template>
+            </el-table-column>
+
+            <el-table-column label="球员" width="180" fixed show-overflow-tooltip>
+              <template #default="{ row }">
+                <EntityNameCell
+                  :id="row.id"
+                  type="player"
+                  :title="row.chineseName"
+                  :subtitle="row.englishName"
+                />
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="birthDate" label="出生日期" width="110" align="center" sortable>
+              <template #default="{ row }">
+                {{ formatDate(row.birthDate) }}
+              </template>
+            </el-table-column>
+
+            <el-table-column label="国籍" width="180" show-overflow-tooltip>
+              <template #default="{ row }">
+                <div v-if="row.countryTeams.length" class="honor-team-list">
+                  <template v-for="(team, index) in row.countryTeams" :key="`${team.id}-${index}`">
+                    <EntityLink
+                      :id="team.id"
+                      class="honor-team-tag-link"
+                      type="country"
+                      :name="team.name"
+                      :title="formatTeamTagLabel(team)"
+                    >
+                      <SemanticTag
+                        class="honor-team-tag"
+                        :variant="getTeamTagVariant(team)"
+                        size="small"
+                      >
+                        {{ formatTeamTagLabel(team) }}
+                      </SemanticTag>
+                    </EntityLink>
+                  </template>
+                </div>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="球队" width="300" show-overflow-tooltip>
+              <template #default="{ row }">
+                <div v-if="row.trophyClubs.length" class="honor-team-list">
+                  <template v-for="(team, index) in row.trophyClubs" :key="`${team.id}-${index}`">
+                    <EntityLink
+                      :id="team.id"
+                      class="honor-team-tag-link"
+                      type="club"
+                      :name="team.name"
+                      :title="formatTeamTagLabel(team)"
+                    >
+                      <SemanticTag
+                        class="honor-team-tag"
+                        :variant="getTeamTagVariant(team)"
+                        size="small"
+                      >
+                        {{ formatTeamTagLabel(team) }}
+                      </SemanticTag>
+                    </EntityLink>
+                  </template>
+                </div>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+              v-for="group in groupedListColumns"
+              :key="group.group"
+              :label="group.group"
+              align="center"
+              header-align="center"
+            >
+              <el-table-column
+                v-for="column in group.columns"
+                :key="column.key"
+                :label="column.label"
+                width="240"
+              >
+                <template #default="{ row }">
+                  <span class="honor-text-cell" :title="formatHonorCell(row, column.key)">
+                    {{ formatHonorCell(row, column.key) }}
+                  </span>
+                </template>
+              </el-table-column>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
+
+      <template v-if="activeTab === 'score' ? hasSummaryRows : hasListRows">
         <div class="table-footer">
           <el-pagination
             v-model:current-page="filters.page"
@@ -263,3 +484,58 @@ onMounted(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.player-honor-summary-table {
+  width: 100%;
+}
+
+.player-honor-list-table {
+  width: 100%;
+}
+
+.honor-tabs {
+  --el-tabs-header-height: 40px;
+}
+
+.score-cell {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.score-cell.is-total {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.honor-text-cell {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.45;
+}
+
+.honor-team-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  max-width: 100%;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.honor-team-tag-link {
+  max-width: 160px;
+}
+
+.honor-team-tag {
+  max-width: 160px;
+}
+</style>

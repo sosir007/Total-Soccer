@@ -20,6 +20,9 @@ import type {
   PlayerAwardRecipientPayload,
   PlayerDetail,
   PlayerCareerPayload,
+  PlayerHonorListSummaryResult,
+  PlayerHonorSummaryParams,
+  PlayerHonorSummaryResult,
   PlayerListItem,
   PlayerListParams,
   PlayerPayload,
@@ -48,6 +51,8 @@ const API = {
     TEAM_HONORS: (id: string) => `${playerPrefix}/${id}/team-honors`,
     TEAM_HONOR_DETAIL: (id: string, honorId: string) =>
       `${playerPrefix}/${id}/team-honors/${honorId}`,
+    HONOR_SUMMARY: `${playerPrefix}/honor-summary`,
+    HONOR_LIST_SUMMARY: `${playerPrefix}/honor-list-summary`,
     TEAM_HONOR_STANDINGS: `${playerPrefix}/team-honor-standings`
   },
   COUNTRIES: {
@@ -72,6 +77,22 @@ export async function fetchPlayers(params: PlayerListParams) {
 
 export async function fetchPlayerDetail(id: string) {
   const response = await api.get<PlayerDetail>(API.PLAYERS.DETAIL(id));
+
+  return response;
+}
+
+export async function fetchPlayerHonorSummary(params: PlayerHonorSummaryParams) {
+  const response = await api.get<PlayerHonorSummaryResult>(API.PLAYERS.HONOR_SUMMARY, {
+    params
+  });
+
+  return response;
+}
+
+export async function fetchPlayerHonorListSummary(params: PlayerHonorSummaryParams) {
+  const response = await api.get<PlayerHonorListSummaryResult>(API.PLAYERS.HONOR_LIST_SUMMARY, {
+    params
+  });
 
   return response;
 }

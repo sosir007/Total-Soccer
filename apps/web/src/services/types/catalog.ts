@@ -278,6 +278,135 @@ export interface PlayerListItem {
   profileClubNames?: string[];
 }
 
+export type PlayerHonorSummaryScoreBucketKey =
+  | 'worldAwardScore'
+  | 'continentalAwardScore'
+  | 'countryAwardScore'
+  | 'leagueAwardScore'
+  | 'clubAwardScore'
+  | 'mediaAwardScore'
+  | 'worldCupScore'
+  | 'continentalCupScore'
+  | 'continentalLeagueScore'
+  | 'domesticLeagueScore'
+  | 'domesticCupScore'
+  | 'countryCupScore'
+  | 'internationalClubScore'
+  | 'otherTeamHonorScore';
+
+export interface PlayerHonorSummaryColumn {
+  key: PlayerHonorSummaryScoreBucketKey;
+  label: string;
+  group: string;
+  sourceType: 'AWARD' | 'TEAM';
+}
+
+export interface PlayerHonorSummaryRow {
+  id: string;
+  uid: string;
+  chineseName: string;
+  englishName?: string | null;
+  pa?: number | null;
+  primaryRole?: string | null;
+  positions?: string | null;
+  country?: NamedRef | null;
+  club?: (NamedRef & { exists?: boolean | null }) | null;
+  awardCount: number;
+  teamHonorCount: number;
+  awardScore: number;
+  teamHonorScore: number;
+  totalScore: number;
+  scores: Record<PlayerHonorSummaryScoreBucketKey, number>;
+}
+
+export interface PlayerHonorSummaryParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  countryId?: string;
+  clubId?: string;
+}
+
+export interface PlayerHonorSummaryResult {
+  items: PlayerHonorSummaryRow[];
+  columns: PlayerHonorSummaryColumn[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export type PlayerHonorListColumnKey =
+  | 'worldAward'
+  | 'continentalAward'
+  | 'countryAward'
+  | 'mediaAward'
+  | 'worldCupTrophy'
+  | 'worldCupAward'
+  | 'continentalCupTrophy'
+  | 'continentalCupAward'
+  | 'continentalLeagueTrophy'
+  | 'continentalLeagueAward'
+  | 'domesticLeagueTrophy'
+  | 'domesticLeagueAward'
+  | 'domesticCupTrophy'
+  | 'domesticCupAward'
+  | 'otherCountryTrophy'
+  | 'otherCountryAward'
+  | 'otherClubTrophy'
+  | 'otherClubAward'
+  | 'otherPersonalHonor';
+
+export interface PlayerHonorListColumn {
+  key: PlayerHonorListColumnKey;
+  label: string;
+  group: string;
+  sourceType: 'AWARD' | 'TEAM' | 'OTHER';
+}
+
+export interface PlayerHonorListCell {
+  text: string;
+  items: string[];
+}
+
+export interface PlayerHonorListRow {
+  id: string;
+  uid: string;
+  chineseName: string;
+  englishName?: string | null;
+  birthDate?: string | number | null;
+  pa?: number | null;
+  primaryRole?: string | null;
+  positions?: string | null;
+  country?: NamedRef | null;
+  club?: (NamedRef & { exists?: boolean | null }) | null;
+  countryTeams: Array<{
+    id?: string | null;
+    name?: string | null;
+    federationRef?: NamedRef | null;
+    period?: string | null;
+  }>;
+  trophyClubs: Array<{
+    id?: string | null;
+    name?: string | null;
+    federationRef?: NamedRef | null;
+    period?: string | null;
+  }>;
+  awardCount: number;
+  teamHonorCount: number;
+  awardScore: number;
+  teamHonorScore: number;
+  totalScore: number;
+  cells: Record<PlayerHonorListColumnKey, PlayerHonorListCell>;
+}
+
+export interface PlayerHonorListSummaryResult {
+  items: PlayerHonorListRow[];
+  columns: PlayerHonorListColumn[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface PlayerDetail extends PlayerListItem {
   birthDate?: number | string | null;
   deathDate?: number | string | null;
