@@ -836,6 +836,13 @@ export class CountriesService {
     return this.prisma.competitionStanding.findMany({
       where: {
         countryId: countryIds ? { in: countryIds } : { not: null },
+        ...(query.confederationId
+          ? {
+              country: {
+                federationId: query.confederationId
+              }
+            }
+          : {}),
         edition: {
           ...(query.competitionId ? { competitionId: query.competitionId } : {}),
           competition: {
@@ -965,6 +972,10 @@ export class CountriesService {
 
     return [...rowMap.values()]
       .filter((row) => {
+        if (query.confederationId && row.federationRef?.id !== query.confederationId) {
+          return false;
+        }
+
         if (!keyword || competitionKeywordMatched) {
           return true;
         }

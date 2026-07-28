@@ -6,7 +6,7 @@ import type { HonorSummaryCompetition, HonorSummaryRow } from '@/services/types/
 import IconFont from '@/components/IconFont.vue';
 import HonorSummaryMatrix from '@/components/honors/HonorSummaryMatrix.vue';
 import NoDataView from '@/components/NoDataView.vue';
-import { CompetitionSelect, CountrySelect } from '@/components/selects';
+import { CompetitionSelect, ConfederationSelect } from '@/components/selects';
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -18,7 +18,7 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   competitionId: '',
-  countryId: ''
+  confederationId: ''
 });
 
 const hasRows = computed(() => rows.value.length > 0);
@@ -33,7 +33,7 @@ async function loadHonors() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       competitionId: filters.competitionId || undefined,
-      countryId: filters.countryId || undefined
+      confederationId: filters.confederationId || undefined
     });
     rows.value = result.items;
     competitions.value = result.competitions;
@@ -55,7 +55,7 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.competitionId = '';
-  filters.countryId = '';
+  filters.confederationId = '';
   void loadHonors();
 }
 
@@ -90,11 +90,11 @@ onMounted(() => {
             @keyup.enter="submitFilters"
           />
         </el-form-item>
+        <el-form-item label="足联">
+          <ConfederationSelect v-model="filters.confederationId" />
+        </el-form-item>
         <el-form-item label="赛事">
           <CompetitionSelect v-model="filters.competitionId" target-type="COUNTRY" />
-        </el-form-item>
-        <el-form-item label="国家">
-          <CountrySelect v-model="filters.countryId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">

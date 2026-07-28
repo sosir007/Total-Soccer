@@ -306,10 +306,6 @@ const standingChoiceOptions = computed<SelectOption[]>(() =>
       label: formatStandingChoice(standing),
       description: formatStandingLabel(standing),
       meta: uniqueMeta([
-        standing.edition.season,
-        standing.edition.name,
-        standing.edition.year ? String(standing.edition.year) : '',
-        placementLabels[standing.placement],
         standing.club?.name,
         standing.country?.name,
         formatEntityName(standing.edition.competition)
@@ -374,12 +370,7 @@ const awardEditionOptions = computed<SelectOption[]>(() =>
     value: edition.id,
     label: formatAwardEditionOption(edition),
     description: edition.competitionEdition?.competition?.name ?? undefined,
-    meta: uniqueMeta([
-      edition.season,
-      edition.name,
-      edition.year ? String(edition.year) : '',
-      edition.competitionEdition?.competition?.name
-    ])
+    meta: []
   }))
 );
 const selectedAwardRecipientForms = computed(() =>

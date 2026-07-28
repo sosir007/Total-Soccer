@@ -20,6 +20,7 @@ const props = withDefaults(
     filterable?: boolean;
     multiple?: boolean;
     maxCollapseTags?: number;
+    fitPopperWidth?: boolean;
   }>(),
   {
     loading: false,
@@ -28,11 +29,17 @@ const props = withDefaults(
     disabled: false,
     filterable: true,
     multiple: false,
-    maxCollapseTags: 1
+    maxCollapseTags: 1,
+    fitPopperWidth: false
   }
 );
 
 const keyword = ref('');
+const popperClass = computed(() =>
+  ['common-select-popper', props.fitPopperWidth ? 'is-fit-reference-width' : '']
+    .filter(Boolean)
+    .join(' ')
+);
 const visibleOptions = computed(() => {
   const query = keyword.value.trim().toLowerCase();
 
@@ -48,6 +55,7 @@ const visibleOptions = computed(() => {
       option.description,
       option.group,
       option.chipLabel,
+      ...(option.keywords ?? []),
       ...(option.meta ?? [])
     ]
       .filter(Boolean)
@@ -117,10 +125,11 @@ function isConfederation(value?: string | null) {
     :filterable="filterable"
     :filter-method="filterable ? handleFilter : undefined"
     :multiple="multiple"
+    :fit-input-width="fitPopperWidth"
     :max-collapse-tags="maxCollapseTags"
     collapse-tags
     collapse-tags-tooltip
-    popper-class="common-select-popper"
+    :popper-class="popperClass"
   >
     <el-option
       v-for="option in visibleOptions"
@@ -256,6 +265,10 @@ function isConfederation(value?: string | null) {
   :global(.el-select-dropdown) {
     border: 0;
   }
+}
+
+:global(.common-select-popper.is-fit-reference-width.el-popper) {
+  max-width: none;
 }
 
 :global(.common-select-popper .el-select-dropdown__wrap) {

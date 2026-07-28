@@ -7,6 +7,7 @@ import type {
   PlayerHonorListColumn,
   PlayerHonorListRow,
   PlayerHonorSummaryColumn,
+  PlayerHonorScoreDetail,
   PlayerHonorSummaryRow
 } from '@/services/types/catalog';
 import AbilityBadge from '@/components/AbilityBadge.vue';
@@ -16,7 +17,12 @@ import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
-import { ClubSelect, CountrySelect } from '@/components/selects';
+import {
+  ClubSelect,
+  ConfederationSelect,
+  CountrySelect,
+  PositionSelect
+} from '@/components/selects';
 import { formatEntityName } from '@/utils/entity-name';
 import { getConfederationVariant } from '@/utils/tag-theme';
 
@@ -32,18 +38,29 @@ const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
+  confederationId: '',
+  position: '',
   countryId: '',
   clubId: ''
 });
 
 const hasSummaryRows = computed(() => summaryRows.value.length > 0);
 const hasListRows = computed(() => listRows.value.length > 0);
-const awardColumns = computed(() =>
-  summaryColumns.value.filter((column) => column.sourceType === 'AWARD')
-);
-const teamColumns = computed(() =>
-  summaryColumns.value.filter((column) => column.sourceType === 'TEAM')
-);
+const groupedSummaryColumns = computed(() => {
+  const groups: Array<{ group: string; columns: PlayerHonorSummaryColumn[] }> = [];
+
+  for (const column of summaryColumns.value) {
+    const group = groups.find((item) => item.group === column.group);
+
+    if (group) {
+      group.columns.push(column);
+    } else {
+      groups.push({ group: column.group, columns: [column] });
+    }
+  }
+
+  return groups;
+});
 const groupedListColumns = computed(() => {
   const groups: Array<{ group: string; columns: PlayerHonorListColumn[] }> = [];
 
@@ -69,6 +86,8 @@ async function loadHonors() {
       page: filters.page,
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
+      confederationId: filters.confederationId || undefined,
+      position: filters.position || undefined,
       countryId: filters.countryId || undefined,
       clubId: filters.clubId || undefined
     };
@@ -98,6 +117,8 @@ function submitFilters() {
 function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
+  filters.confederationId = '';
+  filters.position = '';
   filters.countryId = '';
   filters.clubId = '';
   void loadHonors();
@@ -158,6 +179,88 @@ function getHonorListColumnWidth(group: string, column: PlayerHonorListColumn) {
   return 240;
 }
 
+function getHonorScoreColumnWidth(group: string, column: PlayerHonorSummaryColumn) {
+  if (
+    group === '国内联赛' &&
+    ['domesticLeagueTrophy', 'domesticLeagueAward'].includes(column.key)
+  ) {
+    return 90;
+  }
+
+  return 80;
+}
+
+function getScoreDetails(row: PlayerHonorSummaryRow, key: PlayerHonorSummaryColumn['key']) {
+  return sortScoreDetails(row.scoreDetails?.[key] ?? []);
+}
+
+function getAggregateScoreDetails(
+  row: PlayerHonorSummaryRow,
+  sourceType: 'AWARD' | 'TEAM' | 'ALL'
+) {
+  const keys =
+    sourceType === 'ALL'
+      ? summaryColumns.value.map((column) => column.key)
+      : summaryColumns.value
+          .filter((column) => column.sourceType === sourceType)
+          .map((column) => column.key);
+
+  return sortScoreDetails(keys.flatMap((key) => getScoreDetails(row, key)));
+}
+
+function sortScoreDetails(details: PlayerHonorScoreDetail[]) {
+  return [...details].sort((left, right) => {
+    const yearDiff = resolveScoreDetailSortYear(left) - resolveScoreDetailSortYear(right);
+
+    if (yearDiff !== 0) {
+      return yearDiff;
+    }
+
+    const labelDiff = left.label.localeCompare(right.label, 'zh-CN');
+
+    if (labelDiff !== 0) {
+      return labelDiff;
+    }
+
+    return (left.competitionName ?? '').localeCompare(right.competitionName ?? '', 'zh-CN');
+  });
+}
+
+function resolveScoreDetailSortYear(detail: PlayerHonorScoreDetail) {
+  const match = detail.label.match(/\d{4}/);
+
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+}
+
+function formatScoreDetailTitle(detail: PlayerHonorScoreDetail) {
+  return [detail.label, detail.competitionName, formatScoreDetailPlacement(detail)]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function formatScoreDetailFormula(detail: PlayerHonorScoreDetail) {
+  return ` ${formatScore(detail.placementScore)} × ${formatScore(detail.qualityCoefficient)} × ${formatScore(detail.conversionCoefficient)} = ${formatScore(detail.score)}`;
+}
+
+function formatScoreDetailPlacement(detail: PlayerHonorScoreDetail) {
+  const placement = detail.placementLabel?.trim();
+
+  if (!placement || ['获奖', '优胜者'].includes(placement)) {
+    return '';
+  }
+
+  const normalizedPlacement = normalizeScoreDetailText(placement);
+  const normalizedTitle = normalizeScoreDetailText(
+    `${detail.label}${detail.competitionName ?? ''}`
+  );
+
+  return normalizedPlacement && normalizedTitle.includes(normalizedPlacement) ? '' : placement;
+}
+
+function normalizeScoreDetailText(value?: string | null) {
+  return (value ?? '').replace(/\s+/g, '').trim();
+}
+
 function formatTeamPeriod(period?: string | null) {
   return period ? `（${period}）` : '';
 }
@@ -214,6 +317,12 @@ onMounted(() => {
             placeholder="球员 / UID / 国家 / 俱乐部"
             @keyup.enter="submitFilters"
           />
+        </el-form-item>
+        <el-form-item label="足联">
+          <ConfederationSelect v-model="filters.confederationId" />
+        </el-form-item>
+        <el-form-item label="位置">
+          <PositionSelect v-model="filters.position" />
         </el-form-item>
         <el-form-item label="国家">
           <CountrySelect v-model="filters.countryId" />
@@ -301,32 +410,55 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column label="个人奖项" align="center" header-align="center">
+            <el-table-column
+              v-for="group in groupedSummaryColumns"
+              :key="group.group"
+              :label="group.group"
+              align="center"
+              header-align="center"
+            >
               <el-table-column
-                v-for="column in awardColumns"
+                v-for="column in group.columns"
                 :key="column.key"
                 :label="column.label"
-                width="90"
+                :width="getHonorScoreColumnWidth(group.group, column)"
                 align="center"
                 header-align="center"
               >
                 <template #default="{ row }">
-                  <span class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
-                </template>
-              </el-table-column>
-            </el-table-column>
-
-            <el-table-column label="团队荣誉" align="center" header-align="center">
-              <el-table-column
-                v-for="column in teamColumns"
-                :key="column.key"
-                :label="column.label"
-                width="100"
-                align="center"
-                header-align="center"
-              >
-                <template #default="{ row }">
-                  <span class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
+                  <el-tooltip
+                    v-if="getScoreDetails(row, column.key).length"
+                    effect="light"
+                    placement="top"
+                    :show-after="180"
+                    popper-class="honor-summary-tooltip-popper"
+                  >
+                    <template #content>
+                      <div class="honor-summary-tooltip honor-summary-tooltip--score">
+                        <div class="honor-summary-tooltip__title">
+                          {{ column.group }} / {{ column.label }}
+                        </div>
+                        <div
+                          v-for="(detail, index) in getScoreDetails(row, column.key)"
+                          :key="`${detail.label}-${detail.competitionName}-${detail.ruleName}-${detail.score}-${index}`"
+                          class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+                        >
+                          <span>{{ formatScoreDetailTitle(detail) }}</span>
+                          <strong>{{ formatScoreDetailFormula(detail) }}</strong>
+                        </div>
+                        <div
+                          class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total"
+                        >
+                          <span>合计&nbsp;</span>
+                          <strong>{{ formatScore(row.scores[column.key]) }}</strong>
+                        </div>
+                      </div>
+                    </template>
+                    <span class="score-cell is-hoverable">
+                      {{ formatScore(row.scores[column.key]) }}
+                    </span>
+                  </el-tooltip>
+                  <span v-else class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
                 </template>
               </el-table-column>
             </el-table-column>
@@ -345,19 +477,105 @@ onMounted(() => {
 
             <el-table-column label="奖项分" width="80" align="center" fixed="right">
               <template #default="{ row }">
-                <span class="score-cell">{{ formatScore(row.awardScore) }}</span>
+                <el-tooltip
+                  v-if="getAggregateScoreDetails(row, 'AWARD').length"
+                  effect="light"
+                  placement="top"
+                  :show-after="180"
+                  popper-class="honor-summary-tooltip-popper"
+                >
+                  <template #content>
+                    <div class="honor-summary-tooltip honor-summary-tooltip--score">
+                      <div class="honor-summary-tooltip__title">奖项分拆解</div>
+                      <div
+                        v-for="(detail, index) in getAggregateScoreDetails(row, 'AWARD')"
+                        :key="`award-${detail.label}-${detail.competitionName}-${detail.ruleName}-${detail.score}-${index}`"
+                        class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+                      >
+                        <span>{{ formatScoreDetailTitle(detail) }}</span>
+                        <strong>{{ formatScoreDetailFormula(detail) }}</strong>
+                      </div>
+                      <div
+                        class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total"
+                      >
+                        <span>合计&nbsp;</span>
+                        <strong>{{ formatScore(row.awardScore) }}</strong>
+                      </div>
+                    </div>
+                  </template>
+                  <span class="score-cell is-hoverable">{{ formatScore(row.awardScore) }}</span>
+                </el-tooltip>
+                <span v-else class="score-cell">{{ formatScore(row.awardScore) }}</span>
               </template>
             </el-table-column>
 
             <el-table-column label="团队分" width="80" align="center" fixed="right">
               <template #default="{ row }">
-                <span class="score-cell">{{ formatScore(row.teamHonorScore) }}</span>
+                <el-tooltip
+                  v-if="getAggregateScoreDetails(row, 'TEAM').length"
+                  effect="light"
+                  placement="top"
+                  :show-after="180"
+                  popper-class="honor-summary-tooltip-popper"
+                >
+                  <template #content>
+                    <div class="honor-summary-tooltip honor-summary-tooltip--score">
+                      <div class="honor-summary-tooltip__title">团队分拆解</div>
+                      <div
+                        v-for="(detail, index) in getAggregateScoreDetails(row, 'TEAM')"
+                        :key="`team-${detail.label}-${detail.competitionName}-${detail.ruleName}-${detail.score}-${index}`"
+                        class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+                      >
+                        <span>{{ formatScoreDetailTitle(detail) }}</span>
+                        <strong>{{ formatScoreDetailFormula(detail) }}</strong>
+                      </div>
+                      <div
+                        class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total"
+                      >
+                        <span>合计&nbsp;</span>
+                        <strong>{{ formatScore(row.teamHonorScore) }}</strong>
+                      </div>
+                    </div>
+                  </template>
+                  <span class="score-cell is-hoverable">{{ formatScore(row.teamHonorScore) }}</span>
+                </el-tooltip>
+                <span v-else class="score-cell">{{ formatScore(row.teamHonorScore) }}</span>
               </template>
             </el-table-column>
 
             <el-table-column label="总分" width="80" align="center" fixed="right">
               <template #default="{ row }">
-                <span class="score-cell is-total">{{ formatScore(row.totalScore) }}</span>
+                <el-tooltip
+                  v-if="getAggregateScoreDetails(row, 'ALL').length"
+                  effect="light"
+                  placement="top"
+                  :show-after="180"
+                  popper-class="honor-summary-tooltip-popper"
+                >
+                  <template #content>
+                    <div class="honor-summary-tooltip honor-summary-tooltip--score">
+                      <div class="honor-summary-tooltip__title">总分拆解</div>
+                      <div
+                        v-for="(detail, index) in getAggregateScoreDetails(row, 'ALL')"
+                        :key="`total-${detail.label}-${detail.competitionName}-${detail.ruleName}-${detail.score}-${index}`"
+                        class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+                      >
+                        <span>{{ formatScoreDetailTitle(detail) }}</span>
+                        <strong>{{ formatScoreDetailFormula(detail) }}</strong>
+                      </div>
+                      <div
+                        class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total"
+                      >
+                        <span>合计&nbsp;</span>
+                        <strong>{{ formatScore(row.totalScore) }}</strong>
+                      </div>
+                    </div>
+                  </template>
+                  <span class="score-cell is-total is-hoverable">
+                    {{ formatScore(row.totalScore) }}
+                  </span>
+                </el-tooltip>
+                <span v-else class="score-cell is-total">{{ formatScore(row.totalScore) }}</span>
               </template>
             </el-table-column>
           </el-table>
@@ -528,9 +746,61 @@ onMounted(() => {
   color: var(--text-primary);
 }
 
+.score-cell.is-hoverable {
+  cursor: pointer;
+  transition: color 0.18s ease;
+
+  &:hover {
+    color: var(--color-brand-primary);
+  }
+}
+
 .score-cell.is-total {
   font-weight: 700;
   color: var(--color-primary);
+}
+
+.honor-summary-tooltip {
+  display: grid;
+  gap: 6px;
+  max-width: 380px;
+  max-height: 280px;
+  overflow: auto;
+  color: var(--text-color-regular);
+  font-size: 13px;
+  line-height: 1.45;
+
+  &__title {
+    color: var(--text-color-primary);
+    font-weight: 800;
+  }
+
+  &__item--split {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 280px;
+  }
+
+  &__item--split span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__item--split strong {
+    flex: 0 0 auto;
+    color: var(--text-color-primary);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  &__item--split.is-total {
+    padding-top: 4px;
+    border-top: 1px solid var(--color-border-brand-subtle);
+  }
 }
 
 .honor-text-cell {

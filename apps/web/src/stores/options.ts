@@ -21,6 +21,7 @@ export interface SelectOption {
   description?: string | null;
   group?: string | null;
   meta?: string[];
+  keywords?: string[];
   chipLabel?: string | null;
   chipTheme?: string | null;
   confederationName?: string | null;
@@ -328,7 +329,8 @@ function clubToOption(club: ClubListItem): SelectOption {
     label: formatEntityName(club),
     uid: club.uid,
     description: country,
-    meta: [formatUid(club.uid), country, club.formerName, club.alias].filter(Boolean) as string[],
+    meta: [formatUid(club.uid), country].filter(Boolean) as string[],
+    keywords: [club.formerName, club.alias].filter(Boolean) as string[],
     chipLabel: confederation,
     confederationName: confederation
   };

@@ -48,5 +48,6 @@ onMounted(() => {
     :clearable="clearable"
     :disabled="disabled"
     :multiple="multiple"
+    fit-popper-width
   />
 </template>

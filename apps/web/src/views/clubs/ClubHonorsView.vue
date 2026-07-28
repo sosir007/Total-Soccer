@@ -6,7 +6,7 @@ import type { HonorSummaryCompetition, HonorSummaryRow } from '@/services/types/
 import IconFont from '@/components/IconFont.vue';
 import HonorSummaryMatrix from '@/components/honors/HonorSummaryMatrix.vue';
 import NoDataView from '@/components/NoDataView.vue';
-import { ClubSelect, CompetitionSelect } from '@/components/selects';
+import { CompetitionSelect, ConfederationSelect, CountrySelect } from '@/components/selects';
 
 const loading = ref(false);
 const errorMessage = ref('');
@@ -18,7 +18,8 @@ const filters = reactive({
   pageSize: 20,
   keyword: '',
   competitionId: '',
-  clubId: ''
+  confederationId: '',
+  countryId: ''
 });
 
 const hasRows = computed(() => rows.value.length > 0);
@@ -33,7 +34,8 @@ async function loadHonors() {
       pageSize: filters.pageSize,
       keyword: filters.keyword || undefined,
       competitionId: filters.competitionId || undefined,
-      clubId: filters.clubId || undefined
+      confederationId: filters.confederationId || undefined,
+      countryId: filters.countryId || undefined
     });
     rows.value = result.items;
     competitions.value = result.competitions;
@@ -55,7 +57,8 @@ function resetFilters() {
   filters.page = 1;
   filters.keyword = '';
   filters.competitionId = '';
-  filters.clubId = '';
+  filters.confederationId = '';
+  filters.countryId = '';
   void loadHonors();
 }
 
@@ -90,11 +93,14 @@ onMounted(() => {
             @keyup.enter="submitFilters"
           />
         </el-form-item>
+        <el-form-item label="足联">
+          <ConfederationSelect v-model="filters.confederationId" />
+        </el-form-item>
+        <el-form-item label="国家">
+          <CountrySelect v-model="filters.countryId" />
+        </el-form-item>
         <el-form-item label="赛事">
           <CompetitionSelect v-model="filters.competitionId" target-type="CLUB" />
-        </el-form-item>
-        <el-form-item label="俱乐部">
-          <ClubSelect v-model="filters.clubId" />
         </el-form-item>
         <div class="filter-actions">
           <el-button type="primary" :loading="loading" @click="submitFilters">

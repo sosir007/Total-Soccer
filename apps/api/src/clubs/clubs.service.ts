@@ -737,6 +737,14 @@ export class ClubsService {
     return this.prisma.competitionStanding.findMany({
       where: {
         clubId: query.clubId || { not: null },
+        ...(query.confederationId || query.countryId
+          ? {
+              club: {
+                ...(query.confederationId ? { federationId: query.confederationId } : {}),
+                ...(query.countryId ? { countryId: query.countryId } : {})
+              }
+            }
+          : {}),
         edition: {
           ...(query.competitionId ? { competitionId: query.competitionId } : {}),
           competition: {
@@ -843,6 +851,14 @@ export class ClubsService {
 
     return [...rowMap.values()]
       .filter((row) => {
+        if (query.confederationId && row.federationRef?.id !== query.confederationId) {
+          return false;
+        }
+
+        if (query.countryId && row.countryRef?.id !== query.countryId) {
+          return false;
+        }
+
         if (!keyword || competitionKeywordMatched) {
           return true;
         }

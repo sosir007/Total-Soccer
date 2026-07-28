@@ -19,7 +19,10 @@ export interface ClubHonorListQuery {
   clubId?: string;
 }
 
-export type ClubHonorSummaryQuery = Omit<ClubHonorListQuery, 'placement' | 'year'>;
+export type ClubHonorSummaryQuery = Omit<ClubHonorListQuery, 'placement' | 'year'> & {
+  confederationId?: string;
+  countryId?: string;
+};
 
 export interface ClubPayload {
   uid?: string;

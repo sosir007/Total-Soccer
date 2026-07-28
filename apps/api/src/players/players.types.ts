@@ -17,8 +17,10 @@ export interface PlayerHonorSummaryQuery {
   page?: string;
   pageSize?: string;
   keyword?: string;
+  confederationId?: string;
   countryId?: string;
   clubId?: string;
+  position?: string;
 }
 
 export interface TeamHonorStandingOptionQuery {
