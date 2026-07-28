@@ -11,6 +11,8 @@ import { PrismaService } from '../database/prisma.service.js';
 import { DEFAULT_AWARD_RULES, type AwardRuleDefaultDefinition } from './default-award-rules.js';
 import type { AwardRuleListQuery, AwardRulePayload } from './award-rules.types.js';
 
+const PLAYER_ACHIEVEMENT_SCORE_CAP = 10;
+
 interface PlayerAwardStats {
   awardCount: number;
   topAwardCount: number;
@@ -96,7 +98,7 @@ export class AwardRulesService {
 
   async recalculate() {
     await this.ensureDefaultRules();
-    const [players, rules, competitionHonorRules, recipients] = await Promise.all([
+    const [players, rules, competitionHonorRules, recipients, achievements] = await Promise.all([
       this.prisma.player.findMany({ select: { id: true } }),
       this.prisma.awardRule.findMany({
         where: { enabled: true },
@@ -138,6 +140,9 @@ export class AwardRulesService {
             }
           }
         }
+      }),
+      this.prisma.playerHonor.findMany({
+        orderBy: [{ playerId: 'asc' }, { sortOrder: 'asc' }, { season: 'asc' }, { name: 'asc' }]
       })
     ]);
     const sortedRules = this.sortRulesBySpecificity(rules);
@@ -205,6 +210,8 @@ export class AwardRulesService {
       statsByPlayer.set(recipient.playerId, stats);
     }
 
+    this.addAchievementScores(statsByPlayer, achievements);
+
     if (players.length > 0) {
       await this.prisma.$transaction(
         players.map((player) => {
@@ -225,6 +232,7 @@ export class AwardRulesService {
     return {
       playerCount: players.length,
       recipientCount: recipients.length,
+      achievementCount: achievements.length,
       enabledRuleCount: rules.length,
       scoredPlayerCount: [...statsByPlayer.values()].filter((stats) => stats.honorScore > 0).length
     };
@@ -608,6 +616,31 @@ export class AwardRulesService {
     const category = this.normalize(rule.category);
 
     return category.includes('专项奖') || category.includes('门将专项奖');
+  }
+
+  private addAchievementScores(
+    statsByPlayer: Map<string, PlayerAwardStats>,
+    achievements: Array<{ playerId: string; score: number }>
+  ) {
+    const scoreByPlayer = new Map<string, number>();
+
+    for (const achievement of achievements) {
+      const currentScore = scoreByPlayer.get(achievement.playerId) ?? 0;
+
+      if (currentScore >= PLAYER_ACHIEVEMENT_SCORE_CAP) {
+        continue;
+      }
+
+      const remainingScore = PLAYER_ACHIEVEMENT_SCORE_CAP - currentScore;
+      const score = Math.min(achievement.score ?? 1, remainingScore);
+      scoreByPlayer.set(achievement.playerId, this.round(currentScore + score));
+    }
+
+    for (const [playerId, achievementScore] of scoreByPlayer.entries()) {
+      const stats = statsByPlayer.get(playerId) ?? this.emptyStats();
+      stats.honorScore += achievementScore;
+      statsByPlayer.set(playerId, stats);
+    }
   }
 
   private parseScopeType(value: AwardScopeType) {

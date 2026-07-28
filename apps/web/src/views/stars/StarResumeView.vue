@@ -3,14 +3,18 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
+  createPlayerHonor,
   createPlayerTeamHonor,
   deletePlayerAwardRecipient,
+  deletePlayerHonor,
   deletePlayerTeamHonor,
   fetchPlayerDetail,
+  fetchPlayerHonors,
   fetchPlayerTeamHonors,
   fetchTeamHonorStandingOptions,
   savePlayerAwardRecipientGroup,
   savePlayerCareers,
+  updatePlayerHonor,
   updatePlayerTeamHonor
 } from '@/services/modules/catalog';
 import { fetchAwardDetail } from '@/services/modules/awards';
@@ -25,6 +29,8 @@ import type {
   PlayerCareerPayload,
   PlayerCareerType,
   PlayerDetail,
+  PlayerHonor,
+  PlayerHonorPayload,
   PlayerTeamHonor,
   PlayerTeamHonorPayload,
   PlayerTeamHonorSourceType,
@@ -103,6 +109,14 @@ interface AwardRecipientGroup {
   remark: string;
 }
 
+interface AchievementForm {
+  title: string;
+  score: number;
+  externalUrl: string;
+  remark: string;
+  sortOrder: number;
+}
+
 interface AwardEditionRecipientForm {
   editionId: string;
   rank?: number;
@@ -176,17 +190,22 @@ const playerId = computed(() => String(route.params.id ?? ''));
 const loading = ref(false);
 const savingCareers = ref(false);
 const awardSaving = ref(false);
+const achievementSaving = ref(false);
 const honorSaving = ref(false);
 const teamHonorsLoading = ref(false);
+const achievementsLoading = ref(false);
 const standingSearching = ref(false);
 const player = ref<PlayerDetail | null>(null);
 const teamHonors = ref<PlayerTeamHonor[]>([]);
+const playerHonors = ref<PlayerHonor[]>([]);
 const careerForms = ref<CareerForm[]>([]);
 const activeTab = ref('careers');
 const careerDialogVisible = ref(false);
 const editingCareerIndex = ref<number | null>(null);
 const awardDialogVisible = ref(false);
 const editingAwardGroup = ref<AwardRecipientGroup | null>(null);
+const achievementDialogVisible = ref(false);
+const editingAchievement = ref<PlayerHonor | null>(null);
 const awardMode = ref<'EVENT' | 'ANNUAL'>('EVENT');
 const selectedAwardCompetitionId = ref('');
 const selectedAwardScopeType = ref<AwardScopeType | ''>('');
@@ -212,6 +231,13 @@ const honorForm = reactive({
   sourceType: 'MANUAL' as PlayerTeamHonorSourceType,
   status: 'CONFIRMED' as PlayerTeamHonorStatus,
   remark: ''
+});
+const achievementForm = reactive<AchievementForm>({
+  title: '',
+  score: 1,
+  externalUrl: '',
+  remark: '',
+  sortOrder: 0
 });
 const careerForm = reactive<CareerForm>({
   careerType: 'CLUB',
@@ -419,6 +445,14 @@ const personalHonorGroups = computed<AwardRecipientGroup[]>(() => {
       return left.award.name.localeCompare(right.award.name, 'zh-Hans-CN');
     });
 });
+const achievementRows = computed(() =>
+  [...playerHonors.value].sort(
+    (left, right) =>
+      left.sortOrder - right.sortOrder ||
+      (left.season ?? '').localeCompare(right.season ?? '') ||
+      left.name.localeCompare(right.name, 'zh-Hans-CN')
+  )
+);
 const teamHonorGroups = computed<TeamHonorGroup[]>(() => {
   const groups = new Map<string, TeamHonorGroup>();
 
@@ -500,12 +534,33 @@ async function loadPlayer() {
   try {
     const loaded = await fetchPlayerDetail(playerId.value);
     player.value = loaded;
+    playerHonors.value = loaded.honors ?? [];
     careerForms.value = (loaded.careers ?? []).map((career, index) => careerToForm(career, index));
     routeTabsStore.setTitle(route.fullPath, `${loaded.chineseName} 履历管理`);
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '球员履历加载失败。');
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadPlayerHonors() {
+  if (!playerId.value) return;
+
+  achievementsLoading.value = true;
+
+  try {
+    playerHonors.value = await fetchPlayerHonors(playerId.value);
+    if (player.value) {
+      player.value = {
+        ...player.value,
+        honors: playerHonors.value
+      };
+    }
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '成就加载失败。');
+  } finally {
+    achievementsLoading.value = false;
   }
 }
 
@@ -779,6 +834,100 @@ async function confirmDeleteAwardRecipient(group: AwardRecipientGroup) {
     ElMessage.success('个人奖项已删除。');
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '个人奖项删除失败。');
+  }
+}
+
+function openAchievementDialog(honor?: PlayerHonor) {
+  editingAchievement.value = honor ?? null;
+  Object.assign(achievementForm, {
+    title: formatAchievementTitle(honor),
+    score: honor?.score ?? 1,
+    externalUrl: honor?.externalUrl ?? '',
+    remark: honor?.remark ?? '',
+    sortOrder: honor?.sortOrder ?? achievementRows.value.length + 1
+  });
+  achievementDialogVisible.value = true;
+}
+
+function buildAchievementPayload(): PlayerHonorPayload {
+  const { season, name } = parseAchievementTitle(achievementForm.title);
+
+  return {
+    name: name || achievementForm.title.trim(),
+    season: season || undefined,
+    score: 1,
+    externalUrl: achievementForm.externalUrl.trim() || undefined,
+    remark: achievementForm.remark.trim() || undefined,
+    sortOrder: achievementForm.sortOrder ?? 0
+  };
+}
+
+async function saveAchievement() {
+  if (!achievementForm.title.trim()) {
+    ElMessage.warning('请填写成就名称。');
+    return;
+  }
+
+  achievementSaving.value = true;
+
+  try {
+    const payload = buildAchievementPayload();
+
+    if (editingAchievement.value) {
+      await updatePlayerHonor(playerId.value, editingAchievement.value.id, payload);
+    } else {
+      await createPlayerHonor(playerId.value, payload);
+    }
+
+    achievementDialogVisible.value = false;
+    await loadPlayerHonors();
+    ElMessage.success(editingAchievement.value ? '成就已更新。' : '成就已新增。');
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '成就保存失败。');
+  } finally {
+    achievementSaving.value = false;
+  }
+}
+
+function formatAchievementTitle(honor?: PlayerHonor | null) {
+  if (!honor) {
+    return '';
+  }
+
+  return [honor.season, honor.name].filter(Boolean).join(' ');
+}
+
+function parseAchievementTitle(value: string) {
+  const text = value.trim();
+  const match = text.match(/^(\d{4}(?:-\d{2})?)(?:\s*(.+))?$/);
+
+  if (!match) {
+    return { season: '', name: text };
+  }
+
+  return {
+    season: match[1] ?? '',
+    name: (match[2] ?? '').trim()
+  };
+}
+
+async function confirmDeleteAchievement(honor: PlayerHonor) {
+  try {
+    await ElMessageBox.confirm(`确定删除「${honor.name}」这条成就吗？`, '删除成就', {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    });
+  } catch {
+    return;
+  }
+
+  try {
+    await deletePlayerHonor(playerId.value, honor.id);
+    await loadPlayerHonors();
+    ElMessage.success('成就已删除。');
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '成就删除失败。');
   }
 }
 
@@ -1650,6 +1799,50 @@ onMounted(() => {
         </el-table>
       </el-tab-pane>
 
+      <el-tab-pane label="成就" name="achievements">
+        <div class="panel-header resume-tab-header">
+          <div>
+            <h3>成就</h3>
+            <p>维护高含金量生涯成就，每条默认 1 分，汇总计分最多 10 分。</p>
+          </div>
+          <el-button type="primary" @click="openAchievementDialog()">
+            <IconFont name="add" />
+            新增成就
+          </el-button>
+        </div>
+        <el-table v-loading="achievementsLoading" :data="achievementRows" border>
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column label="成就" min-width="320" show-overflow-tooltip>
+            <template #default="{ row }">
+              <a
+                v-if="row.externalUrl"
+                class="external-text-link"
+                :href="row.externalUrl"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {{ formatAchievementTitle(row) }}
+              </a>
+              <span v-else>{{ formatAchievementTitle(row) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="score" label="分值" width="80" align="center" />
+          <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
+          <el-table-column label="操作" width="150" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openAchievementDialog(row)">
+                <IconFont name="edit" />
+                编辑
+              </el-button>
+              <el-button link type="danger" @click="confirmDeleteAchievement(row)">
+                <IconFont name="delete" />
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
       <el-tab-pane label="核对清单" name="candidates">
         <div class="resume-guide">
           <h3>核对清单将在第二阶段启用</h3>
@@ -1812,6 +2005,51 @@ onMounted(() => {
       <template #footer>
         <el-button @click="awardDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="awardSaving" @click="saveAwardRecipient">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="achievementDialogVisible"
+      :title="editingAchievement ? '编辑成就' : '新增成就'"
+      width="720px"
+      destroy-on-close
+    >
+      <el-form class="resume-form-grid" label-position="top">
+        <el-form-item label="成就" class="resume-form-wide">
+          <el-input v-model="achievementForm.title" placeholder="例如 1999 FIFA 二十世纪最佳球员" />
+        </el-form-item>
+        <div class="resume-form-pair resume-form-wide">
+          <el-form-item label="分值">
+            <el-input-number
+              v-model="achievementForm.score"
+              :controls="false"
+              :min="1"
+              :max="1"
+              :precision="0"
+              disabled
+            />
+          </el-form-item>
+          <el-form-item label="排序">
+            <el-input-number v-model="achievementForm.sortOrder" :controls="false" :min="0" />
+          </el-form-item>
+        </div>
+        <el-form-item label="外链" class="resume-form-wide">
+          <el-input v-model="achievementForm.externalUrl" placeholder="资料来源链接，可选" />
+        </el-form-item>
+        <el-form-item label="备注" class="resume-form-wide">
+          <el-input
+            v-model="achievementForm.remark"
+            type="textarea"
+            :rows="3"
+            placeholder="口径说明，可选"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="achievementDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="achievementSaving" @click="saveAchievement">
           保存
         </el-button>
       </template>

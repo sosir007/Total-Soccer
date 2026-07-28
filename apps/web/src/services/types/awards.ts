@@ -5,6 +5,7 @@ export interface AwardNamedRef {
   uid?: string;
   code?: string | null;
   name: string;
+  shortName?: string | null;
   externalUrl?: string | null;
   exists?: boolean;
   visibleInCatalog?: boolean;
@@ -63,6 +64,7 @@ export interface AwardListItem {
     id: string;
     code: string;
     name: string;
+    shortName?: string | null;
     externalUrl?: string | null;
     targetType: 'COUNTRY' | 'CLUB';
     scopeType: 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';

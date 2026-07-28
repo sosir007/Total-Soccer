@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PlayersService } from './players.service.js';
 import type {
   PlayerAwardRecipientPayload,
+  PlayerHonorPayload,
   PlayerHonorSummaryQuery,
   PlayerListQuery,
   PlayerPayload,
@@ -128,5 +129,33 @@ export class PlayersController {
   @ApiOperation({ summary: '删除球员关联团队荣誉' })
   removeTeamHonor(@Param('id') id: string, @Param('honorId') honorId: string) {
     return this.playersService.removeTeamHonor(id, honorId);
+  }
+
+  @Get(':id/honors')
+  @ApiOperation({ summary: '获取球员个人成就' })
+  findPlayerHonors(@Param('id') id: string) {
+    return this.playersService.findPlayerHonors(id);
+  }
+
+  @Post(':id/honors')
+  @ApiOperation({ summary: '新增球员个人成就' })
+  createPlayerHonor(@Param('id') id: string, @Body() body: PlayerHonorPayload) {
+    return this.playersService.createPlayerHonor(id, body);
+  }
+
+  @Put(':id/honors/:honorId')
+  @ApiOperation({ summary: '编辑球员个人成就' })
+  updatePlayerHonor(
+    @Param('id') id: string,
+    @Param('honorId') honorId: string,
+    @Body() body: PlayerHonorPayload
+  ) {
+    return this.playersService.updatePlayerHonor(id, honorId, body);
+  }
+
+  @Delete(':id/honors/:honorId')
+  @ApiOperation({ summary: '删除球员个人成就' })
+  removePlayerHonor(@Param('id') id: string, @Param('honorId') honorId: string) {
+    return this.playersService.removePlayerHonor(id, honorId);
   }
 }

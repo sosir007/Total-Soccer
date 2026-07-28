@@ -556,12 +556,21 @@ model TeamHonorRule {
 }
 
 model PlayerHonor {
-  id       String  @id @default(cuid())
-  playerId String
-  player   Player  @relation(fields: [playerId], references: [id])
-  name     String
-  score    Float   @default(0)
-  season   String?
+  id          String   @id @default(cuid())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  name        String
+  score       Float    @default(1)
+  season      String?
+  externalUrl String?
+  remark      String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([playerId])
+  @@index([season])
+  @@index([sortOrder])
 }
 
 model CountryHonor {

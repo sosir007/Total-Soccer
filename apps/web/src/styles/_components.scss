@@ -35,6 +35,20 @@
   background: var(--color-surface-default);
 }
 
+.el-table {
+  --el-table-header-bg-color: #fbfcfb;
+  --el-table-header-text-color: var(--text-color-regular);
+}
+
+.el-table th.el-table__cell {
+  background: #fbfcfb;
+}
+
+.el-table .el-table__header .cell {
+  color: var(--text-color-regular);
+  font-weight: 850;
+}
+
 .el-dialog__body {
   max-height: min(640px, calc(100vh - 220px));
   overflow: auto;

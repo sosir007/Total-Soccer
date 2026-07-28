@@ -169,6 +169,10 @@ function formatHonorCell(row: PlayerHonorListRow, key: PlayerHonorListColumn['ke
 }
 
 function getHonorListColumnWidth(group: string, column: PlayerHonorListColumn) {
+  if (column.key === 'achievement') {
+    return 320;
+  }
+
   if (
     group === '国内联赛' &&
     ['domesticLeagueTrophy', 'domesticLeagueAward'].includes(column.key)
@@ -202,7 +206,11 @@ function getAggregateScoreDetails(
     sourceType === 'ALL'
       ? summaryColumns.value.map((column) => column.key)
       : summaryColumns.value
-          .filter((column) => column.sourceType === sourceType)
+          .filter((column) =>
+            sourceType === 'AWARD'
+              ? column.sourceType === 'AWARD' || column.sourceType === 'ACHIEVEMENT'
+              : column.sourceType === sourceType
+          )
           .map((column) => column.key);
 
   return sortScoreDetails(keys.flatMap((key) => getScoreDetails(row, key)));
@@ -239,7 +247,23 @@ function formatScoreDetailTitle(detail: PlayerHonorScoreDetail) {
 }
 
 function formatScoreDetailFormula(detail: PlayerHonorScoreDetail) {
+  if (detail.ruleName?.startsWith('个人成就')) {
+    return formatScore(detail.score);
+  }
+
   return ` ${formatScore(detail.placementScore)} × ${formatScore(detail.qualityCoefficient)} × ${formatScore(detail.conversionCoefficient)} = ${formatScore(detail.score)}`;
+}
+
+function isSingleSummaryColumnGroup(group: { group: string; columns: PlayerHonorSummaryColumn[] }) {
+  return group.columns.length === 1 && group.columns[0]?.label === group.group;
+}
+
+function isSingleListColumnGroup(group: { group: string; columns: PlayerHonorListColumn[] }) {
+  return group.columns.length === 1 && group.columns[0]?.label === group.group;
+}
+
+function formatScoreTooltipTitle(column: PlayerHonorSummaryColumn) {
+  return column.group === column.label ? column.label : `${column.group} / ${column.label}`;
 }
 
 function formatScoreDetailPlacement(detail: PlayerHonorScoreDetail) {
@@ -410,24 +434,17 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column
-              v-for="group in groupedSummaryColumns"
-              :key="group.group"
-              :label="group.group"
-              align="center"
-              header-align="center"
-            >
+            <template v-for="group in groupedSummaryColumns" :key="group.group">
               <el-table-column
-                v-for="column in group.columns"
-                :key="column.key"
-                :label="column.label"
-                :width="getHonorScoreColumnWidth(group.group, column)"
+                v-if="isSingleSummaryColumnGroup(group)"
+                :label="group.columns[0].label"
+                :width="getHonorScoreColumnWidth(group.group, group.columns[0])"
                 align="center"
                 header-align="center"
               >
                 <template #default="{ row }">
                   <el-tooltip
-                    v-if="getScoreDetails(row, column.key).length"
+                    v-if="getScoreDetails(row, group.columns[0].key).length"
                     effect="light"
                     placement="top"
                     :show-after="180"
@@ -436,10 +453,10 @@ onMounted(() => {
                     <template #content>
                       <div class="honor-summary-tooltip honor-summary-tooltip--score">
                         <div class="honor-summary-tooltip__title">
-                          {{ column.group }} / {{ column.label }}
+                          {{ formatScoreTooltipTitle(group.columns[0]) }}
                         </div>
                         <div
-                          v-for="(detail, index) in getScoreDetails(row, column.key)"
+                          v-for="(detail, index) in getScoreDetails(row, group.columns[0].key)"
                           :key="`${detail.label}-${detail.competitionName}-${detail.ruleName}-${detail.score}-${index}`"
                           class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
                         >
@@ -450,18 +467,67 @@ onMounted(() => {
                           class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total"
                         >
                           <span>合计&nbsp;</span>
-                          <strong>{{ formatScore(row.scores[column.key]) }}</strong>
+                          <strong>{{ formatScore(row.scores[group.columns[0].key]) }}</strong>
                         </div>
                       </div>
                     </template>
                     <span class="score-cell is-hoverable">
-                      {{ formatScore(row.scores[column.key]) }}
+                      {{ formatScore(row.scores[group.columns[0].key]) }}
                     </span>
                   </el-tooltip>
-                  <span v-else class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
+                  <span v-else class="score-cell">
+                    {{ formatScore(row.scores[group.columns[0].key]) }}
+                  </span>
                 </template>
               </el-table-column>
-            </el-table-column>
+
+              <el-table-column v-else :label="group.group" align="center" header-align="center">
+                <el-table-column
+                  v-for="column in group.columns"
+                  :key="column.key"
+                  :label="column.label"
+                  :width="getHonorScoreColumnWidth(group.group, column)"
+                  align="center"
+                  header-align="center"
+                >
+                  <template #default="{ row }">
+                    <el-tooltip
+                      v-if="getScoreDetails(row, column.key).length"
+                      effect="light"
+                      placement="top"
+                      :show-after="180"
+                      popper-class="honor-summary-tooltip-popper"
+                    >
+                      <template #content>
+                        <div class="honor-summary-tooltip honor-summary-tooltip--score">
+                          <div class="honor-summary-tooltip__title">
+                            {{ formatScoreTooltipTitle(column) }}
+                          </div>
+                          <div
+                            v-for="(detail, index) in getScoreDetails(row, column.key)"
+                            :key="`${detail.label}-${detail.competitionName}-${detail.ruleName}-${detail.score}-${index}`"
+                            class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+                          >
+                            <span>{{ formatScoreDetailTitle(detail) }}</span>
+                            <strong>{{ formatScoreDetailFormula(detail) }}</strong>
+                          </div>
+                          <div
+                            class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total"
+                          >
+                            <span>合计&nbsp;</span>
+                            <strong>{{ formatScore(row.scores[column.key]) }}</strong>
+                          </div>
+                        </div>
+                      </template>
+                      <span class="score-cell is-hoverable">
+                        {{ formatScore(row.scores[column.key]) }}
+                      </span>
+                    </el-tooltip>
+                    <span v-else class="score-cell">{{ formatScore(row.scores[column.key]) }}</span>
+                  </template>
+                </el-table-column>
+              </el-table-column>
+            </template>
 
             <el-table-column label="奖项数" width="80" align="center">
               <template #default="{ row }">
@@ -688,27 +754,36 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column
-              v-for="group in groupedListColumns"
-              :key="group.group"
-              :label="group.group"
-              align="center"
-              header-align="center"
-            >
+            <template v-for="group in groupedListColumns" :key="group.group">
               <el-table-column
-                v-for="column in group.columns"
-                :key="column.key"
-                :label="column.label"
-                :width="getHonorListColumnWidth(group.group, column)"
+                v-if="isSingleListColumnGroup(group)"
+                :label="group.columns[0].label"
+                :width="getHonorListColumnWidth(group.group, group.columns[0])"
                 show-overflow-tooltip
               >
                 <template #default="{ row }">
-                  <span class="honor-text-cell" :title="formatHonorCell(row, column.key)">
-                    {{ formatHonorCell(row, column.key) }}
+                  <span class="honor-text-cell" :title="formatHonorCell(row, group.columns[0].key)">
+                    {{ formatHonorCell(row, group.columns[0].key) }}
                   </span>
                 </template>
               </el-table-column>
-            </el-table-column>
+
+              <el-table-column v-else :label="group.group" align="center" header-align="center">
+                <el-table-column
+                  v-for="column in group.columns"
+                  :key="column.key"
+                  :label="column.label"
+                  :width="getHonorListColumnWidth(group.group, column)"
+                  show-overflow-tooltip
+                >
+                  <template #default="{ row }">
+                    <span class="honor-text-cell" :title="formatHonorCell(row, column.key)">
+                      {{ formatHonorCell(row, column.key) }}
+                    </span>
+                  </template>
+                </el-table-column>
+              </el-table-column>
+            </template>
           </el-table>
         </el-tab-pane>
       </el-tabs>
@@ -731,10 +806,29 @@ onMounted(() => {
 <style scoped>
 .player-honor-summary-table {
   width: 100%;
+
+  --el-table-header-bg-color: #fbfcfb;
+  --el-table-header-text-color: var(--text-color-regular);
 }
 
 .player-honor-list-table {
   width: 100%;
+
+  --el-table-header-bg-color: #fbfcfb;
+  --el-table-header-text-color: var(--text-color-regular);
+}
+
+.player-honor-summary-table :deep(.el-table__header th.el-table__cell),
+.player-honor-summary-table :deep(thead.is-group th.el-table__cell),
+.player-honor-list-table :deep(.el-table__header th.el-table__cell),
+.player-honor-list-table :deep(thead.is-group th.el-table__cell) {
+  background: #fbfcfb;
+}
+
+.player-honor-summary-table :deep(.el-table__header .cell),
+.player-honor-list-table :deep(.el-table__header .cell) {
+  color: var(--text-color-regular);
+  font-weight: 850;
 }
 
 .honor-tabs {
@@ -792,6 +886,7 @@ onMounted(() => {
 
   &__item--split strong {
     flex: 0 0 auto;
+    margin-left: 4px;
     color: var(--text-color-primary);
     font-weight: 800;
     white-space: nowrap;

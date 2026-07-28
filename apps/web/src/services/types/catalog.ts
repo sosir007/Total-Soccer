@@ -16,6 +16,7 @@ export interface HonorCompetitionRef {
   id: string;
   code: string;
   name: string;
+  shortName?: string | null;
   externalUrl?: string | null;
   targetType: 'COUNTRY' | 'CLUB';
   scopeType: 'GLOBAL' | 'CONFEDERATION' | 'COUNTRY' | 'CUSTOM';
@@ -124,6 +125,11 @@ export interface HonorGroupedRecord {
 export type PlayerCareerType = 'CLUB' | 'COUNTRY';
 export type PlayerTeamHonorSourceType = 'MANUAL' | 'CAREER_MATCH' | 'IMPORT';
 export type PlayerTeamHonorStatus = 'CONFIRMED' | 'PENDING' | 'EXCLUDED';
+export type PlayerCareerTeamRef = NamedRef & {
+  exists?: boolean;
+  federationRef?: NamedRef | null;
+  countryRef?: (NamedRef & { shortName?: string | null }) | null;
+};
 
 export interface PlayerCareer {
   id: string;
@@ -146,8 +152,8 @@ export interface PlayerCareer {
   isLegend: boolean;
   sortOrder: number;
   remark?: string | null;
-  club?: (NamedRef & { exists?: boolean }) | null;
-  country?: NamedRef | null;
+  club?: PlayerCareerTeamRef | null;
+  country?: PlayerCareerTeamRef | null;
 }
 
 export interface TeamHonorStandingOption {
@@ -155,8 +161,8 @@ export interface TeamHonorStandingOption {
   placement: CompetitionStandingPlacement;
   standingOrder: number;
   remark?: string | null;
-  country?: NamedRef | null;
-  club?: (NamedRef & { exists?: boolean }) | null;
+  country?: PlayerCareerTeamRef | null;
+  club?: PlayerCareerTeamRef | null;
   edition: HonorEditionRef & {
     competition: HonorCompetitionRef;
   };
@@ -177,6 +183,15 @@ export interface PlayerTeamHonor {
 export interface PlayerAwardRecipientGroupPayload {
   awardId: string;
   recipients: PlayerAwardRecipientPayload[];
+}
+
+export interface PlayerHonorPayload {
+  name?: string;
+  season?: string;
+  score?: number | string | null;
+  externalUrl?: string;
+  remark?: string;
+  sortOrder?: number | string | null;
 }
 
 export interface CareerProfileLine {
@@ -299,9 +314,9 @@ export type PlayerHonorListColumnKey =
   | 'otherCountryAward'
   | 'otherClubTrophy'
   | 'otherClubAward'
-  | 'otherPersonalHonor';
+  | 'achievement';
 
-export type PlayerHonorSummaryScoreKey = Exclude<PlayerHonorListColumnKey, 'otherPersonalHonor'>;
+export type PlayerHonorSummaryScoreKey = PlayerHonorListColumnKey;
 
 export interface PlayerHonorScoreDetail {
   label: string;
@@ -320,7 +335,7 @@ export interface PlayerHonorSummaryColumn {
   key: PlayerHonorSummaryScoreKey;
   label: string;
   group: string;
-  sourceType: 'AWARD' | 'TEAM';
+  sourceType: 'AWARD' | 'TEAM' | 'ACHIEVEMENT';
 }
 
 export interface PlayerHonorSummaryRow {
@@ -335,6 +350,7 @@ export interface PlayerHonorSummaryRow {
   club?: (NamedRef & { exists?: boolean | null }) | null;
   awardCount: number;
   teamHonorCount: number;
+  achievementCount: number;
   awardScore: number;
   teamHonorScore: number;
   totalScore: number;
@@ -364,7 +380,7 @@ export interface PlayerHonorListColumn {
   key: PlayerHonorListColumnKey;
   label: string;
   group: string;
-  sourceType: 'AWARD' | 'TEAM' | 'OTHER';
+  sourceType: 'AWARD' | 'TEAM' | 'ACHIEVEMENT';
 }
 
 export interface PlayerHonorListCell {
@@ -399,6 +415,7 @@ export interface PlayerHonorListRow {
   }>;
   awardCount: number;
   teamHonorCount: number;
+  achievementCount: number;
   awardScore: number;
   teamHonorScore: number;
   totalScore: number;
@@ -437,6 +454,20 @@ export interface PlayerDetail extends PlayerListItem {
   hairColorRef?: NamedRef | null;
   personalHonors?: AwardRecipientRecord[];
   teamHonors?: PlayerTeamHonor[];
+  honors?: PlayerHonor[];
+}
+
+export interface PlayerHonor {
+  id: string;
+  playerId: string;
+  name: string;
+  score: number;
+  season?: string | null;
+  externalUrl?: string | null;
+  remark?: string | null;
+  sortOrder: number;
+  createdAt?: string | number | null;
+  updatedAt?: string | number | null;
 }
 
 export interface CountryListItem {

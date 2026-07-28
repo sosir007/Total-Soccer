@@ -18,6 +18,7 @@ import { resolvePagination, toNumber } from '../common/pagination.js';
 import type {
   PlayerAwardRecipientPayload,
   PlayerCareerPayload,
+  PlayerHonorPayload,
   PlayerHonorSummaryQuery,
   PlayerListQuery,
   PlayerPayload,
@@ -35,6 +36,7 @@ const PLAYER_CAREER_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
       exists: true,
       federationRef: {
@@ -43,6 +45,14 @@ const PLAYER_CAREER_INCLUDE = {
           uid: true,
           code: true,
           name: true
+        }
+      },
+      countryRef: {
+        select: {
+          id: true,
+          uid: true,
+          name: true,
+          shortName: true
         }
       }
     }
@@ -70,6 +80,7 @@ const CLUB_NAME_REF_SELECT = {
   id: true,
   uid: true,
   name: true,
+  shortName: true,
   externalUrl: true,
   exists: true,
   federationRef: {
@@ -105,8 +116,17 @@ const PLAYER_LIST_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
-      exists: true
+      exists: true,
+      countryRef: {
+        select: {
+          id: true,
+          uid: true,
+          name: true,
+          shortName: true
+        }
+      }
     }
   },
   initialClubRef: {
@@ -248,6 +268,7 @@ const TEAM_HONOR_STANDING_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
       federationRef: {
         select: {
@@ -264,6 +285,7 @@ const TEAM_HONOR_STANDING_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
       exists: true,
       federationRef: {
@@ -272,6 +294,14 @@ const TEAM_HONOR_STANDING_INCLUDE = {
           uid: true,
           code: true,
           name: true
+        }
+      },
+      countryRef: {
+        select: {
+          id: true,
+          uid: true,
+          name: true,
+          shortName: true
         }
       }
     }
@@ -322,6 +352,9 @@ const PLAYER_DETAIL_INCLUDE = {
     where: { status: PlayerTeamHonorStatus.CONFIRMED },
     include: PLAYER_TEAM_HONOR_INCLUDE,
     orderBy: [{ createdAt: 'desc' }]
+  },
+  honors: {
+    orderBy: [{ sortOrder: 'asc' }, { season: 'asc' }, { name: 'asc' }]
   }
 } satisfies Prisma.PlayerInclude;
 
@@ -370,8 +403,8 @@ type PlayerHonorListColumnKey =
   | 'otherCountryAward'
   | 'otherClubTrophy'
   | 'otherClubAward'
-  | 'otherPersonalHonor';
-type PlayerHonorSummaryScoreKey = Exclude<PlayerHonorListColumnKey, 'otherPersonalHonor'>;
+  | 'achievement';
+type PlayerHonorSummaryScoreKey = PlayerHonorListColumnKey;
 type PlayerHonorSummaryScoreMap = Record<PlayerHonorSummaryScoreKey, number>;
 type PlayerHonorScoreDetail = {
   label: string;
@@ -390,11 +423,11 @@ type PlayerHonorListColumn = {
   key: PlayerHonorListColumnKey;
   label: string;
   group: string;
-  sourceType: 'AWARD' | 'TEAM' | 'OTHER';
+  sourceType: 'AWARD' | 'TEAM' | 'ACHIEVEMENT';
 };
 type PlayerHonorSummaryColumn = PlayerHonorListColumn & {
   key: PlayerHonorSummaryScoreKey;
-  sourceType: 'AWARD' | 'TEAM';
+  sourceType: 'AWARD' | 'TEAM' | 'ACHIEVEMENT';
 };
 type PlayerHonorListCell = {
   text: string;
@@ -445,12 +478,11 @@ const PLAYER_HONOR_LIST_COLUMNS: PlayerHonorListColumn[] = [
   { key: 'otherCountryAward', label: '奖项', group: '其他国家队', sourceType: 'AWARD' },
   { key: 'otherClubTrophy', label: '奖杯', group: '其他俱乐部', sourceType: 'TEAM' },
   { key: 'otherClubAward', label: '奖项', group: '其他俱乐部', sourceType: 'AWARD' },
-  { key: 'otherPersonalHonor', label: '成就', group: '个人其他', sourceType: 'OTHER' }
+  { key: 'achievement', label: '成就', group: '成就', sourceType: 'ACHIEVEMENT' }
 ];
 
-const PLAYER_HONOR_SUMMARY_COLUMNS = PLAYER_HONOR_LIST_COLUMNS.filter(
-  (column): column is PlayerHonorSummaryColumn => column.sourceType !== 'OTHER'
-);
+const PLAYER_HONOR_SUMMARY_COLUMNS: PlayerHonorSummaryColumn[] = PLAYER_HONOR_LIST_COLUMNS;
+const PLAYER_ACHIEVEMENT_SCORE_CAP = 10;
 
 @Injectable()
 export class PlayersService {
@@ -809,6 +841,46 @@ export class PlayersService {
     return { id: honorId };
   }
 
+  async findPlayerHonors(id: string) {
+    await this.assertPlayerExists(id);
+
+    return this.prisma.playerHonor.findMany({
+      where: { playerId: id },
+      orderBy: [{ sortOrder: 'asc' }, { season: 'asc' }, { name: 'asc' }]
+    });
+  }
+
+  async createPlayerHonor(id: string, body: PlayerHonorPayload) {
+    await this.assertPlayerExists(id);
+
+    return this.prisma.playerHonor.create({
+      data: {
+        playerId: id,
+        ...this.buildPlayerHonorData(body)
+      }
+    });
+  }
+
+  async updatePlayerHonor(id: string, honorId: string, body: PlayerHonorPayload) {
+    await this.assertPlayerExists(id);
+    await this.assertPlayerHonorBelongsToPlayer(honorId, id);
+
+    return this.prisma.playerHonor.update({
+      where: { id: honorId },
+      data: this.buildPlayerHonorData(body)
+    });
+  }
+
+  async removePlayerHonor(id: string, honorId: string) {
+    await this.assertPlayerExists(id);
+    await this.assertPlayerHonorBelongsToPlayer(honorId, id);
+    await this.prisma.playerHonor.delete({
+      where: { id: honorId }
+    });
+
+    return { id: honorId };
+  }
+
   async findTeamHonorStandingOptions(query: TeamHonorStandingOptionQuery) {
     const pagination = resolvePagination(query);
     const keyword = query.keyword?.trim();
@@ -1031,6 +1103,30 @@ export class PlayersService {
     }
 
     return honor;
+  }
+
+  private async assertPlayerHonorBelongsToPlayer(id: string, playerId: string) {
+    const honor = await this.prisma.playerHonor.findUnique({
+      where: { id },
+      select: { id: true, playerId: true }
+    });
+
+    if (!honor || honor.playerId !== playerId) {
+      throw new NotFoundException('球员成就不存在。');
+    }
+
+    return honor;
+  }
+
+  private buildPlayerHonorData(body: PlayerHonorPayload) {
+    return {
+      name: this.requiredText(body.name, '成就名称'),
+      season: this.optionalText(body.season),
+      score: this.optionalFloat(body.score, '成就分', 0, PLAYER_ACHIEVEMENT_SCORE_CAP) ?? 1,
+      externalUrl: this.optionalText(body.externalUrl),
+      remark: this.optionalText(body.remark),
+      sortOrder: this.optionalInteger(body.sortOrder, '排序', 0, 999999) ?? 0
+    } satisfies Prisma.PlayerHonorUncheckedUpdateInput;
   }
 
   private async buildTeamHonorData(playerId: string, body: PlayerTeamHonorPayload) {
@@ -1266,7 +1362,9 @@ export class PlayersService {
       player.teamHonors,
       honorRules
     );
-    const totalScore = this.round(awardScore + teamHonorScore);
+    const achievementScore = this.addPlayerAchievementScores(scores, scoreDetails, player.honors);
+    const totalAwardScore = this.round(awardScore + achievementScore);
+    const totalScore = this.round(totalAwardScore + teamHonorScore);
 
     return {
       id: player.id,
@@ -1280,7 +1378,8 @@ export class PlayersService {
       club: player.club,
       awardCount: player.awardRecipients.length,
       teamHonorCount: player.teamHonors.length,
-      awardScore: this.round(awardScore),
+      achievementCount: player.honors.length,
+      awardScore: totalAwardScore,
       teamHonorScore: this.round(teamHonorScore),
       totalScore,
       scores,
@@ -1335,6 +1434,21 @@ export class PlayersService {
           }
         ],
         sortOrder: competition.sortOrder
+      });
+    }
+
+    for (const honor of player.honors) {
+      this.addPlayerHonorListEntry(entryMap, 'achievement', {
+        title: honor.name,
+        subjectName: null,
+        periods: [
+          {
+            label: honor.season || '-',
+            sortYear: this.resolveSortYear(honor.season),
+            placement: null
+          }
+        ],
+        sortOrder: honor.sortOrder
       });
     }
 
@@ -1943,6 +2057,44 @@ export class PlayersService {
       details[column.key] = [];
       return details;
     }, {} as PlayerHonorScoreDetailMap);
+  }
+
+  private addPlayerAchievementScores(
+    scores: PlayerHonorSummaryScoreMap,
+    scoreDetails: PlayerHonorScoreDetailMap,
+    honors: PlayerHonorSummaryPlayer['honors']
+  ) {
+    let total = 0;
+    const sortedHonors = [...honors].sort(
+      (left, right) =>
+        left.sortOrder - right.sortOrder ||
+        this.resolveSortYear(left.season) - this.resolveSortYear(right.season) ||
+        left.name.localeCompare(right.name, 'zh-CN')
+    );
+
+    for (const honor of sortedHonors) {
+      const baseScore = honor.score ?? 1;
+      const remainingScore = Math.max(PLAYER_ACHIEVEMENT_SCORE_CAP - total, 0);
+      const score = this.round(Math.min(baseScore, remainingScore));
+      const capped = remainingScore <= 0 || score < baseScore;
+
+      scores.achievement = this.round(scores.achievement + score);
+      scoreDetails.achievement.push({
+        label: honor.season || '-',
+        competitionName: honor.name,
+        placementLabel: null,
+        score,
+        placementScore: baseScore,
+        qualityCoefficient: 1,
+        conversionCoefficient: capped && score === 0 ? 0 : this.round(score / baseScore || 0),
+        ruleName: capped ? `个人成就（最高${PLAYER_ACHIEVEMENT_SCORE_CAP}分封顶）` : '个人成就',
+        externalUrl: honor.externalUrl ?? null,
+        sourceName: null
+      });
+      total += score;
+    }
+
+    return this.round(total);
   }
 
   private addPlayerAwardScores(

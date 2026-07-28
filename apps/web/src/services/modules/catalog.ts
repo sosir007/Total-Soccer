@@ -21,6 +21,8 @@ import type {
   PlayerDetail,
   PlayerCareerPayload,
   PlayerHonorListSummaryResult,
+  PlayerHonor,
+  PlayerHonorPayload,
   PlayerHonorSummaryParams,
   PlayerHonorSummaryResult,
   PlayerListItem,
@@ -51,6 +53,8 @@ const API = {
     TEAM_HONORS: (id: string) => `${playerPrefix}/${id}/team-honors`,
     TEAM_HONOR_DETAIL: (id: string, honorId: string) =>
       `${playerPrefix}/${id}/team-honors/${honorId}`,
+    HONORS: (id: string) => `${playerPrefix}/${id}/honors`,
+    HONOR_DETAIL: (id: string, honorId: string) => `${playerPrefix}/${id}/honors/${honorId}`,
     HONOR_SUMMARY: `${playerPrefix}/honor-summary`,
     HONOR_LIST_SUMMARY: `${playerPrefix}/honor-list-summary`,
     TEAM_HONOR_STANDINGS: `${playerPrefix}/team-honor-standings`
@@ -188,6 +192,30 @@ export async function updatePlayerTeamHonor(
 
 export async function deletePlayerTeamHonor(id: string, honorId: string) {
   const response = await api.delete<{ id: string }>(API.PLAYERS.TEAM_HONOR_DETAIL(id, honorId));
+
+  return response;
+}
+
+export async function fetchPlayerHonors(id: string) {
+  const response = await api.get<PlayerHonor[]>(API.PLAYERS.HONORS(id));
+
+  return response;
+}
+
+export async function createPlayerHonor(id: string, payload: PlayerHonorPayload) {
+  const response = await api.post<PlayerHonor>(API.PLAYERS.HONORS(id), payload);
+
+  return response;
+}
+
+export async function updatePlayerHonor(id: string, honorId: string, payload: PlayerHonorPayload) {
+  const response = await api.put<PlayerHonor>(API.PLAYERS.HONOR_DETAIL(id, honorId), payload);
+
+  return response;
+}
+
+export async function deletePlayerHonor(id: string, honorId: string) {
+  const response = await api.delete<{ id: string }>(API.PLAYERS.HONOR_DETAIL(id, honorId));
 
   return response;
 }

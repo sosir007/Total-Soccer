@@ -12,6 +12,7 @@ export interface NamedRef {
   uid?: string;
   code?: string | null;
   name: string;
+  shortName?: string | null;
   externalUrl?: string | null;
   visibleInCatalog?: boolean | null;
   isHistorical?: boolean | null;

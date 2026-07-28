@@ -10,9 +10,8 @@ import type { NamedRef } from '@/services/types/common';
 import { buildExternalUrl } from '@/utils/external-link';
 import StarBasicInfoContent from './StarBasicInfoContent.vue';
 import StarCareerTableContent from './StarCareerTableContent.vue';
-import StarPersonalHonorsContent from './StarPersonalHonorsContent.vue';
 import StarRelatedInfoContent from './StarRelatedInfoContent.vue';
-import StarTeamHonorsContent from './StarTeamHonorsContent.vue';
+import StarHonorProfileContent from './StarHonorProfileContent.vue';
 
 const props = defineProps<{
   player: PlayerDetail;
@@ -34,6 +33,9 @@ const displayCareers = computed(() =>
   )
 );
 const playerTypeName = computed(() => props.player.playerTypeRef?.name || props.player.playerType);
+const honorProfileCount = computed(
+  () => (props.player.personalHonors?.length ?? 0) + (props.player.teamHonors?.length ?? 0)
+);
 
 function formatRef(ref?: NamedRef | null) {
   return ref?.name ?? '-';
@@ -107,21 +109,12 @@ function playerExternalUrl() {
     </SectionCard>
 
     <SectionCard
-      title="个人荣誉"
-      :badge="`${player.personalHonors?.length ?? 0} 条`"
-      :empty="!player.personalHonors?.length"
-      empty-text="暂无结构化个人荣誉"
+      title="荣誉履历"
+      :badge="`${honorProfileCount} 条`"
+      :empty="!honorProfileCount"
+      empty-text="暂无结构化荣誉"
     >
-      <StarPersonalHonorsContent :honors="player.personalHonors" />
-    </SectionCard>
-
-    <SectionCard
-      title="团队荣誉"
-      :badge="`${player.teamHonors?.length ?? 0} 条`"
-      :empty="!player.teamHonors?.length"
-      empty-text="暂无确认关联的团队荣誉"
-    >
-      <StarTeamHonorsContent :honors="player.teamHonors" />
+      <StarHonorProfileContent :player="player" />
     </SectionCard>
   </template>
 </template>

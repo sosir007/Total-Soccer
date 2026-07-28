@@ -122,3 +122,12 @@ export interface PlayerTeamHonorPayload {
   status?: 'CONFIRMED' | 'PENDING' | 'EXCLUDED';
   remark?: string;
 }
+
+export interface PlayerHonorPayload {
+  name?: string;
+  season?: string;
+  score?: number | string | null;
+  externalUrl?: string;
+  remark?: string;
+  sortOrder?: number | string | null;
+}

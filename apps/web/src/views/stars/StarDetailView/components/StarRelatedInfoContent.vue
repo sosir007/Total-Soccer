@@ -149,10 +149,6 @@ const clubCareerLinks = computed(() => {
       <dd>{{ formatText(player.staffRoles) }}</dd>
     </div>
     <div>
-      <dt>成就</dt>
-      <dd>{{ formatText(player.achievement) }}</dd>
-    </div>
-    <div>
       <dt>备注</dt>
       <dd>{{ formatText(player.remark) }}</dd>
     </div>
