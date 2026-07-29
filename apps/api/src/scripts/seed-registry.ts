@@ -198,6 +198,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'argentine-primera-division',
+    label: '阿根廷足球甲级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-argentine-primera-division.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/argentine-primera-division.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'brazil-serie-b',
     label: '巴西乙级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-serie-b.ts',

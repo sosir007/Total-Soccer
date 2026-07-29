@@ -108,7 +108,8 @@ const COUNTRY_HONOR_INCLUDE = {
           editions: {
             select: {
               year: true,
-              quantity: true
+              quantity: true,
+              championShare: true
             }
           }
         }
@@ -338,7 +339,8 @@ export class CountriesService {
         record.edition.competition,
         record.placement,
         record.edition.year,
-        record.edition.quantity
+        record.edition.quantity,
+        record.edition.championShare
       )
     );
     const rows = await this.buildCountryHonorSummaryRows(scoringRecords, query, rules);
@@ -940,7 +942,8 @@ export class CountriesService {
           record.edition.competition,
           record.placement,
           record.edition.year,
-          record.edition.quantity
+          record.edition.quantity,
+          record.edition.championShare
         );
 
         if (scoreDetail === null) {
@@ -1293,7 +1296,8 @@ export class CountriesService {
     competition: CountryHonorCompetition,
     placement: CompetitionStandingPlacement,
     year: number | null,
-    quantity: number | null
+    quantity: number | null,
+    championShare: number | null
   ) {
     const rule = this.resolveHonorSummaryRule(rules, competition, placement);
 
@@ -1312,7 +1316,9 @@ export class CountriesService {
       rule,
       competition,
       year,
-      quantity
+      quantity,
+      placement,
+      championShare
     );
 
     return {
@@ -1429,22 +1435,39 @@ export class CountriesService {
     rule: HonorSummaryRule,
     competition: CountryHonorCompetition,
     year: number | null,
-    quantity: number | null
+    quantity: number | null,
+    placement: CompetitionStandingPlacement,
+    championShare: number | null
   ) {
+    const championShareCoefficient = this.championShareCoefficient(placement, championShare);
+
     if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
-      return this.frequencyCoefficient(competition) * this.scaleCoefficient(competition, quantity);
+      return (
+        this.frequencyCoefficient(competition) *
+        this.scaleCoefficient(competition, quantity) *
+        championShareCoefficient
+      );
     }
 
     if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
-      if (!year) return 1;
-      if (year <= 1928) return 3;
-      if (year <= 1980) return 2;
-      if (year <= 1988) return 1.5;
+      if (!year) return championShareCoefficient;
+      if (year <= 1928) return 3 * championShareCoefficient;
+      if (year <= 1980) return 2 * championShareCoefficient;
+      if (year <= 1988) return 1.5 * championShareCoefficient;
 
-      return 1;
+      return championShareCoefficient;
     }
 
-    return 1;
+    return championShareCoefficient;
+  }
+
+  private championShareCoefficient(
+    placement: CompetitionStandingPlacement,
+    championShare: number | null
+  ) {
+    if (placement !== CompetitionStandingPlacement.CHAMPION) return 1;
+    if (!championShare || championShare <= 1) return 1;
+    return 1 / championShare;
   }
 
   private frequencyCoefficient(competition: CountryHonorCompetition) {

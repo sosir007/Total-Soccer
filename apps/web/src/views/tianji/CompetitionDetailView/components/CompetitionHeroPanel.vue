@@ -4,6 +4,7 @@ import type {
   CompetitionScopeType,
   CompetitionTargetType
 } from '@/services/types/competitions';
+import DetailHero from '@/components/DetailHero.vue';
 import IconFont from '@/components/IconFont.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import { getCompetitionCategoryVariant, getCompetitionLevelVariant } from '@/utils/tag-theme';
@@ -28,14 +29,13 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="panel player-detail-hero">
-    <div>
-      <div class="detail-kicker">
-        {{ targetTypeLabels[competition.targetType] }} /
-        {{ scopeTypeLabels[competition.scopeType] }}
-      </div>
-      <h2>{{ formatEntityName(competition) }}</h2>
-      <p v-if="competition.englishName" class="detail-subtitle">{{ competition.englishName }}</p>
+  <DetailHero
+    :kicker="`${targetTypeLabels[competition.targetType]} / ${scopeTypeLabels[competition.scopeType]}`"
+    :title="formatEntityName(competition)"
+    :subtitle="competition.englishName"
+    :external-url="competition.externalUrl ?? undefined"
+  >
+    <template #tags>
       <p>{{ competition.code }} · {{ formatScope(competition) }}</p>
       <div class="detail-tags">
         <SemanticTag :variant="getCompetitionCategoryVariant(competition.category)">
@@ -49,8 +49,9 @@ const emit = defineEmits<{
         </span>
         <SemanticTag variant="status-legend">{{ getSummaryCountLabel() }}</SemanticTag>
       </div>
-    </div>
-    <div class="panel-actions">
+    </template>
+
+    <template #actions>
       <el-button @click="emit('back')">
         <IconFont name="back" />
         返回列表
@@ -59,6 +60,6 @@ const emit = defineEmits<{
         <IconFont name="edit" />
         编辑资料
       </el-button>
-    </div>
-  </div>
+    </template>
+  </DetailHero>
 </template>

@@ -108,7 +108,8 @@ const COMPETITION_INCLUDE = {
   editions: {
     select: {
       year: true,
-      quantity: true
+      quantity: true,
+      championShare: true
     }
   }
 } satisfies Prisma.CompetitionInclude;
@@ -329,7 +330,8 @@ export class CompetitionsService {
       rule,
       competition,
       latestEdition?.year ?? null,
-      latestEdition?.quantity ?? null
+      latestEdition?.quantity ?? null,
+      latestEdition?.championShare ?? null
     );
     const score = this.round(championScore * qualityCoefficient * conversion.coefficient);
     const parts = [
@@ -393,17 +395,21 @@ export class CompetitionsService {
     rule: CompetitionScoreRule,
     competition: CompetitionListItem,
     year: number | null,
-    quantity: number | null
+    quantity: number | null,
+    championShare: number | null
   ) {
+    const championShareCoefficient = this.championShareCoefficient(championShare);
+
     if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
       const frequencyCoefficient = this.frequencyCoefficient(competition);
       const scaleCoefficient = this.scaleCoefficient(competition, quantity);
 
       return {
-        coefficient: frequencyCoefficient * scaleCoefficient,
+        coefficient: frequencyCoefficient * scaleCoefficient * championShareCoefficient,
         parts: [
           `频率系数 ${this.formatScoreNumber(frequencyCoefficient)}`,
-          `规模系数 ${this.formatScoreNumber(scaleCoefficient)}`
+          `规模系数 ${this.formatScoreNumber(scaleCoefficient)}`,
+          ...this.championShareParts(championShare)
         ]
       };
     }
@@ -413,8 +419,11 @@ export class CompetitionsService {
       const suffix = year ? `（按最新届次 ${year} 年）` : '';
 
       return {
-        coefficient,
-        parts: [`年代系数 ${this.formatScoreNumber(coefficient)}${suffix}`]
+        coefficient: coefficient * championShareCoefficient,
+        parts: [
+          `年代系数 ${this.formatScoreNumber(coefficient)}${suffix}`,
+          ...this.championShareParts(championShare)
+        ]
       };
     }
 
@@ -423,15 +432,28 @@ export class CompetitionsService {
       const suffix = year ? `（按最新届次 ${year} 年）` : '';
 
       return {
-        coefficient,
-        parts: [`赛制阶段系数 ${this.formatScoreNumber(coefficient)}${suffix}`]
+        coefficient: coefficient * championShareCoefficient,
+        parts: [
+          `赛制阶段系数 ${this.formatScoreNumber(coefficient)}${suffix}`,
+          ...this.championShareParts(championShare)
+        ]
       };
     }
 
     return {
-      coefficient: 1,
-      parts: []
+      coefficient: championShareCoefficient,
+      parts: this.championShareParts(championShare)
     };
+  }
+
+  private championShareCoefficient(championShare: number | null | undefined) {
+    if (!championShare || championShare <= 1) return 1;
+    return 1 / championShare;
+  }
+
+  private championShareParts(championShare: number | null | undefined) {
+    if (!championShare || championShare <= 1) return [];
+    return [`多冠军分摊 1/${championShare}`];
   }
 
   private frequencyCoefficient(competition: CompetitionListItem) {
@@ -463,7 +485,13 @@ export class CompetitionsService {
     return 0;
   }
 
-  private latestEdition(editions: Array<{ year: number | null; quantity: number | null }>) {
+  private latestEdition(
+    editions: Array<{
+      year: number | null;
+      quantity: number | null;
+      championShare: number | null;
+    }>
+  ) {
     return editions
       .filter((edition) => this.isNumber(edition.year))
       .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))[0];

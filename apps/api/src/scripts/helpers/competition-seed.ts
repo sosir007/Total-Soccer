@@ -72,6 +72,8 @@ export type SeedEdition = {
   host?: string | null;
   externalUrl?: string | null;
   quantity?: number | null;
+  championGroupKey?: string | null;
+  championShare?: number | null;
   standingMode?: CompetitionEditionStandingMode;
   remark?: string | null;
 };
@@ -279,6 +281,8 @@ export async function runCompetitionSeed<T extends SeedEdition>({
         host: editionData.host ?? null,
         externalUrl: editionData.externalUrl ?? null,
         quantity: editionData.quantity ?? null,
+        championGroupKey: editionData.championGroupKey ?? null,
+        championShare: editionData.championShare ?? null,
         standingMode,
         remark: editionData.remark ?? null
       },
@@ -288,6 +292,8 @@ export async function runCompetitionSeed<T extends SeedEdition>({
         host: editionData.host ?? null,
         externalUrl: editionData.externalUrl ?? null,
         quantity: editionData.quantity ?? null,
+        championGroupKey: editionData.championGroupKey ?? null,
+        championShare: editionData.championShare ?? null,
         standingMode,
         remark: editionData.remark ?? null
       },
@@ -1382,6 +1388,8 @@ async function applyCompetitionPatches<T extends SeedCompetitionPatch>(
         host: patch.host ?? null,
         externalUrl: patch.externalUrl ?? null,
         quantity: patch.quantity ?? null,
+        championGroupKey: patch.championGroupKey ?? null,
+        championShare: patch.championShare ?? null,
         standingMode: patch.standingMode,
         remark: patch.remark ?? null
       },
@@ -1391,6 +1399,8 @@ async function applyCompetitionPatches<T extends SeedCompetitionPatch>(
         host: patch.host ?? null,
         externalUrl: patch.externalUrl ?? null,
         quantity: patch.quantity ?? null,
+        championGroupKey: patch.championGroupKey ?? null,
+        championShare: patch.championShare ?? null,
         standingMode: patch.standingMode,
         remark: patch.remark ?? null
       },

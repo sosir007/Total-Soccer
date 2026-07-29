@@ -51,7 +51,7 @@ type CompetitionForScoring = {
   countryId: string | null;
   scopeConfederations: Array<{ confederationId: string }>;
   scopeCountries: Array<{ countryId: string }>;
-  editions: Array<{ year: number | null; quantity: number | null }>;
+  editions: Array<{ year: number | null; quantity: number | null; championShare: number | null }>;
 };
 
 interface TeamBonusStats {
@@ -611,7 +611,7 @@ export class HonorRulesService {
                 include: {
                   scopeConfederations: { select: { confederationId: true } },
                   scopeCountries: { select: { countryId: true } },
-                  editions: { select: { year: true, quantity: true } }
+                  editions: { select: { year: true, quantity: true, championShare: true } }
                 }
               }
             }
@@ -648,7 +648,7 @@ export class HonorRulesService {
         include: {
           scopeConfederations: { select: { confederationId: true } },
           scopeCountries: { select: { countryId: true } },
-          editions: { select: { year: true, quantity: true } }
+          editions: { select: { year: true, quantity: true, championShare: true } }
         }
       }),
       this.getCountryParticipationStats(),
@@ -691,7 +691,8 @@ export class HonorRulesService {
         competition,
         standing.placement,
         standing.edition.year,
-        standing.edition.quantity
+        standing.edition.quantity,
+        standing.edition.championShare
       );
 
       if (competition.targetType === CompetitionTargetType.COUNTRY && standing.countryId) {
@@ -1232,7 +1233,8 @@ export class HonorRulesService {
     competition: CompetitionForScoring,
     placement: CompetitionStandingPlacement,
     year: number | null,
-    quantity: number | null
+    quantity: number | null,
+    championShare: number | null
   ) {
     const placementScore = this.placementScore(rule, placement);
 
@@ -1243,7 +1245,7 @@ export class HonorRulesService {
     return (
       placementScore *
       this.resolveQualityCoefficient(rule, competition) *
-      this.resolveConversionCoefficient(rule, competition, year, quantity)
+      this.resolveConversionCoefficient(rule, competition, year, quantity, placement, championShare)
     );
   }
 
@@ -1349,26 +1351,43 @@ export class HonorRulesService {
     rule: RuleWithRelations,
     competition: CompetitionForScoring,
     year: number | null,
-    quantity: number | null
+    quantity: number | null,
+    placement: CompetitionStandingPlacement,
+    championShare: number | null
   ) {
+    const championShareCoefficient = this.championShareCoefficient(placement, championShare);
+
     if (rule.conversionType === HonorRuleConversionType.FREQUENCY_SCALE) {
-      return this.frequencyCoefficient(competition) * this.scaleCoefficient(competition, quantity);
+      return (
+        this.frequencyCoefficient(competition) *
+        this.scaleCoefficient(competition, quantity) *
+        championShareCoefficient
+      );
     }
 
     if (rule.conversionType === HonorRuleConversionType.OLYMPIC_STAGE) {
-      if (!year) return 1;
-      if (year <= 1928) return 3;
-      if (year <= 1980) return 2;
-      if (year <= 1988) return 1.5;
-      return 1;
+      if (!year) return championShareCoefficient;
+      if (year <= 1928) return 3 * championShareCoefficient;
+      if (year <= 1980) return 2 * championShareCoefficient;
+      if (year <= 1988) return 1.5 * championShareCoefficient;
+      return championShareCoefficient;
     }
 
     if (rule.conversionType === HonorRuleConversionType.CLUB_WORLD_CUP_STAGE) {
-      if (!year) return 1;
-      return year < 2025 ? 0.5 : 1;
+      if (!year) return championShareCoefficient;
+      return (year < 2025 ? 0.5 : 1) * championShareCoefficient;
     }
 
-    return 1;
+    return championShareCoefficient;
+  }
+
+  private championShareCoefficient(
+    placement: CompetitionStandingPlacement,
+    championShare: number | null
+  ) {
+    if (placement !== CompetitionStandingPlacement.CHAMPION) return 1;
+    if (!championShare || championShare <= 1) return 1;
+    return 1 / championShare;
   }
 
   private frequencyCoefficient(competition: CompetitionForScoring) {
