@@ -167,6 +167,14 @@ function formatText(value?: string | number | null) {
   return value === null || value === undefined || value === '' ? '-' : value;
 }
 
+function formatScore(value?: number | null) {
+  if (value === null || value === undefined) {
+    return '-';
+  }
+
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, '');
+}
+
 function formatMarketValue(value?: number | null) {
   if (value === null || value === undefined) {
     return '-';
@@ -228,7 +236,18 @@ function openExternalLink(row: PlayerListItem) {
           </template>
         </el-table-column>
         <el-table-column prop="honorScore" label="荣誉分" width="100" sortable>
-          <template #default="{ row }">{{ formatText(row.honorScore) }}</template>
+          <template #default="{ row }">
+            <el-tooltip placement="top" effect="dark">
+              <template #content>
+                <div class="honor-score-tooltip">
+                  <div>个人奖项分 {{ formatScore(row.awardScore) }}</div>
+                  <div>团队荣誉分 {{ formatScore(row.teamHonorScore) }}</div>
+                  <div>成就分 {{ formatScore(row.achievementScore) }}</div>
+                </div>
+              </template>
+              <span class="honor-score-cell">{{ formatScore(row.honorScore) }}</span>
+            </el-tooltip>
+          </template>
         </el-table-column>
         <el-table-column prop="birthDate" label="年代" width="90" align="center" sortable>
           <template #default="{ row }">{{ formatBirthDecade(row.birthDate) }}</template>
@@ -382,15 +401,6 @@ function openExternalLink(row: PlayerListItem) {
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="databaseSource" label="数据库" width="100" />
-        <el-table-column
-          prop="staffRoles"
-          label="担任过职位"
-          min-width="120"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="achievement" label="成就" min-width="240" show-overflow-tooltip />
-        <el-table-column prop="remark" label="备注" min-width="240" show-overflow-tooltip />
         <el-table-column label="状态" width="80" align="center">
           <template #default="{ row }">
             <SemanticTag :variant="getPlayerStatusVariant(row)" size="small">
@@ -398,6 +408,14 @@ function openExternalLink(row: PlayerListItem) {
             </SemanticTag>
           </template>
         </el-table-column>
+        <el-table-column
+          prop="staffRoles"
+          label="担任过职位"
+          min-width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column prop="coreEvaluation" label="核心定评" width="400" show-overflow-tooltip />
+        <el-table-column prop="remark" label="备注" width="320" show-overflow-tooltip />
         <el-table-column label="外链" width="86" align="center" header-align="center">
           <template #default="{ row }">
             <a
@@ -479,5 +497,17 @@ function openExternalLink(row: PlayerListItem) {
   font-weight: 820;
   text-align: right;
   white-space: nowrap;
+}
+
+.honor-score-cell {
+  color: var(--text-color-primary);
+  font-weight: 760;
+  cursor: default;
+}
+
+.honor-score-tooltip {
+  display: grid;
+  gap: 4px;
+  line-height: 1.5;
 }
 </style>

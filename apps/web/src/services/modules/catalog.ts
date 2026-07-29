@@ -25,6 +25,11 @@ import type {
   PlayerHonorPayload,
   PlayerHonorSummaryParams,
   PlayerHonorSummaryResult,
+  PlayerPaAdjustmentBatchPayload,
+  PlayerPaAdjustmentResult,
+  PlayerPaEvaluationParams,
+  PlayerPaEvaluationPayload,
+  PlayerPaEvaluationRow,
   PlayerListItem,
   PlayerListParams,
   PlayerPayload,
@@ -57,6 +62,10 @@ const API = {
     HONOR_DETAIL: (id: string, honorId: string) => `${playerPrefix}/${id}/honors/${honorId}`,
     HONOR_SUMMARY: `${playerPrefix}/honor-summary`,
     HONOR_LIST_SUMMARY: `${playerPrefix}/honor-list-summary`,
+    PA_EVALUATIONS: `${playerPrefix}/pa-evaluations`,
+    PA_EVALUATION_DETAIL: (id: string) => `${playerPrefix}/${id}/pa-evaluation`,
+    PA_ADJUSTMENTS: `${playerPrefix}/pa-adjustments`,
+    PA_ADJUSTMENT_BATCHES: `${playerPrefix}/pa-adjustments/batches`,
     TEAM_HONOR_STANDINGS: `${playerPrefix}/team-honor-standings`
   },
   COUNTRIES: {
@@ -97,6 +106,40 @@ export async function fetchPlayerHonorListSummary(params: PlayerHonorSummaryPara
   const response = await api.get<PlayerHonorListSummaryResult>(API.PLAYERS.HONOR_LIST_SUMMARY, {
     params
   });
+
+  return response;
+}
+
+export async function fetchPlayerPaEvaluations(params: PlayerPaEvaluationParams) {
+  const response = await api.get<PaginationResult<PlayerPaEvaluationRow>>(
+    API.PLAYERS.PA_EVALUATIONS,
+    {
+      params
+    }
+  );
+
+  return response;
+}
+
+export async function updatePlayerPaEvaluation(id: string, payload: PlayerPaEvaluationPayload) {
+  const response = await api.put<PlayerPaEvaluationRow>(
+    API.PLAYERS.PA_EVALUATION_DETAIL(id),
+    payload
+  );
+
+  return response;
+}
+
+export async function fetchPlayerPaAdjustments(params: PlayerPaEvaluationParams) {
+  const response = await api.get<PlayerPaAdjustmentResult>(API.PLAYERS.PA_ADJUSTMENTS, {
+    params
+  });
+
+  return response;
+}
+
+export async function createPlayerPaAdjustmentBatch(payload: PlayerPaAdjustmentBatchPayload) {
+  const response = await api.post(API.PLAYERS.PA_ADJUSTMENT_BATCHES, payload);
 
   return response;
 }

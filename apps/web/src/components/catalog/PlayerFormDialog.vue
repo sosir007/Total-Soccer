@@ -334,7 +334,6 @@ async function submit() {
       hairColorId: form.hairColorId || undefined,
       preferredFootId: form.preferredFootId || undefined,
       foot: form.foot.trim() || undefined,
-      pa: form.pa,
       ca: form.ca,
       height: form.height ?? null,
       weight: form.weight ?? null,
@@ -446,7 +445,11 @@ async function submit() {
           <el-input v-model="form.skinTone" placeholder="请输入肤色" />
         </el-form-item>
         <el-form-item label="PA">
-          <el-input-number v-model="form.pa" :controls="false" :min="0" :max="250" />
+          <el-input
+            :model-value="form.pa ? String(form.pa) : '-'"
+            disabled
+            placeholder="由巨星演算维护"
+          />
         </el-form-item>
         <el-form-item label="CA">
           <el-input-number v-model="form.ca" :controls="false" :min="0" :max="250" />

@@ -393,14 +393,7 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column
-              prop="primaryRole"
-              label="位置"
-              width="80"
-              fixed
-              align="center"
-              sortable
-            >
+            <el-table-column prop="primaryRole" label="位置" width="80" fixed align="center">
               <template #default="{ row }">
                 <PositionTags :value="row.primaryRole || row.positions" />
               </template>
@@ -668,14 +661,7 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column
-              prop="primaryRole"
-              label="位置"
-              width="80"
-              fixed
-              align="center"
-              sortable
-            >
+            <el-table-column prop="primaryRole" label="位置" width="80" fixed align="center">
               <template #default="{ row }">
                 <PositionTags :value="row.primaryRole || row.positions" />
               </template>

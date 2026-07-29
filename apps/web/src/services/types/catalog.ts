@@ -194,6 +194,99 @@ export interface PlayerHonorPayload {
   sortOrder?: number | string | null;
 }
 
+export interface PlayerPaEvaluationPayload {
+  pa?: number | string | null;
+  initialPa?: number | string | null;
+  reincarnationPa?: string;
+  superDiamondPa?: string;
+  websitePa?: string;
+  doubaoPa?: string;
+  dpPa?: string;
+  yuanbaoPa?: string;
+  qianwenPa?: string;
+  geminiPa?: string;
+  codexPa?: string;
+  coreEvaluation?: string;
+  playerPositioning?: string;
+  teamContribution?: string;
+}
+
+export interface PlayerPaEvaluationRecord {
+  id: string;
+  playerId: string;
+  initialPa?: number | null;
+  reincarnationPa?: string | null;
+  superDiamondPa?: string | null;
+  websitePa?: string | null;
+  doubaoPa?: string | null;
+  dpPa?: string | null;
+  yuanbaoPa?: string | null;
+  qianwenPa?: string | null;
+  geminiPa?: string | null;
+  codexPa?: string | null;
+  coreEvaluation?: string | null;
+  playerPositioning?: string | null;
+  teamContribution?: string | null;
+  createdAt?: string | number | null;
+  updatedAt?: string | number | null;
+}
+
+export interface PlayerPaEvaluationRow {
+  id: string;
+  uid: string;
+  chineseName: string;
+  englishName?: string | null;
+  birthDate?: number | string | null;
+  primaryRole?: string | null;
+  positions?: string | null;
+  country?: NamedRef | null;
+  club?: (NamedRef & { exists?: boolean | null }) | null;
+  pa?: number | null;
+  evaluation?: PlayerPaEvaluationRecord | null;
+}
+
+export interface PlayerPaAdjustmentPayloadItem {
+  playerId: string;
+  pa?: number | string | null;
+  remark?: string;
+}
+
+export interface PlayerPaAdjustmentBatchPayload {
+  label?: string;
+  remark?: string;
+  items?: PlayerPaAdjustmentPayloadItem[];
+}
+
+export interface PlayerPaAdjustmentColumn {
+  key: string;
+  label: string;
+  kind: 'initial' | 'batch';
+  createdAt?: string | number | null;
+}
+
+export interface PlayerPaAdjustmentRow {
+  id: string;
+  uid: string;
+  chineseName: string;
+  englishName?: string | null;
+  birthDate?: number | string | null;
+  primaryRole?: string | null;
+  positions?: string | null;
+  country?: NamedRef | null;
+  club?: (NamedRef & { exists?: boolean | null }) | null;
+  initialPa?: number | null;
+  currentPa?: number | null;
+  values: Record<string, number | null>;
+}
+
+export interface PlayerPaAdjustmentResult {
+  items: PlayerPaAdjustmentRow[];
+  columns: PlayerPaAdjustmentColumn[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
 export interface CareerProfileLine {
   id: string;
   player: {
@@ -242,6 +335,9 @@ export interface PlayerListItem {
   ca?: number | null;
   pa?: number | null;
   honorScore?: number | null;
+  awardScore?: number | null;
+  teamHonorScore?: number | null;
+  achievementScore?: number | null;
   awardCount?: number | null;
   topAwardCount?: number | null;
   age?: number | null;
@@ -272,6 +368,7 @@ export interface PlayerListItem {
   databaseSource?: string | null;
   staffRoles?: string | null;
   achievement?: string | null;
+  coreEvaluation?: string | null;
   remark?: string | null;
   country?: (NamedRef & { shortName?: string | null }) | null;
   birthCountry?: (NamedRef & { shortName?: string | null }) | null;
@@ -368,6 +465,16 @@ export interface PlayerHonorSummaryParams {
   position?: string;
 }
 
+export interface PlayerPaEvaluationParams {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  confederationId?: string;
+  countryId?: string;
+  clubId?: string;
+  position?: string;
+}
+
 export interface PlayerHonorSummaryResult {
   items: PlayerHonorSummaryRow[];
   columns: PlayerHonorSummaryColumn[];
@@ -455,6 +562,7 @@ export interface PlayerDetail extends PlayerListItem {
   personalHonors?: AwardRecipientRecord[];
   teamHonors?: PlayerTeamHonor[];
   honors?: PlayerHonor[];
+  paEvaluation?: PlayerPaEvaluationRecord | null;
 }
 
 export interface PlayerHonor {

@@ -11,6 +11,7 @@ import ClubHonorsView from '@/views/clubs/ClubHonorsView.vue';
 import ClubDetailView from '@/views/clubs/ClubDetailView/index.vue';
 import StarsOverviewView from '@/views/stars/StarsOverviewView/index.vue';
 import StarHonorsView from '@/views/stars/StarHonorsView.vue';
+import StarCalculationView from '@/views/stars/StarCalculationView/index.vue';
 import StarDetailView from '@/views/stars/StarDetailView/index.vue';
 import StarFormView from '@/views/stars/StarFormView.vue';
 import StarResumeView from '@/views/stars/StarResumeView.vue';
@@ -63,13 +64,13 @@ export const routes: RouteRecordRaw[] = [
         path: 'nations/detail',
         name: 'nations-detail',
         component: NationDetailView,
-        meta: { title: '国家详情' }
+        meta: { title: '国家详情', activeMenu: '/nations/overview' }
       },
       {
         path: 'nations/detail/:id',
         name: 'nations-detail-id',
         component: NationDetailView,
-        meta: { title: '国家详情' }
+        meta: { title: '国家详情', activeMenu: '/nations/overview' }
       },
       { path: 'clubs', redirect: '/clubs/overview' },
       {
@@ -88,13 +89,13 @@ export const routes: RouteRecordRaw[] = [
         path: 'clubs/detail',
         name: 'clubs-detail',
         component: ClubDetailView,
-        meta: { title: '豪门详情' }
+        meta: { title: '豪门详情', activeMenu: '/clubs/overview' }
       },
       {
         path: 'clubs/detail/:id',
         name: 'clubs-detail-id',
         component: ClubDetailView,
-        meta: { title: '豪门详情' }
+        meta: { title: '豪门详情', activeMenu: '/clubs/overview' }
       },
       { path: 'stars', redirect: '/stars/overview' },
       {
@@ -110,34 +111,40 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: '巨星荣誉' }
       },
       {
+        path: 'stars/calculation',
+        name: 'stars-calculation',
+        component: StarCalculationView,
+        meta: { title: '巨星演算' }
+      },
+      {
         path: 'stars/detail',
         name: 'stars-detail',
         component: StarDetailView,
-        meta: { title: '巨星详情' }
+        meta: { title: '巨星详情', activeMenu: '/stars/overview' }
       },
       {
         path: 'stars/detail/:id',
         name: 'stars-detail-id',
         component: StarDetailView,
-        meta: { title: '巨星详情' }
+        meta: { title: '巨星详情', activeMenu: '/stars/overview' }
       },
       {
         path: 'stars/new',
         name: 'stars-new',
         component: StarFormView,
-        meta: { title: '新增球员' }
+        meta: { title: '新增球员', activeMenu: '/stars/overview' }
       },
       {
         path: 'stars/edit/:id',
         name: 'stars-edit-id',
         component: StarFormView,
-        meta: { title: '编辑球员' }
+        meta: { title: '编辑球员', activeMenu: '/stars/overview' }
       },
       {
         path: 'stars/resume/:id',
         name: 'stars-resume-id',
         component: StarResumeView,
-        meta: { title: '履历管理' }
+        meta: { title: '履历管理', activeMenu: '/stars/overview' }
       },
       { path: 'tianji', redirect: '/tianji/honor-rules' },
       {
@@ -156,7 +163,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'tianji/competitions/:id',
         name: 'tianji-competition-detail-id',
         component: CompetitionDetailView,
-        meta: { title: '赛事详情' }
+        meta: { title: '赛事详情', activeMenu: '/tianji/competitions' }
       },
       {
         path: 'tianji/awards',
@@ -168,7 +175,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'tianji/awards/:id',
         name: 'tianji-award-detail-id',
         component: AwardsView,
-        meta: { title: '奖项详情' }
+        meta: { title: '奖项详情', activeMenu: '/tianji/awards' }
       },
       {
         path: 'tianji/import',

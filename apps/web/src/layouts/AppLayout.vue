@@ -43,7 +43,8 @@ const navItems = [
     icon: 'star',
     children: [
       { path: '/stars/overview', label: '巨星概览' },
-      { path: '/stars/honors', label: '巨星荣誉' }
+      { path: '/stars/honors', label: '巨星荣誉' },
+      { path: '/stars/calculation', label: '巨星演算' }
     ]
   },
   {
@@ -64,6 +65,7 @@ const navItems = [
 
 const pageTitle = computed(() => String(route.meta.title ?? '世界概览'));
 const currentTabPath = computed(() => route.fullPath);
+const activeMenuPath = computed(() => String(route.meta.activeMenu ?? route.path));
 
 function scrollActiveNavIntoView() {
   void nextTick(() => {
@@ -162,6 +164,7 @@ onMounted(() => {
             v-for="item in group.children"
             :key="item.path"
             class="nav-item sub"
+            :class="{ 'router-link-active': item.path === activeMenuPath }"
             :to="item.path"
           >
             {{ item.label }}

@@ -54,31 +54,27 @@ const clubCareerLinks = computed(() => {
 <template>
   <dl class="detail-list">
     <div>
-      <dt>足联</dt>
-      <dd>
-        <SemanticTag
-          v-if="formatRef(player.confederationRef) !== '-'"
-          :variant="getConfederationVariant(formatRef(player.confederationRef))"
-        >
-          {{ formatRef(player.confederationRef) }}
-        </SemanticTag>
-        <span v-else>-</span>
-      </dd>
-    </div>
-    <div>
       <dt>代表国籍</dt>
       <dd>
-        <EntityLink
-          :id="player.country?.id"
-          type="country"
-          :name="formatText(player.representedCountry || player.country?.name)"
-        />
+        <span class="country-with-federation">
+          <EntityLink
+            :id="player.country?.id"
+            type="country"
+            :name="formatText(player.representedCountry || player.country?.name)"
+          />
+          <SemanticTag
+            v-if="formatRef(player.confederationRef) !== '-'"
+            :variant="getConfederationVariant(formatRef(player.confederationRef))"
+          >
+            {{ formatRef(player.confederationRef) }}
+          </SemanticTag>
+        </span>
       </dd>
     </div>
     <div>
       <dt>国籍</dt>
       <dd>
-        <div v-if="player.nationalities?.length" class="inline-entity-list">
+        <span v-if="player.nationalities?.length" class="inline-entity-list">
           <EntityLink
             v-for="item in player.nationalities"
             :id="item.country.id"
@@ -86,7 +82,7 @@ const clubCareerLinks = computed(() => {
             type="country"
             :name="formatEntityName(item.country, true)"
           />
-        </div>
+        </span>
         <span v-else>{{ formatNationality() }}</span>
       </dd>
     </div>
@@ -149,6 +145,18 @@ const clubCareerLinks = computed(() => {
       <dd>{{ formatText(player.staffRoles) }}</dd>
     </div>
     <div>
+      <dt>核心定评</dt>
+      <dd>{{ formatText(player.paEvaluation?.coreEvaluation) }}</dd>
+    </div>
+    <div>
+      <dt>球员定位</dt>
+      <dd>{{ formatText(player.paEvaluation?.playerPositioning) }}</dd>
+    </div>
+    <div>
+      <dt>球队贡献</dt>
+      <dd>{{ formatText(player.paEvaluation?.teamContribution) }}</dd>
+    </div>
+    <div>
       <dt>备注</dt>
       <dd>{{ formatText(player.remark) }}</dd>
     </div>
@@ -156,6 +164,13 @@ const clubCareerLinks = computed(() => {
 </template>
 
 <style scoped lang="scss">
+.country-with-federation {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
 .related-club-links {
   display: inline;
 }

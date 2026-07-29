@@ -6,6 +6,9 @@ import type {
   PlayerHonorPayload,
   PlayerHonorSummaryQuery,
   PlayerListQuery,
+  PlayerPaAdjustmentBatchPayload,
+  PlayerPaEvaluationPayload,
+  PlayerPaEvaluationQuery,
   PlayerPayload,
   PlayerTeamHonorPayload,
   SavePlayerAwardRecipientGroupBody,
@@ -48,6 +51,18 @@ export class PlayersController {
     return this.playersService.findHonorListSummary(query);
   }
 
+  @Get('pa-evaluations')
+  @ApiOperation({ summary: '获取球员 PA 评定列表' })
+  findPaEvaluations(@Query() query: PlayerPaEvaluationQuery) {
+    return this.playersService.findPaEvaluations(query);
+  }
+
+  @Get('pa-adjustments')
+  @ApiOperation({ summary: '获取球员 PA 调整矩阵' })
+  findPaAdjustments(@Query() query: PlayerPaEvaluationQuery) {
+    return this.playersService.findPaAdjustments(query);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '获取球员详情' })
   findOne(@Param('id') id: string) {
@@ -58,6 +73,12 @@ export class PlayersController {
   @ApiOperation({ summary: '编辑球员' })
   update(@Param('id') id: string, @Body() body: PlayerPayload) {
     return this.playersService.update(id, body);
+  }
+
+  @Put(':id/pa-evaluation')
+  @ApiOperation({ summary: '编辑球员 PA 评定' })
+  updatePaEvaluation(@Param('id') id: string, @Body() body: PlayerPaEvaluationPayload) {
+    return this.playersService.updatePaEvaluation(id, body);
   }
 
   @Delete(':id')
@@ -157,5 +178,11 @@ export class PlayersController {
   @ApiOperation({ summary: '删除球员个人成就' })
   removePlayerHonor(@Param('id') id: string, @Param('honorId') honorId: string) {
     return this.playersService.removePlayerHonor(id, honorId);
+  }
+
+  @Post('pa-adjustments/batches')
+  @ApiOperation({ summary: '创建球员 PA 调整批次' })
+  createPaAdjustmentBatch(@Body() body: PlayerPaAdjustmentBatchPayload) {
+    return this.playersService.createPaAdjustmentBatch(body);
   }
 }

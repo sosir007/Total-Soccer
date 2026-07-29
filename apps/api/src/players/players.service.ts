@@ -21,6 +21,12 @@ import type {
   PlayerHonorPayload,
   PlayerHonorSummaryQuery,
   PlayerListQuery,
+  PlayerPaAdjustmentBatchPayload,
+  PlayerPaAdjustmentColumn,
+  PlayerPaAdjustmentResult,
+  PlayerPaEvaluationPayload,
+  PlayerPaEvaluationQuery,
+  PlayerPaEvaluationRow,
   PlayerPayload,
   PlayerTeamHonorPayload,
   SavePlayerAwardRecipientGroupBody,
@@ -317,6 +323,24 @@ const PLAYER_TEAM_HONOR_INCLUDE = {
   }
 } satisfies Prisma.PlayerTeamHonorInclude;
 
+const PLAYER_LIST_SCORE_INCLUDE = {
+  ...PLAYER_LIST_INCLUDE,
+  awardRecipients: {
+    where: { targetType: AwardTargetType.PLAYER },
+    include: PLAYER_AWARD_RECIPIENT_INCLUDE,
+    orderBy: [{ edition: { year: 'desc' } }, { rank: 'asc' }, { placement: 'asc' }]
+  },
+  teamHonors: {
+    where: { status: PlayerTeamHonorStatus.CONFIRMED },
+    include: PLAYER_TEAM_HONOR_INCLUDE,
+    orderBy: [{ createdAt: 'desc' }]
+  },
+  honors: {
+    orderBy: [{ sortOrder: 'asc' }, { season: 'asc' }, { name: 'asc' }]
+  },
+  paEvaluation: true
+} satisfies Prisma.PlayerInclude;
+
 const PLAYER_DETAIL_INCLUDE = {
   ...PLAYER_LIST_INCLUDE,
   ethnicityRef: {
@@ -355,11 +379,27 @@ const PLAYER_DETAIL_INCLUDE = {
   },
   honors: {
     orderBy: [{ sortOrder: 'asc' }, { season: 'asc' }, { name: 'asc' }]
+  },
+  paEvaluation: true,
+  paAdjustmentEntries: {
+    include: {
+      batch: true
+    },
+    orderBy: [{ batch: { createdAt: 'asc' } }, { createdAt: 'asc' }]
   }
 } satisfies Prisma.PlayerInclude;
 
 type PlayerHonorSummaryPlayer = Prisma.PlayerGetPayload<{
   include: typeof PLAYER_DETAIL_INCLUDE;
+}>;
+type PlayerListScorePlayer = Prisma.PlayerGetPayload<{
+  include: typeof PLAYER_LIST_SCORE_INCLUDE;
+}>;
+type PlayerPaEvaluationPlayer = Prisma.PlayerGetPayload<{
+  include: typeof PLAYER_PA_EVALUATION_INCLUDE;
+}>;
+type PlayerPaAdjustmentPlayer = Prisma.PlayerGetPayload<{
+  include: typeof PLAYER_PA_ADJUSTMENT_INCLUDE;
 }>;
 type PlayerAwardRecipientRecord = PlayerHonorSummaryPlayer['awardRecipients'][number];
 type PlayerTeamHonorRecord = PlayerHonorSummaryPlayer['teamHonors'][number];
@@ -450,6 +490,24 @@ type PlayerHonorListUnit = {
   sortYear: number;
   sortOrder: number;
 };
+type PlayerPaAdjustmentBatchRecord = Prisma.PlayerPaAdjustmentBatchGetPayload<
+  Record<string, never>
+>;
+type PlayerPaEvaluationData = {
+  initialPa?: number | null;
+  reincarnationPa?: string | null;
+  superDiamondPa?: string | null;
+  websitePa?: string | null;
+  doubaoPa?: string | null;
+  dpPa?: string | null;
+  yuanbaoPa?: string | null;
+  qianwenPa?: string | null;
+  geminiPa?: string | null;
+  codexPa?: string | null;
+  coreEvaluation?: string | null;
+  playerPositioning?: string | null;
+  teamContribution?: string | null;
+};
 type ScoredPlayerAward = {
   playerId: string;
   scoreKey: PlayerHonorSummaryScoreKey;
@@ -483,6 +541,20 @@ const PLAYER_HONOR_LIST_COLUMNS: PlayerHonorListColumn[] = [
 
 const PLAYER_HONOR_SUMMARY_COLUMNS: PlayerHonorSummaryColumn[] = PLAYER_HONOR_LIST_COLUMNS;
 const PLAYER_ACHIEVEMENT_SCORE_CAP = 10;
+const PLAYER_PA_EVALUATION_INCLUDE = {
+  ...PLAYER_LIST_INCLUDE,
+  paEvaluation: true
+} satisfies Prisma.PlayerInclude;
+const PLAYER_PA_ADJUSTMENT_INCLUDE = {
+  ...PLAYER_LIST_INCLUDE,
+  paEvaluation: true,
+  paAdjustmentEntries: {
+    include: {
+      batch: true
+    },
+    orderBy: [{ batch: { createdAt: 'asc' } }, { createdAt: 'asc' }]
+  }
+} satisfies Prisma.PlayerInclude;
 
 @Injectable()
 export class PlayersService {
@@ -492,18 +564,46 @@ export class PlayersService {
     const pagination = resolvePagination(query);
     const where = this.buildWhere(query);
     const orderBy = this.buildOrderBy(query);
-    const [items, total] = await this.prisma.$transaction([
+    const [items, total, awardRules, honorRules] = await this.prisma.$transaction([
       this.prisma.player.findMany({
         where,
-        include: PLAYER_LIST_INCLUDE,
+        include: PLAYER_LIST_SCORE_INCLUDE,
         orderBy,
         skip: pagination.skip,
         take: pagination.take
       }),
-      this.prisma.player.count({ where })
+      this.prisma.player.count({ where }),
+      this.prisma.awardRule.findMany({
+        where: { enabled: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      }),
+      this.prisma.honorRule.findMany({
+        where: { enabled: true },
+        include: { coefficients: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+      })
     ]);
 
-    const listItems = items.map((item) => this.attachCareerSummaries(item));
+    const listItems = items.map((item) => {
+      const scoreRow = this.buildPlayerHonorSummaryRow(item, awardRules, honorRules);
+      const enrichedItem = this.attachCareerSummaries(item);
+      const listItem = { ...enrichedItem } as Partial<typeof enrichedItem>;
+      const coreEvaluation = enrichedItem.paEvaluation?.coreEvaluation ?? null;
+
+      delete listItem.awardRecipients;
+      delete listItem.teamHonors;
+      delete listItem.honors;
+      delete listItem.paEvaluation;
+
+      return {
+        ...listItem,
+        coreEvaluation,
+        honorScore: scoreRow.totalScore,
+        awardScore: scoreRow.personalAwardScore,
+        teamHonorScore: scoreRow.teamHonorScore,
+        achievementScore: scoreRow.achievementScore
+      };
+    });
 
     return {
       items: await this.attachInitialClubRefs(listItems),
@@ -511,6 +611,235 @@ export class PlayersService {
       pageSize: pagination.pageSize,
       total
     };
+  }
+
+  async findPaEvaluations(query: PlayerPaEvaluationQuery) {
+    const pagination = resolvePagination(query);
+    const where = this.buildHonorSummaryWhere(query);
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.player.findMany({
+        where,
+        include: PLAYER_PA_EVALUATION_INCLUDE,
+        orderBy: [{ pa: { sort: 'desc', nulls: 'last' } }, { chineseName: 'asc' }, { uid: 'asc' }],
+        skip: pagination.skip,
+        take: pagination.take
+      }),
+      this.prisma.player.count({ where })
+    ]);
+
+    return {
+      items: items.map((item) => this.toPaEvaluationRow(item)),
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total
+    };
+  }
+
+  async updatePaEvaluation(id: string, body: PlayerPaEvaluationPayload) {
+    const player = await this.prisma.player.findUnique({
+      where: { id },
+      select: { id: true, pa: true }
+    });
+
+    if (!player) {
+      throw new NotFoundException('球员不存在。');
+    }
+
+    const pa = Object.prototype.hasOwnProperty.call(body, 'pa')
+      ? this.optionalInteger(body.pa, 'PA', 0, 250)
+      : undefined;
+    const evaluationData = this.buildPaEvaluationData(body);
+
+    await this.prisma.$transaction(async (tx) => {
+      const existingEvaluation = await tx.playerPaEvaluation.findUnique({
+        where: { playerId: id },
+        select: { initialPa: true }
+      });
+      const initialPa =
+        evaluationData.initialPa ?? existingEvaluation?.initialPa ?? player.pa ?? pa ?? null;
+
+      if (pa !== undefined) {
+        await tx.player.update({
+          where: { id },
+          data: { pa }
+        });
+      }
+
+      await tx.playerPaEvaluation.upsert({
+        where: { playerId: id },
+        create: {
+          playerId: id,
+          ...evaluationData,
+          initialPa
+        },
+        update: evaluationData
+      });
+    });
+
+    const updated = await this.prisma.player.findUniqueOrThrow({
+      where: { id },
+      include: PLAYER_PA_EVALUATION_INCLUDE
+    });
+
+    return this.toPaEvaluationRow(updated);
+  }
+
+  async findPaAdjustments(query: PlayerPaEvaluationQuery): Promise<PlayerPaAdjustmentResult> {
+    const pagination = resolvePagination(query);
+    const where = this.buildHonorSummaryWhere(query);
+    const [players, total, batches] = await this.prisma.$transaction([
+      this.prisma.player.findMany({
+        where,
+        include: PLAYER_PA_ADJUSTMENT_INCLUDE,
+        orderBy: [{ pa: { sort: 'desc', nulls: 'last' } }, { chineseName: 'asc' }, { uid: 'asc' }],
+        skip: pagination.skip,
+        take: pagination.take
+      }),
+      this.prisma.player.count({ where }),
+      this.prisma.playerPaAdjustmentBatch.findMany({
+        orderBy: [{ createdAt: 'asc' }, { label: 'asc' }]
+      })
+    ]);
+    const columns: PlayerPaAdjustmentColumn[] = [
+      { key: 'initial', label: '初始', kind: 'initial' },
+      ...batches.map((batch) => ({
+        key: batch.id,
+        label: batch.label,
+        kind: 'batch' as const,
+        createdAt: batch.createdAt.getTime()
+      }))
+    ];
+
+    return {
+      items: players.map((player) => this.toPaAdjustmentRow(player, batches)),
+      columns,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total
+    };
+  }
+
+  async createPaAdjustmentBatch(body: PlayerPaAdjustmentBatchPayload) {
+    const label = this.optionalText(body.label) ?? this.createPaAdjustmentBatchLabel();
+    const items = body.items ?? [];
+
+    if (!items.length) {
+      throw new BadRequestException('请至少录入一名球员的 PA 调整。');
+    }
+
+    const parsedItems = items.map((item) => {
+      const playerId = this.requiredText(item.playerId, '球员');
+      const pa = this.optionalInteger(item.pa, 'PA', 0, 250);
+
+      if (pa === null) {
+        throw new BadRequestException('PA不能为空。');
+      }
+
+      return {
+        playerId,
+        pa,
+        remark: this.optionalText(item.remark)
+      };
+    });
+    const playerIds = [...new Set(parsedItems.map((item) => item.playerId))];
+
+    if (playerIds.length !== parsedItems.length) {
+      throw new BadRequestException('同一批次不能重复录入同一名球员。');
+    }
+
+    const players = await this.prisma.player.findMany({
+      where: { id: { in: playerIds } },
+      select: { id: true, pa: true }
+    });
+
+    if (players.length !== playerIds.length) {
+      throw new BadRequestException('存在无效球员，无法创建 PA 调整。');
+    }
+
+    const playerMap = new Map(players.map((player) => [player.id, player]));
+
+    return this.prisma.$transaction(async (tx) => {
+      const batch = await tx.playerPaAdjustmentBatch.create({
+        data: {
+          label,
+          remark: this.optionalText(body.remark)
+        }
+      });
+
+      for (const item of parsedItems) {
+        const player = playerMap.get(item.playerId)!;
+        const existingEvaluation = await tx.playerPaEvaluation.findUnique({
+          where: { playerId: item.playerId },
+          select: { initialPa: true }
+        });
+
+        if (!existingEvaluation) {
+          await tx.playerPaEvaluation.create({
+            data: {
+              playerId: item.playerId,
+              initialPa: player.pa
+            }
+          });
+        } else if (existingEvaluation.initialPa === null) {
+          await tx.playerPaEvaluation.update({
+            where: { playerId: item.playerId },
+            data: { initialPa: player.pa }
+          });
+        }
+
+        await tx.playerPaAdjustmentEntry.create({
+          data: {
+            batchId: batch.id,
+            playerId: item.playerId,
+            pa: item.pa,
+            remark: item.remark
+          }
+        });
+        await tx.player.update({
+          where: { id: item.playerId },
+          data: { pa: item.pa }
+        });
+      }
+
+      return tx.playerPaAdjustmentBatch.findUniqueOrThrow({
+        where: { id: batch.id },
+        include: {
+          entries: {
+            include: {
+              player: {
+                select: {
+                  id: true,
+                  uid: true,
+                  chineseName: true,
+                  englishName: true,
+                  birthDate: true,
+                  primaryRole: true,
+                  positions: true,
+                  country: {
+                    select: {
+                      id: true,
+                      uid: true,
+                      name: true,
+                      shortName: true
+                    }
+                  },
+                  club: {
+                    select: {
+                      id: true,
+                      uid: true,
+                      name: true,
+                      shortName: true,
+                      externalUrl: true,
+                      exists: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    });
   }
 
   async findHonorSummary(query: PlayerHonorSummaryQuery) {
@@ -1326,16 +1655,7 @@ export class PlayersService {
 
     if (position) {
       andConditions.push({
-        OR: [
-          { primaryRole: { contains: position, mode: 'insensitive' } },
-          { positions: { contains: position, mode: 'insensitive' } },
-          { careers: { some: { position: { contains: position, mode: 'insensitive' } } } },
-          {
-            careers: {
-              some: { positionGroup: { contains: position, mode: 'insensitive' } }
-            }
-          }
-        ]
+        primaryRole: { contains: position, mode: 'insensitive' }
       });
     }
 
@@ -1343,7 +1663,7 @@ export class PlayersService {
   }
 
   private buildPlayerHonorSummaryRow(
-    player: PlayerHonorSummaryPlayer,
+    player: PlayerHonorSummaryPlayer | PlayerListScorePlayer,
     awardRules: PlayerAwardRule[],
     honorRules: PlayerHonorRule[]
   ) {
@@ -1379,6 +1699,8 @@ export class PlayersService {
       awardCount: player.awardRecipients.length,
       teamHonorCount: player.teamHonors.length,
       achievementCount: player.honors.length,
+      personalAwardScore: this.round(awardScore),
+      achievementScore,
       awardScore: totalAwardScore,
       teamHonorScore: this.round(teamHonorScore),
       totalScore,
@@ -1467,6 +1789,139 @@ export class PlayersService {
       trophyClubs: this.buildPlayerHonorListTrophyClubs(player),
       cells: this.toPlayerHonorListCells(entryMap)
     };
+  }
+
+  private toPaEvaluationRow(player: PlayerPaEvaluationPlayer): PlayerPaEvaluationRow {
+    return {
+      id: player.id,
+      uid: player.uid,
+      chineseName: player.chineseName,
+      englishName: player.englishName,
+      birthDate: player.birthDate,
+      primaryRole: player.primaryRole,
+      positions: player.positions,
+      country: player.country,
+      club: player.club,
+      pa: player.pa,
+      evaluation: player.paEvaluation
+        ? {
+            id: player.paEvaluation.id,
+            playerId: player.paEvaluation.playerId,
+            initialPa: player.paEvaluation.initialPa,
+            reincarnationPa: player.paEvaluation.reincarnationPa,
+            superDiamondPa: player.paEvaluation.superDiamondPa,
+            websitePa: player.paEvaluation.websitePa,
+            doubaoPa: player.paEvaluation.doubaoPa,
+            dpPa: player.paEvaluation.dpPa,
+            yuanbaoPa: player.paEvaluation.yuanbaoPa,
+            qianwenPa: player.paEvaluation.qianwenPa,
+            geminiPa: player.paEvaluation.geminiPa,
+            codexPa: player.paEvaluation.codexPa,
+            coreEvaluation: player.paEvaluation.coreEvaluation,
+            playerPositioning: player.paEvaluation.playerPositioning,
+            teamContribution: player.paEvaluation.teamContribution,
+            createdAt: player.paEvaluation.createdAt.getTime(),
+            updatedAt: player.paEvaluation.updatedAt.getTime()
+          }
+        : null
+    };
+  }
+
+  private toPaAdjustmentRow(
+    player: PlayerPaAdjustmentPlayer,
+    batches: PlayerPaAdjustmentBatchRecord[]
+  ) {
+    const values = batches.reduce(
+      (accumulator, batch) => {
+        accumulator[batch.id] =
+          player.paAdjustmentEntries.find((entry) => entry.batchId === batch.id)?.pa ?? null;
+        return accumulator;
+      },
+      {} as Record<string, number | null>
+    );
+
+    return {
+      id: player.id,
+      uid: player.uid,
+      chineseName: player.chineseName,
+      englishName: player.englishName,
+      birthDate: player.birthDate,
+      primaryRole: player.primaryRole,
+      positions: player.positions,
+      country: player.country,
+      club: player.club,
+      initialPa: player.paEvaluation?.initialPa ?? player.pa ?? null,
+      currentPa: player.pa ?? null,
+      values
+    };
+  }
+
+  private buildPaEvaluationData(body: PlayerPaEvaluationPayload) {
+    const data: PlayerPaEvaluationData = {};
+
+    if (Object.prototype.hasOwnProperty.call(body, 'initialPa')) {
+      data.initialPa = this.optionalInteger(body.initialPa, '初始PA', 0, 250);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'reincarnationPa')) {
+      data.reincarnationPa = this.optionalText(body.reincarnationPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'superDiamondPa')) {
+      data.superDiamondPa = this.optionalText(body.superDiamondPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'websitePa')) {
+      data.websitePa = this.optionalText(body.websitePa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'doubaoPa')) {
+      data.doubaoPa = this.optionalText(body.doubaoPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'dpPa')) {
+      data.dpPa = this.optionalText(body.dpPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'yuanbaoPa')) {
+      data.yuanbaoPa = this.optionalText(body.yuanbaoPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'qianwenPa')) {
+      data.qianwenPa = this.optionalText(body.qianwenPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'geminiPa')) {
+      data.geminiPa = this.optionalText(body.geminiPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'codexPa')) {
+      data.codexPa = this.optionalText(body.codexPa);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'coreEvaluation')) {
+      data.coreEvaluation = this.optionalText(body.coreEvaluation);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'playerPositioning')) {
+      data.playerPositioning = this.optionalText(body.playerPositioning);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, 'teamContribution')) {
+      data.teamContribution = this.optionalText(body.teamContribution);
+    }
+
+    return data;
+  }
+
+  private createPaAdjustmentBatchLabel() {
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: '2-digit',
+      month: '2-digit',
+      day: '2-digit'
+    })
+      .format(new Date())
+      .replaceAll('/', '.');
   }
 
   private createEmptyPlayerHonorListEntryMap() {
@@ -2762,7 +3217,6 @@ export class PlayersService {
         hairColor: hairColor?.name ?? null,
         preferredFootId: preferredFoot?.id ?? null,
         foot: this.optionalText(body.foot) ?? preferredFoot?.name ?? null,
-        pa: this.optionalInteger(body.pa, 'PA', 0, 250),
         ca: this.optionalInteger(body.ca, 'CA', 0, 250),
         height: this.optionalInteger(body.height, '身高', 0, 300),
         weight: this.optionalInteger(body.weight, '体重', 0, 300),
