@@ -8,6 +8,8 @@ import { placementOptions } from '@/utils/honor';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
+  getLifecycleStatusLabel,
+  getLifecycleStatusVariant,
   getPlacementTextColor
 } from '@/utils/tag-theme';
 import { formatEntityName } from '@/utils/entity-name';
@@ -32,6 +34,10 @@ function getCompetitionTagText(group: HonorGroupedRecord) {
 
 function shouldShowCompetitionLevelTag(group: HonorGroupedRecord) {
   return Boolean(group.competition.level);
+}
+
+function getCompetitionLifecycleStatus(group: HonorGroupedRecord) {
+  return group.competition.lifecycleStatus ?? 'CURRENT';
 }
 
 function getPlacementStyle(placement: CompetitionStandingPlacement) {
@@ -64,6 +70,12 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
           :variant="getCompetitionLevelVariant(group.competition.level)"
         >
           {{ group.competition.level }}
+        </SemanticTag>
+        <SemanticTag
+          size="small"
+          :variant="getLifecycleStatusVariant(getCompetitionLifecycleStatus(group))"
+        >
+          {{ getLifecycleStatusLabel(getCompetitionLifecycleStatus(group)) }}
         </SemanticTag>
       </div>
 

@@ -225,6 +225,57 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'argentine-cup',
+    label: '阿根廷杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-argentine-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/argentine-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'argentine-professional-league-cup',
+    label: '阿根廷职业联赛杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-argentine-professional-league-cup.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/argentine-professional-league-cup.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'argentine-professional-league-champions-trophy',
+    label: '阿根廷职业联赛冠军杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-argentine-professional-league-champions-trophy.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/argentine-professional-league-champions-trophy.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'argentine-super-cup',
+    label: '阿根廷超级杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-argentine-super-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/argentine-super-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'argentine-international-super-cup',
+    label: '阿根廷国际超级杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-argentine-international-super-cup.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/argentine-international-super-cup.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'brazil-serie-b',
     label: '巴西乙级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-serie-b.ts',
