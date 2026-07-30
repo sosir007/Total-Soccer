@@ -144,6 +144,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'copa-interamericana',
+    label: '美洲洲际杯',
+    file: 'src/scripts/seeds/competitions/club/global/seed-copa-interamericana.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/global/copa-interamericana.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'global'
+  },
+  {
     key: 'uefa-champions-league',
     label: '欧洲冠军联赛',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-champions-league.ts',

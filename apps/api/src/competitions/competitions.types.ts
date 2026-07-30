@@ -10,10 +10,13 @@ export interface CompetitionListQuery {
   page?: string;
   pageSize?: string;
   keyword?: string;
+  honorRuleId?: string;
   targetType?: CompetitionTargetType;
   scopeType?: CompetitionScopeType;
   confederationId?: string;
   countryId?: string;
+  category?: string;
+  level?: string;
   lifecycleStatus?: LifecycleStatus;
   enabled?: string;
   includeInStats?: string;

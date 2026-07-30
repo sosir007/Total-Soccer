@@ -235,8 +235,13 @@ export class CompetitionsService {
     const pagination = resolvePagination(query);
     const keyword = query.keyword?.trim();
     const andConditions: Prisma.CompetitionWhereInput[] = [];
+    const selectedRule = query.honorRuleId
+      ? await this.findCompetitionFilterRule(query.honorRuleId)
+      : null;
 
-    if (keyword) {
+    if (selectedRule) {
+      andConditions.push(this.buildRuleCompetitionWhere(selectedRule));
+    } else if (keyword) {
       andConditions.push({
         OR: [
           { code: { contains: keyword, mode: 'insensitive' } },
@@ -252,7 +257,7 @@ export class CompetitionsService {
       });
     }
 
-    if (query.confederationId) {
+    if (!selectedRule && query.confederationId) {
       andConditions.push({
         OR: [
           { confederationId: query.confederationId },
@@ -261,7 +266,7 @@ export class CompetitionsService {
       });
     }
 
-    if (query.countryId) {
+    if (!selectedRule && query.countryId) {
       andConditions.push({
         OR: [
           { countryId: query.countryId },
@@ -271,16 +276,28 @@ export class CompetitionsService {
     }
 
     const where: Prisma.CompetitionWhereInput = {
-      ...(query.targetType ? { targetType: this.parseTargetType(query.targetType) } : {}),
-      ...(query.scopeType ? { scopeType: this.parseScopeType(query.scopeType) } : {}),
-      ...(query.lifecycleStatus
+      ...(!selectedRule && query.targetType
+        ? { targetType: this.parseTargetType(query.targetType) }
+        : {}),
+      ...(!selectedRule && query.scopeType
+        ? { scopeType: this.parseScopeType(query.scopeType) }
+        : {}),
+      ...(!selectedRule && query.category
+        ? { category: this.parseStandardText(query.category, COMPETITION_CATEGORIES, '赛事分类') }
+        : {}),
+      ...(!selectedRule && query.level
+        ? { level: this.parseStandardText(query.level, COMPETITION_LEVELS, '赛事级别') }
+        : {}),
+      ...(!selectedRule && query.lifecycleStatus
         ? { lifecycleStatus: this.parseLifecycleStatus(query.lifecycleStatus) }
         : {}),
       ...(andConditions.length ? { AND: andConditions } : {}),
-      ...(query.enabled === undefined ? {} : { enabled: query.enabled === 'true' }),
-      ...(query.includeInStats === undefined
-        ? {}
-        : { includeInStats: query.includeInStats === 'true' })
+      ...(!selectedRule && query.enabled !== undefined
+        ? { enabled: query.enabled === 'true' }
+        : {}),
+      ...(!selectedRule && query.includeInStats !== undefined
+        ? { includeInStats: query.includeInStats === 'true' }
+        : {})
     };
     const [allItems, total, rules] = await this.prisma.$transaction([
       this.prisma.competition.findMany({
@@ -308,6 +325,81 @@ export class CompetitionsService {
       pageSize: pagination.pageSize,
       total
     };
+  }
+
+  private async findCompetitionFilterRule(id: string) {
+    const rule = await this.prisma.honorRule.findFirst({
+      where: {
+        id,
+        isSystem: true,
+        enabled: true
+      },
+      include: { coefficients: true }
+    });
+
+    if (!rule) {
+      throw new BadRequestException('荣誉规则不存在或未启用。');
+    }
+
+    return rule;
+  }
+
+  private buildRuleCompetitionWhere(rule: CompetitionScoreRule): Prisma.CompetitionWhereInput {
+    const andConditions: Prisma.CompetitionWhereInput[] = [
+      { targetType: rule.targetType },
+      ...(rule.scopeType ? [{ scopeType: rule.scopeType }] : []),
+      ...(rule.category ? [{ category: rule.category }] : []),
+      ...(rule.level ? [{ level: rule.level }] : []),
+      ...this.buildRuleFormatWhere(rule.format),
+      ...this.buildRuleScopeWhere(rule)
+    ];
+
+    return { AND: andConditions };
+  }
+
+  private buildRuleFormatWhere(format: string | null): Prisma.CompetitionWhereInput[] {
+    if (!format) {
+      return [];
+    }
+
+    if (format !== '杯赛') {
+      return [{ format }];
+    }
+
+    return [
+      {
+        OR: [
+          { format },
+          {
+            AND: [{ format: '其他' }, { NOT: { category: '国内' } }]
+          }
+        ]
+      }
+    ];
+  }
+
+  private buildRuleScopeWhere(rule: CompetitionScoreRule): Prisma.CompetitionWhereInput[] {
+    const scopeConditions: Prisma.CompetitionWhereInput[] = [];
+
+    if (rule.confederationId) {
+      scopeConditions.push({
+        OR: [
+          { confederationId: rule.confederationId },
+          { scopeConfederations: { some: { confederationId: rule.confederationId } } }
+        ]
+      });
+    }
+
+    if (rule.countryId) {
+      scopeConditions.push({
+        OR: [
+          { countryId: rule.countryId },
+          { scopeCountries: { some: { countryId: rule.countryId } } }
+        ]
+      });
+    }
+
+    return scopeConditions;
   }
 
   private resolveCompetitionListScore(

@@ -5,7 +5,11 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import type { HonorGroupedPlacementEntry, HonorGroupedRecord } from '@/services/types/catalog';
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 import { placementOptions } from '@/utils/honor';
-import { getCompetitionCategoryVariant, getPlacementTextColor } from '@/utils/tag-theme';
+import {
+  getCompetitionCategoryVariant,
+  getCompetitionLevelVariant,
+  getPlacementTextColor
+} from '@/utils/tag-theme';
 import { formatEntityName } from '@/utils/entity-name';
 import HonorPlacementLabel from './HonorPlacementLabel.vue';
 
@@ -23,7 +27,11 @@ function formatEntry(entry: HonorGroupedPlacementEntry) {
 }
 
 function getCompetitionTagText(group: HonorGroupedRecord) {
-  return group.competition.category || group.competition.level || group.competition.code;
+  return group.competition.category || group.competition.code;
+}
+
+function shouldShowCompetitionLevelTag(group: HonorGroupedRecord) {
+  return Boolean(group.competition.level);
 }
 
 function getPlacementStyle(placement: CompetitionStandingPlacement) {
@@ -49,6 +57,13 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
           :variant="getCompetitionCategoryVariant(group.competition.category)"
         >
           {{ getCompetitionTagText(group) }}
+        </SemanticTag>
+        <SemanticTag
+          v-if="shouldShowCompetitionLevelTag(group)"
+          size="small"
+          :variant="getCompetitionLevelVariant(group.competition.level)"
+        >
+          {{ group.competition.level }}
         </SemanticTag>
       </div>
 

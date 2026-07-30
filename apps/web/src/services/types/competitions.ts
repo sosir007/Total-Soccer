@@ -22,10 +22,13 @@ export interface CompetitionListParams {
   page?: number;
   pageSize?: number;
   keyword?: string;
+  honorRuleId?: string;
   targetType?: CompetitionTargetType;
   scopeType?: CompetitionScopeType;
   confederationId?: string;
   countryId?: string;
+  category?: CompetitionCategory;
+  level?: CompetitionLevel;
   lifecycleStatus?: LifecycleStatus;
   enabled?: string;
 }

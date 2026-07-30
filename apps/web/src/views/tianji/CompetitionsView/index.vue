@@ -92,8 +92,11 @@ const filters = reactive({
   page: 1,
   pageSize: 20,
   keyword: '',
+  honorRuleId: '',
   targetType: 'COUNTRY' as CompetitionTargetType,
   scopeType: '' as '' | CompetitionScopeType,
+  category: '' as '' | CompetitionCategory,
+  level: '' as '' | CompetitionLevel,
   lifecycleStatus: '' as '' | LifecycleStatus
 });
 const competitionForm = reactive({
@@ -135,10 +138,18 @@ async function loadCompetitions() {
     const result = await fetchCompetitions({
       page: filters.page,
       pageSize: filters.pageSize,
-      keyword: filters.keyword || undefined,
-      targetType: filters.targetType || undefined,
-      scopeType: filters.scopeType || undefined,
-      lifecycleStatus: filters.lifecycleStatus || undefined
+      ...(filters.honorRuleId
+        ? {
+            honorRuleId: filters.honorRuleId
+          }
+        : {
+            keyword: filters.keyword || undefined,
+            targetType: filters.targetType || undefined,
+            scopeType: filters.scopeType || undefined,
+            category: filters.category || undefined,
+            level: filters.level || undefined,
+            lifecycleStatus: filters.lifecycleStatus || undefined
+          })
     });
     competitions.value = result.items;
     total.value = result.total;
@@ -206,8 +217,11 @@ function resetFilters() {
   const currentTargetType = filters.targetType;
   filters.page = 1;
   filters.keyword = '';
+  filters.honorRuleId = '';
   filters.targetType = currentTargetType;
   filters.scopeType = '';
+  filters.category = '';
+  filters.level = '';
   filters.lifecycleStatus = '';
   void loadCompetitions();
 }
@@ -585,6 +599,17 @@ watch(
 );
 
 watch(
+  () => filters.honorRuleId,
+  (ruleId) => {
+    const rule = honorRuleOptions.value.find((item) => item.value === ruleId);
+
+    if (rule) {
+      filters.targetType = rule.targetType;
+    }
+  }
+);
+
+watch(
   () => competitionForm.scopeType,
   () => {
     competitionForm.confederationId = '';
@@ -649,7 +674,10 @@ onActivated(() => {
     <CompetitionFilterPanel
       :filters="filters"
       :loading="loading"
+      :honor-rule-options="honorRuleOptions"
       :scope-type-options="scopeTypeOptions"
+      :category-options="categoryOptions"
+      :level-options="levelOptions"
       :lifecycle-status-options="lifecycleStatusOptions"
       @submit="submitFilters"
       @reset="resetFilters"
