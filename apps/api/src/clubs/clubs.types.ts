@@ -22,6 +22,8 @@ export interface ClubHonorListQuery {
 export type ClubHonorSummaryQuery = Omit<ClubHonorListQuery, 'placement' | 'year'> & {
   confederationId?: string;
   countryId?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export interface ClubPayload {

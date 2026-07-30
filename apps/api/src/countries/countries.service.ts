@@ -183,6 +183,7 @@ type TeamBonusHonorDetail = {
   remark: string | null;
   sourceName?: string | null;
 };
+type CountryHonorSummarySortKey = 'totalCount' | 'championCount' | 'bonusHonorScore' | 'honorScore';
 
 const PROFILE_PLAYER_SELECT = {
   id: true,
@@ -332,8 +333,7 @@ export class CountriesService {
       this.getCountryHonorSummaryRecords(query),
       this.getHonorSummaryRules(CompetitionTargetType.COUNTRY)
     ]);
-    const effectiveRecords = this.filterCountryHonorSummaryRecords(records, query);
-    const scoringRecords = effectiveRecords.filter((record) =>
+    const scoringRecords = records.filter((record) =>
       this.resolveHonorSummaryScore(
         rules,
         record.edition.competition,
@@ -872,23 +872,12 @@ export class CountriesService {
     const successorMap = await this.getCountrySuccessorMap(
       records.map((record) => record.countryId).filter(Boolean) as string[]
     );
-    const keyword = this.normalizeKeyword(query.keyword);
-    const competitionKeywordMatched = keyword
-      ? records.some((record) =>
-          this.matchesCompetitionKeyword(record.edition.competition, keyword)
-        )
-      : false;
-    const effectiveRecords = competitionKeywordMatched
-      ? records.filter((record) =>
-          this.matchesCompetitionKeyword(record.edition.competition, keyword)
-        )
-      : records;
     const bonusDetailMap = query.competitionId
       ? new Map<string, TeamBonusHonorDetail[]>()
       : await this.getCountryBonusHonorDetailMap(query.countryId ? [query.countryId] : undefined);
     const targetIds = new Set<string>();
 
-    for (const record of effectiveRecords) {
+    for (const record of records) {
       if (!record.countryId || !record.country) {
         continue;
       }
@@ -920,7 +909,7 @@ export class CountriesService {
     const countryMap = new Map(countries.map((country) => [country.id, country]));
     const rowMap = new Map<string, ReturnType<typeof this.createCountryHonorSummaryRow>>();
 
-    for (const record of effectiveRecords) {
+    for (const record of records) {
       if (!record.countryId || !record.country) {
         continue;
       }
@@ -979,51 +968,87 @@ export class CountriesService {
           return false;
         }
 
-        if (!keyword || competitionKeywordMatched) {
+        const keyword = this.normalizeKeyword(query.keyword);
+
+        if (!keyword) {
           return true;
         }
 
-        return (
-          this.matchesText(keyword, row.name, row.uid, row.federationRef?.name) ||
-          this.matchesBonusHonorKeyword(row.bonusHonorDetails, keyword)
-        );
+        return this.matchesText(keyword, row.name, row.uid, row.federationRef?.name);
       })
-      .sort((a, b) => {
-        if (a.honorScore !== b.honorScore) {
-          return (b.honorScore ?? 0) - (a.honorScore ?? 0);
-        }
-
-        if (a.championCount !== b.championCount) {
-          return b.championCount - a.championCount;
-        }
-
-        if (a.totalCount !== b.totalCount) {
-          return b.totalCount - a.totalCount;
-        }
-
-        return a.name.localeCompare(b.name, 'zh-CN');
-      });
+      .sort((a, b) => this.compareHonorSummaryRows(a, b, query));
   }
 
-  private filterCountryHonorSummaryRecords(
-    records: Array<Prisma.CompetitionStandingGetPayload<{ include: typeof COUNTRY_HONOR_INCLUDE }>>,
+  private compareHonorSummaryRows(
+    a: ReturnType<typeof this.createCountryHonorSummaryRow>,
+    b: ReturnType<typeof this.createCountryHonorSummaryRow>,
     query: CountryHonorSummaryQuery
   ) {
-    const keyword = this.normalizeKeyword(query.keyword);
+    const sortBy = this.resolveHonorSummarySortBy(query.sortBy);
 
-    if (!keyword) {
-      return records;
+    if (!sortBy) {
+      return this.compareDefaultHonorSummaryRows(a, b);
     }
 
-    const competitionKeywordMatched = records.some((record) =>
-      this.matchesCompetitionKeyword(record.edition.competition, keyword)
-    );
+    const direction = query.sortOrder === 'asc' ? 1 : -1;
+    const sortDiff = this.compareHonorSummaryNumber(a[sortBy], b[sortBy], direction);
 
-    return competitionKeywordMatched
-      ? records.filter((record) =>
-          this.matchesCompetitionKeyword(record.edition.competition, keyword)
-        )
-      : records;
+    return sortDiff || this.compareDefaultHonorSummaryRows(a, b);
+  }
+
+  private resolveHonorSummarySortBy(sortBy?: string): CountryHonorSummarySortKey | null {
+    if (
+      sortBy === 'totalCount' ||
+      sortBy === 'championCount' ||
+      sortBy === 'bonusHonorScore' ||
+      sortBy === 'honorScore'
+    ) {
+      return sortBy as CountryHonorSummarySortKey;
+    }
+
+    return null;
+  }
+
+  private compareHonorSummaryNumber(
+    aValue: number | null | undefined,
+    bValue: number | null | undefined,
+    direction: number
+  ) {
+    const aNumber = typeof aValue === 'number' && Number.isFinite(aValue) ? aValue : null;
+    const bNumber = typeof bValue === 'number' && Number.isFinite(bValue) ? bValue : null;
+
+    if (aNumber === null && bNumber === null) {
+      return 0;
+    }
+
+    if (aNumber === null) {
+      return 1;
+    }
+
+    if (bNumber === null) {
+      return -1;
+    }
+
+    return aNumber === bNumber ? 0 : (aNumber - bNumber) * direction;
+  }
+
+  private compareDefaultHonorSummaryRows(
+    a: ReturnType<typeof this.createCountryHonorSummaryRow>,
+    b: ReturnType<typeof this.createCountryHonorSummaryRow>
+  ) {
+    if (a.honorScore !== b.honorScore) {
+      return (b.honorScore ?? 0) - (a.honorScore ?? 0);
+    }
+
+    if (a.championCount !== b.championCount) {
+      return b.championCount - a.championCount;
+    }
+
+    if (a.totalCount !== b.totalCount) {
+      return b.totalCount - a.totalCount;
+    }
+
+    return a.name.localeCompare(b.name, 'zh-CN');
   }
 
   private buildCountryHonorGroups(
@@ -1558,19 +1583,6 @@ export class CountriesService {
     );
   }
 
-  private matchesBonusHonorKeyword(details: TeamBonusHonorDetail[] | undefined, keyword: string) {
-    return (details ?? []).some((detail) =>
-      this.matchesText(
-        keyword,
-        detail.awardName,
-        detail.editionName,
-        detail.placement,
-        detail.ruleName,
-        detail.remark
-      )
-    );
-  }
-
   private findMatchingTeamHonorRule(
     rules: Array<{
       targetType: AwardTargetType;
@@ -1621,26 +1633,6 @@ export class CountriesService {
 
       return true;
     });
-  }
-
-  private matchesCompetitionKeyword(
-    competition: {
-      name: string;
-      code: string;
-      category?: string | null;
-      level?: string | null;
-      format?: string | null;
-    },
-    keyword: string
-  ) {
-    return this.matchesText(
-      keyword,
-      competition.name,
-      competition.code,
-      competition.category,
-      competition.level,
-      competition.format
-    );
   }
 
   private async getCountryIdsWithInheritedSources(countryId: string) {

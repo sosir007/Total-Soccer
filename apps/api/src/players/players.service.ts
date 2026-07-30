@@ -543,6 +543,14 @@ const PLAYER_HONOR_LIST_COLUMNS: PlayerHonorListColumn[] = [
 
 const PLAYER_HONOR_SUMMARY_COLUMNS: PlayerHonorSummaryColumn[] = PLAYER_HONOR_LIST_COLUMNS;
 const PLAYER_ACHIEVEMENT_SCORE_CAP = 10;
+type PlayerHonorSummarySortKey =
+  | 'achievementScore'
+  | 'pa'
+  | 'awardCount'
+  | 'teamHonorCount'
+  | 'awardScore'
+  | 'teamHonorScore'
+  | 'totalScore';
 const PLAYER_PA_EVALUATION_INCLUDE = {
   ...PLAYER_LIST_INCLUDE,
   paEvaluation: true
@@ -601,6 +609,10 @@ export class PlayersService {
         ...listItem,
         coreEvaluation,
         honorScore: scoreRow.totalScore,
+        totalScore: scoreRow.totalScore,
+        awardCount: scoreRow.awardCount,
+        teamHonorCount: scoreRow.teamHonorCount,
+        achievementCount: scoreRow.achievementCount,
         awardScore: scoreRow.personalAwardScore,
         teamHonorScore: scoreRow.teamHonorScore,
         achievementScore: scoreRow.achievementScore
@@ -865,19 +877,15 @@ export class PlayersService {
     ]);
     const rows = players
       .map((player) => this.buildPlayerHonorSummaryRow(player, awardRules, honorRules))
-      .filter((row) => row.totalScore > 0 || row.awardCount > 0 || row.teamHonorCount > 0)
-      .sort((left, right) => {
-        if (left.totalScore !== right.totalScore) return right.totalScore - left.totalScore;
-        if ((left.pa ?? 0) !== (right.pa ?? 0)) return (right.pa ?? 0) - (left.pa ?? 0);
-        return left.chineseName.localeCompare(right.chineseName, 'zh-CN');
-      });
+      .filter((row) => row.totalScore > 0 || row.awardCount > 0 || row.teamHonorCount > 0);
+    const sortedRows = this.sortPlayerHonorSummaryRows(rows, query);
 
     return {
-      items: rows.slice(pagination.skip, pagination.skip + pagination.take),
+      items: sortedRows.slice(pagination.skip, pagination.skip + pagination.take),
       columns: PLAYER_HONOR_SUMMARY_COLUMNS,
       page: pagination.page,
       pageSize: pagination.pageSize,
-      total: rows.length
+      total: sortedRows.length
     };
   }
 
@@ -908,25 +916,117 @@ export class PlayersService {
           ...this.buildPlayerHonorListRow(player),
           awardCount: scoreRow.awardCount,
           teamHonorCount: scoreRow.teamHonorCount,
+          achievementCount: scoreRow.achievementCount,
           awardScore: scoreRow.awardScore,
+          achievementScore: scoreRow.achievementScore,
           teamHonorScore: scoreRow.teamHonorScore,
           totalScore: scoreRow.totalScore
         };
       })
-      .filter((row) => row.totalScore > 0 || row.awardCount > 0 || row.teamHonorCount > 0)
-      .sort((left, right) => {
-        if (left.totalScore !== right.totalScore) return right.totalScore - left.totalScore;
-        if ((left.pa ?? 0) !== (right.pa ?? 0)) return (right.pa ?? 0) - (left.pa ?? 0);
-        return left.chineseName.localeCompare(right.chineseName, 'zh-CN');
-      });
+      .filter((row) => row.totalScore > 0 || row.awardCount > 0 || row.teamHonorCount > 0);
+    const sortedRows = this.sortPlayerHonorSummaryRows(rows, query);
 
     return {
-      items: rows.slice(pagination.skip, pagination.skip + pagination.take),
+      items: sortedRows.slice(pagination.skip, pagination.skip + pagination.take),
       columns: PLAYER_HONOR_LIST_COLUMNS,
       page: pagination.page,
       pageSize: pagination.pageSize,
-      total: rows.length
+      total: sortedRows.length
     };
+  }
+
+  private sortPlayerHonorSummaryRows<
+    T extends {
+      chineseName: string;
+      pa?: number | null;
+      awardCount: number;
+      teamHonorCount: number;
+      achievementCount: number;
+      awardScore: number;
+      achievementScore: number;
+      teamHonorScore: number;
+      totalScore: number;
+    }
+  >(rows: T[], query: PlayerHonorSummaryQuery) {
+    return [...rows].sort((left, right) => this.comparePlayerHonorSummaryRows(left, right, query));
+  }
+
+  private comparePlayerHonorSummaryRows<
+    T extends {
+      chineseName: string;
+      pa?: number | null;
+      awardCount: number;
+      teamHonorCount: number;
+      achievementCount: number;
+      awardScore: number;
+      achievementScore: number;
+      teamHonorScore: number;
+      totalScore: number;
+    }
+  >(left: T, right: T, query: PlayerHonorSummaryQuery) {
+    const sortBy = this.resolvePlayerHonorSummarySortBy(query.sortBy);
+
+    if (sortBy) {
+      const direction = query.sortOrder === 'asc' ? 1 : -1;
+      const sortDiff = this.compareNumber(left[sortBy], right[sortBy], direction);
+
+      if (sortDiff !== 0) {
+        return sortDiff;
+      }
+    }
+
+    return this.compareDefaultPlayerHonorSummaryRows(left, right);
+  }
+
+  private resolvePlayerHonorSummarySortBy(sortBy?: string): PlayerHonorSummarySortKey | null {
+    const sortMap = {
+      achievement: 'achievementScore',
+      achievementScore: 'achievementScore',
+      pa: 'pa',
+      awardCount: 'awardCount',
+      teamHonorCount: 'teamHonorCount',
+      awardScore: 'awardScore',
+      teamHonorScore: 'teamHonorScore',
+      totalScore: 'totalScore'
+    } as const;
+
+    return (
+      (sortMap[sortBy as keyof typeof sortMap] as PlayerHonorSummarySortKey | undefined) ?? null
+    );
+  }
+
+  private compareDefaultPlayerHonorSummaryRows(
+    left: { chineseName: string; pa?: number | null; totalScore: number },
+    right: { chineseName: string; pa?: number | null; totalScore: number }
+  ) {
+    if (left.totalScore !== right.totalScore) return right.totalScore - left.totalScore;
+    if ((left.pa ?? 0) !== (right.pa ?? 0)) return (right.pa ?? 0) - (left.pa ?? 0);
+    return left.chineseName.localeCompare(right.chineseName, 'zh-CN');
+  }
+
+  private compareNumber(
+    leftValue: number | null | undefined,
+    rightValue: number | null | undefined,
+    direction: number
+  ) {
+    const leftNumber =
+      typeof leftValue === 'number' && Number.isFinite(leftValue) ? leftValue : null;
+    const rightNumber =
+      typeof rightValue === 'number' && Number.isFinite(rightValue) ? rightValue : null;
+
+    if (leftNumber === null && rightNumber === null) {
+      return 0;
+    }
+
+    if (leftNumber === null) {
+      return 1;
+    }
+
+    if (rightNumber === null) {
+      return -1;
+    }
+
+    return leftNumber === rightNumber ? 0 : (leftNumber - rightNumber) * direction;
   }
 
   async findOne(id: string) {

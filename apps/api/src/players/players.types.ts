@@ -29,6 +29,8 @@ export interface PlayerHonorSummaryQuery {
   countryId?: string;
   clubId?: string;
   position?: string;
+  sortBy?: string;
+  sortOrder?: string;
 }
 
 export interface PlayerPaEvaluationQuery {

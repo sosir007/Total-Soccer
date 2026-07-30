@@ -335,10 +335,13 @@ export interface PlayerListItem {
   ca?: number | null;
   pa?: number | null;
   honorScore?: number | null;
+  totalScore?: number | null;
   awardScore?: number | null;
   teamHonorScore?: number | null;
   achievementScore?: number | null;
   awardCount?: number | null;
+  teamHonorCount?: number | null;
+  achievementCount?: number | null;
   topAwardCount?: number | null;
   age?: number | null;
   height?: number | null;
@@ -449,6 +452,7 @@ export interface PlayerHonorSummaryRow {
   teamHonorCount: number;
   achievementCount: number;
   awardScore: number;
+  achievementScore: number;
   teamHonorScore: number;
   totalScore: number;
   scores: Record<PlayerHonorSummaryScoreKey, number>;
@@ -463,6 +467,8 @@ export interface PlayerHonorSummaryParams {
   countryId?: string;
   clubId?: string;
   position?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PlayerPaEvaluationParams {
@@ -524,6 +530,7 @@ export interface PlayerHonorListRow {
   teamHonorCount: number;
   achievementCount: number;
   awardScore: number;
+  achievementScore: number;
   teamHonorScore: number;
   totalScore: number;
   cells: Record<PlayerHonorListColumnKey, PlayerHonorListCell>;
@@ -732,6 +739,8 @@ export interface CountryHonorSummaryParams {
   competitionId?: string;
   countryId?: string;
   confederationId?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface ClubListParams {
@@ -763,6 +772,8 @@ export interface ClubHonorSummaryParams {
   clubId?: string;
   confederationId?: string;
   countryId?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface HonorSummaryResult<TItem> {

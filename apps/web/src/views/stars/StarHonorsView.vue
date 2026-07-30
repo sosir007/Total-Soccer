@@ -34,6 +34,10 @@ const summaryColumns = ref<PlayerHonorSummaryColumn[]>([]);
 const listRows = ref<PlayerHonorListRow[]>([]);
 const listColumns = ref<PlayerHonorListColumn[]>([]);
 const total = ref(0);
+const sortState = reactive({
+  sortBy: 'totalScore',
+  sortOrder: 'desc' as 'asc' | 'desc'
+});
 const filters = reactive({
   page: 1,
   pageSize: 20,
@@ -89,7 +93,9 @@ async function loadHonors() {
       confederationId: filters.confederationId || undefined,
       position: filters.position || undefined,
       countryId: filters.countryId || undefined,
-      clubId: filters.clubId || undefined
+      clubId: filters.clubId || undefined,
+      sortBy: sortState.sortBy,
+      sortOrder: sortState.sortOrder
     };
     const [summaryResult, listResult] = await Promise.all([
       fetchPlayerHonorSummary(params),
@@ -121,7 +127,36 @@ function resetFilters() {
   filters.position = '';
   filters.countryId = '';
   filters.clubId = '';
+  sortState.sortBy = 'totalScore';
+  sortState.sortOrder = 'desc';
   void loadHonors();
+}
+
+function handleSummarySortChange({
+  prop,
+  order
+}: {
+  prop?: string;
+  order?: 'ascending' | 'descending' | null;
+}) {
+  if (!prop || !order) {
+    sortState.sortBy = 'totalScore';
+    sortState.sortOrder = 'desc';
+  } else {
+    sortState.sortBy = prop;
+    sortState.sortOrder = order === 'ascending' ? 'asc' : 'desc';
+  }
+
+  filters.page = 1;
+  void loadHonors();
+}
+
+function getSummarySortProp(column: PlayerHonorSummaryColumn) {
+  if (column.key === 'achievement') {
+    return 'achievementScore';
+  }
+
+  return column.key;
 }
 
 function rowIndex(index: number) {
@@ -386,7 +421,13 @@ onMounted(() => {
             text="暂无巨星荣誉，可以先在履历管理中录入个人奖项或确认团队荣誉。"
           />
 
-          <el-table v-else :data="summaryRows" border class="player-honor-summary-table">
+          <el-table
+            v-else
+            :data="summaryRows"
+            border
+            class="player-honor-summary-table"
+            @sort-change="handleSummarySortChange"
+          >
             <el-table-column label="序号" width="60" fixed align="center">
               <template #default="{ $index }">
                 {{ rowIndex($index) }}
@@ -431,9 +472,11 @@ onMounted(() => {
               <el-table-column
                 v-if="isSingleSummaryColumnGroup(group)"
                 :label="group.columns[0].label"
+                :prop="getSummarySortProp(group.columns[0])"
                 :width="getHonorScoreColumnWidth(group.group, group.columns[0])"
                 align="center"
                 header-align="center"
+                :sortable="group.columns[0].key === 'achievement' ? 'custom' : undefined"
               >
                 <template #default="{ row }">
                   <el-tooltip
@@ -522,19 +565,38 @@ onMounted(() => {
               </el-table-column>
             </template>
 
-            <el-table-column label="奖项数" width="80" align="center">
+            <el-table-column
+              label="奖项数"
+              prop="awardCount"
+              width="92"
+              align="center"
+              sortable="custom"
+            >
               <template #default="{ row }">
                 {{ row.awardCount || '-' }}
               </template>
             </el-table-column>
 
-            <el-table-column label="团队荣誉" width="90" align="center">
+            <el-table-column
+              label="团队荣誉"
+              prop="teamHonorCount"
+              width="105"
+              align="center"
+              sortable="custom"
+            >
               <template #default="{ row }">
                 {{ row.teamHonorCount || '-' }}
               </template>
             </el-table-column>
 
-            <el-table-column label="奖项分" width="80" align="center" fixed="right">
+            <el-table-column
+              label="奖项分"
+              prop="awardScore"
+              width="92"
+              align="center"
+              fixed="right"
+              sortable="custom"
+            >
               <template #default="{ row }">
                 <el-tooltip
                   v-if="getAggregateScoreDetails(row, 'AWARD').length"
@@ -568,7 +630,14 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column label="团队分" width="80" align="center" fixed="right">
+            <el-table-column
+              label="团队分"
+              prop="teamHonorScore"
+              width="92"
+              align="center"
+              fixed="right"
+              sortable="custom"
+            >
               <template #default="{ row }">
                 <el-tooltip
                   v-if="getAggregateScoreDetails(row, 'TEAM').length"
@@ -602,7 +671,14 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column label="总分" width="80" align="center" fixed="right">
+            <el-table-column
+              label="总分"
+              prop="totalScore"
+              width="80"
+              align="center"
+              fixed="right"
+              sortable="custom"
+            >
               <template #default="{ row }">
                 <el-tooltip
                   v-if="getAggregateScoreDetails(row, 'ALL').length"

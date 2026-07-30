@@ -21,6 +21,8 @@ export interface CountryHonorListQuery {
 
 export type CountryHonorSummaryQuery = Omit<CountryHonorListQuery, 'placement' | 'year'> & {
   confederationId?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 export interface CountryPayload {

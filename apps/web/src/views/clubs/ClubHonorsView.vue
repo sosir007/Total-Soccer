@@ -19,7 +19,9 @@ const filters = reactive({
   keyword: '',
   competitionId: '',
   confederationId: '',
-  countryId: ''
+  countryId: '',
+  sortBy: 'honorScore',
+  sortOrder: 'desc' as 'asc' | 'desc'
 });
 
 const hasRows = computed(() => rows.value.length > 0);
@@ -35,7 +37,9 @@ async function loadHonors() {
       keyword: filters.keyword || undefined,
       competitionId: filters.competitionId || undefined,
       confederationId: filters.confederationId || undefined,
-      countryId: filters.countryId || undefined
+      countryId: filters.countryId || undefined,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder
     });
     rows.value = result.items;
     competitions.value = result.competitions;
@@ -59,6 +63,27 @@ function resetFilters() {
   filters.competitionId = '';
   filters.confederationId = '';
   filters.countryId = '';
+  filters.sortBy = 'honorScore';
+  filters.sortOrder = 'desc';
+  void loadHonors();
+}
+
+function handleSortChange({
+  prop,
+  order
+}: {
+  prop?: string;
+  order?: 'ascending' | 'descending' | null;
+}) {
+  if (!prop || !order) {
+    filters.sortBy = 'honorScore';
+    filters.sortOrder = 'desc';
+  } else {
+    filters.sortBy = prop;
+    filters.sortOrder = order === 'ascending' ? 'asc' : 'desc';
+  }
+
+  filters.page = 1;
   void loadHonors();
 }
 
@@ -89,7 +114,7 @@ onMounted(() => {
           <el-input
             v-model="filters.keyword"
             clearable
-            placeholder="俱乐部 / 赛事 / 届次 / 主办地"
+            placeholder="俱乐部 / UID / 国家 / 足联"
             @keyup.enter="submitFilters"
           />
         </el-form-item>
@@ -139,6 +164,7 @@ onMounted(() => {
           entity-type="club"
           :page="filters.page"
           :page-size="filters.pageSize"
+          @sort-change="handleSortChange"
         />
 
         <div class="table-footer">

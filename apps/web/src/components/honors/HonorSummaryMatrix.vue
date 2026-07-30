@@ -34,6 +34,12 @@ const props = defineProps<{
   page: number;
   pageSize: number;
 }>();
+const emit = defineEmits<{
+  (
+    event: 'sort-change',
+    payload: { prop?: string; order?: 'ascending' | 'descending' | null }
+  ): void;
+}>();
 
 type HonorSummaryDisplayCompetition = HonorSummaryCompetition & {
   sourceCompetitionIds: string[];
@@ -53,6 +59,10 @@ type HonorSummaryScoreRow = HonorSummaryRow & {
 
 const scoreDialogVisible = ref(false);
 const scoreDialogRow = ref<HonorSummaryScoreRow | null>(null);
+
+function handleSortChange(payload: { prop?: string; order?: 'ascending' | 'descending' | null }) {
+  emit('sort-change', payload);
+}
 
 const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   const columns: HonorSummaryDisplayCompetition[] = [];
@@ -741,6 +751,14 @@ function getBonusScoreBreakdown(row: HonorSummaryRow): HonorScoreBreakdownGroup 
   };
 }
 
+function hasBonusScoreBreakdown(row: HonorSummaryRow) {
+  return Boolean(getBonusScoreBreakdown(row));
+}
+
+function formatBonusScoreEntryTitle(entry: HonorScoreBreakdownEntry) {
+  return [entry.label, entry.competitionName, entry.placementLabel].filter(Boolean).join(' ');
+}
+
 function formatAwardName(name?: string | null) {
   return String(name ?? '')
     .replace(/（(?:国家队|俱乐部)）/g, '')
@@ -833,7 +851,7 @@ function openScoreDialog(row: HonorSummaryRow) {
 </script>
 
 <template>
-  <el-table :data="rows" border class="honor-summary-table">
+  <el-table :data="rows" border class="honor-summary-table" @sort-change="handleSortChange">
     <el-table-column label="序号" width="60" fixed align="center">
       <template #default="{ $index }">
         {{ rowIndex($index) }}
@@ -954,25 +972,81 @@ function openScoreDialog(row: HonorSummaryRow) {
       </el-table-column>
     </template>
 
-    <el-table-column label="总数" width="80" fixed="right" align="center">
+    <el-table-column
+      label="总数"
+      prop="totalCount"
+      width="80"
+      fixed="right"
+      align="center"
+      sortable="custom"
+    >
       <template #default="{ row }">
         <span class="honor-count-cell">{{ formatCount(row.totalCount) }}</span>
       </template>
     </el-table-column>
 
-    <el-table-column label="冠军数" width="80" fixed="right" align="center">
+    <el-table-column
+      label="冠军数"
+      prop="championCount"
+      width="92"
+      fixed="right"
+      align="center"
+      sortable="custom"
+    >
       <template #default="{ row }">
         <span class="honor-count-cell">{{ formatCount(row.championCount) }}</span>
       </template>
     </el-table-column>
 
-    <el-table-column label="附加分" width="80" fixed="right" align="center">
+    <el-table-column
+      label="附加分"
+      prop="bonusHonorScore"
+      width="92"
+      fixed="right"
+      align="center"
+      sortable="custom"
+    >
       <template #default="{ row }">
-        <span class="honor-count-cell">{{ formatNumber(row.bonusHonorScore, 2) }}</span>
+        <el-tooltip
+          v-if="hasBonusScoreBreakdown(row)"
+          effect="light"
+          placement="top"
+          :show-after="180"
+          popper-class="honor-summary-tooltip-popper"
+        >
+          <template #content>
+            <div class="honor-summary-tooltip honor-summary-tooltip--score">
+              <div class="honor-summary-tooltip__title">附加分拆解</div>
+              <div
+                v-for="entry in getBonusScoreBreakdown(row)?.entries ?? []"
+                :key="entry.id"
+                class="honor-summary-tooltip__item honor-summary-tooltip__item--split"
+              >
+                <span>{{ formatBonusScoreEntryTitle(entry) }}</span>
+                <strong>{{ formatNumber(entry.score, 2) }}</strong>
+              </div>
+              <div class="honor-summary-tooltip__item honor-summary-tooltip__item--split is-total">
+                <span>合计</span>
+                <strong>{{ formatNumber(row.bonusHonorScore, 2) }}</strong>
+              </div>
+            </div>
+          </template>
+          <span class="honor-count-cell is-hoverable">{{
+            formatNumber(row.bonusHonorScore, 2)
+          }}</span>
+        </el-tooltip>
+        <span v-else class="honor-count-cell">{{ formatNumber(row.bonusHonorScore, 2) }}</span>
       </template>
     </el-table-column>
 
-    <el-table-column label="荣誉分" width="90" fixed="right" align="center">
+    <el-table-column
+      label="荣誉分"
+      prop="honorScore"
+      width="92"
+      fixed="right"
+      align="center"
+      sortable="custom"
+    >
       <template #default="{ row }">
         <el-tooltip
           v-if="hasScoreBreakdown(row)"
