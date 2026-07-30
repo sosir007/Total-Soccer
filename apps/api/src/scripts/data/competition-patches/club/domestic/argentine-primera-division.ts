@@ -251,6 +251,7 @@ function resolveChampionGroupKey(name: string, year: number) {
   if (year === 2013 && name.includes('2012/13')) return '2012-13';
   if (year === 2013 && name.includes('Torneo Inicial')) return '2013-14';
   if (year === 2014 && name.includes('Torneo Final')) return '2013-14';
+  if (year === 2014 && name.includes('Torneo Inicial')) return '2014';
   if (year === 2025) return '2025';
 
   return null;
@@ -397,20 +398,20 @@ function buildRemark(champion: RawChampion, championShare: number | null) {
 
 export const ARGENTINE_PRIMERA_DIVISION_PATCHES: SeedCompetitionPatch[] = RAW_CHAMPIONS.flatMap(
   (champion) => {
-    if (!champion.clubName) return [];
-
     const championShare = champion.championGroupKey
       ? (CHAMPION_SHARE_BY_GROUP.get(champion.championGroupKey) ?? 1)
       : 1;
     const extraStanding = ARGENTINE_PRIMERA_DIVISION_EXTRA_STANDINGS[champion.season] ?? null;
-    const standings: SeedCompetitionPatch['standings'] = [
-      {
+    const standings: SeedCompetitionPatch['standings'] = [];
+
+    if (champion.clubName) {
+      standings.push({
         placement: CompetitionStandingPlacement.CHAMPION,
         standingOrder: 1,
         clubName: champion.clubName,
         remark: buildRemark(champion, championShare)
-      }
-    ];
+      });
+    }
 
     if (extraStanding?.runnerUp) {
       standings.push({
@@ -429,6 +430,8 @@ export const ARGENTINE_PRIMERA_DIVISION_PATCHES: SeedCompetitionPatch[] = RAW_CH
         remark: buildRemark(champion, championShare)
       });
     }
+
+    if (!standings.length) return [];
 
     return [
       {
