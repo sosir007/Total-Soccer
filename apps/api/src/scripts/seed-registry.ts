@@ -180,6 +180,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'supercopa-libertadores',
+    label: '南美解放者超级杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-supercopa-libertadores.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/confederation/supercopa-libertadores.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'copa-conmebol',
     label: '南美足联杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-copa-conmebol.ts',
@@ -189,10 +200,39 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'copa-sudamericana',
+    label: '南美杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-copa-sudamericana.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/copa-sudamericana.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'recopa-sudamericana',
     label: '南美优胜者杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-recopa-sudamericana.ts',
     dataFiles: ['src/scripts/data/competition-results/club/confederation/recopa-sudamericana.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
+    key: 'copa-de-oro',
+    label: '南美金杯赛',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-copa-de-oro.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/copa-de-oro.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
+    key: 'copa-master-de-supercopa',
+    label: '南美解放者超级杯大师赛',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-copa-master-de-supercopa.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/confederation/copa-master-de-supercopa.ts'
+    ],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'confederation'
