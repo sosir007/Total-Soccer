@@ -12,7 +12,7 @@ async function main() {
   await runCompetitionPatchSeed({
     prisma,
     confederations: CONFEDERATION_SEEDS,
-    countries: pickSeedCountries(['奥地利', '法国', '匈牙利']),
+    countries: pickSeedCountries(['奥地利', '法国', '匈牙利', '西班牙']),
     clubs: CLUB_DOMESTIC_PATCH_CLUBS,
     patches: CLUB_DOMESTIC_PATCHES,
     completedMessage: 'Club competition patches seed completed.'

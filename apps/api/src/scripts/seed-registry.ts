@@ -316,6 +316,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'spain-la-liga',
+    label: '西班牙足球甲级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-la-liga.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/spain-la-liga.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'brazil-serie-b',
     label: '巴西乙级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-serie-b.ts',
