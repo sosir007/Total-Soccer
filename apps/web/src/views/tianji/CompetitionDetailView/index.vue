@@ -421,7 +421,7 @@ function shouldUseCompetitionFormat(form: {
   scopeType: CompetitionScopeType;
   category?: string | null;
 }) {
-  return form.scopeType === 'COUNTRY' && form.category === '国内';
+  return (form.scopeType === 'COUNTRY' && form.category === '国内') || form.scopeType === 'CUSTOM';
 }
 
 function createEmptyStandingForm(): StandingForm {
@@ -639,7 +639,15 @@ function formatText(value?: string | number | boolean | null) {
 }
 
 function formatCompetitionFormat(item: CompetitionDetail) {
-  return shouldUseCompetitionFormat(item) ? item.format || '-' : '-';
+  if (!shouldUseCompetitionFormat(item) || !item.format) {
+    return '-';
+  }
+
+  if (item.category === '其他' && item.format !== '其他') {
+    return `其他${item.format}`;
+  }
+
+  return item.format;
 }
 
 function getSummaryCountLabel() {
@@ -715,6 +723,7 @@ onMounted(() => {
         :target-type-labels="targetTypeLabels"
         :scope-type-labels="scopeTypeLabels"
         :format-scope="formatScope"
+        :format-competition-format="formatCompetitionFormat"
         :should-use-competition-format="shouldUseCompetitionFormat"
         :get-summary-count-label="getSummaryCountLabel"
         @back="backToList"

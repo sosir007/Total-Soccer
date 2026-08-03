@@ -76,6 +76,7 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   let domesticLevelOneCupColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelTwoCupColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelThreeCupColumn: HonorSummaryDisplayCompetition | null = null;
+  let clubCustomCupColumn: HonorSummaryDisplayCompetition | null = null;
 
   for (const competition of props.competitions) {
     if (shouldMergeAsInternationalLevelThree(competition)) {
@@ -293,6 +294,28 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
       domesticLevelThreeCupColumn.counts ??= createEmptyCounts();
       addCounts(
         domesticLevelThreeCupColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsClubCustomCup(competition)) {
+      if (!clubCustomCupColumn) {
+        clubCustomCupColumn = {
+          ...competition,
+          id: getClubCustomCupColumnId(),
+          code: getClubCustomCupColumnCode(),
+          name: getClubCustomCupColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(clubCustomCupColumn);
+      }
+
+      clubCustomCupColumn.sourceCompetitionIds.push(competition.id);
+      clubCustomCupColumn.counts ??= createEmptyCounts();
+      addCounts(
+        clubCustomCupColumn.counts,
         competition.counts ?? getCompetitionCountsFromRows(competition.id)
       );
       continue;
@@ -525,6 +548,15 @@ function shouldMergeAsDomesticLevelThreeCup(competition: HonorSummaryCompetition
   );
 }
 
+function shouldMergeAsClubCustomCup(competition: HonorSummaryCompetition) {
+  return (
+    props.entityType === 'club' &&
+    competition.targetType === 'CLUB' &&
+    competition.scopeType === 'CUSTOM' &&
+    competition.format === '杯赛'
+  );
+}
+
 function getContinentalCupColumnId() {
   return props.entityType === 'country'
     ? '__country_continental_cup__'
@@ -645,6 +677,18 @@ function getDomesticLevelThreeCupColumnCode() {
 
 function getDomesticLevelThreeCupColumnName() {
   return '国内三级杯赛';
+}
+
+function getClubCustomCupColumnId() {
+  return '__club_custom_cup__';
+}
+
+function getClubCustomCupColumnCode() {
+  return 'CLUB_CUSTOM_CUP';
+}
+
+function getClubCustomCupColumnName() {
+  return '其他杯赛';
 }
 
 const placementValues = placements.map(

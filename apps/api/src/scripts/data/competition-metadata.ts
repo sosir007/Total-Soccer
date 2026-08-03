@@ -9,7 +9,7 @@ export type CompetitionDataMetadata = {
   name: string;
   dataKind: 'competition-results' | 'competition-patches';
   target: 'national-team' | 'club';
-  scope: 'global' | 'confederation' | 'domestic';
+  scope: 'global' | 'confederation' | 'domestic' | 'custom';
   sources: CompetitionDataSource[];
   notes?: string[];
   lastVerifiedAt?: string;

@@ -15,6 +15,7 @@ defineProps<{
   targetTypeLabels: Record<CompetitionTargetType, string>;
   scopeTypeLabels: Record<CompetitionScopeType, string>;
   formatScope: (item: CompetitionDetail) => string;
+  formatCompetitionFormat: (item: CompetitionDetail) => string;
   shouldUseCompetitionFormat: (item: {
     scopeType: CompetitionScopeType;
     category?: string | null;
@@ -45,7 +46,7 @@ const emit = defineEmits<{
           {{ competition.level || '未分级' }}
         </SemanticTag>
         <span v-if="shouldUseCompetitionFormat(competition)" class="detail-tag-text">
-          {{ competition.format || '未设赛制' }}
+          {{ formatCompetitionFormat(competition) }}
         </span>
         <SemanticTag variant="status-legend">{{ getSummaryCountLabel() }}</SemanticTag>
       </div>

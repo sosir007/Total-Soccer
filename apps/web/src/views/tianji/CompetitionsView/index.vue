@@ -394,7 +394,7 @@ function shouldUseCompetitionFormat(form: {
   scopeType: CompetitionScopeType;
   category?: string | null;
 }) {
-  return form.scopeType === 'COUNTRY' && form.category === '国内';
+  return (form.scopeType === 'COUNTRY' && form.category === '国内') || form.scopeType === 'CUSTOM';
 }
 
 function resetCompetitionForm() {
@@ -588,7 +588,15 @@ function formatText(value?: string | number | null) {
 }
 
 function formatFormat(competition: CompetitionListItem) {
-  return shouldUseCompetitionFormat(competition) ? competition.format || '-' : '-';
+  if (!shouldUseCompetitionFormat(competition) || !competition.format) {
+    return '-';
+  }
+
+  if (competition.category === '其他' && competition.format !== '其他') {
+    return `其他${competition.format}`;
+  }
+
+  return competition.format;
 }
 
 watch(

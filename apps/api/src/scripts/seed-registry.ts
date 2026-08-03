@@ -5,7 +5,7 @@ export type SeedRegistryItem = {
   label: string;
   dataKind: 'competition-results' | 'competition-patches';
   target: 'national-team' | 'club';
-  scope: 'global' | 'confederation' | 'domestic';
+  scope: 'global' | 'confederation' | 'domestic' | 'custom';
 };
 
 export const COMPETITION_SEEDS: SeedRegistryItem[] = [
@@ -166,6 +166,35 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     label: '欧足联欧洲联赛',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-europa-league.ts',
     dataFiles: ['src/scripts/data/competition-results/club/confederation/uefa-europa-league.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
+    key: 'inter-cities-fairs-cup',
+    label: '国际城市博览会杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-inter-cities-fairs-cup.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/confederation/inter-cities-fairs-cup.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
+    key: 'latin-cup',
+    label: '拉丁杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-latin-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/latin-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'custom'
+  },
+  {
+    key: 'uefa-super-cup',
+    label: '欧洲超级杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-super-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/uefa-super-cup.ts'],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'confederation'
