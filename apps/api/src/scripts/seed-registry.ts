@@ -325,6 +325,42 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'spain-segunda-division',
+    label: '西班牙足球乙级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-segunda-division.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/spain-segunda-division.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'spain-copa-del-rey',
+    label: '西班牙国王杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-copa-del-rey.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/spain-copa-del-rey.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'spain-super-cup',
+    label: '西班牙超级杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-super-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/spain-super-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'spain-league-cup',
+    label: '西班牙联赛杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-league-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/spain-league-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'brazil-serie-b',
     label: '巴西乙级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-brazil-serie-b.ts',
