@@ -174,6 +174,14 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
+    uid: '1102',
+    name: '亚历山德里亚',
+    englishName: 'Alessandria',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: true
+  },
+  {
     uid: '691',
     name: '诺维奇城',
     englishName: 'Norwich City',

@@ -381,6 +381,24 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'italy-serie-a',
+    label: '意大利足球甲级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-italy-serie-a.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/italy-serie-a.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'italy-coppa-italia',
+    label: '意大利杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-italy-coppa-italia.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/italy-coppa-italia.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'spain-copa-del-rey',
     label: '西班牙国王杯',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-copa-del-rey.ts',

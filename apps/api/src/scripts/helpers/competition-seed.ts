@@ -162,6 +162,16 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
   ],
   ['SPAIN_LA_LIGA', COMPLETE_COMPETITION_DATA],
   [
+    'ITALY_SERIE_A',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark:
+        '1898-1929 前身仅按官方冠军口径录入，早期缺完整前三；1926-27、2004-05 冠军未授予。'
+    }
+  ],
+  ['ITALY_COPPA_ITALIA', COMPLETE_COMPETITION_DATA],
+  [
     'SPAIN_SEGUNDA_DIVISION',
     {
       dataComplete: false,
