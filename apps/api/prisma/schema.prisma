@@ -703,6 +703,9 @@ model Competition {
   confederationId     String?
   countryId           String?
   lifecycleStatus     LifecycleStatus                 @default(CURRENT)
+  dataComplete        Boolean                         @default(false)
+  dataUpdatedAt       DateTime?
+  dataRemark          String?
   enabled             Boolean                         @default(true)
   includeInStats      Boolean                         @default(true)
   sortOrder           Int                             @default(0)
@@ -727,6 +730,7 @@ model Competition {
   @@index([confederationId])
   @@index([countryId])
   @@index([lifecycleStatus])
+  @@index([dataComplete])
   @@index([enabled])
   @@index([includeInStats])
 }
@@ -769,6 +773,9 @@ model Award {
   confederationId String?
   countryId       String?
   lifecycleStatus LifecycleStatus @default(CURRENT)
+  dataComplete    Boolean         @default(false)
+  dataUpdatedAt   DateTime?
+  dataRemark      String?
   enabled         Boolean         @default(true)
   sortOrder       Int             @default(0)
   competition     Competition?    @relation(fields: [competitionId], references: [id])
@@ -787,6 +794,7 @@ model Award {
   @@index([confederationId])
   @@index([countryId])
   @@index([lifecycleStatus])
+  @@index([dataComplete])
   @@index([enabled])
 }
 

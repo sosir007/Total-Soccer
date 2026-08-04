@@ -33,7 +33,7 @@ export const INTER_CITIES_FAIRS_CUP_METADATA: CompetitionDataMetadata = {
   notes: [
     '本文件录入 1955-58 至 1970-71 国际城市博览会杯决赛冠亚军。',
     '该赛事是欧洲联盟杯创办前的重要欧洲俱乐部杯赛，但不是欧足联官方承认的欧联前身届次，单独建赛事。',
-    '只落库当前数据库已有俱乐部的冠军和亚军；伦敦联队、伯明翰城、费伦茨瓦罗斯、乌伊佩斯特暂不创建俱乐部。',
+    '只落库当前数据库已有俱乐部的冠军和亚军；伦敦联队是城市代表队，暂不创建普通俱乐部。',
     '1955-58 届 Wikipedia 记为 Barcelona XI，本次按巴塞罗那俱乐部代表队口径落到巴塞罗那。'
   ]
 };
@@ -48,14 +48,36 @@ export const INTER_CITIES_FAIRS_CUP_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '671', name: '利兹联', countryName: '英格兰', confederationCode: 'UEFA' },
   { uid: '688', name: '纽卡斯尔联', countryName: '英格兰', confederationCode: 'UEFA' },
   { uid: '602', name: '阿森纳', countryName: '英格兰', confederationCode: 'UEFA' },
-  { uid: '256', name: '安德莱赫特', countryName: '比利时', confederationCode: 'UEFA' }
+  { uid: '256', name: '安德莱赫特', countryName: '比利时', confederationCode: 'UEFA' },
+  {
+    uid: '609',
+    name: '伯明翰城',
+    englishName: 'Birmingham City',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1055',
+    name: '费伦茨瓦罗斯',
+    englishName: 'Ferencváros',
+    countryName: '匈牙利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1064',
+    name: '新佩斯',
+    englishName: 'Újpest',
+    alias: '乌伊佩斯特',
+    countryName: '匈牙利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  }
 ];
 
 export const INTER_CITIES_FAIRS_CUP_MISSING_FINALISTS = [
-  { name: '伦敦联队', englishName: 'London XI', note: '城市代表队，不是普通俱乐部。' },
-  { name: '伯明翰城', englishName: 'Birmingham City' },
-  { name: '费伦茨瓦罗斯', englishName: 'Ferencvaros' },
-  { name: '乌伊佩斯特', englishName: 'Ujpest' }
+  { name: '伦敦联队', englishName: 'London XI', note: '城市代表队，不是普通俱乐部。' }
 ];
 
 const SEEDED_CLUB_NAMES = new Set(INTER_CITIES_FAIRS_CUP_REQUIRED_CLUBS.map((club) => club.name));
@@ -106,7 +128,7 @@ const RAW_INTER_CITIES_FAIRS_CUP_RESULTS: RawInterCitiesFairsCupResult[] = [
     season: '1968-69',
     year: 1969,
     champion: '纽卡斯尔联',
-    runnerUp: '乌伊佩斯特',
+    runnerUp: '新佩斯',
     score: '6-2'
   },
   { season: '1969-70', year: 1970, champion: '阿森纳', runnerUp: '安德莱赫特', score: '4-3' },

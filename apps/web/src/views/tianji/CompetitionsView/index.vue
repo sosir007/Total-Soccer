@@ -113,6 +113,9 @@ const competitionForm = reactive({
   level: '',
   format: '其他' as '' | CompetitionFormat,
   description: '',
+  dataComplete: false,
+  dataUpdatedAt: '',
+  dataRemark: '',
   confederationId: '',
   confederationIds: [] as string[],
   countryId: '',
@@ -257,6 +260,9 @@ async function openEditCompetitionDialog(row: CompetitionListItem) {
   competitionForm.level = row.level ?? '';
   competitionForm.format = (row.format as '' | CompetitionFormat) ?? '其他';
   competitionForm.description = row.description ?? '';
+  competitionForm.dataComplete = row.dataComplete;
+  competitionForm.dataUpdatedAt = row.dataUpdatedAt?.slice(0, 10) ?? '';
+  competitionForm.dataRemark = row.dataRemark ?? '';
   competitionForm.confederationId = row.confederationId ?? '';
   competitionForm.confederationIds = (row.scopeConfederations ?? []).map(
     (scope) => scope.confederation.id
@@ -375,6 +381,9 @@ function buildCompetitionPayload() {
     level: competitionForm.level.trim() || undefined,
     format: showCreateFormatField.value ? competitionForm.format || '其他' : '其他',
     description: competitionForm.description.trim() || undefined,
+    dataComplete: competitionForm.dataComplete,
+    dataUpdatedAt: competitionForm.dataUpdatedAt || null,
+    dataRemark: competitionForm.dataRemark.trim() || undefined,
     confederationId:
       competitionForm.scopeType === 'CONFEDERATION'
         ? competitionForm.confederationIds[0]
@@ -411,6 +420,9 @@ function resetCompetitionForm() {
   competitionForm.level = '';
   competitionForm.format = '其他';
   competitionForm.description = '';
+  competitionForm.dataComplete = false;
+  competitionForm.dataUpdatedAt = '';
+  competitionForm.dataRemark = '';
   competitionForm.confederationId = '';
   competitionForm.confederationIds = [];
   competitionForm.countryId = '';

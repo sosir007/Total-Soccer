@@ -7,6 +7,8 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
+  getBooleanLabel,
+  getBooleanVariant,
   getLifecycleStatusLabel,
   getLifecycleStatusVariant,
   type SemanticTagVariant
@@ -71,6 +73,10 @@ function openExternalLink(row: CompetitionListItem) {
   }
 
   window.open(row.externalUrl, '_blank');
+}
+
+function formatDataUpdatedAt(value?: string | null) {
+  return value ? value.slice(0, 10) : '-';
 }
 </script>
 
@@ -167,6 +173,16 @@ function openExternalLink(row: CompetitionListItem) {
             </SemanticTag>
           </template>
         </el-table-column>
+        <el-table-column label="完整" width="82" align="center" header-align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getBooleanVariant(row.dataComplete)">
+              {{ getBooleanLabel(row.dataComplete) }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="数据更新" width="110" align="center" header-align="center">
+          <template #default="{ row }">{{ formatDataUpdatedAt(row.dataUpdatedAt) }}</template>
+        </el-table-column>
         <el-table-column label="外链" width="86" align="center" header-align="center">
           <template #default="{ row }">
             <a
@@ -184,6 +200,9 @@ function openExternalLink(row: CompetitionListItem) {
         </el-table-column>
         <el-table-column prop="description" label="描述" min-width="240" show-overflow-tooltip>
           <template #default="{ row }">{{ formatText(row.description) }}</template>
+        </el-table-column>
+        <el-table-column prop="dataRemark" label="完整性备注" min-width="240" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatText(row.dataRemark) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">

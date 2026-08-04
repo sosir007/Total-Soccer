@@ -854,6 +854,9 @@ export class CompetitionsService {
         level: this.parseStandardText(body.level, COMPETITION_LEVELS, '赛事级别'),
         format: this.parseStandardText(body.format, COMPETITION_FORMATS, '赛事赛制'),
         description: this.toNullableString(body.description),
+        dataComplete: body.dataComplete ?? false,
+        dataUpdatedAt: this.toNullableDate(body.dataUpdatedAt, '荣誉数据更新时间'),
+        dataRemark: this.toNullableString(body.dataRemark),
         externalUrl: this.toNullableString(body.externalUrl),
         confederationId:
           scopeType === CompetitionScopeType.CONFEDERATION ? confederationIds[0] : null,
@@ -1228,6 +1231,20 @@ export class CompetitionsService {
   private toNullableString(value: string | undefined | null) {
     const trimmed = value?.trim();
     return trimmed ? trimmed : null;
+  }
+
+  private toNullableDate(value: string | Date | undefined | null, label: string) {
+    if (value === undefined || value === null || value === '') {
+      return null;
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException(`${label}格式不正确。`);
+    }
+
+    return date;
   }
 
   private toNullableNumber(value: number | undefined) {

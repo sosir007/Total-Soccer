@@ -48,6 +48,8 @@ async function main() {
         level: '三级',
         format: '杯赛',
         description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 2
@@ -64,6 +66,8 @@ async function main() {
         description: '夏季奥林匹克运动会男子足球赛事，现代男足奥运会长期采用年龄限制规则。',
         confederationId: null,
         countryId: null,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 2

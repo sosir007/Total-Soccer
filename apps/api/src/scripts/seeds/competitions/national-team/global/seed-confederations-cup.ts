@@ -49,6 +49,8 @@ async function main() {
         format: '杯赛',
         description: '国际足联主办的国家队洲际冠军邀请赛，前身为法赫德国王杯，2017 年后停办。',
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 1
@@ -66,6 +68,8 @@ async function main() {
         confederationId: null,
         countryId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 1

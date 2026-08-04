@@ -47,6 +47,9 @@ export interface CompetitionListItem {
   level?: string | null;
   format?: string | null;
   description?: string | null;
+  dataComplete: boolean;
+  dataUpdatedAt?: string | null;
+  dataRemark?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
   lifecycleStatus: LifecycleStatus;
@@ -112,6 +115,9 @@ export interface CreateCompetitionPayload {
   level?: string;
   format?: string;
   description?: string;
+  dataComplete?: boolean;
+  dataUpdatedAt?: string | null;
+  dataRemark?: string;
   confederationId?: string;
   confederationIds?: string[];
   countryId?: string;

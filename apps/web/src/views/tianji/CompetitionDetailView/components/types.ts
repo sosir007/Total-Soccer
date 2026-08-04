@@ -44,6 +44,9 @@ export interface CompetitionDetailForm {
   level: string;
   format: '' | CompetitionFormat;
   description: string;
+  dataComplete: boolean;
+  dataUpdatedAt: string;
+  dataRemark: string;
   confederationId: string;
   confederationIds: string[];
   countryId: string;

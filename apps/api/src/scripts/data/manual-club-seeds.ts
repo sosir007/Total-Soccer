@@ -307,6 +307,79 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
+    uid: '1060',
+    name: 'MTK布达佩斯',
+    englishName: 'MTK Budapest',
+    countryName: '匈牙利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1452',
+    name: '扎布热矿工',
+    englishName: 'Górnik Zabrze',
+    countryName: '波兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '2233',
+    name: '马格德堡',
+    englishName: '1. FC Magdeburg',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1055',
+    name: '费伦茨瓦罗斯',
+    englishName: 'Ferencváros',
+    countryName: '匈牙利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '942',
+    name: '卡尔蔡司耶拿',
+    englishName: 'Carl Zeiss Jena',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '892',
+    name: '第比利斯迪纳摩',
+    englishName: 'Dinamo Tbilisi',
+    countryName: '格鲁吉亚',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '3600077',
+    name: '莱比锡火车头',
+    englishName: '1. FC Lokomotive Leipzig',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '609',
+    name: '伯明翰城',
+    englishName: 'Birmingham City',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1064',
+    name: '新佩斯',
+    englishName: 'Újpest',
+    alias: '乌伊佩斯特',
+    countryName: '匈牙利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
     uid: '858',
     name: '里尔',
     englishName: 'Lille OSC',

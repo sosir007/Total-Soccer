@@ -125,6 +125,9 @@ const detailForm = reactive({
   level: '',
   format: '其他' as '' | CompetitionFormat,
   description: '',
+  dataComplete: false,
+  dataUpdatedAt: '',
+  dataRemark: '',
   confederationId: '',
   confederationIds: [] as string[],
   countryId: '',
@@ -351,6 +354,9 @@ function populateDetailForm() {
   detailForm.level = competition.value.level ?? '';
   detailForm.format = (competition.value.format as CompetitionFormat | null) ?? '其他';
   detailForm.description = competition.value.description ?? '';
+  detailForm.dataComplete = competition.value.dataComplete;
+  detailForm.dataUpdatedAt = competition.value.dataUpdatedAt?.slice(0, 10) ?? '';
+  detailForm.dataRemark = competition.value.dataRemark ?? '';
   detailForm.confederationId = competition.value.confederationId ?? '';
   detailForm.confederationIds = getCompetitionConfederationIds(competition.value);
   detailForm.countryId = competition.value.countryId ?? '';
@@ -405,6 +411,9 @@ function buildCompetitionPayload() {
     level: detailForm.level.trim() || undefined,
     format: shouldUseCompetitionFormat(detailForm) ? detailForm.format || '其他' : '其他',
     description: detailForm.description.trim() || undefined,
+    dataComplete: detailForm.dataComplete,
+    dataUpdatedAt: detailForm.dataUpdatedAt || null,
+    dataRemark: detailForm.dataRemark.trim() || undefined,
     confederationId:
       detailForm.scopeType === 'CONFEDERATION' ? detailForm.confederationIds[0] : undefined,
     confederationIds: detailForm.scopeType === 'CONFEDERATION' ? detailForm.confederationIds : [],

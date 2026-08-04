@@ -52,6 +52,9 @@ export interface AwardListItem {
   category?: string | null;
   level?: string | null;
   description?: string | null;
+  dataComplete: boolean;
+  dataUpdatedAt?: string | null;
+  dataRemark?: string | null;
   competitionId?: string | null;
   confederationId?: string | null;
   countryId?: string | null;
@@ -156,6 +159,9 @@ export interface CreateAwardPayload {
   category?: string;
   level?: string;
   description?: string;
+  dataComplete?: boolean;
+  dataUpdatedAt?: string | null;
+  dataRemark?: string;
   competitionId?: string;
   confederationId?: string;
   countryId?: string;

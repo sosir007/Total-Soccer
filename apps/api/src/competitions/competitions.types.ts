@@ -35,6 +35,9 @@ export interface CreateCompetitionBody {
   level?: string;
   format?: string;
   description?: string;
+  dataComplete?: boolean;
+  dataUpdatedAt?: string | Date | null;
+  dataRemark?: string;
   confederationId?: string;
   confederationIds?: string[];
   countryId?: string;

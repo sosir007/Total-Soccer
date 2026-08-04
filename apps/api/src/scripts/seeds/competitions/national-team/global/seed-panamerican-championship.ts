@@ -45,6 +45,8 @@ async function main() {
         description:
           '泛美足球联合会举办的历史性成年国家队正式赛事，覆盖南美、北美和中美及加勒比地区，1960 年后停办。',
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 3
@@ -63,6 +65,8 @@ async function main() {
         confederationId: null,
         countryId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 3

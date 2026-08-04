@@ -7,6 +7,8 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionLevelVariant,
   getConfederationVariant,
+  getBooleanLabel,
+  getBooleanVariant,
   getLifecycleStatusLabel,
   getLifecycleStatusVariant,
   type SemanticTagVariant
@@ -85,6 +87,10 @@ function openExternalLink(row: AwardListItem) {
   }
 
   window.open(row.externalUrl, '_blank');
+}
+
+function formatDataUpdatedAt(value?: string | null) {
+  return value ? value.slice(0, 10) : '-';
 }
 </script>
 
@@ -171,6 +177,16 @@ function openExternalLink(row: AwardListItem) {
             </SemanticTag>
           </template>
         </el-table-column>
+        <el-table-column label="完整" width="82" align="center" header-align="center">
+          <template #default="{ row }">
+            <SemanticTag :variant="getBooleanVariant(row.dataComplete)">
+              {{ getBooleanLabel(row.dataComplete) }}
+            </SemanticTag>
+          </template>
+        </el-table-column>
+        <el-table-column label="数据更新" width="110" align="center" header-align="center">
+          <template #default="{ row }">{{ formatDataUpdatedAt(row.dataUpdatedAt) }}</template>
+        </el-table-column>
         <el-table-column label="年份" width="82" align="center" header-align="center">
           <template #default="{ row }">{{ row._count?.editions ?? 0 }}</template>
         </el-table-column>
@@ -192,6 +208,9 @@ function openExternalLink(row: AwardListItem) {
         <el-table-column prop="sortOrder" label="排序" width="80" align="center" />
         <el-table-column prop="description" label="描述" min-width="240" show-overflow-tooltip>
           <template #default="{ row }">{{ formatText(row.description) }}</template>
+        </el-table-column>
+        <el-table-column prop="dataRemark" label="完整性备注" min-width="240" show-overflow-tooltip>
+          <template #default="{ row }">{{ formatText(row.dataRemark) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">

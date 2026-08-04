@@ -9,6 +9,8 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionLevelVariant,
   getConfederationVariant,
+  getBooleanLabel,
+  getBooleanVariant,
   getLifecycleStatusLabel,
   getLifecycleStatusVariant,
   type SemanticTagVariant
@@ -71,6 +73,10 @@ function getScopeVariant(award: AwardDetail): SemanticTagVariant {
 
   return 'neutral';
 }
+
+function formatDataUpdatedAt(value?: string | null) {
+  return value ? value.slice(0, 10) : '-';
+}
 </script>
 
 <template>
@@ -125,6 +131,18 @@ function getScopeVariant(award: AwardDetail): SemanticTagVariant {
         <strong>{{ award.sortOrder }}</strong>
       </div>
       <div class="award-info-item">
+        <span>录入完整</span>
+        <strong>
+          <SemanticTag :variant="getBooleanVariant(award.dataComplete)">
+            {{ getBooleanLabel(award.dataComplete) }}
+          </SemanticTag>
+        </strong>
+      </div>
+      <div class="award-info-item">
+        <span>数据更新</span>
+        <strong>{{ formatDataUpdatedAt(award.dataUpdatedAt) }}</strong>
+      </div>
+      <div class="award-info-item">
         <span>奖项状态</span>
         <strong>
           <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
@@ -143,6 +161,10 @@ function getScopeVariant(award: AwardDetail): SemanticTagVariant {
       <div class="award-info-item form-wide">
         <span>描述</span>
         <strong>{{ formatText(award.description) }}</strong>
+      </div>
+      <div class="award-info-item form-wide">
+        <span>完整性备注</span>
+        <strong>{{ formatText(award.dataRemark) }}</strong>
       </div>
     </div>
   </div>

@@ -136,11 +136,30 @@ const emit = defineEmits<{
       <el-form-item label="赛事状态">
         <el-segmented v-model="form.lifecycleStatus" :options="lifecycleStatusOptions" />
       </el-form-item>
+      <el-form-item label="录入完整">
+        <el-switch v-model="form.dataComplete" active-text="是" inactive-text="否" />
+      </el-form-item>
+      <el-form-item label="数据更新">
+        <el-date-picker
+          v-model="form.dataUpdatedAt"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="选择荣誉数据更新时间"
+        />
+      </el-form-item>
       <el-form-item label="统计">
         <el-switch
           v-model="form.includeInStats"
           active-text="纳入奖牌/荣誉统计"
           inactive-text="排除统计"
+        />
+      </el-form-item>
+      <el-form-item label="完整性备注" class="form-wide">
+        <el-input
+          v-model="form.dataRemark"
+          type="textarea"
+          :rows="3"
+          placeholder="记录缺失俱乐部、非标准对象、只录当前库内球队等数据口径"
         />
       </el-form-item>
     </el-form>

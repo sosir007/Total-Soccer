@@ -42,7 +42,7 @@ async function main() {
     prisma,
     confederations: CONFEDERATION_SEEDS,
     countries: [
-      ...pickSeedCountries(['比利时', '英格兰', '意大利', '西班牙']),
+      ...pickSeedCountries(['比利时', '匈牙利', '英格兰', '意大利', '西班牙']),
       { uid: '761', name: '克罗地亚', confederationCode: 'UEFA' }
     ],
     clubs: INTER_CITIES_FAIRS_CUP_REQUIRED_CLUBS,
@@ -64,6 +64,9 @@ async function main() {
         description:
           '1955 至 1971 年举办的欧洲俱乐部杯赛，后由欧洲联盟杯取代；该赛事不并入欧足联官方欧联冠军履历。',
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
+        dataRemark: '伦敦联队为城市代表队，不作为普通俱乐部入库；其余冠亚军已按当前口径录入。',
         enabled: true,
         includeInStats: true,
         sortOrder: 32
@@ -83,6 +86,9 @@ async function main() {
           '1955 至 1971 年举办的欧洲俱乐部杯赛，后由欧洲联盟杯取代；该赛事不并入欧足联官方欧联冠军履历。',
         countryId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
+        dataRemark: '伦敦联队为城市代表队，不作为普通俱乐部入库；其余冠亚军已按当前口径录入。',
         enabled: true,
         includeInStats: true,
         sortOrder: 32
@@ -100,7 +106,7 @@ async function main() {
     buildStandings: buildInterCitiesFairsCupStandings,
     expected: {
       editions: 13,
-      standings: 20
+      standings: 25
     },
     allowPartialStandings: true,
     completedMessage: 'Inter-Cities Fairs Cup seed completed.'

@@ -38,6 +38,9 @@ export interface CreateAwardBody {
   category?: string;
   level?: string;
   description?: string;
+  dataComplete?: boolean;
+  dataUpdatedAt?: string | Date | null;
+  dataRemark?: string;
   competitionId?: string;
   confederationId?: string;
   countryId?: string;

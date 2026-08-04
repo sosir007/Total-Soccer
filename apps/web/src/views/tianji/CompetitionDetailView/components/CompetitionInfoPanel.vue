@@ -33,6 +33,10 @@ function getScopeVariant(item: CompetitionDetail): SemanticTagVariant {
 
   return 'neutral';
 }
+
+function formatDataUpdatedAt(value?: string | null) {
+  return value ? value.slice(0, 10) : '-';
+}
 </script>
 
 <template>
@@ -118,9 +122,25 @@ function getScopeVariant(item: CompetitionDetail): SemanticTagVariant {
           </SemanticTag>
         </strong>
       </div>
+      <div class="competition-info-item">
+        <span>录入完整</span>
+        <strong>
+          <SemanticTag :variant="getBooleanVariant(competition.dataComplete)">
+            {{ getBooleanLabel(competition.dataComplete) }}
+          </SemanticTag>
+        </strong>
+      </div>
+      <div class="competition-info-item">
+        <span>数据更新</span>
+        <strong>{{ formatDataUpdatedAt(competition.dataUpdatedAt) }}</strong>
+      </div>
       <div class="competition-info-item form-wide">
         <span>描述</span>
         <strong>{{ formatText(competition.description) }}</strong>
+      </div>
+      <div class="competition-info-item form-wide">
+        <span>完整性备注</span>
+        <strong>{{ formatText(competition.dataRemark) }}</strong>
       </div>
     </div>
   </div>

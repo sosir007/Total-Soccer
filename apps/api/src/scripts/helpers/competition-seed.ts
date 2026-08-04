@@ -132,6 +132,210 @@ type CompetitionPatchSeedOptions<T extends SeedCompetitionPatch> = {
   completedMessage: string;
 };
 
+type CompetitionDataCompleteness = Pick<
+  Prisma.CompetitionUncheckedCreateInput,
+  'dataComplete' | 'dataUpdatedAt' | 'dataRemark'
+>;
+
+const DATA_COMPLETENESS_VERIFIED_AT = new Date('2026-08-04T00:00:00.000Z');
+const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
+  dataComplete: true,
+  dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+  dataRemark: null
+};
+const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCompleteness>([
+  [
+    'LATIN_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark: '缺 1 个届次的完整名次：1955 年缺第四名。'
+    }
+  ],
+  [
+    'NORTH_AMERICAN_SOCCER_LEAGUE_1968_1984',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 8 个届次的完整名次，主要为 1972、1975、1976、1977、1978 等年份缺冠亚季。'
+    }
+  ],
+  ['SPAIN_LA_LIGA', COMPLETE_COMPETITION_DATA],
+  [
+    'SPAIN_SEGUNDA_DIVISION',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 37 个赛季的完整名次，主要为 1929 至 1930 年代早期赛季缺季军。'
+    }
+  ],
+  [
+    'SPAIN_COPA_DEL_REY',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark:
+        '缺 13 个届次的完整名次，主要为 1904、1907、1908、1909、1910 FECF 等早期年份缺亚军。'
+    }
+  ],
+  [
+    'SPAIN_SUPER_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark: '缺 2 个届次的完整名次：1984、1989 年缺亚军。'
+    }
+  ],
+  ['SPAIN_LEAGUE_CUP', COMPLETE_COMPETITION_DATA],
+  [
+    'ARGENTINE_PRIMERA_DIVISION',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark:
+        '缺 60 个届次的完整名次，主要为 1936 Copa de Honor、1936 Copa de Oro、1939、1942、1949 等年份缺亚军或季军。'
+    }
+  ],
+  [
+    'ARGENTINE_PRIMERA_NACIONAL',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark:
+        '缺 14 个赛季的完整名次，主要为 1988-89、1989-90、1991-92、1994-95、1995-96 等赛季缺冠亚季。'
+    }
+  ],
+  [
+    'ARGENTINE_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark:
+        '缺 8 个届次的完整名次，主要为 1969、2013-14、2016-17、2017-18、2018-19 等届次缺冠亚军。'
+    }
+  ],
+  [
+    'ARGENTINE_PROFESSIONAL_LEAGUE_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 4 个届次的完整名次，主要为 2020、2021、2022、2023 年缺冠亚军。'
+    }
+  ],
+  [
+    'ARGENTINE_PROFESSIONAL_LEAGUE_CHAMPIONS_TROPHY',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark: '缺 2 个届次的完整名次：2021、2025 年缺亚军。'
+    }
+  ],
+  [
+    'ARGENTINE_SUPER_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark: '缺 3 个届次的完整名次：2014 年缺冠军，2022、2024 年缺亚军。'
+    }
+  ],
+  ['ARGENTINE_INTERNATIONAL_SUPER_CUP', COMPLETE_COMPETITION_DATA],
+  [
+    'BRAZIL_SERIE_A',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 27 个届次的完整名次，主要为 1937、1959、1960、1961 等年份缺冠亚季。'
+    }
+  ],
+  [
+    'BRAZIL_SERIE_B',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 23 个届次的完整名次，主要为 1981、1990、1991、1995、1997 等年份缺冠亚季。'
+    }
+  ],
+  [
+    'BRAZIL_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 13 个届次的完整名次，主要为 1989、1990、1991、1994、1999 等年份缺冠亚军。'
+    }
+  ],
+  ['BRAZIL_SUPER_CUP', COMPLETE_COMPETITION_DATA],
+  [
+    'CAMPEONATO_PAULISTA',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 61 个届次的完整名次，主要为 1914、1916、1917、1918、1919 等早期年份缺冠亚季。'
+    }
+  ],
+  [
+    'TORNEIO_RIO_SAO_PAULO',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 4 个届次的完整名次，主要为 1940、1963、1964、1966 年缺冠亚军。'
+    }
+  ],
+  ['FIFA_CLUB_WORLD_CUP', COMPLETE_COMPETITION_DATA],
+  ['FIFA_WORLD_CUP', COMPLETE_COMPETITION_DATA],
+  ['FIFA_CONFEDERATIONS_CUP', COMPLETE_COMPETITION_DATA],
+  ['FIFA_INTERCONTINENTAL_CUP', COMPLETE_COMPETITION_DATA],
+  ['EUROPEAN_SOUTH_AMERICAN_CUP', COMPLETE_COMPETITION_DATA],
+  ['OLYMPIC_MENS_FOOTBALL', COMPLETE_COMPETITION_DATA],
+  ['INTERCONTINENTAL_CHAMPIONS_SUPERCUP', COMPLETE_COMPETITION_DATA],
+  ['PANAMERICAN_CHAMPIONSHIP', COMPLETE_COMPETITION_DATA],
+  [
+    'COPA_INTERAMERICANA',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 10 个届次的完整名次，主要为 1969、1973、1974、1976、1979 等年份缺亚军。'
+    }
+  ],
+  ['AFRICA_CUP', COMPLETE_COMPETITION_DATA],
+  ['AFC_ASIAN_CUP', COMPLETE_COMPETITION_DATA],
+  ['UEFA_CHAMPIONS_LEAGUE', COMPLETE_COMPETITION_DATA],
+  ['UEFA_EURO', COMPLETE_COMPETITION_DATA],
+  ['UEFA_EUROPA_LEAGUE', COMPLETE_COMPETITION_DATA],
+  [
+    'INTER_CITIES_FAIRS_CUP',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark: '伦敦联队为城市代表队，不作为普通俱乐部入库；其余冠亚军已按当前口径录入。'
+    }
+  ],
+  ['UEFA_SUPER_CUP', COMPLETE_COMPETITION_DATA],
+  ['CONCACAF_GOLD_CUP', COMPLETE_COMPETITION_DATA],
+  ['OFC_NATIONS_CUP', COMPLETE_COMPETITION_DATA],
+  ['CONMEBOL_LIBERTADORES', COMPLETE_COMPETITION_DATA],
+  ['COPA_AMERICA', COMPLETE_COMPETITION_DATA],
+  ['COPA_CONMEBOL', COMPLETE_COMPETITION_DATA],
+  ['SUPERCOPA_LIBERTADORES', COMPLETE_COMPETITION_DATA],
+  [
+    'COPA_SUDAMERICANA',
+    {
+      dataComplete: false,
+      dataUpdatedAt: null,
+      dataRemark: '缺 10 个届次的完整名次，主要为 2004、2005、2010、2012、2013 等年份缺亚军。'
+    }
+  ],
+  [
+    'RECOPA_SUDAMERICANA',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataRemark: '缺 1 个届次的完整名次：1991 年缺亚军。'
+    }
+  ],
+  ['COPA_DE_ORO', COMPLETE_COMPETITION_DATA],
+  ['COPA_MASTER_DE_SUPERCOPA', COMPLETE_COMPETITION_DATA]
+]);
+
 export async function runCompetitionSeed<T extends SeedEdition>({
   prisma,
   competition,
@@ -235,6 +439,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     where: { code: competition.code },
     create: {
       ...competition.create,
+      ...resolveCompetitionDataCompleteness(competition.code, competition.create),
       ...primaryCompetitionRelations
     },
     update: buildCompetitionUpdateData(
@@ -901,14 +1106,29 @@ function buildCompetitionUpdateData<T extends SeedEdition>(
       : (update.shortName as string | null | undefined);
   }
   if ('lifecycleStatus' in update) structuralUpdate.lifecycleStatus = update.lifecycleStatus;
+  if ('dataComplete' in update) structuralUpdate.dataComplete = update.dataComplete;
+  if ('dataUpdatedAt' in update) structuralUpdate.dataUpdatedAt = update.dataUpdatedAt;
+  if ('dataRemark' in update) structuralUpdate.dataRemark = update.dataRemark;
   if ('sortOrder' in update) structuralUpdate.sortOrder = update.sortOrder;
   if ('confederationId' in update) structuralUpdate.confederationId = update.confederationId;
   if ('countryId' in update) structuralUpdate.countryId = update.countryId;
 
   return {
     ...structuralUpdate,
+    ...resolveCompetitionDataCompleteness(competition.code, update),
     ...primaryCompetitionRelations
   };
+}
+
+function resolveCompetitionDataCompleteness(
+  code: string,
+  data: Prisma.CompetitionUncheckedCreateInput | Prisma.CompetitionUncheckedUpdateInput
+): CompetitionDataCompleteness | Record<string, never> {
+  if ('dataComplete' in data) {
+    return {};
+  }
+
+  return COMPETITION_DATA_COMPLETENESS_BY_CODE.get(code) ?? {};
 }
 
 function hasText(value?: string | null) {

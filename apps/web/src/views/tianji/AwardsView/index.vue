@@ -565,6 +565,9 @@ function populateAwardForm(
   form.level = award.level ?? '';
   form.ruleCategoryKey = award.category ? awardRuleKey(award.scopeType, award.category) : '';
   form.description = award.description ?? '';
+  form.dataComplete = award.dataComplete;
+  form.dataUpdatedAt = award.dataUpdatedAt?.slice(0, 10) ?? '';
+  form.dataRemark = award.dataRemark ?? '';
   form.competitionId = award.competitionId ?? '';
   form.confederationId = award.confederationId ?? '';
   form.countryId = award.countryId ?? '';
@@ -609,6 +612,9 @@ function buildAwardPayload(form: ReturnType<typeof createEmptyAwardForm>) {
     category: form.category.trim() || undefined,
     level: form.level.trim() || undefined,
     description: form.description.trim() || undefined,
+    dataComplete: form.dataComplete,
+    dataUpdatedAt: form.dataUpdatedAt || null,
+    dataRemark: form.dataRemark.trim() || undefined,
     competitionId: form.competitionId || undefined,
     confederationId: form.scopeType === 'CONFEDERATION' ? form.confederationId : undefined,
     countryId: form.scopeType === 'COUNTRY' ? form.countryId : undefined,
@@ -631,6 +637,9 @@ function createEmptyAwardForm() {
     level: '',
     ruleCategoryKey: '',
     description: '',
+    dataComplete: false,
+    dataUpdatedAt: '',
+    dataRemark: '',
     competitionId: '',
     confederationId: '',
     countryId: '',

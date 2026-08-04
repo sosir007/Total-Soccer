@@ -40,6 +40,8 @@ async function main() {
         level: '一级',
         format: '杯赛',
         description: '亚足联国家队最高级别洲际杯赛。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 20
@@ -53,6 +55,8 @@ async function main() {
         category: '洲际',
         level: '一级',
         format: '杯赛',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-04T00:00:00.000Z'),
         enabled: true,
         includeInStats: true,
         sortOrder: 20
