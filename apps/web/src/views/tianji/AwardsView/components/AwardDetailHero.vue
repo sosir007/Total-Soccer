@@ -39,7 +39,7 @@ function getTargetTypeVariant(targetType: AwardTargetType): SemanticTagVariant {
         <h2>{{ formatEntityName(award) }}</h2>
       </a>
       <p v-if="award.englishName" class="detail-subtitle">{{ award.englishName }}</p>
-      <p>{{ award.code }} · {{ formatScope(award) }}</p>
+      <p>{{ formatScope(award) }}</p>
       <div class="detail-tags">
         <span class="award-category-text">{{ award.category || '未分类' }}</span>
         <SemanticTag :variant="getCompetitionLevelVariant(award.level)">

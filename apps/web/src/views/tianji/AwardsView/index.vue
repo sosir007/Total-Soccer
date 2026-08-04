@@ -108,7 +108,7 @@ const total = ref(0);
 
 const filters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   scopeType: '' as '' | AwardScopeType,
   targetType: 'PLAYER' as AwardTargetType,

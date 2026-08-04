@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type {
   AwardDetail,
   AwardListItem,
@@ -9,12 +10,19 @@ import SemanticTag from '@/components/SemanticTag.vue';
 import {
   getCompetitionLevelVariant,
   getConfederationVariant,
-  getBooleanLabel,
   getBooleanVariant,
   getLifecycleStatusLabel,
   getLifecycleStatusVariant,
   type SemanticTagVariant
 } from '@/utils/tag-theme';
+
+type InfoField = {
+  label: string;
+  value: string | number | boolean;
+  kind?: 'text' | 'tag';
+  variant?: SemanticTagVariant;
+  spanFull?: boolean;
+};
 
 const props = defineProps<{
   award: AwardDetail;
@@ -77,6 +85,53 @@ function getScopeVariant(award: AwardDetail): SemanticTagVariant {
 function formatDataUpdatedAt(value?: string | null) {
   return value ? value.slice(0, 10) : '-';
 }
+
+const infoFields = computed<InfoField[]>(() => [
+  { label: '奖项编码', value: props.award.code },
+  { label: '英文名', value: props.formatText(props.award.englishName) },
+  { label: '简称', value: props.formatText(props.award.shortName) },
+  {
+    label: '获奖对象',
+    value: props.targetTypeLabels[props.award.targetType],
+    kind: 'tag',
+    variant: getTargetTypeVariant(props.award.targetType)
+  },
+  { label: '评分规则', value: formatAwardRuleName(props.award) },
+  {
+    label: '范围',
+    value: props.formatScope(props.award),
+    kind: 'tag',
+    variant: getScopeVariant(props.award)
+  },
+  {
+    label: '奖项类型',
+    value: props.formatText(props.award.level),
+    kind: 'tag',
+    variant: getCompetitionLevelVariant(props.award.level)
+  },
+  { label: '排序', value: props.award.sortOrder },
+  {
+    label: '录入完整',
+    value: props.award.dataComplete ? '是' : '否',
+    kind: 'tag',
+    variant: getBooleanVariant(props.award.dataComplete)
+  },
+  { label: '数据更新', value: formatDataUpdatedAt(props.award.dataUpdatedAt) },
+  {
+    label: '奖项状态',
+    value: getLifecycleStatusLabel(props.award.lifecycleStatus),
+    kind: 'tag',
+    variant: getLifecycleStatusVariant(props.award.lifecycleStatus)
+  },
+  {
+    label: '启用状态',
+    value: props.award.enabled ? '启用' : '停用',
+    kind: 'tag',
+    variant: props.award.enabled ? 'status-enabled' : 'status-disabled'
+  },
+  { label: '描述', value: props.formatText(props.award.description), spanFull: true },
+  { label: '完整性备注', value: props.formatText(props.award.dataRemark), spanFull: true }
+]);
 </script>
 
 <template>
@@ -85,124 +140,35 @@ function formatDataUpdatedAt(value?: string | null) {
       <h3>奖项资料</h3>
     </div>
 
-    <div class="award-info-grid">
-      <div class="award-info-item">
-        <span>奖项编码</span>
-        <strong>{{ award.code }}</strong>
-      </div>
-      <div class="award-info-item">
-        <span>英文名</span>
-        <strong>{{ formatText(award.englishName) }}</strong>
-      </div>
-      <div class="award-info-item">
-        <span>简称</span>
-        <strong>{{ formatText(award.shortName) }}</strong>
-      </div>
-      <div class="award-info-item">
-        <span>获奖对象</span>
-        <strong>
-          <SemanticTag :variant="getTargetTypeVariant(award.targetType)">
-            {{ targetTypeLabels[award.targetType] }}
+    <dl class="detail-list award-detail-list">
+      <div v-for="field in infoFields" :key="field.label" :class="{ 'form-wide': field.spanFull }">
+        <dt>{{ field.label }}</dt>
+        <dd>
+          <SemanticTag v-if="field.kind === 'tag'" :variant="field.variant ?? 'neutral'">
+            {{ field.value }}
           </SemanticTag>
-        </strong>
+          <template v-else>
+            {{ field.value }}
+          </template>
+        </dd>
       </div>
-      <div class="award-info-item">
-        <span>评分规则</span>
-        <strong>{{ formatAwardRuleName(award) }}</strong>
-      </div>
-      <div class="award-info-item">
-        <span>范围</span>
-        <strong>
-          <SemanticTag :variant="getScopeVariant(award)">
-            {{ formatScope(award) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="award-info-item">
-        <span>奖项类型</span>
-        <strong>
-          <SemanticTag :variant="getCompetitionLevelVariant(award.level)">
-            {{ formatText(award.level) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="award-info-item">
-        <span>排序</span>
-        <strong>{{ award.sortOrder }}</strong>
-      </div>
-      <div class="award-info-item">
-        <span>录入完整</span>
-        <strong>
-          <SemanticTag :variant="getBooleanVariant(award.dataComplete)">
-            {{ getBooleanLabel(award.dataComplete) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="award-info-item">
-        <span>数据更新</span>
-        <strong>{{ formatDataUpdatedAt(award.dataUpdatedAt) }}</strong>
-      </div>
-      <div class="award-info-item">
-        <span>奖项状态</span>
-        <strong>
-          <SemanticTag :variant="getLifecycleStatusVariant(award.lifecycleStatus)">
-            {{ getLifecycleStatusLabel(award.lifecycleStatus) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="award-info-item">
-        <span>启用状态</span>
-        <strong>
-          <SemanticTag :variant="award.enabled ? 'status-enabled' : 'status-disabled'">
-            {{ award.enabled ? '启用' : '停用' }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="award-info-item form-wide">
-        <span>描述</span>
-        <strong>{{ formatText(award.description) }}</strong>
-      </div>
-      <div class="award-info-item form-wide">
-        <span>完整性备注</span>
-        <strong>{{ formatText(award.dataRemark) }}</strong>
-      </div>
-    </div>
+    </dl>
   </div>
 </template>
 
 <style scoped lang="scss">
-.award-info-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+.award-detail-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
 }
 
-.award-info-item {
-  display: grid;
-  gap: 8px;
-  min-height: 78px;
-  padding: 14px;
-  border: 1px solid var(--color-border-brand-subtle);
-  border-radius: 8px;
-  background: var(--color-surface-muted);
-
-  span {
-    color: var(--text-color-secondary);
-    font-size: 13px;
-    font-weight: 750;
-  }
-
-  strong {
-    color: var(--text-color-primary);
-    font-size: 16px;
-    line-height: 1.45;
-    word-break: break-word;
-  }
+.award-detail-list .form-wide {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 1100px) {
-  .award-info-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .award-detail-list {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -18,7 +18,7 @@ const remarks = ref<RemarkItem[]>([]);
 const total = ref(0);
 const filters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   objectType: '' as '' | RemarkObjectType,
   hasRemark: 'true' as 'true' | 'false' | 'all'

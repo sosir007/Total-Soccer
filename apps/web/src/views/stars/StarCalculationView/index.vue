@@ -94,7 +94,7 @@ const editingRow = ref<PlayerPaEvaluationRow | null>(null);
 const batchDialogVisible = ref(false);
 const filters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   confederationId: '',
   countryId: '',

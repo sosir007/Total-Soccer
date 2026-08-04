@@ -23,7 +23,7 @@ const countryDialogVisible = ref(false);
 const editingCountry = ref<CountryDetail | null>(null);
 const filters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   confederationId: '',
   sortBy: 'totalPa',

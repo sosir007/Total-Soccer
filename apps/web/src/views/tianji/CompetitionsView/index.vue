@@ -90,7 +90,7 @@ const hasLoaded = ref(false);
 
 const filters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   honorRuleId: '',
   targetType: 'COUNTRY' as CompetitionTargetType,

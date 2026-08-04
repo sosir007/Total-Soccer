@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { CompetitionDetail, CompetitionTargetType } from '@/services/types/competitions';
 import SemanticTag from '@/components/SemanticTag.vue';
 import {
@@ -11,6 +12,14 @@ import {
   getBooleanVariant,
   type SemanticTagVariant
 } from '@/utils/tag-theme';
+
+type InfoField = {
+  label: string;
+  value: string | number | boolean;
+  kind?: 'text' | 'tag';
+  variant?: SemanticTagVariant;
+  spanFull?: boolean;
+};
 
 const props = defineProps<{
   competition: CompetitionDetail;
@@ -37,6 +46,65 @@ function getScopeVariant(item: CompetitionDetail): SemanticTagVariant {
 function formatDataUpdatedAt(value?: string | null) {
   return value ? value.slice(0, 10) : '-';
 }
+
+const infoFields = computed<InfoField[]>(() => [
+  { label: '赛事编码', value: props.competition.code },
+  { label: '英文名', value: props.formatText(props.competition.englishName) },
+  { label: '简称', value: props.formatText(props.competition.shortName) },
+  { label: '别名', value: props.formatText(props.competition.alias) },
+  {
+    label: '对象',
+    value: props.targetTypeLabels[props.competition.targetType],
+    kind: 'tag',
+    variant: getTargetTypeVariant(props.competition.targetType)
+  },
+  {
+    label: '适用范围',
+    value: props.formatScope(props.competition),
+    kind: 'tag',
+    variant: getScopeVariant(props.competition)
+  },
+  {
+    label: '分类',
+    value: props.formatText(props.competition.category),
+    kind: 'tag',
+    variant: getCompetitionCategoryVariant(props.competition.category)
+  },
+  {
+    label: '级别',
+    value: props.formatText(props.competition.level),
+    kind: 'tag',
+    variant: getCompetitionLevelVariant(props.competition.level)
+  },
+  { label: '赛制', value: props.formatCompetitionFormat(props.competition) },
+  {
+    label: '赛事状态',
+    value: getLifecycleStatusLabel(props.competition.lifecycleStatus),
+    kind: 'tag',
+    variant: getLifecycleStatusVariant(props.competition.lifecycleStatus)
+  },
+  {
+    label: '启用状态',
+    value: props.competition.enabled ? '启用' : '停用',
+    kind: 'tag',
+    variant: props.competition.enabled ? 'status-enabled' : 'status-disabled'
+  },
+  {
+    label: '统计',
+    value: getBooleanLabel(props.competition.includeInStats),
+    kind: 'tag',
+    variant: getBooleanVariant(props.competition.includeInStats)
+  },
+  {
+    label: '录入完整',
+    value: getBooleanLabel(props.competition.dataComplete),
+    kind: 'tag',
+    variant: getBooleanVariant(props.competition.dataComplete)
+  },
+  { label: '数据更新', value: formatDataUpdatedAt(props.competition.dataUpdatedAt) },
+  { label: '描述', value: props.formatText(props.competition.description), spanFull: true },
+  { label: '完整性备注', value: props.formatText(props.competition.dataRemark), spanFull: true }
+]);
 </script>
 
 <template>
@@ -45,142 +113,35 @@ function formatDataUpdatedAt(value?: string | null) {
       <h3>赛事资料</h3>
     </div>
 
-    <div class="competition-info-grid">
-      <div class="competition-info-item">
-        <span>赛事编码</span>
-        <strong>{{ competition.code }}</strong>
-      </div>
-      <div class="competition-info-item">
-        <span>英文名</span>
-        <strong>{{ formatText(competition.englishName) }}</strong>
-      </div>
-      <div class="competition-info-item">
-        <span>简称</span>
-        <strong>{{ formatText(competition.shortName) }}</strong>
-      </div>
-      <div class="competition-info-item">
-        <span>别名</span>
-        <strong>{{ formatText(competition.alias) }}</strong>
-      </div>
-      <div class="competition-info-item">
-        <span>对象</span>
-        <strong>
-          <SemanticTag :variant="getTargetTypeVariant(competition.targetType)">
-            {{ targetTypeLabels[competition.targetType] }}
+    <dl class="detail-list competition-detail-list">
+      <div v-for="field in infoFields" :key="field.label" :class="{ 'form-wide': field.spanFull }">
+        <dt>{{ field.label }}</dt>
+        <dd>
+          <SemanticTag v-if="field.kind === 'tag'" :variant="field.variant ?? 'neutral'">
+            {{ field.value }}
           </SemanticTag>
-        </strong>
+          <template v-else>
+            {{ field.value }}
+          </template>
+        </dd>
       </div>
-      <div class="competition-info-item">
-        <span>适用范围</span>
-        <strong>
-          <SemanticTag :variant="getScopeVariant(competition)">
-            {{ formatScope(competition) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>分类</span>
-        <strong>
-          <SemanticTag :variant="getCompetitionCategoryVariant(competition.category)">
-            {{ formatText(competition.category) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>级别</span>
-        <strong>
-          <SemanticTag :variant="getCompetitionLevelVariant(competition.level)">
-            {{ formatText(competition.level) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>赛制</span>
-        <strong>{{ formatCompetitionFormat(competition) }}</strong>
-      </div>
-      <div class="competition-info-item">
-        <span>赛事状态</span>
-        <strong>
-          <SemanticTag :variant="getLifecycleStatusVariant(competition.lifecycleStatus)">
-            {{ getLifecycleStatusLabel(competition.lifecycleStatus) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>启用状态</span>
-        <strong>
-          <SemanticTag :variant="competition.enabled ? 'status-enabled' : 'status-disabled'">
-            {{ competition.enabled ? '启用' : '停用' }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>统计</span>
-        <strong>
-          <SemanticTag :variant="getBooleanVariant(competition.includeInStats)">
-            {{ getBooleanLabel(competition.includeInStats) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>录入完整</span>
-        <strong>
-          <SemanticTag :variant="getBooleanVariant(competition.dataComplete)">
-            {{ getBooleanLabel(competition.dataComplete) }}
-          </SemanticTag>
-        </strong>
-      </div>
-      <div class="competition-info-item">
-        <span>数据更新</span>
-        <strong>{{ formatDataUpdatedAt(competition.dataUpdatedAt) }}</strong>
-      </div>
-      <div class="competition-info-item form-wide">
-        <span>描述</span>
-        <strong>{{ formatText(competition.description) }}</strong>
-      </div>
-      <div class="competition-info-item form-wide">
-        <span>完整性备注</span>
-        <strong>{{ formatText(competition.dataRemark) }}</strong>
-      </div>
-    </div>
+    </dl>
   </div>
 </template>
 
 <style scoped lang="scss">
-.competition-info-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+.competition-detail-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
 }
 
-.competition-info-item {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  min-height: 78px;
-  padding: 14px;
-  border: 1px solid var(--color-border-brand-subtle);
-  border-radius: 8px;
-  background: var(--color-surface-muted);
-
-  span {
-    color: var(--text-color-secondary);
-    font-size: 13px;
-    font-weight: 750;
-  }
-
-  strong {
-    min-width: 0;
-    overflow-wrap: anywhere;
-    color: var(--text-color-primary);
-    font-size: 16px;
-    line-height: 1.45;
-  }
+.competition-detail-list .form-wide {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 1100px) {
-  .competition-info-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .competition-detail-list {
+    grid-template-columns: 1fr;
   }
 }
 </style>

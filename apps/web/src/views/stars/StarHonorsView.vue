@@ -40,7 +40,7 @@ const sortState = reactive({
 });
 const filters = reactive({
   page: 1,
-  pageSize: 20,
+  pageSize: 100,
   keyword: '',
   confederationId: '',
   position: '',

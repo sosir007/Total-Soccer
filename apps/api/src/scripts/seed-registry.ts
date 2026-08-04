@@ -153,6 +153,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'uefa-conmebol-club-challenge',
+    label: '欧足联-南美足联俱乐部挑战赛',
+    file: 'src/scripts/seeds/competitions/club/global/seed-uefa-conmebol-club-challenge.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/global/uefa-conmebol-club-challenge.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'global'
+  },
+  {
     key: 'uefa-champions-league',
     label: '欧洲冠军联赛',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-champions-league.ts',
@@ -166,6 +175,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     label: '欧足联欧洲联赛',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-europa-league.ts',
     dataFiles: ['src/scripts/data/competition-results/club/confederation/uefa-europa-league.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
+    key: 'uefa-cup-winners-cup',
+    label: '欧洲优胜者杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-cup-winners-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/uefa-cup-winners-cup.ts'],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'confederation'

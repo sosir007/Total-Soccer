@@ -12,7 +12,7 @@ export interface PaginatedResult<T> {
 
 export function resolvePagination(query: PaginationQuery) {
   const page = clamp(toInteger(query.page, 1), 1, 9999);
-  const pageSize = clamp(toInteger(query.pageSize, 20), 1, 100);
+  const pageSize = clamp(toInteger(query.pageSize, 100), 1, 100);
 
   return {
     page,

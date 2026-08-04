@@ -37,7 +37,6 @@ const emit = defineEmits<{
     :external-url="competition.externalUrl ?? undefined"
   >
     <template #tags>
-      <p>{{ competition.code }} · {{ formatScope(competition) }}</p>
       <div class="detail-tags">
         <SemanticTag :variant="getCompetitionCategoryVariant(competition.category)">
           {{ competition.category || '未分类' }}

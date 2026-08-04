@@ -69,7 +69,7 @@ async function main() {
         dataRemark: '伦敦联队为城市代表队，不作为普通俱乐部入库；其余冠亚军已按当前口径录入。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 32
+        sortOrder: 33
       },
       update: {
         name: '国际城市博览会杯',
@@ -91,7 +91,7 @@ async function main() {
         dataRemark: '伦敦联队为城市代表队，不作为普通俱乐部入库；其余冠亚军已按当前口径录入。',
         enabled: true,
         includeInStats: true,
-        sortOrder: 32
+        sortOrder: 33
       }
     },
     scope: {

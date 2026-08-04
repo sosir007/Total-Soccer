@@ -34,7 +34,7 @@ const filters = reactive({
   maxPa: 200,
   group: '前锋' as SummitGroup,
   page: 1,
-  pageSize: 10
+  pageSize: 100
 });
 
 const hasStarters = computed(() =>
@@ -365,7 +365,7 @@ onMounted(() => {
                 <el-pagination
                   v-model:current-page="filters.page"
                   v-model:page-size="filters.pageSize"
-                  :page-sizes="[10, 20, 50]"
+                  :page-sizes="[10, 20, 50, 100]"
                   layout="total, sizes, prev, pager, next"
                   :total="candidateTotal"
                 />
