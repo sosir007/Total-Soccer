@@ -201,7 +201,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '2194',
     name: '巴勒莫',
     englishName: 'Palermo',
     countryName: '意大利',
@@ -209,7 +209,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1104',
     name: '安科纳',
     englishName: 'Ancona',
     countryName: '意大利',
@@ -217,7 +217,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1119',
     name: '卡坦扎罗',
     englishName: 'Catanzaro',
     countryName: '意大利',
@@ -225,7 +225,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1153',
     name: '诺瓦拉',
     englishName: 'Novara',
     countryName: '意大利',
@@ -233,7 +233,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '2220',
     name: '斯帕尔',
     englishName: 'SPAL',
     countryName: '意大利',
@@ -241,7 +241,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '101345',
     name: '瓦多',
     englishName: 'Vado',
     countryName: '意大利',
@@ -249,7 +249,7 @@ export const ITALY_COPPA_ITALIA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '700173',
     name: '瓦雷泽',
     englishName: 'Varese',
     countryName: '意大利',

@@ -31,7 +31,7 @@ export const LATIN_CUP_METADATA: CompetitionDataMetadata = {
   notes: [
     '本文件录入 1949 至 1957 年拉丁杯四强结果，1954 年未举办。',
     '赛事由法国、意大利、西班牙、葡萄牙四国联赛冠军参加；按俱乐部其他一级杯赛处理，不按洲际杯赛计分。',
-    '只录当前数据库已有俱乐部的荣誉；Belenenses 未入库，1955 年第四名不创建俱乐部和荣誉。'
+    '1955 年第四名贝伦人已入库，当前按完整四强口径录入。'
   ]
 };
 
@@ -103,10 +103,14 @@ export const LATIN_CUP_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
+    uid: '862',
     name: '尼斯',
     englishName: 'OGC Nice',
+    alias: 'OGC尼斯',
     countryName: '法国',
     confederationCode: 'UEFA',
+    forceName: true,
+    forceProfileFields: true,
     visibleInCatalog: false
   },
   {
@@ -140,6 +144,14 @@ export const LATIN_CUP_REQUIRED_CLUBS: SeedClub[] = [
   {
     uid: '1487',
     name: '本菲卡',
+    countryName: '葡萄牙',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1474',
+    name: '贝伦人',
+    englishName: 'Belenenses',
     countryName: '葡萄牙',
     confederationCode: 'UEFA',
     visibleInCatalog: false
@@ -228,13 +240,13 @@ const RAW_LATIN_CUP_RESULTS: LatinCupResult[] = [
     champion: '皇家马德里',
     runnerUp: '兰斯',
     thirdPlace: 'AC米兰',
-    fourthPlace: 'Belenenses',
+    fourthPlace: '贝伦人',
     host: '巴黎',
     quantity: 4,
     mode: CompetitionEditionStandingMode.THIRD_PLACE_MATCH,
     score: '2-0',
     thirdPlaceScore: '3-1',
-    remark: '决赛皇家马德里 2-0 兰斯，三四名赛AC米兰 3-1 Belenenses。'
+    remark: '决赛皇家马德里 2-0 兰斯，三四名赛AC米兰 3-1 贝伦人。'
   },
   {
     year: 1956,

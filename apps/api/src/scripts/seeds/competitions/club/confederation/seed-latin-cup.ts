@@ -85,7 +85,7 @@ async function main() {
     buildStandings: buildLatinCupStandings,
     expected: {
       editions: 8,
-      standings: 31
+      standings: 32
     },
     allowPartialStandings: true,
     completedMessage: 'Latin Cup seed completed.'

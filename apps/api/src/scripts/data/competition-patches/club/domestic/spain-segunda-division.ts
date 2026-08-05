@@ -32,7 +32,7 @@ export const SPAIN_SEGUNDA_DIVISION_PATCH_METADATA: CompetitionDataMetadata = {
   notes: [
     '1929-2019 以维基赛季表为主；1949-50 至 1967-68 为南北组赛制，按双冠军录入并分摊冠军分。',
     '2019-20 以后按单季最终积分榜前三录入；缺失季军的赛季先保留冠亚军。',
-    '本补录只写入当前数据库里能映射到现有俱乐部或本文件补齐的西班牙俱乐部 standings。'
+    '本补录只写入当前数据库里已存在的西班牙俱乐部 standings，缺失俱乐部对应名次先留空。'
   ]
 };
 
@@ -81,7 +81,7 @@ const CLUB_NAME_MAP: Record<string, string> = {
   'Levante UD (Valencia)': '莱万特',
   Lleida: '莱里达',
   Logroñés: '洛格罗尼奥',
-  Mallorca: '马略卡',
+  Mallorca: '皇家马略卡',
   Murcia: '穆尔西亚',
   Málaga: '马拉加',
   Mérida: '梅里达',
@@ -90,7 +90,7 @@ const CLUB_NAME_MAP: Record<string, string> = {
   Oviedo: '皇家奥维耶多',
   Pontevedra: '蓬特韦德拉',
   'RCD Espanyol (Barcelona)': '西班牙人',
-  'RCD Mallorca (Palma de M.)': '马略卡',
+  'RCD Mallorca (Palma de M.)': '皇家马略卡',
   'Racing Santander': '桑坦德竞技',
   'Racing de Santander': '桑坦德竞技',
   'Rayo Vallecano': '巴列卡诺',
@@ -114,6 +114,33 @@ const CLUB_NAME_MAP: Record<string, string> = {
   Xerez: '赫雷斯',
   Zaragoza: '萨拉戈萨'
 };
+
+const INCLUDED_SEGUNDA_CLUB_NAMES = new Set([
+  '阿拉维斯',
+  '马德里竞技',
+  '巴列卡诺',
+  '卡斯特利翁',
+  '维戈塞尔塔',
+  '埃尔切',
+  '西班牙人',
+  '赫塔费',
+  '格拉纳达',
+  '赫罗纳',
+  '拉斯帕尔马斯',
+  '皇家马略卡',
+  '奥萨苏纳',
+  '皇家奥维耶多',
+  '皇家社会',
+  '皇家贝蒂斯',
+  '拉科鲁尼亚',
+  '巴拉多利德',
+  '塞维利亚',
+  '希洪竞技',
+  '特内里费',
+  '瓦伦西亚',
+  '比利亚雷亚尔',
+  '萨拉戈萨'
+]);
 
 const RAW_SEGUNDA_DIVISION_ROWS: RawStandingRow[] = [
   {
@@ -668,52 +695,37 @@ function normalizeClubName(name: string) {
   return CLUB_NAME_MAP[name] ?? name;
 }
 
-function toSeedClub(name: string): SeedClub {
+function buildStanding(
+  placement: CompetitionStandingPlacement,
+  standingOrder: number,
+  rawClubName: string | null | undefined
+): SeedCompetitionPatch['standings'][number] | null {
+  if (!rawClubName) return null;
+
+  const clubName = normalizeClubName(rawClubName);
+  if (!INCLUDED_SEGUNDA_CLUB_NAMES.has(clubName)) return null;
+
   return {
-    uid: '-',
-    name: normalizeClubName(name),
-    englishName: name,
-    countryName: '西班牙',
-    confederationCode: 'UEFA',
-    visibleInCatalog: false
+    placement,
+    standingOrder,
+    clubName
   };
 }
 
-const RAW_CLUB_NAMES = RAW_SEGUNDA_DIVISION_ROWS.flatMap((row) =>
-  [...row.champions, row.runnerUp ?? null, row.thirdPlace ?? null].filter(
-    (value): value is string => Boolean(value)
-  )
-);
-
-export const SPAIN_SEGUNDA_DIVISION_REQUIRED_CLUBS: SeedClub[] = [
-  ...new Map(RAW_CLUB_NAMES.map((name) => [normalizeClubName(name), toSeedClub(name)])).values()
-];
+export const SPAIN_SEGUNDA_DIVISION_REQUIRED_CLUBS: SeedClub[] = [];
 
 export const SPAIN_SEGUNDA_DIVISION_PATCHES: SeedCompetitionPatch[] = RAW_SEGUNDA_DIVISION_ROWS.map(
   (row) => {
     const season = normalizeSeasonLabel(row.season);
-    const champions = row.champions.map(normalizeClubName);
-    const standings: SeedCompetitionPatch['standings'] = champions.map((clubName, index) => ({
-      placement: CompetitionStandingPlacement.CHAMPION,
-      standingOrder: index + 1,
-      clubName
-    }));
-
-    if (row.runnerUp) {
-      standings.push({
-        placement: CompetitionStandingPlacement.RUNNER_UP,
-        standingOrder: 1,
-        clubName: normalizeClubName(row.runnerUp)
-      });
-    }
-
-    if (row.thirdPlace) {
-      standings.push({
-        placement: CompetitionStandingPlacement.THIRD_PLACE,
-        standingOrder: 1,
-        clubName: normalizeClubName(row.thirdPlace)
-      });
-    }
+    const standings: SeedCompetitionPatch['standings'] = [
+      ...row.champions.map((clubName, index) =>
+        buildStanding(CompetitionStandingPlacement.CHAMPION, index + 1, clubName)
+      ),
+      buildStanding(CompetitionStandingPlacement.RUNNER_UP, 1, row.runnerUp),
+      buildStanding(CompetitionStandingPlacement.THIRD_PLACE, 1, row.thirdPlace)
+    ].filter((standing): standing is SeedCompetitionPatch['standings'][number] =>
+      Boolean(standing)
+    );
 
     return {
       competitionCode: 'SPAIN_SEGUNDA_DIVISION',
@@ -721,8 +733,8 @@ export const SPAIN_SEGUNDA_DIVISION_PATCHES: SeedCompetitionPatch[] = RAW_SEGUND
       year: resolveSeasonYear(season),
       season,
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
-      championShare: champions.length > 1 ? champions.length : null,
-      championGroupKey: champions.length > 1 ? season : null,
+      championShare: row.champions.length > 1 ? row.champions.length : null,
+      championGroupKey: row.champions.length > 1 ? season : null,
       remark: row.remark ?? null,
       standings
     };

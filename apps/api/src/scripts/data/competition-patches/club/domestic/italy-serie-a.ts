@@ -5,6 +5,8 @@ import type { CompetitionDataMetadata } from '../../../competition-metadata.js';
 const COMPETITION_CODE = 'ITALY_SERIE_A';
 const CHAMPIONS_SOURCE_URL = 'https://www.rsssf.org/tablesi/italchamp.html';
 const FINAL_PLACINGS_SOURCE_URL = 'https://www.rsssf.org/tablesi/italplall.html';
+const EARLY_FINAL_PLACINGS_SOURCE_URL =
+  'https://www.magliarossonera.it/statistiche/competitions/competitionsSerieA.php';
 
 export const ITALY_SERIE_A_PATCH_METADATA: CompetitionDataMetadata = {
   competitionCode: COMPETITION_CODE,
@@ -24,15 +26,22 @@ export const ITALY_SERIE_A_PATCH_METADATA: CompetitionDataMetadata = {
       remark: '用于核对 1929-30 以来意甲最终前三名。'
     },
     {
+      label: 'Statistiche Serie A ante girone unico - Maglia Rossonera',
+      url: EARLY_FINAL_PLACINGS_SOURCE_URL,
+      remark: '用于交叉核对 1898-1928/29 早期意大利顶级联赛可确认的冠亚季。'
+    },
+    {
       label: 'List of Italian football champions - Wikipedia',
       url: 'https://en.wikipedia.org/wiki/List_of_Italian_football_champions',
       remark: '用于交叉核对意大利顶级联赛冠军口径和 Calciopoli 调整。'
     }
   ],
-  lastVerifiedAt: '2026-08-04',
+  lastVerifiedAt: '2026-08-05',
   notes: [
-    '本补录按当前项目口径纳入 1898-1929 意大利顶级联赛前身冠军。',
-    '1898-1929 前身多数仅录冠军；1926-27 冠军被撤销未授予，不生成 standings。',
+    '本补录按当前项目口径纳入 1898-1928/29 意大利顶级联赛前身。',
+    '本补录只写入当前数据库已存在的意大利俱乐部 standings，库外球队对应名次直接过滤，不创建新俱乐部。',
+    '1898-1928/29 前身已补可确认的冠亚季；无法确认或没有明确全国季军口径的名次留空。',
+    '1926-27 冠军被撤销未授予，仅记录可确认的亚军和季军。',
     '1921-22 CCI / FIGC 两个官方冠军按 championShare=2 分摊冠军分。',
     '1929-30 之后按 RSSSF 最终名次累计表派生冠军、亚军、季军；2004-05 因 Calciopoli 冠军未授予，仅录入调整后的亚军和季军。'
   ]
@@ -177,7 +186,7 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1132',
     name: '热那亚',
     englishName: 'Genoa',
     countryName: '意大利',
@@ -185,7 +194,7 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1111',
     name: '博洛尼亚',
     englishName: 'Bologna',
     countryName: '意大利',
@@ -193,7 +202,7 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '2218',
     name: '普罗韦尔切利',
     englishName: 'Pro Vercelli',
     countryName: '意大利',
@@ -201,23 +210,7 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
-    name: '卡萨莱',
-    englishName: 'Casale',
-    countryName: '意大利',
-    confederationCode: 'UEFA',
-    visibleInCatalog: false
-  },
-  {
-    uid: '-',
-    name: '诺韦塞',
-    englishName: 'Novese',
-    countryName: '意大利',
-    confederationCode: 'UEFA',
-    visibleInCatalog: false
-  },
-  {
-    uid: '-',
+    uid: '1154',
     name: '帕多瓦',
     englishName: 'Padova',
     countryName: '意大利',
@@ -225,7 +218,7 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1179',
     name: '威尼斯',
     englishName: 'Venezia',
     countryName: '意大利',
@@ -233,7 +226,7 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1114',
     name: '卡利亚里',
     englishName: 'Cagliari',
     countryName: '意大利',
@@ -241,6 +234,8 @@ export const ITALY_SERIE_A_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   }
 ];
+
+const INCLUDED_SERIE_A_CLUB_NAMES = new Set(ITALY_SERIE_A_REQUIRED_CLUBS.map((club) => club.name));
 
 const CLUB_NAME_MAP: Record<string, string> = {
   'AC Padova/Padova Calcio': '帕多瓦',
@@ -252,11 +247,11 @@ const CLUB_NAME_MAP: Record<string, string> = {
   'AC/SSC Neapel': '那不勒斯',
   'AFC/AC Venedig': '威尼斯',
   'AGC/FC Bologna': '博洛尼亚',
+  Alessandria: '亚历山德里亚',
   'AS Rom': '罗马',
   'Ambrosiana/Inter Mailand': '国际米兰',
   'Atalanta Bergamo': '亚特兰大',
   Bologna: '博洛尼亚',
-  Casale: '卡萨莱',
   'CC/C&FC/FC Genua 1893': '热那亚',
   'FC Internazionale': '国际米兰',
   'FC/AC Mailand': 'AC米兰',
@@ -264,47 +259,52 @@ const CLUB_NAME_MAP: Record<string, string> = {
   'Hellas Verona': '维罗纳',
   'Juventus FC': '尤文图斯',
   'Juventus Turin': '尤文图斯',
+  Lazio: '拉齐奥',
   'Lazio Rom': '拉齐奥',
+  Livorno: '利沃诺',
   'Milan AC': 'AC米兰',
   'Modena Calcio/FBC/FC Modena': '摩德纳',
-  Novese: '诺韦塞',
+  Pisa: '比萨',
   'Pro Vercelli': '普罗韦尔切利',
   'Sampdoria Genua': '桑普多利亚',
   Torino: '都灵',
   'Udinese AC/Calcio': '乌迪内斯',
   'US Cagliari/Cagliari Calcio': '卡利亚里',
-  'US/AS Livorno': '利沃诺'
+  'US/AS Livorno': '利沃诺',
+  Venezia: '威尼斯',
+  Vicenza: '维琴察'
 };
 
-const RAW_PRE_SERIE_A_CHAMPIONS = `
+const RAW_PRE_SERIE_A_STANDINGS = `
 1898	Genoa 1893
 1899	Genoa 1893
-1900	Genoa 1893
-1901	Milan AC
-1902	Genoa 1893
-1903	Genoa 1893
-1904	Genoa 1893
-1905	Juventus FC
-1906	Milan AC
-1907	Milan AC
+1900	Genoa 1893		Juventus FC
+1901	Milan AC	Genoa 1893	Juventus FC
+1902	Genoa 1893	Milan AC
+1903	Genoa 1893	Juventus FC	Milan AC
+1904	Genoa 1893	Juventus FC	Milan AC
+1905	Juventus FC	Genoa 1893
+1906	Milan AC	Juventus FC	Genoa 1893
+1907	Milan AC	Torino
 1908	Pro Vercelli
-1909	Pro Vercelli
-1909-10	FC Internazionale
-1910-11	Pro Vercelli
-1911-12	Pro Vercelli
-1912-13	Pro Vercelli
-1913-14	Casale
-1914-15	Genoa 1893
-1919-20	FC Internazionale
-1920-21	Pro Vercelli
-1921-22 CCI	Pro Vercelli	1921-22	1921-22
-1921-22 FIGC	Novese	1921-22	1921-22
-1922-23	Genoa 1893
+1909	Pro Vercelli		Genoa 1893
+1909-10	FC Internazionale	Pro Vercelli	Juventus FC
+1910-11	Pro Vercelli	Vicenza
+1911-12	Pro Vercelli	Venezia
+1912-13	Pro Vercelli	Lazio
+1913-14	Casale	Lazio
+1914-15	Genoa 1893	Torino
+1919-20	FC Internazionale	Livorno
+1920-21	Pro Vercelli	Pisa
+1921-22 CCI	Pro Vercelli			1921-22	1921-22
+1921-22 FIGC	Novese			1921-22	1921-22
+1922-23	Genoa 1893	Lazio
 1923-24	Genoa 1893
 1924-25	Bologna
 1925-26	Juventus FC
-1927-28	Torino
-1928-29	Bologna
+1926-27		Bologna	Juventus FC
+1927-28	Torino	Genoa 1893	Alessandria
+1928-29	Bologna	Torino
 `;
 
 const RAW_SERIE_A_TOP_THREE = `
@@ -407,7 +407,10 @@ const RAW_SERIE_A_TOP_THREE = `
 
 function normalizeClubName(rawName: string) {
   const name = rawName.trim();
-  return name ? (CLUB_NAME_MAP[name] ?? name) : null;
+  if (!name) return null;
+
+  const clubName = CLUB_NAME_MAP[name] ?? name;
+  return INCLUDED_SERIE_A_CLUB_NAMES.has(clubName) ? clubName : null;
 }
 
 function resolveSeasonYear(season: string) {
@@ -429,9 +432,11 @@ function resolveSeasonYear(season: string) {
 function buildStanding(
   placement: CompetitionStandingPlacement,
   standingOrder: number,
-  rawClubName: string,
+  rawClubName: string | undefined,
   remark: string
 ): SeedCompetitionPatch['standings'][number] | null {
+  if (!rawClubName?.trim()) return null;
+
   const clubName = normalizeClubName(rawClubName);
   if (!clubName) return null;
 
@@ -443,13 +448,17 @@ function buildStanding(
   };
 }
 
-const PRE_SERIE_A_PATCHES: SeedCompetitionPatch[] = RAW_PRE_SERIE_A_CHAMPIONS.trim()
+const PRE_SERIE_A_PATCHES: SeedCompetitionPatch[] = RAW_PRE_SERIE_A_STANDINGS.trim()
   .split('\n')
   .map((line) => {
-    const [name, champion, rawSeason, championGroupKey] = line.split('\t');
+    const [name, champion, runnerUp, thirdPlace, rawSeason, championGroupKey] = line.split('\t');
     const season = rawSeason?.trim() || name.trim();
-    const share = championGroupKey?.trim() ? 2 : null;
-    const remarkParts = ['1898-1929 意大利顶级联赛前身冠军，系统按意大利国内一级联赛计分。'];
+    const share = champion?.trim() && championGroupKey?.trim() ? 2 : null;
+    const remarkParts = ['1898-1928/29 意大利顶级联赛前身，系统按意大利国内一级联赛计分。'];
+
+    if (!champion?.trim()) {
+      remarkParts.push('本届冠军被撤销未授予，仅记录可确认名次。');
+    }
 
     if (share) {
       remarkParts.push(`同届官方冠军 ${share} 个，本冠军按 1/${share} 分摊冠军分。`);
@@ -462,13 +471,17 @@ const PRE_SERIE_A_PATCHES: SeedCompetitionPatch[] = RAW_PRE_SERIE_A_CHAMPIONS.tr
       name: name.trim(),
       year: resolveSeasonYear(season),
       season,
-      externalUrl: CHAMPIONS_SOURCE_URL,
+      externalUrl: EARLY_FINAL_PLACINGS_SOURCE_URL,
       championGroupKey: championGroupKey?.trim() || null,
       championShare: share,
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
       remark,
-      standings: [buildStanding(CompetitionStandingPlacement.CHAMPION, 1, champion, remark)].filter(
-        (standing): standing is SeedCompetitionPatch['standings'][number] => Boolean(standing)
+      standings: [
+        buildStanding(CompetitionStandingPlacement.CHAMPION, 1, champion, remark),
+        buildStanding(CompetitionStandingPlacement.RUNNER_UP, 2, runnerUp, remark),
+        buildStanding(CompetitionStandingPlacement.THIRD_PLACE, 3, thirdPlace, remark)
+      ].filter((standing): standing is SeedCompetitionPatch['standings'][number] =>
+        Boolean(standing)
       )
     };
   });

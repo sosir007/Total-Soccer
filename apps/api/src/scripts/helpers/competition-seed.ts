@@ -138,6 +138,7 @@ type CompetitionDataCompleteness = Pick<
 >;
 
 const DATA_COMPLETENESS_VERIFIED_AT = new Date('2026-08-04T00:00:00.000Z');
+const DATA_COMPLETENESS_UPDATED_AT_2026_08_05 = new Date('2026-08-05T00:00:00.000Z');
 const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
   dataComplete: true,
   dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
@@ -147,9 +148,9 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
   [
     'LATIN_CUP',
     {
-      dataComplete: false,
-      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
-      dataRemark: '缺 1 个届次的完整名次：1955 年缺第四名。'
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
+      dataRemark: null
     }
   ],
   [
@@ -165,12 +166,35 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
     'ITALY_SERIE_A',
     {
       dataComplete: false,
-      dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
       dataRemark:
-        '1898-1929 前身仅按官方冠军口径录入，早期缺完整前三；1926-27、2004-05 冠军未授予。'
+        '1898-1928/29 前身已补可确认冠亚季，无法确认或没有明确全国季军口径的名次留空；1926-27、2004-05 冠军未授予。'
     }
   ],
-  ['ITALY_COPPA_ITALIA', COMPLETE_COMPETITION_DATA],
+  [
+    'ITALY_SERIE_B',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
+      dataRemark: '按当前库内意大利俱乐部补至 2025-26；库外球队及部分其他升级席位未入库。'
+    }
+  ],
+  [
+    'ITALY_COPPA_ITALIA',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
+      dataRemark: null
+    }
+  ],
+  [
+    'ITALY_SUPER_CUP',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
+      dataRemark: null
+    }
+  ],
   [
     'SPAIN_SEGUNDA_DIVISION',
     {

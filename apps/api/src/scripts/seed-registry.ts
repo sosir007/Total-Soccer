@@ -390,10 +390,28 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'italy-serie-b',
+    label: '意大利足球乙级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-italy-serie-b.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/italy-serie-b.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'italy-coppa-italia',
     label: '意大利杯',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-italy-coppa-italia.ts',
     dataFiles: ['src/scripts/data/competition-results/club/domestic/italy-coppa-italia.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'italy-super-cup',
+    label: '意大利超级杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-italy-super-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/italy-super-cup.ts'],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'domestic'

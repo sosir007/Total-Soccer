@@ -81,7 +81,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1728',
     name: '桑坦德竞技',
     englishName: 'Racing Santander',
     countryName: '西班牙',
@@ -106,7 +106,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1733',
     name: '皇家贝蒂斯',
     englishName: 'Real Betis',
     shortName: '贝蒂斯',
@@ -115,7 +115,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '1728',
+    uid: '1741',
     name: '皇家奥维耶多',
     englishName: 'Real Oviedo',
     countryName: '西班牙',
@@ -140,7 +140,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1705',
     name: '拉科鲁尼亚',
     englishName: 'Deportivo La Coruña',
     countryName: '西班牙',
@@ -156,7 +156,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1749',
     name: '萨拉戈萨',
     englishName: 'Real Zaragoza',
     shortName: '萨拉戈萨',
@@ -165,7 +165,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1744',
     name: '希洪竞技',
     englishName: 'Sporting Gijón',
     countryName: '西班牙',
@@ -190,7 +190,7 @@ export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '814089',
     name: '赫罗纳',
     englishName: 'Girona',
     countryName: '西班牙',

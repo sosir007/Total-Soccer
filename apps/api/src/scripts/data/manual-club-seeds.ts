@@ -16,7 +16,7 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
-    uid: '-',
+    uid: '1728',
     name: '桑坦德竞技',
     englishName: 'Racing Santander',
     countryName: '西班牙',
@@ -24,9 +24,17 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
-    uid: '1728',
+    uid: '1741',
     name: '皇家奥维耶多',
     englishName: 'Real Oviedo',
+    countryName: '西班牙',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '814089',
+    name: '赫罗纳',
+    englishName: 'Girona',
     countryName: '西班牙',
     confederationCode: 'UEFA',
     visibleInCatalog: false
@@ -180,6 +188,70 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     countryName: '意大利',
     confederationCode: 'UEFA',
     visibleInCatalog: true
+  },
+  {
+    uid: '1474',
+    name: '贝伦人',
+    englishName: 'Belenenses',
+    countryName: '葡萄牙',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '2194',
+    name: '巴勒莫',
+    englishName: 'Palermo',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1104',
+    name: '安科纳',
+    englishName: 'Ancona',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1119',
+    name: '卡坦扎罗',
+    englishName: 'Catanzaro',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1153',
+    name: '诺瓦拉',
+    englishName: 'Novara',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '2220',
+    name: '斯帕尔',
+    englishName: 'SPAL',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '101345',
+    name: '瓦多',
+    englishName: 'Vado',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '700173',
+    name: '瓦雷泽',
+    englishName: 'Varese',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
   },
   {
     uid: '691',
