@@ -488,6 +488,18 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     placementScope: HonorRulePlacementScope.TOP_TWO,
     conversionType: HonorRuleConversionType.NONE,
     sortOrder: 240
+  },
+  {
+    code: 'CLUB_OTHER_LEVEL_2_CUP',
+    name: '俱乐部其他二级杯赛',
+    targetType: CompetitionTargetType.CLUB,
+    category: '其他',
+    level: '二级',
+    format: '杯赛',
+    baseScore: 1,
+    placementScope: HonorRulePlacementScope.TOP_TWO,
+    conversionType: HonorRuleConversionType.NONE,
+    sortOrder: 250
   }
 ];
 
