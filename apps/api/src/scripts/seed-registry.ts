@@ -106,6 +106,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'global'
   },
   {
+    key: 'finalissima',
+    label: '南美洲-欧洲冠军杯',
+    file: 'src/scripts/seeds/competitions/national-team/global/seed-finalissima.ts',
+    dataFiles: ['src/scripts/data/competition-results/national-team/global/finalissima.ts'],
+    dataKind: 'competition-results',
+    target: 'national-team',
+    scope: 'custom'
+  },
+  {
     key: 'fifa-club-world-cup',
     label: '国际足联俱乐部世界杯',
     file: 'src/scripts/seeds/competitions/club/global/seed-fifa-club-world-cup.ts',

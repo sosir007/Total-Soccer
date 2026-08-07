@@ -3650,6 +3650,25 @@ export class PlayersService {
     const countryCareers = careers.filter(
       (career) => career.careerType === PlayerCareerType.COUNTRY
     );
+    const profileClubNames = [] as string[];
+    const seenClubNames = new Set<string>();
+
+    for (const career of profileClubCareers) {
+      const clubName = career.club?.name;
+
+      if (!clubName) {
+        continue;
+      }
+
+      const clubKey = career.club?.id ?? clubName;
+
+      if (seenClubNames.has(clubKey)) {
+        continue;
+      }
+
+      seenClubNames.add(clubKey);
+      profileClubNames.push(clubName);
+    }
 
     return {
       ...player,
@@ -3657,8 +3676,8 @@ export class PlayersService {
       profileClubCareers,
       countryCareers,
       representativeClubName: representativeClubCareer?.club?.name ?? player.primaryClub ?? null,
-      profileClubNames: profileClubCareers.length
-        ? profileClubCareers.flatMap((career) => (career.club?.name ? [career.club.name] : []))
+      profileClubNames: profileClubNames.length
+        ? profileClubNames
         : player.clubs
           ? [player.clubs]
           : []

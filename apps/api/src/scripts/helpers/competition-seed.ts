@@ -171,6 +171,14 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
     }
   ],
   [
+    'FINALISSIMA',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
+      dataRemark: '1985、1993、2022 已录；2026 届已取消，不建届次。'
+    }
+  ],
+  [
     'NORTH_AMERICAN_SOCCER_LEAGUE_1968_1984',
     {
       dataComplete: false,

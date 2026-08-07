@@ -185,6 +185,11 @@ type TeamBonusHonorDetail = {
   remark: string | null;
 };
 type ClubHonorSummarySortKey = 'totalCount' | 'championCount' | 'bonusHonorScore' | 'honorScore';
+type ClubHonorSummaryStats = {
+  baseHonorScore: number;
+  bonusHonorScore: number;
+  honorScore: number;
+};
 
 const CAREER_PLAYER_SELECT = {
   id: true,
@@ -217,7 +222,8 @@ export class ClubsService {
         orderBy
       });
       const computedItems = await this.attachComputedStats(items);
-      const sortedItems = this.sortComputedStats(computedItems, query);
+      const scoredItems = await this.attachHonorSummaryStats(computedItems);
+      const sortedItems = this.sortComputedStats(scoredItems, query);
 
       return {
         items: sortedItems.slice(pagination.skip, pagination.skip + pagination.take),
@@ -239,7 +245,7 @@ export class ClubsService {
     ]);
 
     return {
-      items: await this.attachComputedStats(items),
+      items: await this.attachHonorSummaryStats(await this.attachComputedStats(items)),
       page: pagination.page,
       pageSize: pagination.pageSize,
       total
@@ -259,9 +265,10 @@ export class ClubsService {
     }
 
     const [computedClub] = await this.attachComputedStats([club]);
+    const [scoredClub] = await this.attachHonorSummaryStats([computedClub]);
 
     return {
-      ...computedClub,
+      ...scoredClub,
       honorRecords: await this.getClubHonorRecords(club.id, 10),
       honorGroups: await this.getClubHonorGroups(club.id),
       bonusHonorDetails: (await this.getClubBonusHonorDetailMap([club.id])).get(club.id) ?? [],
@@ -520,6 +527,7 @@ export class ClubsService {
 
   private shouldSortComputedStats(sortBy?: string) {
     return [
+      'honorScore',
       'playerCount',
       'totalPa',
       'averagePa',
@@ -601,6 +609,24 @@ export class ClubsService {
         fourthPlaceCount: standings.fourthPlaceCount
       };
     });
+  }
+
+  private async attachHonorSummaryStats<T extends { id: string }>(items: T[]) {
+    if (!items.length) {
+      return items;
+    }
+
+    const ids = items.map((item) => item.id);
+    const honorStats = await this.getClubHonorSummaryStats(ids);
+
+    return items.map((item) => ({
+      ...item,
+      ...(honorStats.get(item.id) ?? {
+        baseHonorScore: 0,
+        bonusHonorScore: 0,
+        honorScore: 0
+      })
+    }));
   }
 
   private async getClubHonorRecords(clubId: string, take: number) {
@@ -735,10 +761,13 @@ export class ClubsService {
     return detailMap;
   }
 
-  private async getClubHonorSummaryRecords(query: ClubHonorSummaryQuery) {
+  private async getClubHonorSummaryRecords(
+    query: Partial<ClubHonorSummaryQuery> = {},
+    clubIds?: string[]
+  ) {
     return this.prisma.competitionStanding.findMany({
       where: {
-        clubId: query.clubId || { not: null },
+        clubId: clubIds?.length ? { in: clubIds } : query.clubId || { not: null },
         ...(query.confederationId || query.countryId
           ? {
               club: {
@@ -766,15 +795,55 @@ export class ClubsService {
     });
   }
 
+  private async getClubHonorSummaryStats(clubIds: string[]) {
+    if (!clubIds.length) {
+      return new Map<string, ClubHonorSummaryStats>();
+    }
+
+    const [records, rules] = await Promise.all([
+      this.getClubHonorSummaryRecords({}, clubIds),
+      this.getHonorSummaryRules(CompetitionTargetType.CLUB)
+    ]);
+    const clubIdSet = new Set(clubIds);
+    const scoringRecords = records.filter(
+      (record) =>
+        record.clubId &&
+        clubIdSet.has(record.clubId) &&
+        this.resolveHonorSummaryScore(
+          rules,
+          record.edition.competition,
+          record.placement,
+          record.edition.year,
+          record.edition.quantity,
+          record.edition.championShare
+        )
+    );
+    const rows = await this.buildClubHonorSummaryRows(scoringRecords, {}, rules, clubIds);
+
+    return new Map(
+      rows.map((row) => [
+        row.id,
+        {
+          baseHonorScore: row.baseHonorScore ?? 0,
+          bonusHonorScore: row.bonusHonorScore ?? 0,
+          honorScore: row.honorScore ?? 0
+        }
+      ])
+    );
+  }
+
   private async buildClubHonorSummaryRows(
     records: ClubHonorRecord[],
-    query: ClubHonorSummaryQuery,
-    rules: HonorSummaryRule[]
+    query: Partial<ClubHonorSummaryQuery>,
+    rules: HonorSummaryRule[],
+    clubIdsOverride?: string[]
   ) {
     const bonusDetailMap = query.competitionId
       ? new Map<string, TeamBonusHonorDetail[]>()
-      : await this.getClubBonusHonorDetailMap(query.clubId ? [query.clubId] : undefined);
-    const clubIds = [
+      : await this.getClubBonusHonorDetailMap(
+          clubIdsOverride ?? (query.clubId ? [query.clubId] : undefined)
+        );
+    const clubIds = clubIdsOverride ?? [
       ...new Set([
         ...records
           .map((record) => record.clubId)
@@ -1582,18 +1651,35 @@ export class ClubsService {
     >
   ) {
     const positionOrder = ['ST', 'AML', 'AMC', 'AMR', 'MC', 'DMC', 'DL', 'DC', 'DR', 'GK'];
-    const map = new Map<string, ReturnType<typeof this.mapCareerLine>[]>();
+    const map = new Map<string, ReturnType<typeof this.mapCareerLine>>();
 
     for (const career of careers) {
       const position = this.resolvePosition(career);
-      const rows = map.get(position) ?? [];
-      rows.push(this.mapCareerLine(career));
-      map.set(position, rows);
+      const line = this.mapCareerLine(career);
+      const key = `${career.playerId}::${position}`;
+      const existing = map.get(key);
+
+      if (!existing) {
+        map.set(key, {
+          ...line,
+          id: career.player.id
+        });
+        continue;
+      }
+
+      existing.period = this.mergeCareerPeriods(existing.period, line.period);
+      existing.appearances = this.sumNullable(existing.appearances, line.appearances);
+      existing.goals = this.sumNullable(existing.goals, line.goals);
+      existing.assists = this.sumNullable(existing.assists, line.assists);
+      existing.cleanSheets = this.sumNullable(existing.cleanSheets, line.cleanSheets);
+      existing.goalsConceded = this.sumNullable(existing.goalsConceded, line.goalsConceded);
+      existing.isLegend = existing.isLegend || Boolean(line.isLegend);
+      existing.remark = existing.remark ?? line.remark ?? null;
     }
 
     return positionOrder.map((position) => ({
       position,
-      items: map.get(position) ?? []
+      items: [...map.values()].filter((item) => item.position === position)
     }));
   }
 
@@ -1639,10 +1725,38 @@ export class ClubsService {
     }
 
     if (career.startYear || career.endYear) {
-      return [career.startYear, career.endYear].filter(Boolean).join(' - ');
+      if (career.startYear && career.endYear) {
+        const endYearText =
+          Math.floor(career.startYear / 100) === Math.floor(career.endYear / 100)
+            ? String(career.endYear).slice(2)
+            : String(career.endYear);
+
+        return `${career.startYear}-${endYearText}`;
+      }
+
+      return career.startYear ? `${career.startYear}-` : `-${career.endYear}`;
     }
 
     return null;
+  }
+
+  private mergeCareerPeriods(left: string | null, right: string | null) {
+    if (!left) return right;
+    if (!right) return left;
+    if (left.includes(right)) return left;
+    return `${left}、${right}`;
+  }
+
+  private sumNullable(left?: number | null, right?: number | null) {
+    if (left === null || left === undefined) {
+      return right ?? null;
+    }
+
+    if (right === null || right === undefined) {
+      return left;
+    }
+
+    return left + right;
   }
 
   private getPlayerDecade(value: number | null) {

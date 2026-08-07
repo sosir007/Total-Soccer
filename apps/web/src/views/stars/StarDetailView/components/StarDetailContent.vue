@@ -17,21 +17,95 @@ const props = defineProps<{
   player: PlayerDetail;
 }>();
 
+type CareerRow = NonNullable<PlayerDetail['careers']>[number] & {
+  periodText?: string;
+};
+
 const emit = defineEmits<{
   edit: [];
   manageResume: [];
   back: [];
 }>();
 
-const displayCareers = computed(() =>
-  [...(props.player.profileClubCareers ?? []), ...(props.player.countryCareers ?? [])].sort(
-    (left, right) => {
-      if (left.sortOrder !== right.sortOrder) return left.sortOrder - right.sortOrder;
+function formatCareerPeriod(career: {
+  startSeason?: string | null;
+  endSeason?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+}) {
+  if (career.startSeason || career.endSeason) {
+    return [career.startSeason, career.endSeason].filter(Boolean).join(' - ') || '-';
+  }
 
-      return (left.startYear ?? 0) - (right.startYear ?? 0);
+  if (career.startYear || career.endYear) {
+    return [career.startYear, career.endYear].filter(Boolean).join(' - ');
+  }
+
+  return '-';
+}
+
+const displayCareers = computed<CareerRow[]>(() => {
+  const rows: CareerRow[] = [];
+  const clubRowById = new Map<string, CareerRow>();
+
+  for (const career of [
+    ...(props.player.profileClubCareers ?? []),
+    ...(props.player.countryCareers ?? [])
+  ]) {
+    if (career.careerType === 'CLUB') {
+      const clubId = career.club?.id ?? career.clubId ?? career.id;
+      const periodText = formatCareerPeriod(career);
+      const existing = clubRowById.get(clubId);
+
+      if (existing) {
+        existing.periodText = existing.periodText
+          ? `${existing.periodText}、${periodText}`
+          : periodText;
+        existing.appearances = sumNullable(existing.appearances, career.appearances);
+        existing.goals = sumNullable(existing.goals, career.goals);
+        existing.assists = sumNullable(existing.assists, career.assists);
+        existing.cleanSheets = sumNullable(existing.cleanSheets, career.cleanSheets);
+        existing.goalsConceded = sumNullable(existing.goalsConceded, career.goalsConceded);
+        existing.showInProfile = existing.showInProfile || career.showInProfile;
+        existing.isRepresentative = existing.isRepresentative || career.isRepresentative;
+        existing.isLegend = existing.isLegend || career.isLegend;
+        existing.sortOrder = Math.min(existing.sortOrder, career.sortOrder);
+        continue;
+      }
+
+      const row = {
+        ...career,
+        periodText
+      };
+      clubRowById.set(clubId, row);
+      rows.push(row);
+      continue;
     }
-  )
-);
+
+    rows.push({
+      ...career,
+      periodText: formatCareerPeriod(career)
+    });
+  }
+
+  return rows.sort((left, right) => {
+    if (left.sortOrder !== right.sortOrder) return left.sortOrder - right.sortOrder;
+
+    return (left.startYear ?? 0) - (right.startYear ?? 0);
+  });
+});
+
+function sumNullable(left?: number | null, right?: number | null) {
+  if (left === null || left === undefined) {
+    return right ?? null;
+  }
+
+  if (right === null || right === undefined) {
+    return left;
+  }
+
+  return left + right;
+}
 const playerTypeName = computed(() => props.player.playerTypeRef?.name || props.player.playerType);
 const honorProfileCount = computed(
   () => (props.player.personalHonors?.length ?? 0) + (props.player.teamHonors?.length ?? 0)

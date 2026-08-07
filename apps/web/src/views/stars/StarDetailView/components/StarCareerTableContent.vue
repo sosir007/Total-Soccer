@@ -4,12 +4,16 @@ import EntityNameCell from '@/components/EntityNameCell.vue';
 import PositionTags from '@/components/PositionTags.vue';
 import SemanticTag from '@/components/SemanticTag.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
+import { getConfederationVariant } from '@/utils/tag-theme';
 
 type Career = NonNullable<PlayerDetail['careers']>[number];
+type CareerRow = Career & {
+  periodText?: string;
+};
 
 const props = withDefaults(
   defineProps<{
-    careers?: Career[];
+    careers?: CareerRow[];
     type?: 'club' | 'country' | 'mixed';
   }>(),
   {
@@ -23,11 +27,16 @@ const isGoalkeeperCareerTable = computed(
 );
 
 function formatCareerPeriod(career: {
+  periodText?: string | null;
   startSeason?: string | null;
   endSeason?: string | null;
   startYear?: number | null;
   endYear?: number | null;
 }) {
+  if (career.periodText) {
+    return career.periodText;
+  }
+
   if (career.startSeason || career.endSeason) {
     return [career.startSeason, career.endSeason].filter(Boolean).join(' - ') || '-';
   }
@@ -67,6 +76,14 @@ function getCareerEntitySubtitle(career: Career) {
   return uid ? `UID ${uid}` : undefined;
 }
 
+function getCareerClubFederation(career: Career) {
+  return career.careerType === 'CLUB' ? career.club?.federationRef : null;
+}
+
+function getCareerClubCountry(career: Career) {
+  return career.careerType === 'CLUB' ? career.club?.countryRef : null;
+}
+
 function isGoalkeeperPosition(position?: string | null) {
   const normalized = (position ?? '').trim().toUpperCase();
   return normalized === 'GK' || normalized.includes('门将') || normalized.includes('守门');
@@ -83,7 +100,36 @@ function isGoalkeeperPosition(position?: string | null) {
         </SemanticTag>
       </template>
     </el-table-column>
-    <el-table-column label="球队" min-width="150">
+    <el-table-column label="足联" width="110" align="center">
+      <template #default="{ row }">
+        <SemanticTag
+          v-if="getCareerClubFederation(row)"
+          :variant="
+            getConfederationVariant(
+              getCareerClubFederation(row)?.name ?? getCareerClubFederation(row)?.code ?? ''
+            )
+          "
+        >
+          {{ getCareerClubFederation(row)?.name ?? getCareerClubFederation(row)?.code }}
+        </SemanticTag>
+        <span v-else>-</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="国家" width="140">
+      <template #default="{ row }">
+        <EntityNameCell
+          v-if="getCareerClubCountry(row)"
+          :id="getCareerClubCountry(row)?.id"
+          type="country"
+          :title="getCareerClubCountry(row)?.name"
+          :subtitle="
+            getCareerClubCountry(row)?.uid ? `UID ${getCareerClubCountry(row)?.uid}` : undefined
+          "
+        />
+        <span v-else>-</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="球队" min-width="180">
       <template #default="{ row }">
         <EntityNameCell
           :id="getCareerEntityId(row)"
