@@ -139,6 +139,7 @@ type CompetitionDataCompleteness = Pick<
 
 const DATA_COMPLETENESS_VERIFIED_AT = new Date('2026-08-04T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_05 = new Date('2026-08-05T00:00:00.000Z');
+const DATA_COMPLETENESS_UPDATED_AT_2026_08_10 = new Date('2026-08-10T00:00:00.000Z');
 const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
   dataComplete: true,
   dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
@@ -156,18 +157,17 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
   [
     'CUP_OF_THE_ALPS',
     {
-      dataComplete: false,
-      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
-      dataRemark:
-        '1962-1987 俱乐部阶段按库内俱乐部录入；缺格勒诺布尔、卡塔尼亚、洛桑体育、伯尔尼年轻人、纳沙泰尔萨马克斯等冠亚军俱乐部。'
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_10,
+      dataRemark: null
     }
   ],
   [
     'ANGLO_ITALIAN_LEAGUE_CUP',
     {
-      dataComplete: false,
-      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
-      dataRemark: '当前已按库内俱乐部录入；1969 冠军斯温登镇未入库，对应冠军荣誉留空。'
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_10,
+      dataRemark: null
     }
   ],
   [

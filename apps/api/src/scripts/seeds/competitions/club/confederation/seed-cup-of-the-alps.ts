@@ -39,10 +39,9 @@ async function main() {
           '1960 至 1987 年间举办的欧洲跨国俱乐部邀请赛；1960、1961 为联赛代表队阶段，本系统只录入 1962 起的俱乐部阶段，赛事已停办。',
         confederationId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
-        dataComplete: false,
-        dataUpdatedAt: new Date('2026-08-05T00:00:00.000Z'),
-        dataRemark:
-          '1962-1987 俱乐部阶段按库内俱乐部录入；缺格勒诺布尔、卡塔尼亚、洛桑体育、伯尔尼年轻人、纳沙泰尔萨马克斯等冠亚军俱乐部。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-10T00:00:00.000Z'),
+        dataRemark: null,
         enabled: true,
         includeInStats: true,
         sortOrder: 20001
@@ -63,10 +62,9 @@ async function main() {
         countryId: null,
         confederationId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
-        dataComplete: false,
-        dataUpdatedAt: new Date('2026-08-05T00:00:00.000Z'),
-        dataRemark:
-          '1962-1987 俱乐部阶段按库内俱乐部录入；缺格勒诺布尔、卡塔尼亚、洛桑体育、伯尔尼年轻人、纳沙泰尔萨马克斯等冠亚军俱乐部。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-10T00:00:00.000Z'),
+        dataRemark: null,
         enabled: true,
         includeInStats: true,
         sortOrder: 20001
@@ -76,7 +74,7 @@ async function main() {
     buildStandings: buildCupOfTheAlpsStandings,
     expected: {
       editions: 24,
-      standings: 42
+      standings: 48
     },
     allowPartialStandings: true,
     completedMessage: 'Cup of the Alps seed completed.'

@@ -197,6 +197,20 @@ const PROFILE_PLAYER_SELECT = {
   externalUrl: true
 } satisfies Prisma.PlayerSelect;
 
+type CountryCareerTimelineLine = {
+  id: string;
+  player: Prisma.PlayerGetPayload<{ select: typeof PROFILE_PLAYER_SELECT }>;
+  position: string;
+  positionGroup?: string | null;
+  period: string | null;
+  appearances?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+  goalsConceded?: number | null;
+  remark?: string | null;
+};
+
 @Injectable()
 export class CountriesService {
   constructor(
@@ -1684,18 +1698,37 @@ export class CountriesService {
       }>
     >
   ) {
-    const map = new Map<string, ReturnType<typeof this.mapCareerLine>[]>();
+    const map = new Map<
+      string,
+      {
+        items: CountryCareerTimelineLine[];
+        indexByKey: Map<string, number>;
+      }
+    >();
 
     for (const career of careers) {
       const decade = this.getPlayerDecade(career.player.birthDate);
-      const rows = map.get(decade) ?? [];
-      rows.push(this.mapCareerLine(career));
-      map.set(decade, rows);
+      const bucket = map.get(decade) ?? { items: [], indexByKey: new Map<string, number>() };
+      const line = this.mapCareerLine(career);
+      const key = this.getCareerTimelineKey(career);
+      const existingIndex = bucket.indexByKey.get(key);
+
+      if (existingIndex === undefined) {
+        bucket.indexByKey.set(key, bucket.items.length);
+        bucket.items.push(line);
+      } else {
+        bucket.items[existingIndex] = this.mergeCareerTimelineLine(
+          bucket.items[existingIndex],
+          line
+        );
+      }
+
+      map.set(decade, bucket);
     }
 
     return [...map.entries()]
       .sort(([a], [b]) => this.compareDecade(a, b))
-      .map(([decade, items]) => ({ decade, items }));
+      .map(([decade, bucket]) => ({ decade, items: bucket.items }));
   }
 
   private buildPlayerLineup(
@@ -1734,7 +1767,7 @@ export class CountriesService {
     career: Prisma.PlayerCareerGetPayload<{
       include: { player: { select: typeof PROFILE_PLAYER_SELECT } };
     }>
-  ) {
+  ): CountryCareerTimelineLine {
     return {
       id: career.id,
       player: career.player,
@@ -1747,6 +1780,22 @@ export class CountriesService {
       cleanSheets: career.cleanSheets,
       goalsConceded: career.goalsConceded,
       remark: career.remark
+    };
+  }
+
+  private mergeCareerTimelineLine(
+    left: CountryCareerTimelineLine,
+    right: CountryCareerTimelineLine
+  ) {
+    return {
+      ...left,
+      period: this.mergeCareerPeriods(left.period, right.period),
+      appearances: this.sumNullable(left.appearances, right.appearances),
+      goals: this.sumNullable(left.goals, right.goals),
+      assists: this.sumNullable(left.assists, right.assists),
+      cleanSheets: this.sumNullable(left.cleanSheets, right.cleanSheets),
+      goalsConceded: this.sumNullable(left.goalsConceded, right.goalsConceded),
+      remark: left.remark ?? right.remark ?? null
     };
   }
 
@@ -1789,6 +1838,34 @@ export class CountriesService {
   private resolvePositionText(value?: string | null) {
     const [position] = (value ?? '').split(/[、,，/\s]+/).filter(Boolean);
     return position || '未分组';
+  }
+
+  private mergeCareerPeriods(left: string | null, right: string | null) {
+    if (!left) return right;
+    if (!right) return left;
+    if (left.includes(right)) return left;
+    return `${left}、${right}`;
+  }
+
+  private getCareerTimelineKey(
+    career: Prisma.PlayerCareerGetPayload<{
+      include: { player: { select: typeof PROFILE_PLAYER_SELECT } };
+    }>
+  ) {
+    const teamId = career.countryId ?? career.id;
+    return `${career.playerId}::${teamId}`;
+  }
+
+  private sumNullable(left?: number | null, right?: number | null) {
+    if (left === null || left === undefined) {
+      return right ?? null;
+    }
+
+    if (right === null || right === undefined) {
+      return left;
+    }
+
+    return left + right;
   }
 
   private formatCareerPeriod(career: {

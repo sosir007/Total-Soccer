@@ -203,6 +203,21 @@ const CAREER_PLAYER_SELECT = {
   externalUrl: true
 } satisfies Prisma.PlayerSelect;
 
+type ClubCareerTimelineLine = {
+  id: string;
+  player: Prisma.PlayerGetPayload<{ select: typeof CAREER_PLAYER_SELECT }>;
+  position: string;
+  positionGroup?: string | null;
+  period: string | null;
+  appearances?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+  goalsConceded?: number | null;
+  isLegend?: boolean | null;
+  remark?: string | null;
+};
+
 @Injectable()
 export class ClubsService {
   constructor(
@@ -1629,18 +1644,37 @@ export class ClubsService {
       }>
     >
   ) {
-    const map = new Map<string, ReturnType<typeof this.mapCareerLine>[]>();
+    const map = new Map<
+      string,
+      {
+        items: ClubCareerTimelineLine[];
+        indexByKey: Map<string, number>;
+      }
+    >();
 
     for (const career of careers) {
       const decade = this.getPlayerDecade(career.player.birthDate);
-      const rows = map.get(decade) ?? [];
-      rows.push(this.mapCareerLine(career));
-      map.set(decade, rows);
+      const bucket = map.get(decade) ?? { items: [], indexByKey: new Map<string, number>() };
+      const line = this.mapCareerLine(career);
+      const key = this.getCareerTimelineKey(career);
+      const existingIndex = bucket.indexByKey.get(key);
+
+      if (existingIndex === undefined) {
+        bucket.indexByKey.set(key, bucket.items.length);
+        bucket.items.push(line);
+      } else {
+        bucket.items[existingIndex] = this.mergeCareerTimelineLine(
+          bucket.items[existingIndex],
+          line
+        );
+      }
+
+      map.set(decade, bucket);
     }
 
     return [...map.entries()]
       .sort(([a], [b]) => this.compareDecade(a, b))
-      .map(([decade, items]) => ({ decade, items }));
+      .map(([decade, bucket]) => ({ decade, items: bucket.items }));
   }
 
   private buildLineupByPosition(
@@ -1651,7 +1685,7 @@ export class ClubsService {
     >
   ) {
     const positionOrder = ['ST', 'AML', 'AMC', 'AMR', 'MC', 'DMC', 'DL', 'DC', 'DR', 'GK'];
-    const map = new Map<string, ReturnType<typeof this.mapCareerLine>>();
+    const map = new Map<string, ClubCareerTimelineLine>();
 
     for (const career of careers) {
       const position = this.resolvePosition(career);
@@ -1687,7 +1721,7 @@ export class ClubsService {
     career: Prisma.PlayerCareerGetPayload<{
       include: { player: { select: typeof CAREER_PLAYER_SELECT } };
     }>
-  ) {
+  ): ClubCareerTimelineLine {
     return {
       id: career.id,
       player: career.player,
@@ -1745,6 +1779,29 @@ export class ClubsService {
     if (!right) return left;
     if (left.includes(right)) return left;
     return `${left}、${right}`;
+  }
+
+  private mergeCareerTimelineLine(left: ClubCareerTimelineLine, right: ClubCareerTimelineLine) {
+    return {
+      ...left,
+      period: this.mergeCareerPeriods(left.period, right.period),
+      appearances: this.sumNullable(left.appearances, right.appearances),
+      goals: this.sumNullable(left.goals, right.goals),
+      assists: this.sumNullable(left.assists, right.assists),
+      cleanSheets: this.sumNullable(left.cleanSheets, right.cleanSheets),
+      goalsConceded: this.sumNullable(left.goalsConceded, right.goalsConceded),
+      isLegend: left.isLegend || right.isLegend,
+      remark: left.remark ?? right.remark ?? null
+    };
+  }
+
+  private getCareerTimelineKey(
+    career: Prisma.PlayerCareerGetPayload<{
+      include: { player: { select: typeof CAREER_PLAYER_SELECT } };
+    }>
+  ) {
+    const teamId = career.clubId ?? career.id;
+    return `${career.playerId}::${teamId}`;
   }
 
   private sumNullable(left?: number | null, right?: number | null) {

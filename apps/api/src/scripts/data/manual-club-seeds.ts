@@ -190,6 +190,56 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: true
   },
   {
+    uid: '852',
+    name: '格勒诺布尔',
+    englishName: 'Grenoble',
+    countryName: '法国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '2193',
+    name: '卡塔尼亚',
+    englishName: 'Catania',
+    countryName: '意大利',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1856',
+    name: '洛桑体育',
+    englishName: 'Lausanne-Sport',
+    countryName: '瑞士',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1847',
+    name: '伯尔尼年轻人',
+    englishName: 'Young Boys',
+    countryName: '瑞士',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1857',
+    name: '纳沙泰尔萨马克斯',
+    englishName: 'Neuchâtel Xamax',
+    shortName: '纳沙泰尔',
+    countryName: '瑞士',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '725',
+    name: '斯温登镇',
+    englishName: 'Swindon Town',
+    shortName: '斯温登镇',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
     uid: '1474',
     name: '贝伦人',
     englishName: 'Belenenses',

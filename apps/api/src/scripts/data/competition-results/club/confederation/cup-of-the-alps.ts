@@ -26,19 +26,33 @@ export const CUP_OF_THE_ALPS_METADATA: CompetitionDataMetadata = {
       remark: '用于核对 1962-1987 俱乐部参赛阶段的历届冠亚军。'
     }
   ],
-  lastVerifiedAt: '2026-08-05',
+  lastVerifiedAt: '2026-08-10',
   notes: [
     'RSSSF 说明 1960、1961 为联赛代表队赛事，1962 起俱乐部参赛；本文件只录入 1962-1987 俱乐部阶段。',
     '1965、1986 未举办；赛事 1987 年后停办。',
-    '按用户约定，只录入当前数据库已存在俱乐部的荣誉，库外俱乐部对应名次留空并写入备注。',
-    '赛事按俱乐部其他二级杯赛处理，只记录冠军和亚军。'
+    '赛事按俱乐部其他二级杯赛处理，只记录冠军和亚军。',
+    '截至 2026-08-10，1962-1987 俱乐部阶段冠亚军已按当前口径完整录入。'
   ]
 };
 
 export const CUP_OF_THE_ALPS_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '1132', name: '热那亚', countryName: '意大利', confederationCode: 'UEFA' },
+  {
+    uid: '852',
+    name: '格勒诺布尔',
+    englishName: 'Grenoble',
+    countryName: '法国',
+    confederationCode: 'UEFA'
+  },
   { uid: '1139', name: '尤文图斯', countryName: '意大利', confederationCode: 'UEFA' },
   { uid: '1106', name: '亚特兰大', countryName: '意大利', confederationCode: 'UEFA' },
+  {
+    uid: '2193',
+    name: '卡塔尼亚',
+    englishName: 'Catania',
+    countryName: '意大利',
+    confederationCode: 'UEFA'
+  },
   { uid: '1150', name: '那不勒斯', countryName: '意大利', confederationCode: 'UEFA' },
   { uid: '912', name: '法兰克福', countryName: '德国', confederationCode: 'UEFA' },
   { uid: '955', name: '慕尼黑1860', countryName: '德国', confederationCode: 'UEFA' },
@@ -50,12 +64,34 @@ export const CUP_OF_THE_ALPS_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '860', name: '尼姆', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '851', name: '波尔多', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '1858', name: '塞尔维特', countryName: '瑞士', confederationCode: 'UEFA' },
+  {
+    uid: '1856',
+    name: '洛桑体育',
+    englishName: 'Lausanne-Sport',
+    countryName: '瑞士',
+    confederationCode: 'UEFA'
+  },
+  {
+    uid: '1847',
+    name: '伯尔尼年轻人',
+    englishName: 'Young Boys',
+    countryName: '瑞士',
+    confederationCode: 'UEFA'
+  },
   { uid: '2047', name: '兰斯', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '876', name: '巴斯蒂亚', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '826', name: '摩纳哥', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '844', name: '梅斯', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '2009', name: '索肖', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '846', name: '南特', countryName: '法国', confederationCode: 'UEFA' },
+  {
+    uid: '1857',
+    name: '纳沙泰尔萨马克斯',
+    englishName: 'Neuchâtel Xamax',
+    shortName: '纳沙泰尔',
+    countryName: '瑞士',
+    confederationCode: 'UEFA'
+  },
   { uid: '824', name: '欧塞尔', countryName: '法国', confederationCode: 'UEFA' },
   { uid: '1855', name: '草蜢', countryName: '瑞士', confederationCode: 'UEFA' }
 ].map((club) => ({

@@ -39,9 +39,9 @@ async function main() {
           '1969 至 1976 年间举办的英格兰与意大利杯赛冠军两回合对抗赛，1972-1974 未举办，赛事已停办。',
         confederationId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
-        dataComplete: false,
-        dataUpdatedAt: new Date('2026-08-05T00:00:00.000Z'),
-        dataRemark: '当前已按库内俱乐部录入；1969 冠军斯温登镇未入库，对应冠军荣誉留空。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-10T00:00:00.000Z'),
+        dataRemark: null,
         enabled: true,
         includeInStats: true,
         sortOrder: 20002
@@ -62,9 +62,9 @@ async function main() {
         countryId: null,
         confederationId: null,
         lifecycleStatus: LifecycleStatus.DISCONTINUED,
-        dataComplete: false,
-        dataUpdatedAt: new Date('2026-08-05T00:00:00.000Z'),
-        dataRemark: '当前已按库内俱乐部录入；1969 冠军斯温登镇未入库，对应冠军荣誉留空。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-08-10T00:00:00.000Z'),
+        dataRemark: null,
         enabled: true,
         includeInStats: true,
         sortOrder: 20002
@@ -74,7 +74,7 @@ async function main() {
     buildStandings: buildAngloItalianLeagueCupStandings,
     expected: {
       editions: 5,
-      standings: 9
+      standings: 10
     },
     allowPartialStandings: true,
     completedMessage: 'Anglo-Italian League Cup seed completed.'

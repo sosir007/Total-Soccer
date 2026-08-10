@@ -66,7 +66,9 @@ function isGoalkeeperPosition(position?: string | null) {
           </strong>
           <div class="lineup-player-meta">
             <AbilityBadge type="PA" :value="item.player.pa" size="small" />
-            <em>{{ formatLineMeta(item, metaMode) }}</em>
+            <em>
+              <OverflowTooltip :content="formatLineMeta(item, metaMode)" />
+            </em>
             <PositionTags v-if="showItemPosition" :value="item.position" />
           </div>
         </button>

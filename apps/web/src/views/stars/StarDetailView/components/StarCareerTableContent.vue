@@ -76,12 +76,36 @@ function getCareerEntitySubtitle(career: Career) {
   return uid ? `UID ${uid}` : undefined;
 }
 
-function getCareerClubFederation(career: Career) {
-  return career.careerType === 'CLUB' ? career.club?.federationRef : null;
+function getCareerFederation(career: Career) {
+  return career.careerType === 'CLUB'
+    ? career.club?.federationRef
+    : (career.country?.federationRef ?? null);
 }
 
-function getCareerClubCountry(career: Career) {
-  return career.careerType === 'CLUB' ? career.club?.countryRef : null;
+function getCareerCountry(career: Career) {
+  return career.careerType === 'CLUB' ? career.club?.countryRef : (career.country ?? null);
+}
+
+function getCareerTableCellSpan({
+  row,
+  column
+}: {
+  row: CareerRow;
+  column: { label?: string | null };
+}) {
+  if (row.careerType !== 'COUNTRY') {
+    return { rowspan: 1, colspan: 1 };
+  }
+
+  if (column.label === '国家') {
+    return { rowspan: 1, colspan: 2 };
+  }
+
+  if (column.label === '球队') {
+    return { rowspan: 0, colspan: 0 };
+  }
+
+  return { rowspan: 1, colspan: 1 };
 }
 
 function isGoalkeeperPosition(position?: string | null) {
@@ -91,7 +115,7 @@ function isGoalkeeperPosition(position?: string | null) {
 </script>
 
 <template>
-  <el-table :data="careers" border>
+  <el-table :data="careers" border :span-method="getCareerTableCellSpan">
     <el-table-column type="index" label="序号" width="60" align="center" />
     <el-table-column v-if="type === 'mixed'" label="类型" width="90" align="center">
       <template #default="{ row }">
@@ -103,14 +127,14 @@ function isGoalkeeperPosition(position?: string | null) {
     <el-table-column label="足联" width="110" align="center">
       <template #default="{ row }">
         <SemanticTag
-          v-if="getCareerClubFederation(row)"
+          v-if="getCareerFederation(row)"
           :variant="
             getConfederationVariant(
-              getCareerClubFederation(row)?.name ?? getCareerClubFederation(row)?.code ?? ''
+              getCareerFederation(row)?.name ?? getCareerFederation(row)?.code ?? ''
             )
           "
         >
-          {{ getCareerClubFederation(row)?.name ?? getCareerClubFederation(row)?.code }}
+          {{ getCareerFederation(row)?.name ?? getCareerFederation(row)?.code }}
         </SemanticTag>
         <span v-else>-</span>
       </template>
@@ -118,13 +142,11 @@ function isGoalkeeperPosition(position?: string | null) {
     <el-table-column label="国家" width="140">
       <template #default="{ row }">
         <EntityNameCell
-          v-if="getCareerClubCountry(row)"
-          :id="getCareerClubCountry(row)?.id"
+          v-if="getCareerCountry(row)"
+          :id="getCareerCountry(row)?.id"
           type="country"
-          :title="getCareerClubCountry(row)?.name"
-          :subtitle="
-            getCareerClubCountry(row)?.uid ? `UID ${getCareerClubCountry(row)?.uid}` : undefined
-          "
+          :title="getCareerCountry(row)?.name"
+          :subtitle="getCareerCountry(row)?.uid ? `UID ${getCareerCountry(row)?.uid}` : undefined"
         />
         <span v-else>-</span>
       </template>
@@ -139,7 +161,7 @@ function isGoalkeeperPosition(position?: string | null) {
         />
       </template>
     </el-table-column>
-    <el-table-column label="年份" min-width="120">
+    <el-table-column label="年份" min-width="200">
       <template #default="{ row }">{{ formatCareerPeriod(row) }}</template>
     </el-table-column>
     <el-table-column label="位置" width="100" align="center">

@@ -25,12 +25,12 @@ export const ANGLO_ITALIAN_LEAGUE_CUP_METADATA: CompetitionDataMetadata = {
       remark: '用于核对 1969-1976 各届冠亚军和两回合比分。'
     }
   ],
-  lastVerifiedAt: '2026-08-05',
+  lastVerifiedAt: '2026-08-10',
   notes: [
     '该赛事为意大利杯冠军与英格兰联赛杯冠军（1969-1971）或英格兰足总杯冠军（1975-1976）之间的两回合对抗赛。',
     '1972-1974 未举办，1976 后停办。',
-    '按用户约定，只录入当前数据库已存在俱乐部的荣誉，库外俱乐部对应名次留空并写入备注。',
-    '赛事按俱乐部其他二级杯赛处理，只记录冠军和亚军。'
+    '赛事按俱乐部其他二级杯赛处理，只记录冠军和亚军。',
+    '截至 2026-08-10，1969-1976 各届冠亚军已按当前口径完整录入。'
   ]
 };
 
@@ -43,7 +43,15 @@ export const ANGLO_ITALIAN_LEAGUE_CUP_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '1129', name: '佛罗伦萨', countryName: '意大利', confederationCode: 'UEFA' },
   { uid: '735', name: '西汉姆联', countryName: '英格兰', confederationCode: 'UEFA' },
   { uid: '1150', name: '那不勒斯', countryName: '意大利', confederationCode: 'UEFA' },
-  { uid: '713', name: '南安普顿', countryName: '英格兰', confederationCode: 'UEFA' }
+  { uid: '713', name: '南安普顿', countryName: '英格兰', confederationCode: 'UEFA' },
+  {
+    uid: '725',
+    name: '斯温登镇',
+    englishName: 'Swindon Town',
+    shortName: '斯温登镇',
+    countryName: '英格兰',
+    confederationCode: 'UEFA'
+  }
 ].map((club) => ({
   ...club,
   visibleInCatalog: false

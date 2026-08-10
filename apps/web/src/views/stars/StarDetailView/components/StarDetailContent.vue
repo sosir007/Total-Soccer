@@ -66,6 +66,13 @@ const displayCareers = computed<CareerRow[]>(() => {
         existing.assists = sumNullable(existing.assists, career.assists);
         existing.cleanSheets = sumNullable(existing.cleanSheets, career.cleanSheets);
         existing.goalsConceded = sumNullable(existing.goalsConceded, career.goalsConceded);
+        existing.position = resolveCareerPosition(
+          existing.position,
+          career.position,
+          career.positionGroup,
+          props.player.primaryRole,
+          props.player.positions
+        );
         existing.showInProfile = existing.showInProfile || career.showInProfile;
         existing.isRepresentative = existing.isRepresentative || career.isRepresentative;
         existing.isLegend = existing.isLegend || career.isLegend;
@@ -75,7 +82,13 @@ const displayCareers = computed<CareerRow[]>(() => {
 
       const row = {
         ...career,
-        periodText
+        periodText,
+        position: resolveCareerPosition(
+          career.position,
+          career.positionGroup,
+          props.player.primaryRole,
+          props.player.positions
+        )
       };
       clubRowById.set(clubId, row);
       rows.push(row);
@@ -84,7 +97,13 @@ const displayCareers = computed<CareerRow[]>(() => {
 
     rows.push({
       ...career,
-      periodText: formatCareerPeriod(career)
+      periodText: formatCareerPeriod(career),
+      position: resolveCareerPosition(
+        career.position,
+        career.positionGroup,
+        props.player.primaryRole,
+        props.player.positions
+      )
     });
   }
 
@@ -105,6 +124,18 @@ function sumNullable(left?: number | null, right?: number | null) {
   }
 
   return left + right;
+}
+
+function resolveCareerPosition(...values: Array<string | null | undefined>) {
+  for (const value of values) {
+    const text = (value ?? '').trim();
+
+    if (text) {
+      return text;
+    }
+  }
+
+  return null;
 }
 const playerTypeName = computed(() => props.player.playerTypeRef?.name || props.player.playerType);
 const honorProfileCount = computed(
