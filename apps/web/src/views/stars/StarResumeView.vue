@@ -53,6 +53,7 @@ import { useOptionStore } from '@/stores/options';
 import type { SelectOption } from '@/stores/options';
 import { formatEntityName } from '@/utils/entity-name';
 import { formatAwardRecipientPlacementDisplay } from '@/utils/award-display';
+import { formatHonorEditionLabel } from '@/utils/honor';
 import {
   getCompetitionCategoryVariant,
   getCompetitionLevelVariant,
@@ -1274,8 +1275,8 @@ function sortAwardRecipients(recipients: AwardRecipientRecord[]) {
 
     if (leftYear !== rightYear) return leftYear - rightYear;
 
-    return formatEditionShort(left.edition).localeCompare(
-      formatEditionShort(right.edition),
+    return formatCompetitionEditionLabel(left.edition).localeCompare(
+      formatCompetitionEditionLabel(right.edition),
       'zh-Hans-CN'
     );
   });
@@ -1284,7 +1285,8 @@ function sortAwardRecipients(recipients: AwardRecipientRecord[]) {
 function formatAwardGroupText(recipients: AwardRecipientRecord[]) {
   return sortAwardRecipients(recipients)
     .map(
-      (recipient) => `${formatEditionShort(recipient.edition)} ${formatAwardPlacement(recipient)}`
+      (recipient) =>
+        `${formatCompetitionEditionLabel(recipient.edition)} ${formatAwardPlacement(recipient)}`
     )
     .join('、');
 }
@@ -1294,7 +1296,7 @@ function formatAwardGroupRemark(recipients: AwardRecipientRecord[]) {
 }
 
 function formatAwardEditionOption(edition: AwardDetail['editions'][number]) {
-  const editionLabel = formatEditionShort(edition);
+  const editionLabel = formatCompetitionEditionLabel(edition);
   const competitionLabel = edition.competitionEdition?.competition
     ? formatEntityName(edition.competitionEdition.competition)
     : '';
@@ -1318,25 +1320,23 @@ function findCurrentPlayerAwardRecipient(edition: AwardDetail['editions'][number
 function formatStandingLabel(standing: TeamHonorStandingOption) {
   const team = standing.club?.name ?? standing.country?.name ?? '-';
   const competition = formatEntityName(standing.edition.competition);
-  const edition = formatEditionShort(standing.edition);
+  const edition = formatCompetitionEditionLabel(standing.edition);
 
   return `${team} / ${competition} / ${edition} / ${placementLabels[standing.placement]}`;
 }
 
 function formatStandingChoice(standing: TeamHonorStandingOption) {
-  const edition = formatEditionShort(standing.edition);
+  const edition = formatCompetitionEditionLabel(standing.edition);
 
   return `${edition} / ${placementLabels[standing.placement]}`;
 }
 
-function formatEditionShort(edition: {
+function formatCompetitionEditionLabel(edition: {
   season?: string | null;
   name?: string | null;
   year?: number | null;
 }) {
-  if (edition.year) return String(edition.year);
-
-  return String(edition.season || edition.name || '-').replace(/年$/, '');
+  return formatHonorEditionLabel(edition);
 }
 
 function formatPlayerCareerLabel(career: PlayerCareer) {
@@ -1387,7 +1387,7 @@ function formatTeamHonorGroupText(standings: TeamHonorStandingOption[]) {
   const placementGroups = new Map<CompetitionStandingPlacement, string[]>();
 
   standings.forEach((standing) => {
-    const edition = formatEditionShort(standing.edition);
+    const edition = formatCompetitionEditionLabel(standing.edition);
     const current = placementGroups.get(standing.placement) ?? [];
     current.push(edition);
     placementGroups.set(standing.placement, current);

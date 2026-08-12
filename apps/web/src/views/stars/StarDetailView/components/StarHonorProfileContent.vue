@@ -11,6 +11,7 @@ import type {
 import type { AwardRecipientRecord } from '@/services/types/awards';
 import { formatAwardRecipientPlacementDisplay } from '@/utils/award-display';
 import { formatEntityName } from '@/utils/entity-name';
+import { formatHonorEditionLabel } from '@/utils/honor';
 import { placementLabels } from '@/utils/honor';
 import { getConfederationVariant, getPlacementTextColor } from '@/utils/tag-theme';
 
@@ -30,6 +31,14 @@ type HonorLine = {
   placement: string;
   tone: PlacementTone;
   periods: HonorPeriod[];
+  sortYear: number;
+};
+type HonorSubjectGroup = {
+  key: string;
+  subjectType: HonorSubjectType;
+  subjectId: string;
+  subjectName: string;
+  placements: HonorLine[];
   sortYear: number;
 };
 type AchievementLine = {
@@ -55,6 +64,24 @@ type HonorGroup = {
   achievements: AchievementLine[];
   sortOrder: number;
 };
+type HonorGroupBase = Pick<
+  HonorGroup,
+  | 'key'
+  | 'type'
+  | 'teamId'
+  | 'teamName'
+  | 'countryName'
+  | 'federationName'
+  | 'period'
+  | 'appearances'
+  | 'goals'
+  | 'assists'
+  | 'sortOrder'
+>;
+type HonorGroupView = Omit<HonorGroup, 'trophies' | 'awards'> & {
+  trophies: HonorSubjectGroup[];
+  awards: HonorSubjectGroup[];
+};
 type GroupMeta = {
   countryName?: string | null;
   federationName?: string | null;
@@ -64,9 +91,9 @@ const props = defineProps<{
   player: PlayerDetail;
 }>();
 
-const honorGroups = computed(() => buildHonorGroups(props.player));
+const honorGroups = computed<HonorGroupView[]>(() => buildHonorGroups(props.player));
 
-function buildHonorGroups(player: PlayerDetail) {
+function buildHonorGroups(player: PlayerDetail): HonorGroupView[] {
   const groupMap = new Map<string, HonorGroup>();
   const personalGroup = ensurePersonalGroup(groupMap);
 
@@ -89,12 +116,14 @@ function buildHonorGroups(player: PlayerDetail) {
   }
 
   return [...groupMap.values()]
-    .map((group) => ({
-      ...group,
-      trophies: sortHonorLines(group.trophies),
-      awards: sortHonorLines(group.awards),
-      achievements: sortAchievementLines(group.achievements)
-    }))
+    .map(
+      (group): HonorGroupView => ({
+        ...group,
+        trophies: groupHonorLines(group.trophies),
+        awards: groupHonorLines(group.awards),
+        achievements: sortAchievementLines(group.achievements)
+      })
+    )
     .filter((group) => group.trophies.length || group.awards.length || group.achievements.length)
     .sort(
       (left, right) =>
@@ -250,8 +279,8 @@ function buildTeamHonorLine(honor: PlayerTeamHonor): HonorLine {
     key: `team-${competition.id}-${honor.standing.placement}`,
     subjectType: 'competition',
     subjectId: competition.id,
-    subjectName: formatEntityName(competition, true),
-    placement: shouldHidePlacement(placement) ? '' : placement,
+    subjectName: formatEntityName(competition),
+    placement,
     tone,
     periods: [period],
     sortYear: period.year ?? Number.MAX_SAFE_INTEGER
@@ -306,16 +335,63 @@ function sortAchievementLines(lines: AchievementLine[]) {
   );
 }
 
-function sortHonorLines(lines: HonorLine[]) {
-  return lines
+function groupHonorLines(lines: HonorLine[]) {
+  const map = new Map<string, HonorSubjectGroup>();
+
+  for (const line of lines) {
+    const key = `${line.subjectType}-${line.subjectId}`;
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, {
+        key,
+        subjectType: line.subjectType,
+        subjectId: line.subjectId,
+        subjectName: line.subjectName,
+        placements: [line],
+        sortYear: line.sortYear
+      });
+      continue;
+    }
+
+    existing.placements.push(line);
+    existing.sortYear = Math.min(existing.sortYear, line.sortYear);
+  }
+
+  return [...map.values()]
+    .map((group) => ({
+      ...group,
+      placements: sortHonorPlacements(group.placements)
+    }))
+    .sort((left, right) => {
+      if (left.sortYear !== right.sortYear) {
+        return left.sortYear - right.sortYear;
+      }
+
+      return left.subjectName.localeCompare(right.subjectName, 'zh-CN');
+    });
+}
+
+function sortHonorPlacements(lines: HonorLine[]) {
+  return [...lines]
     .map((line) => ({
       ...line,
       periods: sortPeriods(line.periods)
     }))
-    .sort(
-      (left, right) =>
-        left.sortYear - right.sortYear || left.subjectName.localeCompare(right.subjectName, 'zh-CN')
-    );
+    .sort((left, right) => {
+      const leftPlacement = placementSortValue(left);
+      const rightPlacement = placementSortValue(right);
+
+      if (leftPlacement !== rightPlacement) {
+        return leftPlacement - rightPlacement;
+      }
+
+      if (left.sortYear !== right.sortYear) {
+        return left.sortYear - right.sortYear;
+      }
+
+      return left.subjectName.localeCompare(right.subjectName, 'zh-CN');
+    });
 }
 
 function sortPeriods(periods: HonorPeriod[]) {
@@ -336,7 +412,7 @@ function buildTeamHonorPeriod(honor: PlayerTeamHonor): HonorPeriod {
   const edition = honor.standing.edition;
 
   return {
-    label: formatEditionShort(edition),
+    label: formatCompetitionEditionLabel(edition),
     year: edition.year ?? null,
     externalUrl: edition.externalUrl
   };
@@ -347,20 +423,18 @@ function buildAwardHonorPeriod(honor: AwardRecipientRecord): HonorPeriod {
   const competitionEdition = edition.competitionEdition;
 
   return {
-    label: formatEditionShort(edition),
+    label: formatCompetitionEditionLabel(edition),
     year: edition.year ?? competitionEdition?.year ?? null,
     externalUrl: honor.externalUrl ?? edition.externalUrl ?? competitionEdition?.externalUrl
   };
 }
 
-function formatEditionShort(edition: {
+function formatCompetitionEditionLabel(edition: {
   season?: string | null;
   name?: string | null;
   year?: number | null;
 }) {
-  if (edition.year) return String(edition.year);
-
-  return String(edition.season || edition.name || '-').replace(/年$/, '');
+  return formatHonorEditionLabel(edition);
 }
 
 function resolveSortYear(value?: string | null) {
@@ -374,30 +448,40 @@ function formatAwardPlacement(honor: AwardRecipientRecord) {
   const normalizedPlacement = normalizePlacementKey(placement);
   const normalizedSubject = normalizePlacementKey(formatEntityName(honor.edition.award, true));
 
-  if (
-    !normalizedPlacement ||
-    ['获奖', '优胜者', '入选', '第一名', '第1名'].includes(normalizedPlacement)
-  ) {
+  if (!normalizedPlacement || ['获奖', '优胜者', '入选'].includes(normalizedPlacement)) {
+    const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
+
     return {
-      text: '',
-      tone: 'champion' as const
+      text: defaultPlacement,
+      tone: resolveAwardPlacementTone(defaultPlacement)
     };
   }
 
-  if (normalizedSubject.includes(normalizedPlacement)) {
+  if (
+    normalizedSubject.includes(normalizedPlacement) &&
+    !shouldShowDuplicatedAwardPlacement(placement)
+  ) {
+    const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
+
     return {
-      text: '',
-      tone: 'champion' as const
+      text: defaultPlacement,
+      tone: resolveAwardPlacementTone(defaultPlacement)
     };
   }
 
   if (normalizedPlacement.startsWith('并列')) {
     const withoutSharedPrefix = normalizedPlacement.replace(/^并列/, '');
 
-    if (withoutSharedPrefix && normalizedSubject.includes(withoutSharedPrefix)) {
+    if (
+      withoutSharedPrefix &&
+      normalizedSubject.includes(withoutSharedPrefix) &&
+      !shouldShowDuplicatedAwardPlacement(withoutSharedPrefix)
+    ) {
+      const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
+
       return {
-        text: '',
-        tone: 'champion' as const
+        text: defaultPlacement,
+        tone: resolveAwardPlacementTone(defaultPlacement)
       };
     }
   }
@@ -406,6 +490,43 @@ function formatAwardPlacement(honor: AwardRecipientRecord) {
     text: placement,
     tone: resolveAwardPlacementTone(placement)
   };
+}
+
+function resolveDefaultAwardPlacement(normalizedSubject: string) {
+  if (normalizedSubject.includes('金球奖') || normalizedSubject.includes('金球')) {
+    return '金球奖';
+  }
+
+  if (normalizedSubject.includes('银球奖') || normalizedSubject.includes('银球')) {
+    return '银球奖';
+  }
+
+  if (normalizedSubject.includes('铜球奖') || normalizedSubject.includes('铜球')) {
+    return '铜球奖';
+  }
+
+  return '第一名';
+}
+
+function shouldShowDuplicatedAwardPlacement(placement: string) {
+  const normalized = normalizePlacementKey(placement);
+
+  return [
+    '金球奖',
+    '金球',
+    '银球奖',
+    '银球',
+    '银奖',
+    '铜球奖',
+    '铜球',
+    '铜奖',
+    '第一名',
+    '第1名',
+    '第二名',
+    '第2名',
+    '第三名',
+    '第3名'
+  ].includes(normalized);
 }
 
 function resolveAwardPlacementTone(placement: string): PlacementTone {
@@ -439,15 +560,10 @@ function resolveTeamPlacementTone(placement: keyof typeof placementLabels | stri
   return 'champion';
 }
 
-function shouldHidePlacement(placement?: string | null) {
-  const normalized = normalizePlacementKey(placement);
-
-  return ['冠军', '第一名', '第1名', '获奖', '优胜者', '入选'].includes(normalized);
-}
-
 function getLineStyle(line: HonorLine) {
   return {
-    '--honor-placement-color': getHonorLineColor(line.tone)
+    '--honor-placement-color': getHonorLineColor(line.tone),
+    color: getHonorLineColor(line.tone)
   };
 }
 
@@ -467,7 +583,48 @@ function formatLineCount(line: HonorLine) {
   return line.periods.length > 1 ? `${line.periods.length}次` : '';
 }
 
-function fillGroupMeta(group: HonorGroup, meta: GroupMeta) {
+function placementSortValue(line: HonorLine) {
+  const normalized = normalizePlacementKey(line.placement);
+
+  if (line.subjectType === 'award') {
+    const order: Record<string, number> = {
+      金球奖: 1,
+      金球: 1,
+      银球奖: 2,
+      银球: 2,
+      银奖: 2,
+      铜球奖: 3,
+      铜球: 3,
+      铜奖: 3,
+      第一名: 4,
+      第1名: 4,
+      第二名: 5,
+      第2名: 5,
+      第三名: 6,
+      第3名: 6,
+      第四名: 7,
+      第4名: 7
+    };
+
+    if (['获奖', '优胜者', '入选'].includes(normalized)) {
+      return 4;
+    }
+
+    return order[normalized] ?? 99;
+  }
+
+  const order: Record<string, number> = {
+    冠军: 1,
+    亚军: 2,
+    季军: 3,
+    殿军: 4,
+    四强: 5
+  };
+
+  return order[normalized] ?? 99;
+}
+
+function fillGroupMeta(group: HonorGroupBase, meta: GroupMeta) {
   group.countryName = group.countryName || meta.countryName || null;
   group.federationName = group.federationName || meta.federationName || null;
 }
@@ -478,15 +635,15 @@ function formatOptionalEntityName(
   return ref ? formatEntityName(ref, true) : null;
 }
 
-function getGroupCountryVariant(group: HonorGroup) {
+function getGroupCountryVariant(group: HonorGroupBase) {
   return getConfederationVariant(group.federationName);
 }
 
-function getGroupTypeVariant(group: HonorGroup) {
+function getGroupTypeVariant(group: HonorGroupBase) {
   return group.type === 'club' ? 'object-club' : 'object-country';
 }
 
-function getGroupTypeLabel(group: HonorGroup) {
+function getGroupTypeLabel(group: HonorGroupBase) {
   return group.type === 'club' ? '俱乐部' : '国家队';
 }
 
@@ -512,7 +669,7 @@ function isCareerInYear(career: PlayerCareer, year?: number | null) {
   return year >= start && year <= end;
 }
 
-function formatCareerStats(group: HonorGroup) {
+function formatCareerStats(group: HonorGroupBase) {
   const values = [group.appearances, group.goals, group.assists].filter(
     (value) => value !== null && value !== undefined
   );
@@ -520,14 +677,14 @@ function formatCareerStats(group: HonorGroup) {
   return values.length ? values.join('/') : '';
 }
 
-function formatGroupMeta(group: HonorGroup) {
+function formatGroupMeta(group: HonorGroupBase) {
   const period = group.period ? `（${group.period}）` : '';
   const stats = formatCareerStats(group);
 
   return `${period}${stats}`;
 }
 
-function hasGroupMeta(group: HonorGroup) {
+function hasGroupMeta(group: HonorGroupBase) {
   return Boolean(formatGroupMeta(group));
 }
 </script>
@@ -577,38 +734,53 @@ function hasGroupMeta(group: HonorGroup) {
       <div v-if="group.trophies.length" class="honor-profile-block">
         <div class="honor-profile-block__title">奖杯</div>
         <ul class="honor-profile-list">
-          <li
-            v-for="line in group.trophies"
-            :key="line.key"
-            class="honor-profile-line"
-            :style="getLineStyle(line)"
-          >
-            <span class="honor-profile-periods">
-              <template
-                v-for="(period, index) in line.periods"
-                :key="`${line.key}-${period.label}-${index}`"
-              >
-                <a
-                  v-if="period.externalUrl"
-                  class="external-text-link"
-                  :href="period.externalUrl"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {{ period.label }}
-                </a>
-                <span v-else>{{ period.label }}</span>
-                <span v-if="index < line.periods.length - 1">、</span>
-              </template>
-            </span>
+          <li v-for="subject in group.trophies" :key="subject.key" class="honor-profile-line">
             <span class="honor-profile-subject-wrap">
-              <span v-if="formatLineCount(line)" class="honor-profile-count">
-                {{ formatLineCount(line) }}
-              </span>
-              <EntityLink :id="line.subjectId" :type="line.subjectType" :name="line.subjectName" />
+              <EntityLink
+                :id="subject.subjectId"
+                :type="subject.subjectType"
+                :name="subject.subjectName"
+              />
+              <span class="honor-profile-subject-sep">：</span>
             </span>
-            <span v-if="line.placement" class="honor-profile-placement">
-              {{ line.placement }}
+            <span class="honor-profile-placements">
+              <span
+                v-for="(line, lineIndex) in subject.placements"
+                :key="line.key"
+                class="honor-profile-placement-line"
+                :style="getLineStyle(line)"
+              >
+                <span class="honor-profile-periods">
+                  <template
+                    v-for="(period, periodIndex) in line.periods"
+                    :key="`${line.key}-${period.label}-${periodIndex}`"
+                  >
+                    <a
+                      v-if="period.externalUrl"
+                      class="external-text-link"
+                      :href="period.externalUrl"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {{ period.label }}
+                    </a>
+                    <span v-else>{{ period.label }}</span>
+                    <span v-if="periodIndex < line.periods.length - 1">、</span>
+                  </template>
+                </span>
+                <template v-if="formatLineCount(line)">
+                  <span class="honor-profile-count">{{ formatLineCount(line) }}</span
+                  ><span v-if="line.placement" class="honor-profile-placement is-attached">
+                    {{ line.placement }}
+                  </span>
+                </template>
+                <span v-else-if="line.placement" class="honor-profile-placement">
+                  {{ line.placement }}
+                </span>
+                <span v-if="lineIndex < subject.placements.length - 1" class="honor-profile-sep">
+                  ，
+                </span>
+              </span>
             </span>
           </li>
         </ul>
@@ -617,38 +789,53 @@ function hasGroupMeta(group: HonorGroup) {
       <div v-if="group.awards.length" class="honor-profile-block">
         <div class="honor-profile-block__title">奖项</div>
         <ul class="honor-profile-list">
-          <li
-            v-for="line in group.awards"
-            :key="line.key"
-            class="honor-profile-line"
-            :style="getLineStyle(line)"
-          >
-            <span class="honor-profile-periods">
-              <template
-                v-for="(period, index) in line.periods"
-                :key="`${line.key}-${period.label}-${index}`"
-              >
-                <a
-                  v-if="period.externalUrl"
-                  class="external-text-link"
-                  :href="period.externalUrl"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {{ period.label }}
-                </a>
-                <span v-else>{{ period.label }}</span>
-                <span v-if="index < line.periods.length - 1">、</span>
-              </template>
-            </span>
+          <li v-for="subject in group.awards" :key="subject.key" class="honor-profile-line">
             <span class="honor-profile-subject-wrap">
-              <span v-if="formatLineCount(line)" class="honor-profile-count">
-                {{ formatLineCount(line) }}
-              </span>
-              <EntityLink :id="line.subjectId" :type="line.subjectType" :name="line.subjectName" />
+              <EntityLink
+                :id="subject.subjectId"
+                :type="subject.subjectType"
+                :name="subject.subjectName"
+              />
+              <span class="honor-profile-subject-sep">：</span>
             </span>
-            <span v-if="line.placement" class="honor-profile-placement">
-              {{ line.placement }}
+            <span class="honor-profile-placements">
+              <span
+                v-for="(line, lineIndex) in subject.placements"
+                :key="line.key"
+                class="honor-profile-placement-line"
+                :style="getLineStyle(line)"
+              >
+                <span class="honor-profile-periods">
+                  <template
+                    v-for="(period, periodIndex) in line.periods"
+                    :key="`${line.key}-${period.label}-${periodIndex}`"
+                  >
+                    <a
+                      v-if="period.externalUrl"
+                      class="external-text-link"
+                      :href="period.externalUrl"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {{ period.label }}
+                    </a>
+                    <span v-else>{{ period.label }}</span>
+                    <span v-if="periodIndex < line.periods.length - 1">、</span>
+                  </template>
+                </span>
+                <template v-if="formatLineCount(line)">
+                  <span class="honor-profile-count">{{ formatLineCount(line) }}</span
+                  ><span v-if="line.placement" class="honor-profile-placement is-attached">
+                    {{ line.placement }}
+                  </span>
+                </template>
+                <span v-else-if="line.placement" class="honor-profile-placement">
+                  {{ line.placement }}
+                </span>
+                <span v-if="lineIndex < subject.placements.length - 1" class="honor-profile-sep">
+                  ，
+                </span>
+              </span>
             </span>
           </li>
         </ul>
@@ -768,7 +955,7 @@ function hasGroupMeta(group: HonorGroup) {
   gap: 4px;
   align-items: baseline;
   padding-left: 13px;
-  color: var(--honor-placement-color);
+  color: var(--text-color-regular);
   font-size: 14px;
   font-weight: 750;
   line-height: 1.7;
@@ -797,6 +984,34 @@ function hasGroupMeta(group: HonorGroup) {
   display: inline-flex;
   gap: 0;
   align-items: baseline;
+  color: var(--color-brand-primary);
+  font-weight: 800;
+}
+
+.honor-profile-subject-wrap :deep(.entity-link),
+.honor-profile-subject-wrap :deep(.entity-link-text) {
+  color: var(--color-brand-primary) !important;
+}
+
+.honor-profile-placements {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: baseline;
+  margin-left: 4px;
+}
+
+.honor-profile-placement-line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: baseline;
+}
+
+.honor-profile-subject-sep,
+.honor-profile-sep {
+  color: #666;
+  font-weight: 700;
 }
 
 .honor-profile-periods {
@@ -808,5 +1023,17 @@ function hasGroupMeta(group: HonorGroup) {
 .honor-profile-placement {
   color: inherit;
   font-weight: 750;
+}
+
+.honor-profile-count {
+  margin-left: 4px;
+}
+
+.honor-profile-placement {
+  margin-left: 4px;
+}
+
+.honor-profile-placement.is-attached {
+  margin-left: 0;
 }
 </style>

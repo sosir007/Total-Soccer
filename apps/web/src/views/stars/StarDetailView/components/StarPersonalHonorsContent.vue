@@ -2,6 +2,7 @@
 import EntityNameCell from '@/components/EntityNameCell.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
 import { buildExternalUrl } from '@/utils/external-link';
+import { formatHonorEditionLabel } from '@/utils/honor';
 import { formatEntityName } from '@/utils/entity-name';
 import { formatAwardRecipientPlacementDisplay } from '@/utils/award-display';
 
@@ -16,7 +17,7 @@ function formatText(value?: string | number | null) {
 }
 
 function formatAwardEdition(honor: PersonalHonor) {
-  return honor.edition.season || honor.edition.name || honor.edition.year || '-';
+  return formatHonorEditionLabel(honor.edition);
 }
 
 function formatAwardPlacement(honor: PersonalHonor) {
