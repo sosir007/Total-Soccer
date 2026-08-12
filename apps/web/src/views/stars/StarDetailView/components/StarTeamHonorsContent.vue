@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EntityLink from '@/components/EntityLink.vue';
 import type { PlayerDetail } from '@/services/types/catalog';
+import { formatHonorEditionLabel } from '@/utils/honor';
 import { formatEntityName } from '@/utils/entity-name';
 
 type TeamHonor = NonNullable<PlayerDetail['teamHonors']>[number];
@@ -22,20 +23,10 @@ function formatText(value?: string | number | null) {
 }
 
 function formatTeamHonor(row: TeamHonor) {
-  const edition = formatEditionShort(row.standing.edition);
+  const edition = formatHonorEditionLabel(row.standing.edition);
   const placement = placementLabels[row.standing.placement] ?? row.standing.placement;
 
   return `${edition} / ${placement}`;
-}
-
-function formatEditionShort(edition: {
-  season?: string | null;
-  name?: string | null;
-  year?: number | null;
-}) {
-  if (edition.year) return String(edition.year);
-
-  return String(edition.season || edition.name || '-').replace(/年$/, '');
 }
 
 function getTeamType(row: TeamHonor) {

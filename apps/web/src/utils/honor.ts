@@ -22,8 +22,24 @@ export function formatHonorSubject(ref?: NamedRef | null) {
   return ref?.name ?? '-';
 }
 
+export function formatHonorEditionLabel(
+  edition?: {
+    season?: string | null;
+    name?: string | null;
+    year?: number | null;
+  } | null
+) {
+  if (!edition) {
+    return '-';
+  }
+
+  return normalizeHonorEditionLabel(
+    edition.season || edition.name || (edition.year ? String(edition.year) : '-')
+  );
+}
+
 export function formatHonorEdition(record: HonorRecord) {
-  return record.edition.season || record.edition.name;
+  return formatHonorEditionLabel(record.edition);
 }
 
 export function getStandingName(record: HonorRecord, placement: CompetitionStandingPlacement) {
@@ -48,4 +64,8 @@ export function getCountryEntityLinkId(ref?: NamedRef | null) {
 
 export function shouldHideCountryLink(ref?: NamedRef | null) {
   return Boolean(ref?.isHistorical && !ref?.detailRedirectCountryId);
+}
+
+function normalizeHonorEditionLabel(value: string) {
+  return value.replace(/\s*年$/, '');
 }
