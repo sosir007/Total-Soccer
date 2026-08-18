@@ -69,6 +69,7 @@ export interface HonorSummaryDetail {
   placementScore?: number | null;
   qualityCoefficient?: number | null;
   conversionCoefficient?: number | null;
+  combinationCoefficient?: number | null;
   ruleName?: string | null;
 }
 
@@ -426,6 +427,7 @@ export interface PlayerHonorScoreDetail {
   placementScore: number;
   qualityCoefficient: number;
   conversionCoefficient: number;
+  combinationCoefficient?: number | null;
   ruleName: string;
   externalUrl?: string | null;
   sourceName?: string | null;

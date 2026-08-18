@@ -215,6 +215,10 @@ function getHonorListColumnWidth(group: string, column: PlayerHonorListColumn) {
     return 300;
   }
 
+  if (group === '国内杯赛' && ['domesticCupTrophy', 'domesticCupAward'].includes(column.key)) {
+    return 300;
+  }
+
   return 240;
 }
 
@@ -286,7 +290,16 @@ function formatScoreDetailFormula(detail: PlayerHonorScoreDetail) {
     return formatScore(detail.score);
   }
 
-  return ` ${formatScore(detail.placementScore)} × ${formatScore(detail.qualityCoefficient)} × ${formatScore(detail.conversionCoefficient)} = ${formatScore(detail.score)}`;
+  const factors = [
+    detail.placementScore,
+    detail.qualityCoefficient,
+    detail.conversionCoefficient,
+    detail.combinationCoefficient && detail.combinationCoefficient !== 1
+      ? detail.combinationCoefficient
+      : null
+  ].filter((factor): factor is number => factor !== null && factor !== undefined);
+
+  return ` ${factors.map((factor) => formatScore(factor)).join(' × ')} = ${formatScore(detail.score)}`;
 }
 
 function isSingleSummaryColumnGroup(group: { group: string; columns: PlayerHonorSummaryColumn[] }) {
@@ -791,7 +804,7 @@ onMounted(() => {
               </template>
             </el-table-column>
 
-            <el-table-column label="球队" width="300" show-overflow-tooltip>
+            <el-table-column label="球队" width="310" show-overflow-tooltip>
               <template #default="{ row }">
                 <div v-if="row.trophyClubs.length" class="honor-team-list">
                   <template v-for="(team, index) in row.trophyClubs" :key="`${team.id}-${index}`">
@@ -799,7 +812,7 @@ onMounted(() => {
                       :id="team.id"
                       class="honor-team-tag-link"
                       type="club"
-                      :name="formatEntityName(team)"
+                      :name="formatEntityName(team, true)"
                       :title="formatTeamTagLabel(team)"
                     >
                       <SemanticTag
@@ -807,7 +820,7 @@ onMounted(() => {
                         :variant="getTeamTagVariant(team)"
                         size="small"
                       >
-                        {{ formatTeamTagLabel(team) }}
+                        {{ formatEntityName(team, true) }}{{ formatTeamPeriod(team.period) }}
                       </SemanticTag>
                     </EntityLink>
                   </template>
@@ -984,10 +997,12 @@ onMounted(() => {
 }
 
 .honor-team-tag-link {
-  max-width: 160px;
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 0 auto;
 }
 
 .honor-team-tag {
-  max-width: 160px;
+  max-width: none;
 }
 </style>

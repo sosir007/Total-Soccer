@@ -456,6 +456,7 @@ type PlayerHonorScoreDetail = {
   placementScore: number;
   qualityCoefficient: number;
   conversionCoefficient: number;
+  combinationCoefficient: number;
   ruleName: string;
   externalUrl: string | null;
   sourceName: string | null;
@@ -2377,6 +2378,14 @@ export class PlayersService {
       }
     }
 
+    if (award.code === 'FIFA_WORLD_CUP_GOLDEN_BOOT') {
+      const specialLabel = this.resolveWorldCupGoldenBootLabel(recipient);
+
+      if (specialLabel) {
+        return `世界杯${specialLabel}`;
+      }
+    }
+
     return this.formatEntityDisplayName(award);
   }
 
@@ -2392,6 +2401,22 @@ export class PlayersService {
     if (['第一名', '第1名', '1', '金球奖'].includes(normalizedPlacement)) return '金球奖';
     if (['第二名', '第2名', '2', '银球奖'].includes(normalizedPlacement)) return '银球奖';
     if (['第三名', '第3名', '3', '铜球奖'].includes(normalizedPlacement)) return '铜球奖';
+
+    return null;
+  }
+
+  private resolveWorldCupGoldenBootLabel(
+    recipient: Pick<PlayerAwardRecipientRecord, 'rank' | 'placement'>
+  ) {
+    if (recipient.rank === 1) return '金靴奖';
+    if (recipient.rank === 2) return '银靴奖';
+    if (recipient.rank === 3) return '铜靴奖';
+
+    const normalizedPlacement = (recipient.placement ?? '').replace(/\s+/g, '').trim();
+
+    if (['第一名', '第1名', '1', '金靴奖'].includes(normalizedPlacement)) return '金靴奖';
+    if (['第二名', '第2名', '2', '银靴奖'].includes(normalizedPlacement)) return '银靴奖';
+    if (['第三名', '第3名', '3', '铜靴奖'].includes(normalizedPlacement)) return '铜靴奖';
 
     return null;
   }
@@ -2551,7 +2576,7 @@ export class PlayersService {
       });
     }
 
-    return this.dedupeHonorTeamRefs(clubs);
+    return this.mergeHonorTeamRefs(clubs);
   }
 
   private dedupeHonorTeamRefs<
@@ -2568,6 +2593,53 @@ export class PlayersService {
     }
 
     return [...uniqueRefs.values()];
+  }
+
+  private mergeHonorTeamRefs<
+    T extends { id: string | null; name: string | null; period: string | null }
+  >(refs: T[]) {
+    const uniqueRefs = new Map<string, T & { periods: string[] }>();
+
+    for (const ref of refs) {
+      if (!ref.name) {
+        continue;
+      }
+
+      const key = ref.id ?? ref.name;
+      const existing = uniqueRefs.get(key);
+      const period = ref.period?.trim();
+
+      if (!existing) {
+        uniqueRefs.set(key, {
+          ...ref,
+          periods: period ? [period] : []
+        });
+        continue;
+      }
+
+      if (period && !existing.periods.includes(period)) {
+        existing.periods.push(period);
+      }
+    }
+
+    return [...uniqueRefs.values()].map((ref) => ({
+      ...ref,
+      period: this.mergeHonorPeriods(ref.periods)
+    }));
+  }
+
+  private mergeHonorPeriods(periods: string[]) {
+    const uniquePeriods = [...new Set(periods.filter(Boolean))];
+
+    return (
+      uniquePeriods
+        .sort(
+          (left, right) =>
+            this.resolveSortYear(left) - this.resolveSortYear(right) ||
+            left.localeCompare(right, 'zh-CN')
+        )
+        .join('、') || null
+    );
   }
 
   private formatCompactCareerPeriod(career: {
@@ -2644,6 +2716,7 @@ export class PlayersService {
         placementScore: baseScore,
         qualityCoefficient: 1,
         conversionCoefficient: capped && score === 0 ? 0 : this.round(score / baseScore || 0),
+        combinationCoefficient: 1,
         ruleName: capped ? `个人成就（最高${PLAYER_ACHIEVEMENT_SCORE_CAP}分封顶）` : '个人成就',
         externalUrl: honor.externalUrl ?? null,
         sourceName: null
@@ -2703,6 +2776,7 @@ export class PlayersService {
           placementScore: rule.baseScore,
           qualityCoefficient: rule.coefficient,
           conversionCoefficient: eventCoefficient,
+          combinationCoefficient: 1,
           ruleName: rule.name,
           externalUrl:
             recipient.externalUrl ??
@@ -2723,15 +2797,15 @@ export class PlayersService {
     let total = 0;
 
     for (const award of scoredAwards) {
-      const score =
-        this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey)
-          ? award.score * 0.5
-          : award.score;
+      const combinationCoefficient =
+        this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey) ? 0.5 : 1;
+      const score = award.score * combinationCoefficient;
 
       scores[award.scoreKey] = this.round(scores[award.scoreKey] + score);
       scoreDetails[award.scoreKey].push({
         ...award.detail,
-        score: this.round(score)
+        score: this.round(score),
+        combinationCoefficient
       });
       total += score;
     }
@@ -2772,6 +2846,7 @@ export class PlayersService {
         placementScore: scoreDetail.placementScore,
         qualityCoefficient: scoreDetail.qualityCoefficient,
         conversionCoefficient: scoreDetail.conversionCoefficient,
+        combinationCoefficient: 1,
         ruleName: scoreDetail.ruleName,
         externalUrl: standing.edition.externalUrl ?? null,
         sourceName: standing.club?.name ?? standing.country?.name ?? null
