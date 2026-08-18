@@ -131,6 +131,11 @@ const editionDialogTitle = computed(() => (editingEdition.value ? '编辑奖项�
 const sortedEditions = computed(() =>
   [...(selectedAward.value?.editions ?? [])].sort(compareAwardEditions)
 );
+const lineupAwardLayout = computed(
+  () =>
+    selectedAward.value?.targetType === 'PLAYER' &&
+    Boolean(selectedAward.value?.category?.includes('阵容奖'))
+);
 const rankedAwardLayout = computed(() =>
   sortedEditions.value.some((edition) =>
     (edition.recipients ?? []).some((recipient) => isRankedRecipient(recipient))
@@ -973,7 +978,8 @@ onMounted(() => {
 
         <AwardEditionsPanel
           :editions="sortedEditions"
-          :ranked-layout="rankedAwardLayout"
+          :ranked-layout="rankedAwardLayout && !lineupAwardLayout"
+          :lineup-layout="lineupAwardLayout"
           :rank-column-labels="rankColumnLabels"
           :format-edition-recipients="formatEditionRecipients"
           :format-recipient-placement="formatRecipientPlacement"

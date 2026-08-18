@@ -296,7 +296,7 @@ function buildAwardHonorLine(honor: AwardRecipientRecord): HonorLine {
     key: `award-${award.id}-${normalizePlacementKey(placementInfo.text)}`,
     subjectType: 'award',
     subjectId: award.id,
-    subjectName: formatEntityName(award, true),
+    subjectName: formatEntityName(award),
     placement: placementInfo.text,
     tone: placementInfo.tone,
     periods: [period],
@@ -446,7 +446,7 @@ function resolveSortYear(value?: string | null) {
 function formatAwardPlacement(honor: AwardRecipientRecord) {
   const placement = formatAwardRecipientPlacementDisplay(honor.edition.award, honor, '');
   const normalizedPlacement = normalizePlacementKey(placement);
-  const normalizedSubject = normalizePlacementKey(formatEntityName(honor.edition.award, true));
+  const normalizedSubject = normalizePlacementKey(formatEntityName(honor.edition.award));
 
   if (!normalizedPlacement || ['获奖', '优胜者', '入选'].includes(normalizedPlacement)) {
     const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
@@ -532,12 +532,16 @@ function shouldShowDuplicatedAwardPlacement(placement: string) {
 function resolveAwardPlacementTone(placement: string): PlacementTone {
   const normalized = normalizePlacementKey(placement);
 
-  if (['亚军', '第二名', '第2名', '银球奖', '银奖'].includes(normalized)) {
+  if (['亚军', '第二名', '第2名', '银球奖', '银奖', '银靴奖', '银靴'].includes(normalized)) {
     return 'runner-up';
   }
 
-  if (['季军', '第三名', '第3名', '铜球奖', '铜奖'].includes(normalized)) {
+  if (['季军', '第三名', '第3名', '铜球奖', '铜奖', '铜靴奖', '铜靴'].includes(normalized)) {
     return 'third-place';
+  }
+
+  if (['冠军', '第一名', '第1名', '金球奖', '金奖', '金靴奖', '金靴'].includes(normalized)) {
+    return 'champion';
   }
 
   if (['殿军', '第四名', '第4名'].includes(normalized)) {

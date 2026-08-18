@@ -7,6 +7,7 @@ import NoDataView from '@/components/NoDataView.vue';
 import { formatEntityName } from '@/utils/entity-name';
 
 type RecipientRankColumn = 1 | 2 | 3;
+type LineupPositionColumn = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
 
 type RecipientStatEntry = {
   label: string;
@@ -23,10 +24,17 @@ type RecipientStatRow = {
 };
 
 const rankColumns: RecipientRankColumn[] = [1, 2, 3];
+const lineupColumns: Array<{ key: LineupPositionColumn; label: string; minWidth: number }> = [
+  { key: 'goalkeeper', label: '门将', minWidth: 150 },
+  { key: 'defender', label: '后卫', minWidth: 220 },
+  { key: 'midfielder', label: '中场', minWidth: 220 },
+  { key: 'forward', label: '前锋', minWidth: 220 }
+];
 
 const props = defineProps<{
   editions: AwardEdition[];
   rankedLayout: boolean;
+  lineupLayout?: boolean;
   rankColumnLabels?: Partial<Record<RecipientRankColumn, string>>;
   formatEditionRecipients: (edition: AwardEdition) => string;
   formatRecipientPlacement: (recipient: NonNullable<AwardEdition['recipients']>[number]) => string;
@@ -41,6 +49,69 @@ const statisticsRows = computed(() => buildStatisticsRows(props.editions));
 
 function getRecipientByRank(edition: AwardEdition, rank: RecipientRankColumn) {
   return edition.recipients?.find((recipient) => getRecipientRank(recipient) === rank) ?? null;
+}
+
+function getLineupRecipients(edition: AwardEdition, column: LineupPositionColumn) {
+  return (
+    edition.recipients?.filter((recipient) => resolveLineupPositionColumn(recipient) === column) ??
+    []
+  );
+}
+
+function resolveLineupPositionColumn(
+  recipient: AwardEditionRecipient
+): LineupPositionColumn | null {
+  const primaryRoleColumn = classifyPositionText(recipient.player?.primaryRole);
+
+  if (primaryRoleColumn) {
+    return primaryRoleColumn;
+  }
+
+  return classifyPositionText(recipient.player?.positions);
+}
+
+function classifyPositionText(positionText?: string | null): LineupPositionColumn | null {
+  const positions = splitPositionText(positionText);
+
+  if (!positions.length) {
+    return null;
+  }
+
+  if (positions.some((position) => ['GK', 'GOALKEEPER'].includes(position))) {
+    return 'goalkeeper';
+  }
+
+  if (
+    positions.some((position) =>
+      ['DC', 'DL', 'DR', 'DLC', 'DRC', 'WBL', 'WBR', 'SW', 'CB', 'LB', 'RB'].includes(position)
+    )
+  ) {
+    return 'defender';
+  }
+
+  if (
+    positions.some((position) =>
+      ['DMC', 'MC', 'AMC', 'ML', 'MR', 'AML', 'AMR', 'DM', 'CM', 'AM', 'LM', 'RM'].includes(
+        position
+      )
+    )
+  ) {
+    return 'midfielder';
+  }
+
+  if (positions.some((position) => ['ST', 'FC', 'CF', 'FW', 'F'].includes(position))) {
+    return 'forward';
+  }
+
+  return null;
+}
+
+function splitPositionText(positionText?: string | null) {
+  return (positionText ?? '')
+    .toUpperCase()
+    .split(/[\s,，、/|]+/)
+    .map((position) => position.trim())
+    .filter(Boolean);
 }
 
 function getRankColumnLabel(rank: RecipientRankColumn) {
@@ -256,6 +327,49 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
     </div>
 
     <NoDataView v-if="!editions.length" text="暂无奖项年份" />
+
+    <el-table v-else-if="lineupLayout" :data="editions" border>
+      <el-table-column label="序号" width="60" align="center">
+        <template #default="{ $index }">{{ $index + 1 }}</template>
+      </el-table-column>
+      <el-table-column label="年份" width="100" sortable>
+        <template #default="{ row }">{{ formatEditionYear(row) }}</template>
+      </el-table-column>
+      <el-table-column
+        v-for="column in lineupColumns"
+        :key="column.key"
+        :label="column.label"
+        :min-width="column.minWidth"
+        show-overflow-tooltip
+      >
+        <template #default="{ row }">
+          <div
+            v-if="getLineupRecipients(row, column.key).length"
+            class="inline-entity-list lineup-entity-list"
+          >
+            <EntityLink
+              v-for="recipient in getLineupRecipients(row, column.key)"
+              :id="recipient.player?.id"
+              :key="recipient.id"
+              type="player"
+              :name="recipient.player?.chineseName"
+            />
+          </div>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.remark || '-' }}</template>
+      </el-table-column>
+      <el-table-column label="操作" width="90" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="emit('edit', row)">
+            <IconFont name="edit" />
+            编辑
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
 
     <el-table v-else-if="rankedLayout" :data="editions" border>
       <el-table-column label="序号" width="60" align="center">
@@ -489,6 +603,11 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
   }
 }
 
+.lineup-entity-list {
+  align-items: center;
+  gap: 8px 12px;
+}
+
 .edition-statistics {
   display: grid;
   gap: 12px;
@@ -527,7 +646,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
   }
 
   :deep(.rank-second) {
-    color: var(--text-color-primary);
+    color: var(--tag-placement-runner-up-text);
   }
 
   :deep(.rank-third) {

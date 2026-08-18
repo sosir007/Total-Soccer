@@ -15,6 +15,13 @@ const SOUTH_AMERICAN_FOOTBALLER_EXTERNAL_URL =
 const FIFA_WORLD_CUP_GOLDEN_BALL_AWARD_CODE = 'FIFA_WORLD_CUP_GOLDEN_BALL';
 const FIFA_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/FIFA_World_Cup_awards#Golden_Ball';
+const FIFA_WORLD_CUP_GOLDEN_BOOT_AWARD_CODE = 'FIFA_WORLD_CUP_GOLDEN_BOOT';
+const FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/FIFA_World_Cup_awards#Golden_Boot';
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_AWARD_CODE = 'FIFA_WORLD_CUP_ALL_STAR_TEAM';
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL =
+  'https://fbref.com/en/awards/wc_all_star/FIFA-World-Cup-All-Star-Team';
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_DATA_UPDATED_AT = new Date('2026-08-18T00:00:00.000Z');
 const FIFA_WORLD_CUP_BEST_YOUNG_PLAYER_AWARD_CODE = 'FIFA_WORLD_CUP_BEST_YOUNG_PLAYER';
 const FIFA_WORLD_CUP_BEST_YOUNG_PLAYER_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/FIFA_World_Cup_awards#Best_Young_Player_Award';
@@ -53,6 +60,28 @@ const NASL_ASSISTS_LEADER_EXTERNAL_URL = 'https://www.statscrew.com/soccer/leade
 const NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE = 'NORTH_AMERICAN_SOCCER_LEAGUE_1968_1984';
 
 const PELE_NAME_KEYWORD = '贝利';
+const MARADONA_NAME_KEYWORD = '马拉多纳';
+
+type FIFAWorldCupGoldenBallSeed = {
+  year: number;
+  rank: number;
+  placement: string;
+  remark: string;
+  editionRemark?: string;
+};
+
+type FIFAWorldCupGoldenBootSeed = {
+  year: number;
+  rank: number;
+  placement: string;
+  remark: string;
+};
+
+type FIFAWorldCupAllStarTeamSeed = {
+  year: number;
+  placement: string;
+  remark: string;
+};
 
 const SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS = [
   {
@@ -69,20 +98,72 @@ const SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS = [
   }
 ] as const;
 
+const FIFA_WORLD_CUP_GOLDEN_BALL_MARADONA_RESULTS: FIFAWorldCupGoldenBallSeed[] = [
+  {
+    year: 1986,
+    rank: 1,
+    placement: '第一名',
+    remark: '1986年世界杯金球奖，阿根廷夺冠核心。'
+  },
+  {
+    year: 1990,
+    rank: 3,
+    placement: '第三名',
+    remark: '1990年世界杯铜球奖。'
+  }
+];
+
+const FIFA_WORLD_CUP_GOLDEN_BOOT_MARADONA_RESULTS: FIFAWorldCupGoldenBootSeed[] = [
+  {
+    year: 1986,
+    rank: 2,
+    placement: '银靴奖',
+    remark: '1986年世界杯银靴奖，5 球；与卡雷卡、布特拉格诺并列第二射手。'
+  }
+];
+
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_MARADONA_RESULTS: FIFAWorldCupAllStarTeamSeed[] = [
+  {
+    year: 1986,
+    placement: '入选',
+    remark: '1986年国际足联世界杯最佳阵容，中场。'
+  },
+  {
+    year: 1990,
+    placement: '入选',
+    remark: '1990年国际足联世界杯最佳阵容，中场。'
+  }
+];
+
 const FIFA_WORLD_CUP_GOLDEN_BALL_PELE_RESULTS = [
   {
     year: 1958,
     rank: 2,
     placement: '第二名',
-    remark: '世界杯银球奖，历史追认口径，非当届正式颁发。'
+    remark: '世界杯银球奖，历史追认口径，非当届正式颁发。',
+    editionRemark: '历史追认口径，非当届正式颁发。'
   },
   {
     year: 1970,
     rank: 1,
     placement: '第一名',
-    remark: '世界杯金球奖，历史追认口径，非当届正式颁发。'
+    remark: '世界杯金球奖，历史追认口径，非当届正式颁发。',
+    editionRemark: '历史追认口径，非当届正式颁发。'
   }
 ] as const;
+
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_PELE_RESULTS: FIFAWorldCupAllStarTeamSeed[] = [
+  {
+    year: 1958,
+    placement: '入选',
+    remark: '1958年国际足联世界杯最佳阵容，前锋。'
+  },
+  {
+    year: 1970,
+    placement: '入选',
+    remark: '1970年国际足联世界杯最佳阵容，前锋。'
+  }
+];
 
 const FIFA_WORLD_CUP_BEST_YOUNG_PLAYER_PELE_RESULTS = [
   {
@@ -309,6 +390,19 @@ async function main() {
     throw new Error(`Player not found: ${PELE_NAME_KEYWORD}`);
   }
 
+  const maradona = await prisma.player.findFirst({
+    where: {
+      chineseName: {
+        contains: MARADONA_NAME_KEYWORD
+      }
+    },
+    select: { id: true, chineseName: true }
+  });
+
+  if (!maradona) {
+    throw new Error(`Player not found: ${MARADONA_NAME_KEYWORD}`);
+  }
+
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
@@ -323,7 +417,36 @@ async function main() {
   );
 
   await seedSouthAmericanFootballerOfTheYear(conmebol.id, pele.id);
-  await seedFifaWorldCupGoldenBall(pele.id, fifaWorldCup.id);
+  await seedFifaWorldCupGoldenBall(
+    pele.id,
+    pele.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_GOLDEN_BALL_PELE_RESULTS
+  );
+  await seedFifaWorldCupGoldenBall(
+    maradona.id,
+    maradona.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_GOLDEN_BALL_MARADONA_RESULTS
+  );
+  await seedFifaWorldCupGoldenBoot(
+    maradona.id,
+    maradona.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_GOLDEN_BOOT_MARADONA_RESULTS
+  );
+  await seedFifaWorldCupAllStarTeam(
+    pele.id,
+    pele.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_ALL_STAR_TEAM_PELE_RESULTS
+  );
+  await seedFifaWorldCupAllStarTeam(
+    maradona.id,
+    maradona.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_ALL_STAR_TEAM_MARADONA_RESULTS
+  );
   await seedFifaWorldCupBestYoungPlayer(pele.id, fifaWorldCup.id);
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
@@ -463,7 +586,12 @@ async function seedSouthAmericanFootballerOfTheYear(conmebolId: string, peleId: 
   );
 }
 
-async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string) {
+async function seedFifaWorldCupGoldenBall(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string,
+  results: readonly FIFAWorldCupGoldenBallSeed[]
+) {
   const award = await prisma.award.upsert({
     where: { code: FIFA_WORLD_CUP_GOLDEN_BALL_AWARD_CODE },
     create: {
@@ -474,8 +602,7 @@ async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string)
       scopeType: AwardScopeType.WORLD,
       category: '世界杯一级综合奖',
       level: '一级',
-      description:
-        '国际足联世界杯最佳球员奖项，统一承接金球奖、银球奖、铜球奖；早期届次按历史追认口径备注。',
+      description: '国际足联世界杯最佳球员奖项，统一承接金球奖、银球奖、铜球奖。',
       competitionId,
       lifecycleStatus: LifecycleStatus.CURRENT,
       enabled: true,
@@ -488,8 +615,7 @@ async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string)
       scopeType: AwardScopeType.WORLD,
       category: '世界杯一级综合奖',
       level: '一级',
-      description:
-        '国际足联世界杯最佳球员奖项，统一承接金球奖、银球奖、铜球奖；早期届次按历史追认口径备注。',
+      description: '国际足联世界杯最佳球员奖项，统一承接金球奖、银球奖、铜球奖。',
       competitionId,
       lifecycleStatus: LifecycleStatus.CURRENT,
       enabled: true,
@@ -497,7 +623,7 @@ async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string)
     }
   });
 
-  for (const result of FIFA_WORLD_CUP_GOLDEN_BALL_PELE_RESULTS) {
+  for (const result of results) {
     const competitionEdition = await findCompetitionEdition(competitionId, `${result.year}年`);
     const edition = await prisma.awardEdition.upsert({
       where: {
@@ -512,13 +638,13 @@ async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string)
         name: `${result.year}年`,
         year: result.year,
         externalUrl: FIFA_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
-        remark: '历史追认口径，非当届正式颁发。'
+        remark: result.editionRemark ?? null
       },
       update: {
         competitionEditionId: competitionEdition.id,
         year: result.year,
         externalUrl: FIFA_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
-        remark: '历史追认口径，非当届正式颁发。'
+        remark: result.editionRemark ?? null
       }
     });
 
@@ -527,13 +653,13 @@ async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string)
         editionId_targetType_playerId: {
           editionId: edition.id,
           targetType: AwardTargetType.PLAYER,
-          playerId: peleId
+          playerId
         }
       },
       create: {
         editionId: edition.id,
         targetType: AwardTargetType.PLAYER,
-        playerId: peleId,
+        playerId,
         rank: result.rank,
         placement: result.placement,
         externalUrl: FIFA_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
@@ -549,7 +675,202 @@ async function seedFifaWorldCupGoldenBall(peleId: string, competitionId: string)
   }
 
   console.log(
-    `Seeded ${FIFA_WORLD_CUP_GOLDEN_BALL_AWARD_CODE}: ${FIFA_WORLD_CUP_GOLDEN_BALL_PELE_RESULTS.length} Pele recipients.`
+    `Seeded ${FIFA_WORLD_CUP_GOLDEN_BALL_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedFifaWorldCupGoldenBoot(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string,
+  results: readonly FIFAWorldCupGoldenBootSeed[]
+) {
+  const award = await prisma.award.upsert({
+    where: { code: FIFA_WORLD_CUP_GOLDEN_BOOT_AWARD_CODE },
+    create: {
+      code: FIFA_WORLD_CUP_GOLDEN_BOOT_AWARD_CODE,
+      name: '国际足联世界杯金靴奖',
+      externalUrl: FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '世界杯二级专项奖',
+      level: '二级',
+      description: '国际足联世界杯最佳射手奖项，统一承接金靴奖、银靴奖、铜靴奖。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 2300
+    },
+    update: {
+      name: '国际足联世界杯金靴奖',
+      externalUrl: FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '世界杯二级专项奖',
+      level: '二级',
+      description: '国际足联世界杯最佳射手奖项，统一承接金靴奖、银靴奖、铜靴奖。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 2300
+    }
+  });
+
+  for (const result of results) {
+    const competitionEdition = await findCompetitionEdition(competitionId, `${result.year}年`);
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL,
+        remark: '世界杯最佳射手奖项。'
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        year: result.year,
+        externalUrl: FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL,
+        remark: '世界杯最佳射手奖项。'
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: FIFA_WORLD_CUP_GOLDEN_BOOT_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${FIFA_WORLD_CUP_GOLDEN_BOOT_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedFifaWorldCupAllStarTeam(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string,
+  results: readonly FIFAWorldCupAllStarTeamSeed[]
+) {
+  const award = await prisma.award.upsert({
+    where: { code: FIFA_WORLD_CUP_ALL_STAR_TEAM_AWARD_CODE },
+    create: {
+      code: FIFA_WORLD_CUP_ALL_STAR_TEAM_AWARD_CODE,
+      name: '国际足联世界杯最佳阵容',
+      englishName: 'FIFA World Cup All-Star Team',
+      shortName: '世界杯最佳阵容',
+      externalUrl: FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '世界杯二级阵容奖',
+      level: '二级',
+      description: '国际足联世界杯最佳阵容 / 全明星阵容，按入选记录计分，不分名次。',
+      dataComplete: false,
+      dataUpdatedAt: FIFA_WORLD_CUP_ALL_STAR_TEAM_DATA_UPDATED_AT,
+      dataRemark: '仅录入当前确认的贝利、马拉多纳记录，未补满各届完整 11 人最佳阵容。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 2200
+    },
+    update: {
+      name: '国际足联世界杯最佳阵容',
+      englishName: 'FIFA World Cup All-Star Team',
+      shortName: '世界杯最佳阵容',
+      externalUrl: FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '世界杯二级阵容奖',
+      level: '二级',
+      description: '国际足联世界杯最佳阵容 / 全明星阵容，按入选记录计分，不分名次。',
+      dataComplete: false,
+      dataUpdatedAt: FIFA_WORLD_CUP_ALL_STAR_TEAM_DATA_UPDATED_AT,
+      dataRemark: '仅录入当前确认的贝利、马拉多纳记录，未补满各届完整 11 人最佳阵容。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 2200
+    }
+  });
+
+  for (const result of results) {
+    const competitionEdition = await findCompetitionEdition(competitionId, `${result.year}年`);
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: '国际足联世界杯最佳阵容。'
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        year: result.year,
+        externalUrl: FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: '国际足联世界杯最佳阵容。'
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        placement: result.placement,
+        externalUrl: FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: null,
+        placement: result.placement,
+        externalUrl: FIFA_WORLD_CUP_ALL_STAR_TEAM_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${FIFA_WORLD_CUP_ALL_STAR_TEAM_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`
   );
 }
 
