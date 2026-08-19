@@ -43,6 +43,7 @@ type AwardEventCompetition = Prisma.CompetitionGetPayload<{
       select: {
         year: true;
         quantity: true;
+        championShare: true;
       };
     };
   };
@@ -118,7 +119,8 @@ export class AwardRulesService {
                 select: {
                   id: true,
                   year: true,
-                  quantity: true
+                  quantity: true,
+                  championShare: true
                 }
               },
               award: {
@@ -130,7 +132,8 @@ export class AwardRulesService {
                       editions: {
                         select: {
                           year: true,
-                          quantity: true
+                          quantity: true,
+                          championShare: true
                         }
                       }
                     }
@@ -322,7 +325,11 @@ export class AwardRulesService {
     honorRules
   }: {
     competition: AwardEventCompetition | null;
-    competitionEdition: { year: number | null; quantity: number | null } | null;
+    competitionEdition: {
+      year: number | null;
+      quantity: number | null;
+      championShare: number | null;
+    } | null;
     honorRules: CompetitionHonorRule[];
   }) {
     if (!competition) {
@@ -342,8 +349,14 @@ export class AwardRulesService {
         competition,
         competitionEdition?.year ?? null,
         competitionEdition?.quantity ?? null
-      )
+      ) *
+      this.editionShareCoefficient(competitionEdition?.championShare ?? null)
     );
+  }
+
+  private editionShareCoefficient(championShare: number | null) {
+    if (!championShare || championShare <= 1) return 1;
+    return 1 / championShare;
   }
 
   private findMatchingCompetitionHonorRule(

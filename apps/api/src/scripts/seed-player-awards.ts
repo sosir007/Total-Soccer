@@ -1356,6 +1356,7 @@ async function seedArgentinePrimeraDivisionTopScorer(
   });
 
   for (const result of ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_MARADONA_RESULTS) {
+    const seasonLabel = result.editionName.replace(/\s*\(([^)]+)\)/g, ' $1');
     const competitionEdition = await prisma.competitionEdition.upsert({
       where: {
         competitionId_name: {
@@ -1366,15 +1367,19 @@ async function seedArgentinePrimeraDivisionTopScorer(
       create: {
         competitionId,
         name: result.editionName,
-        season: String(result.year),
+        season: seasonLabel,
         year: result.year,
+        championGroupKey: String(result.year),
+        championShare: 2,
         standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
         externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
         remark: '为绑定阿甲个人奖项创建或补齐；届次名按库内标准名称保留。'
       },
       update: {
-        season: String(result.year),
+        season: seasonLabel,
         year: result.year,
+        championGroupKey: String(result.year),
+        championShare: 2,
         standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
         externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
         remark: '为绑定阿甲个人奖项创建或补齐；届次名按库内标准名称保留。'

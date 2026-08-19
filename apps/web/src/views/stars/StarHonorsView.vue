@@ -294,6 +294,9 @@ function formatScoreDetailFormula(detail: PlayerHonorScoreDetail) {
     detail.placementScore,
     detail.qualityCoefficient,
     detail.conversionCoefficient,
+    detail.editionShareCoefficient && detail.editionShareCoefficient !== 1
+      ? detail.editionShareCoefficient
+      : null,
     detail.combinationCoefficient && detail.combinationCoefficient !== 1
       ? detail.combinationCoefficient
       : null

@@ -449,7 +449,7 @@ function formatAwardPlacement(honor: AwardRecipientRecord) {
   const normalizedSubject = normalizePlacementKey(formatEntityName(honor.edition.award));
 
   if (!normalizedPlacement || ['获奖', '优胜者', '入选'].includes(normalizedPlacement)) {
-    const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
+    const defaultPlacement = resolveImplicitAwardPlacement(normalizedSubject);
 
     return {
       text: defaultPlacement,
@@ -461,11 +461,9 @@ function formatAwardPlacement(honor: AwardRecipientRecord) {
     normalizedSubject.includes(normalizedPlacement) &&
     !shouldShowDuplicatedAwardPlacement(placement)
   ) {
-    const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
-
     return {
-      text: defaultPlacement,
-      tone: resolveAwardPlacementTone(defaultPlacement)
+      text: '',
+      tone: resolveAwardPlacementTone(placement)
     };
   }
 
@@ -477,11 +475,9 @@ function formatAwardPlacement(honor: AwardRecipientRecord) {
       normalizedSubject.includes(withoutSharedPrefix) &&
       !shouldShowDuplicatedAwardPlacement(withoutSharedPrefix)
     ) {
-      const defaultPlacement = resolveDefaultAwardPlacement(normalizedSubject);
-
       return {
-        text: defaultPlacement,
-        tone: resolveAwardPlacementTone(defaultPlacement)
+        text: '',
+        tone: resolveAwardPlacementTone(withoutSharedPrefix)
       };
     }
   }
@@ -492,7 +488,7 @@ function formatAwardPlacement(honor: AwardRecipientRecord) {
   };
 }
 
-function resolveDefaultAwardPlacement(normalizedSubject: string) {
+function resolveImplicitAwardPlacement(normalizedSubject: string) {
   if (normalizedSubject.includes('金球奖') || normalizedSubject.includes('金球')) {
     return '金球奖';
   }
@@ -505,7 +501,7 @@ function resolveDefaultAwardPlacement(normalizedSubject: string) {
     return '铜球奖';
   }
 
-  return '第一名';
+  return '';
 }
 
 function shouldShowDuplicatedAwardPlacement(placement: string) {

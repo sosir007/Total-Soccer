@@ -5,6 +5,7 @@ import EntityLink from '@/components/EntityLink.vue';
 import IconFont from '@/components/IconFont.vue';
 import NoDataView from '@/components/NoDataView.vue';
 import { formatEntityName } from '@/utils/entity-name';
+import { formatHonorEditionLabel } from '@/utils/honor';
 
 type RecipientRankColumn = 1 | 2 | 3;
 type LineupPositionColumn = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
@@ -46,6 +47,11 @@ const emit = defineEmits<{
 }>();
 
 const statisticsRows = computed(() => buildStatisticsRows(props.editions));
+const hasSeasonEditionLabel = computed(() =>
+  props.editions.some((edition) => isSeasonEditionLabel(formatEditionYear(edition)))
+);
+const editionColumnLabel = computed(() => (hasSeasonEditionLabel.value ? '赛季' : '年份'));
+const editionColumnMinWidth = computed(() => (hasSeasonEditionLabel.value ? 120 : 100));
 
 function getRecipientByRank(edition: AwardEdition, rank: RecipientRankColumn) {
   return edition.recipients?.find((recipient) => getRecipientRank(recipient) === rank) ?? null;
@@ -145,6 +151,10 @@ function getRecipientRank(recipient: AwardEditionRecipient): RecipientRankColumn
 
   if (['第三名', '第3名', '季军', '铜奖'].includes(placement)) {
     return 3;
+  }
+
+  if (isImplicitFirstPlacement(placement)) {
+    return 1;
   }
 
   return null;
@@ -272,26 +282,22 @@ function compareEditionLabel(a: string, b: string) {
   const right = Number.parseInt(b, 10);
 
   if (Number.isFinite(left) && Number.isFinite(right)) {
-    return left - right;
+    const yearDiff = left - right;
+
+    if (yearDiff !== 0) {
+      return yearDiff;
+    }
   }
 
   return a.localeCompare(b, 'zh-CN');
 }
 
 function formatEditionYear(edition: AwardEdition) {
-  return edition.year ? String(edition.year) : edition.name || '-';
+  return formatAwardEditionDisplayLabel(edition);
 }
 
 function formatEditionTime(edition: AwardEdition) {
-  if (edition.season) {
-    return edition.season;
-  }
-
-  if (edition.year) {
-    return `${edition.year}年`;
-  }
-
-  return edition.name || '-';
+  return formatAwardEditionDisplayLabel(edition);
 }
 
 function shouldShowEditionName(edition: AwardEdition) {
@@ -299,7 +305,33 @@ function shouldShowEditionName(edition: AwardEdition) {
     return false;
   }
 
-  return edition.name !== formatEditionTime(edition);
+  return formatHonorEditionLabel({ name: edition.name }) !== formatEditionTime(edition);
+}
+
+function formatAwardEditionDisplayLabel(edition: AwardEdition) {
+  const label = formatHonorEditionLabel(edition.competitionEdition ?? edition);
+
+  if (edition.year && isYearWithHostLabel(label, edition.year)) {
+    return String(edition.year);
+  }
+
+  return label;
+}
+
+function isYearWithHostLabel(label: string, year: number) {
+  return new RegExp(`^${year}年\\s+\\S+`).test(label);
+}
+
+function isSeasonEditionLabel(label: string) {
+  return Boolean(label && label !== '-' && !/^\d{4}$/.test(label));
+}
+
+function isImplicitFirstPlacement(placement: string) {
+  if (['获奖', '优胜者', '入选'].includes(placement)) {
+    return true;
+  }
+
+  return /最佳/.test(placement);
 }
 
 function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
@@ -332,7 +364,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       <el-table-column label="序号" width="60" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
-      <el-table-column label="年份" width="100" sortable>
+      <el-table-column :label="editionColumnLabel" :min-width="editionColumnMinWidth" sortable>
         <template #default="{ row }">{{ formatEditionYear(row) }}</template>
       </el-table-column>
       <el-table-column
@@ -375,7 +407,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       <el-table-column label="序号" width="60" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
-      <el-table-column label="年份" width="100" sortable>
+      <el-table-column :label="editionColumnLabel" :min-width="editionColumnMinWidth" sortable>
         <template #default="{ row }">{{ formatEditionYear(row) }}</template>
       </el-table-column>
       <el-table-column :label="getRankColumnLabel(1)" min-width="180" show-overflow-tooltip>
@@ -470,7 +502,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       <el-table-column label="序号" width="60" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
-      <el-table-column label="时间" width="150" sortable>
+      <el-table-column :label="editionColumnLabel" :min-width="editionColumnMinWidth" sortable>
         <template #default="{ row }">
           <div class="award-edition-time">
             <strong>{{ formatEditionTime(row) }}</strong>

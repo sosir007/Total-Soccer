@@ -456,6 +456,7 @@ type PlayerHonorScoreDetail = {
   placementScore: number;
   qualityCoefficient: number;
   conversionCoefficient: number;
+  editionShareCoefficient?: number | null;
   combinationCoefficient: number;
   ruleName: string;
   externalUrl: string | null;
@@ -2767,7 +2768,11 @@ export class PlayersService {
           category: rule.category
         }),
         rule,
-        score: rule.baseScore * rule.coefficient * eventCoefficient,
+        score:
+          rule.baseScore *
+          rule.coefficient *
+          eventCoefficient.competitionCoefficient *
+          eventCoefficient.editionShareCoefficient,
         detail: {
           label: this.resolveAwardEditionPeriod(recipient.edition),
           competitionName: this.formatHonorListAwardTitle(recipient),
@@ -2775,7 +2780,8 @@ export class PlayersService {
           score: 0,
           placementScore: rule.baseScore,
           qualityCoefficient: rule.coefficient,
-          conversionCoefficient: eventCoefficient,
+          conversionCoefficient: eventCoefficient.competitionCoefficient,
+          editionShareCoefficient: eventCoefficient.editionShareCoefficient,
           combinationCoefficient: 1,
           ruleName: rule.name,
           externalUrl:
@@ -2962,28 +2968,51 @@ export class PlayersService {
     honorRules
   }: {
     competition: PlayerAwardCompetition | null;
-    competitionEdition: { year: number | null; quantity: number | null } | null;
+    competitionEdition: {
+      year: number | null;
+      quantity: number | null;
+      championShare: number | null;
+    } | null;
     honorRules: PlayerHonorRule[];
   }) {
     if (!competition) {
-      return 1;
+      return {
+        competitionCoefficient: 1,
+        editionShareCoefficient: 1
+      };
     }
 
     const rule = this.findMatchingCompetitionHonorRule(honorRules, competition);
 
     if (!rule) {
-      return 1;
+      return {
+        competitionCoefficient: 1,
+        editionShareCoefficient: 1
+      };
     }
 
-    return (
-      this.resolveCompetitionQualityCoefficient(rule, competition) *
-      this.resolveCompetitionConversionCoefficient(
-        rule,
-        competition,
-        competitionEdition?.year ?? null,
-        competitionEdition?.quantity ?? null
+    return {
+      competitionCoefficient:
+        this.resolveCompetitionQualityCoefficient(rule, competition) *
+        this.resolveCompetitionConversionCoefficient(
+          rule,
+          competition,
+          competitionEdition?.year ?? null,
+          competitionEdition?.quantity ?? null
+        ),
+      editionShareCoefficient: this.editionShareCoefficient(
+        competitionEdition?.championShare ?? null
       )
-    );
+    };
+  }
+
+  private editionShareCoefficient(championShare: number | null) {
+    if (!championShare || championShare <= 1) return 1;
+    return 1 / championShare;
+  }
+
+  private normalizeHonorEditionPeriod(value: string) {
+    return value.replace(/\s*年$/, '').replace(/^(\d{4})\s+\(([^)]+)\)$/, '$1 $2');
   }
 
   private resolveCompetitionStandingScoreDetail(
@@ -3271,7 +3300,9 @@ export class PlayersService {
     season: string | null;
     name: string;
   }) {
-    return edition.year?.toString() ?? edition.season ?? edition.name;
+    return this.normalizeHonorEditionPeriod(
+      edition.season ?? edition.name ?? edition.year?.toString() ?? '-'
+    );
   }
 
   private awardCategoryFamily(category: string | null) {

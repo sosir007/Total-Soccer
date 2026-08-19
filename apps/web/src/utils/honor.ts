@@ -66,6 +66,6 @@ export function shouldHideCountryLink(ref?: NamedRef | null) {
   return Boolean(ref?.isHistorical && !ref?.detailRedirectCountryId);
 }
 
-function normalizeHonorEditionLabel(value: string) {
-  return value.replace(/\s*年$/, '');
+export function normalizeHonorEditionLabel(value: string) {
+  return value.replace(/\s*年$/, '').replace(/^(\d{4})\s+\(([^)]+)\)$/, '$1 $2');
 }

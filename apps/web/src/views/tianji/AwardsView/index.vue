@@ -787,7 +787,12 @@ function isRankedRecipient(recipient: NonNullable<AwardEdition['recipients']>[nu
     '铜奖'
   ];
 
-  return Boolean(placement && rankedPlacements.includes(placement));
+  return Boolean(
+    placement &&
+    (rankedPlacements.includes(placement) ||
+      ['获奖', '优胜者', '入选'].includes(placement) ||
+      /最佳/.test(placement))
+  );
 }
 
 function awardExternalUrl() {

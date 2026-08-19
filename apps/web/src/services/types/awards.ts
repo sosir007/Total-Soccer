@@ -80,6 +80,7 @@ export interface AwardListItem {
       season?: string | null;
       year?: number | null;
       quantity?: number | null;
+      championShare?: number | null;
       externalUrl?: string | null;
     }>;
   } | null;
@@ -106,6 +107,7 @@ export interface AwardEdition {
     year?: number | null;
     externalUrl?: string | null;
     quantity?: number | null;
+    championShare?: number | null;
     competition: AwardListItem['competition'];
   } | null;
   recipients?: AwardEditionRecipient[];

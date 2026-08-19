@@ -427,6 +427,7 @@ export interface PlayerHonorScoreDetail {
   placementScore: number;
   qualityCoefficient: number;
   conversionCoefficient: number;
+  editionShareCoefficient?: number | null;
   combinationCoefficient?: number | null;
   ruleName: string;
   externalUrl?: string | null;
