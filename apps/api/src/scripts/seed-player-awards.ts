@@ -34,6 +34,10 @@ const COPA_AMERICA_TOP_SCORER_EXTERNAL_URL =
 const BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE = 'BRAZIL_SERIE_A_TOP_SCORER';
 const BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://rsssfbrasil.com/tablesae/brtops.htm';
 const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
+const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE = 'ARGENTINE_PRIMERA_DIVISION_TOP_SCORER';
+const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL =
+  'https://www.rsssf.org/tablesa/argtops.html';
+const ARGENTINE_PRIMERA_DIVISION_COMPETITION_CODE = 'ARGENTINE_PRIMERA_DIVISION';
 const CAMPEONATO_PAULISTA_TOP_SCORER_AWARD_CODE = 'CAMPEONATO_PAULISTA_TOP_SCORER';
 const CAMPEONATO_PAULISTA_TOP_SCORER_EXTERNAL_URL =
   'https://futebolpaulista.com.br/Noticias/Detalhe.aspx?Noticia=16359';
@@ -78,6 +82,13 @@ type FIFAWorldCupGoldenBootSeed = {
 };
 
 type FIFAWorldCupAllStarTeamSeed = {
+  year: number;
+  placement: string;
+  remark: string;
+};
+
+type ArgentinePrimeraDivisionTopScorerSeed = {
+  editionName: string;
   year: number;
   placement: string;
   remark: string;
@@ -164,6 +175,40 @@ const FIFA_WORLD_CUP_ALL_STAR_TEAM_PELE_RESULTS: FIFAWorldCupAllStarTeamSeed[] =
     remark: '1970年国际足联世界杯最佳阵容，前锋。'
   }
 ];
+
+const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_MARADONA_RESULTS: ArgentinePrimeraDivisionTopScorerSeed[] =
+  [
+    {
+      editionName: '1978 (Metropolitano)',
+      year: 1978,
+      placement: '最佳射手',
+      remark: '1978 (Metropolitano) 阿甲最佳射手，阿根廷青年人。'
+    },
+    {
+      editionName: '1979 (Metropolitano)',
+      year: 1979,
+      placement: '最佳射手',
+      remark: '1979 (Metropolitano) 阿甲最佳射手，阿根廷青年人。'
+    },
+    {
+      editionName: '1979 (Nacional)',
+      year: 1979,
+      placement: '最佳射手',
+      remark: '1979 (Nacional) 阿甲最佳射手，阿根廷青年人。'
+    },
+    {
+      editionName: '1980 (Metropolitano)',
+      year: 1980,
+      placement: '最佳射手',
+      remark: '1980 (Metropolitano) 阿甲最佳射手，阿根廷青年人。'
+    },
+    {
+      editionName: '1980 (Nacional)',
+      year: 1980,
+      placement: '最佳射手',
+      remark: '1980 (Nacional) 阿甲最佳射手，阿根廷青年人。'
+    }
+  ];
 
 const FIFA_WORLD_CUP_BEST_YOUNG_PLAYER_PELE_RESULTS = [
   {
@@ -406,6 +451,9 @@ async function main() {
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
+  const argentinePrimeraDivision = await findCompetition(
+    ARGENTINE_PRIMERA_DIVISION_COMPETITION_CODE
+  );
   const campeonatoPaulista = await findCompetition(CAMPEONATO_PAULISTA_COMPETITION_CODE);
   const torneioRioSaoPaulo = await findCompetition(TORNEIO_RIO_SAO_PAULO_COMPETITION_CODE);
   const conmebolLibertadores = await findCompetition(CONMEBOL_LIBERTADORES_COMPETITION_CODE);
@@ -451,6 +499,11 @@ async function main() {
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
   await seedBrazilSerieATopScorer(pele.id, brazilSerieA.id);
+  await seedArgentinePrimeraDivisionTopScorer(
+    maradona.id,
+    maradona.chineseName,
+    argentinePrimeraDivision.id
+  );
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -1259,6 +1312,125 @@ async function seedBrazilSerieATopScorer(peleId: string, competitionId: string) 
 
   console.log(
     `Seeded ${BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE}: ${BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedArgentinePrimeraDivisionTopScorer(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE,
+      name: '阿根廷足球甲级联赛最佳射手',
+      englishName: 'Argentine Primera Division Top Scorer',
+      shortName: '阿甲最佳射手',
+      externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '阿根廷足球甲级联赛赛季最佳射手，按阿甲多冠军届次口径录入并由赛事分摊规则折算。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7310
+    },
+    update: {
+      name: '阿根廷足球甲级联赛最佳射手',
+      englishName: 'Argentine Primera Division Top Scorer',
+      shortName: '阿甲最佳射手',
+      externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '阿根廷足球甲级联赛赛季最佳射手，按阿甲多冠军届次口径录入并由赛事分摊规则折算。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7310
+    }
+  });
+
+  for (const result of ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_MARADONA_RESULTS) {
+    const competitionEdition = await prisma.competitionEdition.upsert({
+      where: {
+        competitionId_name: {
+          competitionId,
+          name: result.editionName
+        }
+      },
+      create: {
+        competitionId,
+        name: result.editionName,
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定阿甲个人奖项创建或补齐；届次名按库内标准名称保留。'
+      },
+      update: {
+        season: String(result.year),
+        year: result.year,
+        standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
+        externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+        remark: '为绑定阿甲个人奖项创建或补齐；届次名按库内标准名称保留。'
+      }
+    });
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: result.editionName
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: result.editionName,
+        year: result.year,
+        externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+        remark: `阿根廷足球甲级联赛最佳射手，届次 ${result.editionName}。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        year: result.year,
+        externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+        remark: `阿根廷足球甲级联赛最佳射手，届次 ${result.editionName}。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE}: ${ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_MARADONA_RESULTS.length} ${playerLabel} recipients.`
   );
 }
 
