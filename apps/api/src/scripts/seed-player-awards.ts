@@ -34,6 +34,12 @@ const COPA_AMERICA_TOP_SCORER_EXTERNAL_URL =
 const BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE = 'BRAZIL_SERIE_A_TOP_SCORER';
 const BRAZIL_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://rsssfbrasil.com/tablesae/brtops.htm';
 const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
+const ITALY_SERIE_A_TOP_SCORER_AWARD_CODE = 'ITALY_SERIE_A_TOP_SCORER';
+const ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italtops.html';
+const ITALY_SERIE_A_COMPETITION_CODE = 'ITALY_SERIE_A';
+const ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE = 'ITALY_COPPA_ITALIA_TOP_SCORER';
+const ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italcuptops.html';
+const ITALY_COPPA_ITALIA_COMPETITION_CODE = 'ITALY_COPPA_ITALIA';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE = 'ARGENTINE_PRIMERA_DIVISION_TOP_SCORER';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL =
   'https://www.rsssf.org/tablesa/argtops.html';
@@ -91,6 +97,14 @@ type ArgentinePrimeraDivisionTopScorerSeed = {
   editionName: string;
   year: number;
   placement: string;
+  remark: string;
+};
+
+type ItalianTopScorerSeed = {
+  season: string;
+  year: number;
+  placement: string;
+  goals: number;
   remark: string;
 };
 
@@ -253,6 +267,26 @@ const BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS = [
     remark: '1964年巴西全国冠军统一口径最佳射手，贝利效力桑托斯，RSSSF Brasil 口径为 8 球。'
   }
 ] as const;
+
+const ITALY_SERIE_A_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
+  {
+    season: '1987-88',
+    year: 1988,
+    placement: '最佳射手',
+    goals: 15,
+    remark: '1987-88 意甲最佳射手，马拉多纳效力那不勒斯，15 球。'
+  }
+];
+
+const ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
+  {
+    season: '1987-88',
+    year: 1988,
+    placement: '最佳射手',
+    goals: 6,
+    remark: '1987-88 意大利杯最佳射手，马拉多纳效力那不勒斯，6 球。'
+  }
+];
 
 const CAMPEONATO_PAULISTA_TOP_SCORER_PELE_RESULTS = [
   {
@@ -451,6 +485,8 @@ async function main() {
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
+  const italySerieA = await findCompetition(ITALY_SERIE_A_COMPETITION_CODE);
+  const italyCoppaItalia = await findCompetition(ITALY_COPPA_ITALIA_COMPETITION_CODE);
   const argentinePrimeraDivision = await findCompetition(
     ARGENTINE_PRIMERA_DIVISION_COMPETITION_CODE
   );
@@ -499,6 +535,8 @@ async function main() {
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
   await seedBrazilSerieATopScorer(pele.id, brazilSerieA.id);
+  await seedItalySerieATopScorer(maradona.id, maradona.chineseName, italySerieA.id);
+  await seedItalyCoppaItaliaTopScorer(maradona.id, maradona.chineseName, italyCoppaItalia.id);
   await seedArgentinePrimeraDivisionTopScorer(
     maradona.id,
     maradona.chineseName,
@@ -1312,6 +1350,202 @@ async function seedBrazilSerieATopScorer(peleId: string, competitionId: string) 
 
   console.log(
     `Seeded ${BRAZIL_SERIE_A_TOP_SCORER_AWARD_CODE}: ${BRAZIL_SERIE_A_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedItalySerieATopScorer(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: ITALY_SERIE_A_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: ITALY_SERIE_A_TOP_SCORER_AWARD_CODE,
+      name: '意大利足球甲级联赛最佳射手',
+      englishName: 'Serie A Top Scorer',
+      shortName: '意甲最佳射手',
+      externalUrl: ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '意大利足球甲级联赛赛季最佳射手，系统按国内顶级联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7315
+    },
+    update: {
+      name: '意大利足球甲级联赛最佳射手',
+      englishName: 'Serie A Top Scorer',
+      shortName: '意甲最佳射手',
+      externalUrl: ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级专项奖',
+      level: '二级',
+      description: '意大利足球甲级联赛赛季最佳射手，系统按国内顶级联赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7315
+    }
+  });
+
+  for (const result of ITALY_SERIE_A_TOP_SCORER_MARADONA_RESULTS) {
+    const competitionEdition = await findCompetitionEdition(competitionId, result.season);
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: result.season
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: result.season,
+        season: result.season,
+        year: result.year,
+        externalUrl: ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: `意大利足球甲级联赛最佳射手，${result.goals} 球。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: result.season,
+        year: result.year,
+        externalUrl: ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: `意大利足球甲级联赛最佳射手，${result.goals} 球。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ITALY_SERIE_A_TOP_SCORER_AWARD_CODE}: ${ITALY_SERIE_A_TOP_SCORER_MARADONA_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedItalyCoppaItaliaTopScorer(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE,
+      name: '意大利杯最佳射手',
+      englishName: 'Coppa Italia Top Scorer',
+      shortName: '意杯最佳射手',
+      externalUrl: ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '国杯一级奖',
+      level: '二级',
+      description: '意大利杯赛季最佳射手，系统按国内杯赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7410
+    },
+    update: {
+      name: '意大利杯最佳射手',
+      englishName: 'Coppa Italia Top Scorer',
+      shortName: '意杯最佳射手',
+      externalUrl: ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '国杯一级奖',
+      level: '二级',
+      description: '意大利杯赛季最佳射手，系统按国内杯赛专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7410
+    }
+  });
+
+  for (const result of ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS) {
+    const competitionEdition = await findCompetitionEdition(competitionId, result.season);
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: result.season
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: result.season,
+        season: result.season,
+        year: result.year,
+        externalUrl: ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL,
+        remark: `意大利杯最佳射手，${result.goals} 球。`
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: result.season,
+        year: result.year,
+        externalUrl: ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL,
+        remark: `意大利杯最佳射手，${result.goals} 球。`
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE}: ${ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS.length} ${playerLabel} recipients.`
   );
 }
 
