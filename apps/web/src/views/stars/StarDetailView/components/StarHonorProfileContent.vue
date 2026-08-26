@@ -8,7 +8,7 @@ import type {
   PlayerHonor,
   PlayerTeamHonor
 } from '@/services/types/catalog';
-import type { AwardRecipientRecord } from '@/services/types/awards';
+import type { AwardRecipientRecord, AwardScopeType } from '@/services/types/awards';
 import { formatAwardRecipientPlacementDisplay } from '@/utils/award-display';
 import { formatEntityName } from '@/utils/entity-name';
 import { formatHonorEditionLabel } from '@/utils/honor';
@@ -29,6 +29,8 @@ type HonorLine = {
   subjectId: string;
   subjectName: string;
   placement: string;
+  rank?: number | null;
+  awardScopeType?: AwardScopeType | null;
   tone: PlacementTone;
   periods: HonorPeriod[];
   sortYear: number;
@@ -38,8 +40,14 @@ type HonorSubjectGroup = {
   subjectType: HonorSubjectType;
   subjectId: string;
   subjectName: string;
+  awardScopeType?: AwardScopeType | null;
   placements: HonorLine[];
   sortYear: number;
+};
+type HonorAwardScopeGroup = {
+  key: string;
+  label: string;
+  awards: HonorSubjectGroup[];
 };
 type AchievementLine = {
   id: string;
@@ -81,6 +89,7 @@ type HonorGroupBase = Pick<
 type HonorGroupView = Omit<HonorGroup, 'trophies' | 'awards'> & {
   trophies: HonorSubjectGroup[];
   awards: HonorSubjectGroup[];
+  awardScopeGroups: HonorAwardScopeGroup[];
 };
 type GroupMeta = {
   countryName?: string | null;
@@ -116,14 +125,20 @@ function buildHonorGroups(player: PlayerDetail): HonorGroupView[] {
   }
 
   return [...groupMap.values()]
-    .map(
-      (group): HonorGroupView => ({
+    .map((group): HonorGroupView => {
+      const awards = groupHonorLines(group.awards);
+
+      return {
         ...group,
         trophies: groupHonorLines(group.trophies),
-        awards: groupHonorLines(group.awards),
+        awards,
+        awardScopeGroups:
+          group.type === 'personal'
+            ? groupAwardScopeLines(group.awards)
+            : [{ key: 'all', label: '', awards }],
         achievements: sortAchievementLines(group.achievements)
-      })
-    )
+      };
+    })
     .filter((group) => group.trophies.length || group.awards.length || group.achievements.length)
     .sort(
       (left, right) =>
@@ -281,6 +296,8 @@ function buildTeamHonorLine(honor: PlayerTeamHonor): HonorLine {
     subjectId: competition.id,
     subjectName: formatEntityName(competition),
     placement,
+    rank: null,
+    awardScopeType: null,
     tone,
     periods: [period],
     sortYear: period.year ?? Number.MAX_SAFE_INTEGER
@@ -298,6 +315,8 @@ function buildAwardHonorLine(honor: AwardRecipientRecord): HonorLine {
     subjectId: award.id,
     subjectName: formatEntityName(award),
     placement: placementInfo.text,
+    rank: honor.rank,
+    awardScopeType: award.scopeType,
     tone: placementInfo.tone,
     periods: [period],
     sortYear: period.year ?? Number.MAX_SAFE_INTEGER
@@ -348,6 +367,7 @@ function groupHonorLines(lines: HonorLine[]) {
         subjectType: line.subjectType,
         subjectId: line.subjectId,
         subjectName: line.subjectName,
+        awardScopeType: line.awardScopeType,
         placements: [line],
         sortYear: line.sortYear
       });
@@ -355,6 +375,7 @@ function groupHonorLines(lines: HonorLine[]) {
     }
 
     existing.placements.push(line);
+    existing.awardScopeType = existing.awardScopeType ?? line.awardScopeType;
     existing.sortYear = Math.min(existing.sortYear, line.sortYear);
   }
 
@@ -370,6 +391,28 @@ function groupHonorLines(lines: HonorLine[]) {
 
       return left.subjectName.localeCompare(right.subjectName, 'zh-CN');
     });
+}
+
+function groupAwardScopeLines(lines: HonorLine[]): HonorAwardScopeGroup[] {
+  const groupedAwards = groupHonorLines(lines);
+  const map = new Map<string, HonorSubjectGroup[]>();
+
+  for (const award of groupedAwards) {
+    const key = award.awardScopeType ?? 'OTHER';
+    const group = map.get(key) ?? [];
+    group.push(award);
+    map.set(key, group);
+  }
+
+  return [...map.entries()]
+    .map(([key, awards]) => ({
+      key,
+      label: getAwardScopeGroupLabel(key),
+      awards
+    }))
+    .sort(
+      (left, right) => awardScopeGroupSortValue(left.key) - awardScopeGroupSortValue(right.key)
+    );
 }
 
 function sortHonorPlacements(lines: HonorLine[]) {
@@ -392,6 +435,33 @@ function sortHonorPlacements(lines: HonorLine[]) {
 
       return left.subjectName.localeCompare(right.subjectName, 'zh-CN');
     });
+}
+
+function getAwardScopeGroupLabel(scopeType: string) {
+  const labels: Record<string, string> = {
+    WORLD: '国际',
+    CONFEDERATION: '洲际',
+    COUNTRY: '国家',
+    LEAGUE: '联赛',
+    CLUB: '俱乐部',
+    MEDIA: '媒体'
+  };
+
+  return labels[scopeType] ?? '其他';
+}
+
+function awardScopeGroupSortValue(scopeType: string) {
+  const order: Record<string, number> = {
+    WORLD: 1,
+    CONFEDERATION: 2,
+    COUNTRY: 3,
+    LEAGUE: 4,
+    CLUB: 5,
+    MEDIA: 6,
+    OTHER: 7
+  };
+
+  return order[scopeType] ?? 99;
 }
 
 function sortPeriods(periods: HonorPeriod[]) {
@@ -587,15 +657,26 @@ function placementSortValue(line: HonorLine) {
   const normalized = normalizePlacementKey(line.placement);
 
   if (line.subjectType === 'award') {
+    if (line.rank && line.rank > 0) {
+      return line.rank;
+    }
+
     const order: Record<string, number> = {
       金球奖: 1,
       金球: 1,
+      金奖: 1,
+      金靴奖: 1,
+      金靴: 1,
       银球奖: 2,
       银球: 2,
       银奖: 2,
+      银靴奖: 2,
+      银靴: 2,
       铜球奖: 3,
       铜球: 3,
       铜奖: 3,
+      铜靴奖: 3,
+      铜靴: 3,
       第一名: 4,
       第1名: 4,
       第二名: 5,
@@ -788,57 +869,75 @@ function hasGroupMeta(group: HonorGroupBase) {
 
       <div v-if="group.awards.length" class="honor-profile-block">
         <div class="honor-profile-block__title">奖项</div>
-        <ul class="honor-profile-list">
-          <li v-for="subject in group.awards" :key="subject.key" class="honor-profile-line">
-            <span class="honor-profile-subject-wrap">
-              <EntityLink
-                :id="subject.subjectId"
-                :type="subject.subjectType"
-                :name="subject.subjectName"
-              />
-              <span class="honor-profile-subject-sep">：</span>
-            </span>
-            <span class="honor-profile-placements">
-              <span
-                v-for="(line, lineIndex) in subject.placements"
-                :key="line.key"
-                class="honor-profile-placement-line"
-                :style="getLineStyle(line)"
+        <div class="honor-profile-scope-list" :class="{ 'is-flat': group.type !== 'personal' }">
+          <div
+            v-for="scopeGroup in group.awardScopeGroups"
+            :key="scopeGroup.key"
+            class="honor-profile-scope-group"
+          >
+            <div v-if="group.type === 'personal'" class="honor-profile-scope-title">
+              {{ scopeGroup.label }}：
+            </div>
+            <ul class="honor-profile-list">
+              <li
+                v-for="subject in scopeGroup.awards"
+                :key="subject.key"
+                class="honor-profile-line"
               >
-                <span class="honor-profile-periods">
-                  <template
-                    v-for="(period, periodIndex) in line.periods"
-                    :key="`${line.key}-${period.label}-${periodIndex}`"
+                <span class="honor-profile-subject-wrap">
+                  <EntityLink
+                    :id="subject.subjectId"
+                    :type="subject.subjectType"
+                    :name="subject.subjectName"
+                  />
+                  <span class="honor-profile-subject-sep">：</span>
+                </span>
+                <span class="honor-profile-placements">
+                  <span
+                    v-for="(line, lineIndex) in subject.placements"
+                    :key="line.key"
+                    class="honor-profile-placement-line"
+                    :style="getLineStyle(line)"
                   >
-                    <a
-                      v-if="period.externalUrl"
-                      class="external-text-link"
-                      :href="period.externalUrl"
-                      target="_blank"
-                      rel="noreferrer"
+                    <span class="honor-profile-periods">
+                      <template
+                        v-for="(period, periodIndex) in line.periods"
+                        :key="`${line.key}-${period.label}-${periodIndex}`"
+                      >
+                        <a
+                          v-if="period.externalUrl"
+                          class="external-text-link"
+                          :href="period.externalUrl"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {{ period.label }}
+                        </a>
+                        <span v-else>{{ period.label }}</span>
+                        <span v-if="periodIndex < line.periods.length - 1">、</span>
+                      </template>
+                    </span>
+                    <template v-if="formatLineCount(line)">
+                      <span class="honor-profile-count">{{ formatLineCount(line) }}</span
+                      ><span v-if="line.placement" class="honor-profile-placement is-attached">
+                        {{ line.placement }}
+                      </span>
+                    </template>
+                    <span v-else-if="line.placement" class="honor-profile-placement">
+                      {{ line.placement }}
+                    </span>
+                    <span
+                      v-if="lineIndex < subject.placements.length - 1"
+                      class="honor-profile-sep"
                     >
-                      {{ period.label }}
-                    </a>
-                    <span v-else>{{ period.label }}</span>
-                    <span v-if="periodIndex < line.periods.length - 1">、</span>
-                  </template>
-                </span>
-                <template v-if="formatLineCount(line)">
-                  <span class="honor-profile-count">{{ formatLineCount(line) }}</span
-                  ><span v-if="line.placement" class="honor-profile-placement is-attached">
-                    {{ line.placement }}
+                      ，
+                    </span>
                   </span>
-                </template>
-                <span v-else-if="line.placement" class="honor-profile-placement">
-                  {{ line.placement }}
                 </span>
-                <span v-if="lineIndex < subject.placements.length - 1" class="honor-profile-sep">
-                  ，
-                </span>
-              </span>
-            </span>
-          </li>
-        </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <div v-if="group.achievements.length" class="honor-profile-block">
@@ -944,6 +1043,31 @@ function hasGroupMeta(group: HonorGroupBase) {
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+.honor-profile-scope-list {
+  display: grid;
+  gap: 10px;
+
+  &.is-flat {
+    gap: 0;
+  }
+}
+
+.honor-profile-scope-group {
+  display: grid;
+  gap: 6px;
+
+  .honor-profile-scope-list.is-flat & {
+    gap: 0;
+  }
+}
+
+.honor-profile-scope-title {
+  color: var(--text-color-regular);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.7;
 }
 
 .honor-profile-line {

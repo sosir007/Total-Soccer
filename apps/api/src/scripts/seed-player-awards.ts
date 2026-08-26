@@ -12,6 +12,11 @@ const prisma = new PrismaService();
 const SOUTH_AMERICAN_FOOTBALLER_AWARD_CODE = 'SOUTH_AMERICAN_FOOTBALLER_OF_THE_YEAR';
 const SOUTH_AMERICAN_FOOTBALLER_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/South_American_Footballer_of_the_Year';
+const ONZE_DOR_AWARD_CODE = 'ONZE_DOR';
+const ONZE_DOR_EXTERNAL_URL = 'https://www.rsssf.org/miscellaneous/onze-awards.html';
+const ARGENTINE_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'ARGENTINE_FOOTBALLER_OF_THE_YEAR';
+const ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://www.rsssf.org/miscellaneous/arg-poy.html';
 const FIFA_WORLD_CUP_GOLDEN_BALL_AWARD_CODE = 'FIFA_WORLD_CUP_GOLDEN_BALL';
 const FIFA_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/FIFA_World_Cup_awards#Golden_Ball';
@@ -108,6 +113,14 @@ type ItalianTopScorerSeed = {
   remark: string;
 };
 
+type RankedAwardSeed = {
+  year: number;
+  rank: number;
+  placement: string;
+  remark: string;
+  editionRemark?: string;
+};
+
 const SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS = [
   {
     year: 1972,
@@ -122,6 +135,93 @@ const SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS = [
     remark: 'El Mundo 口径，贝利效力桑托斯时期。'
   }
 ] as const;
+
+const SOUTH_AMERICAN_FOOTBALLER_MARADONA_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1979,
+    rank: 1,
+    placement: '第一名',
+    remark: '官方年度前三口径，马拉多纳效力阿根廷青年人时期。'
+  },
+  {
+    year: 1980,
+    rank: 1,
+    placement: '第一名',
+    remark: '官方年度前三口径，马拉多纳效力阿根廷青年人时期。'
+  },
+  {
+    year: 1981,
+    rank: 2,
+    placement: '第二名',
+    remark: '官方年度前三口径，马拉多纳效力博卡青年时期。'
+  },
+  {
+    year: 1982,
+    rank: 3,
+    placement: '第三名',
+    remark: '官方年度前三口径，马拉多纳效力博卡青年 / 巴塞罗那时期。'
+  },
+  {
+    year: 1995,
+    rank: 2,
+    placement: '第二名',
+    remark: '官方年度前三口径，马拉多纳效力博卡青年时期。'
+  }
+];
+
+const ONZE_DOR_MARADONA_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1985,
+    rank: 3,
+    placement: '铜奖',
+    remark: "Onze d'Or 1985 铜奖，马拉多纳效力那不勒斯时期。"
+  },
+  {
+    year: 1986,
+    rank: 1,
+    placement: '金奖',
+    remark: "Onze d'Or 1986 金奖，马拉多纳效力那不勒斯时期。"
+  },
+  {
+    year: 1987,
+    rank: 1,
+    placement: '金奖',
+    remark: "Onze d'Or 1987 金奖，马拉多纳效力那不勒斯时期。"
+  },
+  {
+    year: 1988,
+    rank: 3,
+    placement: '铜奖',
+    remark: "Onze d'Or 1988 铜奖，马拉多纳效力那不勒斯时期。"
+  }
+];
+
+const ARGENTINE_FOOTBALLER_OF_THE_YEAR_MARADONA_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1979,
+    rank: 1,
+    placement: '第一名',
+    remark: '阿根廷体育记者协会 Olimpia de Plata 足球分项，马拉多纳效力阿根廷青年人时期。'
+  },
+  {
+    year: 1980,
+    rank: 1,
+    placement: '第一名',
+    remark: '阿根廷体育记者协会 Olimpia de Plata 足球分项，马拉多纳效力阿根廷青年人时期。'
+  },
+  {
+    year: 1981,
+    rank: 1,
+    placement: '第一名',
+    remark: '阿根廷体育记者协会 Olimpia de Plata 足球分项，马拉多纳效力博卡青年时期。'
+  },
+  {
+    year: 1986,
+    rank: 1,
+    placement: '第一名',
+    remark: '阿根廷体育记者协会 Olimpia de Plata 足球分项，马拉多纳效力那不勒斯时期。'
+  }
+];
 
 const FIFA_WORLD_CUP_GOLDEN_BALL_MARADONA_RESULTS: FIFAWorldCupGoldenBallSeed[] = [
   {
@@ -456,6 +556,28 @@ async function main() {
     throw new Error('Confederation not found: CONMEBOL / 南美足联');
   }
 
+  const uefa = await prisma.confederation.findFirst({
+    where: {
+      OR: [{ code: 'UEFA' }, { name: '欧足联' }]
+    },
+    select: { id: true }
+  });
+
+  if (!uefa) {
+    throw new Error('Confederation not found: UEFA / 欧足联');
+  }
+
+  const argentina = await prisma.country.findFirst({
+    where: {
+      OR: [{ uid: '1649' }, { name: '阿根廷' }]
+    },
+    select: { id: true }
+  });
+
+  if (!argentina) {
+    throw new Error('Country not found: Argentina / 阿根廷');
+  }
+
   const pele = await prisma.player.findFirst({
     where: {
       chineseName: {
@@ -500,7 +622,20 @@ async function main() {
     NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE
   );
 
-  await seedSouthAmericanFootballerOfTheYear(conmebol.id, pele.id);
+  await seedSouthAmericanFootballerOfTheYear(
+    conmebol.id,
+    pele.id,
+    pele.chineseName,
+    SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS
+  );
+  await seedSouthAmericanFootballerOfTheYear(
+    conmebol.id,
+    maradona.id,
+    maradona.chineseName,
+    SOUTH_AMERICAN_FOOTBALLER_MARADONA_RESULTS
+  );
+  await seedOnzeDor(uefa.id, maradona.id, maradona.chineseName);
+  await seedArgentineFootballerOfTheYear(argentina.id, maradona.id, maradona.chineseName);
   await seedFifaWorldCupGoldenBall(
     pele.id,
     pele.chineseName,
@@ -590,7 +725,12 @@ async function findCompetitionEdition(competitionId: string, name: string) {
   return edition;
 }
 
-async function seedSouthAmericanFootballerOfTheYear(conmebolId: string, peleId: string) {
+async function seedSouthAmericanFootballerOfTheYear(
+  conmebolId: string,
+  playerId: string,
+  playerLabel: string,
+  results: readonly RankedAwardSeed[]
+) {
   const award = await prisma.award.upsert({
     where: { code: SOUTH_AMERICAN_FOOTBALLER_AWARD_CODE },
     create: {
@@ -624,7 +764,7 @@ async function seedSouthAmericanFootballerOfTheYear(conmebolId: string, peleId: 
     }
   });
 
-  for (const result of SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS) {
+  for (const result of results) {
     const edition = await prisma.awardEdition.upsert({
       where: {
         awardId_name: {
@@ -637,12 +777,12 @@ async function seedSouthAmericanFootballerOfTheYear(conmebolId: string, peleId: 
         name: `${result.year}年`,
         year: result.year,
         externalUrl: SOUTH_AMERICAN_FOOTBALLER_EXTERNAL_URL,
-        remark: 'El Mundo 口径。'
+        remark: result.editionRemark ?? null
       },
       update: {
         year: result.year,
         externalUrl: SOUTH_AMERICAN_FOOTBALLER_EXTERNAL_URL,
-        remark: 'El Mundo 口径。'
+        remark: result.editionRemark ?? null
       }
     });
 
@@ -651,13 +791,13 @@ async function seedSouthAmericanFootballerOfTheYear(conmebolId: string, peleId: 
         editionId_targetType_playerId: {
           editionId: edition.id,
           targetType: AwardTargetType.PLAYER,
-          playerId: peleId
+          playerId
         }
       },
       create: {
         editionId: edition.id,
         targetType: AwardTargetType.PLAYER,
-        playerId: peleId,
+        playerId,
         rank: result.rank,
         placement: result.placement,
         externalUrl: SOUTH_AMERICAN_FOOTBALLER_EXTERNAL_URL,
@@ -673,7 +813,187 @@ async function seedSouthAmericanFootballerOfTheYear(conmebolId: string, peleId: 
   }
 
   console.log(
-    `Seeded ${SOUTH_AMERICAN_FOOTBALLER_AWARD_CODE}: ${SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS.length} Pele recipients.`
+    `Seeded ${SOUTH_AMERICAN_FOOTBALLER_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedOnzeDor(uefaId: string, playerId: string, playerLabel: string) {
+  const award = await prisma.award.upsert({
+    where: { code: ONZE_DOR_AWARD_CODE },
+    create: {
+      code: ONZE_DOR_AWARD_CODE,
+      name: "Onze d'Or",
+      englishName: "Onze d'Or",
+      externalUrl: ONZE_DOR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际一级综合奖',
+      level: '一级',
+      description:
+        '法国《Onze Mondial》杂志年度足球奖，设金奖、银奖、铜奖；系统按欧洲足坛范围内的媒体年度综合奖计入，非欧足联官方奖。',
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 4110
+    },
+    update: {
+      name: "Onze d'Or",
+      englishName: "Onze d'Or",
+      externalUrl: ONZE_DOR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际一级综合奖',
+      level: '一级',
+      description:
+        '法国《Onze Mondial》杂志年度足球奖，设金奖、银奖、铜奖；系统按欧洲足坛范围内的媒体年度综合奖计入，非欧足联官方奖。',
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 4110
+    }
+  });
+
+  for (const result of ONZE_DOR_MARADONA_RESULTS) {
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: ONZE_DOR_EXTERNAL_URL
+      },
+      update: {
+        year: result.year,
+        externalUrl: ONZE_DOR_EXTERNAL_URL
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: ONZE_DOR_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: ONZE_DOR_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ONZE_DOR_AWARD_CODE}: ${ONZE_DOR_MARADONA_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedArgentineFootballerOfTheYear(
+  argentinaId: string,
+  playerId: string,
+  playerLabel: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: ARGENTINE_FOOTBALLER_OF_THE_YEAR_AWARD_CODE },
+    create: {
+      code: ARGENTINE_FOOTBALLER_OF_THE_YEAR_AWARD_CODE,
+      name: '阿根廷足球先生',
+      englishName: 'Argentine Footballer of the Year',
+      shortName: '阿根廷足球先生',
+      externalUrl: ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.COUNTRY,
+      category: '国家一级综合奖',
+      level: '一级',
+      description:
+        '阿根廷体育记者协会 Olimpia de Plata 足球分项，常作为阿根廷年度足球先生口径；非阿根廷足协官方奖。',
+      countryId: argentinaId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7100
+    },
+    update: {
+      name: '阿根廷足球先生',
+      englishName: 'Argentine Footballer of the Year',
+      shortName: '阿根廷足球先生',
+      externalUrl: ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.COUNTRY,
+      category: '国家一级综合奖',
+      level: '一级',
+      description:
+        '阿根廷体育记者协会 Olimpia de Plata 足球分项，常作为阿根廷年度足球先生口径；非阿根廷足协官方奖。',
+      countryId: argentinaId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 7100
+    }
+  });
+
+  for (const result of ARGENTINE_FOOTBALLER_OF_THE_YEAR_MARADONA_RESULTS) {
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL
+      },
+      update: {
+        year: result.year,
+        externalUrl: ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ARGENTINE_FOOTBALLER_OF_THE_YEAR_AWARD_CODE}: ${ARGENTINE_FOOTBALLER_OF_THE_YEAR_MARADONA_RESULTS.length} ${playerLabel} recipients.`
   );
 }
 
