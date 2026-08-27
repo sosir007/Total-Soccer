@@ -1,8 +1,11 @@
 import {
   AwardScopeType,
   AwardTargetType,
+  CompetitionStandingPlacement,
   CompetitionEditionStandingMode,
-  LifecycleStatus
+  LifecycleStatus,
+  PlayerTeamHonorSourceType,
+  PlayerTeamHonorStatus
 } from '@prisma/client';
 import { AwardRulesService } from '../award-rules/award-rules.service.js';
 import { PrismaService } from '../database/prisma.service.js';
@@ -42,6 +45,9 @@ const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
 const ITALY_SERIE_A_TOP_SCORER_AWARD_CODE = 'ITALY_SERIE_A_TOP_SCORER';
 const ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italtops.html';
 const ITALY_SERIE_A_COMPETITION_CODE = 'ITALY_SERIE_A';
+const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE = 'ITALY_SERIE_A_PLAYER_OF_THE_YEAR';
+const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/Guerin_d%27Oro';
 const ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE = 'ITALY_COPPA_ITALIA_TOP_SCORER';
 const ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italcuptops.html';
 const ITALY_COPPA_ITALIA_COMPETITION_CODE = 'ITALY_COPPA_ITALIA';
@@ -110,6 +116,31 @@ type ItalianTopScorerSeed = {
   year: number;
   placement: string;
   goals: number;
+  remark: string;
+};
+
+type LeaguePlayerOfTheYearSeed = {
+  season: string;
+  year: number;
+  placement: string;
+  remark: string;
+};
+
+type PlayerAchievementSeed = {
+  name: string;
+  season: string;
+  score: number;
+  externalUrl: string;
+  remark: string;
+  sortOrder: number;
+};
+
+type MaradonaTeamHonorSeed = {
+  competitionCode: string;
+  editionName: string;
+  teamName: string;
+  careerTeamName: string;
+  expectedPlacement: CompetitionStandingPlacement;
   remark: string;
 };
 
@@ -378,6 +409,15 @@ const ITALY_SERIE_A_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
   }
 ];
 
+const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS: LeaguePlayerOfTheYearSeed[] = [
+  {
+    season: '1984-85',
+    year: 1985,
+    placement: '年度最佳球员',
+    remark: "1984-85 意大利足球甲级联赛 Guerin d'Oro，马拉多纳效力那不勒斯时期。"
+  }
+];
+
 const ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
   {
     season: '1987-88',
@@ -385,6 +425,33 @@ const ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
     placement: '最佳射手',
     goals: 6,
     remark: '1987-88 意大利杯最佳射手，马拉多纳效力那不勒斯，6 球。'
+  }
+];
+
+const MARADONA_TEAM_HONOR_RESULTS: MaradonaTeamHonorSeed[] = [
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1987-88',
+    teamName: '那不勒斯',
+    careerTeamName: '那不勒斯',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '马拉多纳 1987-88 赛季代表那不勒斯出战意甲，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1988-89',
+    teamName: '那不勒斯',
+    careerTeamName: '那不勒斯',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '马拉多纳 1988-89 赛季代表那不勒斯出战意甲，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_COPPA_ITALIA_COMPETITION_CODE,
+    editionName: '1988-89',
+    teamName: '那不勒斯',
+    careerTeamName: '那不勒斯',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '马拉多纳 1988-89 赛季代表那不勒斯参加意大利杯，球队获得意大利杯亚军。'
   }
 ];
 
@@ -544,6 +611,86 @@ const NASL_ASSISTS_LEADER_PELE_RESULTS = [
   }
 ] as const;
 
+const MARADONA_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: 'France Football 金球奖荣誉奖',
+    season: '1995',
+    score: 1,
+    externalUrl:
+      'https://www.ina.fr/ina-eclaire-actu/3-janvier-1995-maradona-recoit-le-ballon-d-or',
+    remark: 'France Football 因马拉多纳球员时代非欧洲球员不能参评金球奖而授予的职业生涯荣誉奖。',
+    sortOrder: 1
+  },
+  {
+    name: 'FIFA 二十世纪最佳球员',
+    season: '2000',
+    score: 1,
+    externalUrl: 'https://en.wikipedia.org/wiki/FIFA_Player_of_the_Century',
+    remark:
+      'FIFA 世纪类荣誉。马拉多纳赢得互联网公众投票，最终与贝利分设/共享二十世纪最佳球员口径。',
+    sortOrder: 2
+  },
+  {
+    name: 'IFFHS 阿根廷二十世纪最佳球员',
+    season: '2000',
+    score: 1,
+    externalUrl: 'https://iffhs.com/posts/1094',
+    remark: 'IFFHS 国家世纪最佳球员评选，马拉多纳当选阿根廷二十世纪最佳球员。',
+    sortOrder: 3
+  },
+  {
+    name: 'FIFA 世纪最佳进球',
+    season: '2002',
+    score: 1,
+    externalUrl:
+      'https://inside.fifa.com/en/tournaments/mens/worldcup/1986mexico/news/maradona-s-immortal-11-second-dash-2802747',
+    remark: '1986 国际足联世界杯对英格兰的第二粒进球，FIFA 世纪最佳进球口径。',
+    sortOrder: 4
+  },
+  {
+    name: 'Globe Soccer 20世纪最佳球员',
+    season: '2012',
+    score: 1,
+    externalUrl: 'https://www.globesoccer.com/history/edition-2012/',
+    remark: 'Globe Soccer Awards 20世纪最佳球员荣誉。',
+    sortOrder: 5
+  },
+  {
+    name: 'World Soccer 历史最佳阵容',
+    season: '2013',
+    score: 1,
+    externalUrl:
+      'https://www.worldsoccer.com/world-soccer-latest/the-greatest-xi-how-the-panel-voted-341427',
+    remark: 'World Soccer 由专家评选的历史最佳十一人阵容。',
+    sortOrder: 6
+  },
+  {
+    name: 'AFA 阿根廷历史最佳阵容',
+    season: '2016',
+    score: 1,
+    externalUrl: 'https://www.afa.com.ar/Futbol/posts/la-seleccion-de-todos-los-tiempos',
+    remark: '阿根廷足协历史最佳阵容口径。',
+    sortOrder: 7
+  },
+  {
+    name: '金球奖梦之队第一阵容',
+    season: '2020',
+    score: 1,
+    externalUrl:
+      'https://www.francefootball.fr/news/Ballon-d-or-dream-team-le-roi-pele-et-diego-maradona-elus-dans-ce-onze-de-legende/1205768',
+    remark: "France Football Ballon d'Or Dream Team 第一阵容。",
+    sortOrder: 8
+  },
+  {
+    name: 'IFFHS 历史最佳阵容',
+    season: '2021',
+    score: 1,
+    externalUrl: 'https://iffhs.com/posts/1110',
+    remark: 'IFFHS 男足历史最佳阵容口径。',
+    sortOrder: 9
+  }
+];
+
 async function main() {
   const conmebol = await prisma.confederation.findFirst({
     where: {
@@ -670,6 +817,7 @@ async function main() {
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
   await seedBrazilSerieATopScorer(pele.id, brazilSerieA.id);
+  await seedItalySerieAPlayerOfTheYear(maradona.id, maradona.chineseName, italySerieA.id);
   await seedItalySerieATopScorer(maradona.id, maradona.chineseName, italySerieA.id);
   await seedItalyCoppaItaliaTopScorer(maradona.id, maradona.chineseName, italyCoppaItalia.id);
   await seedArgentinePrimeraDivisionTopScorer(
@@ -677,6 +825,7 @@ async function main() {
     maradona.chineseName,
     argentinePrimeraDivision.id
   );
+  await seedMaradonaTeamHonors(maradona.id, maradona.chineseName);
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -684,6 +833,7 @@ async function main() {
   await seedNaslMostValuablePlayer(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAllStarTeam(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAssistsLeader(pele.id, northAmericanSoccerLeague.id);
+  await seedMaradonaAchievements(maradona.id, maradona.chineseName);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();
@@ -723,6 +873,72 @@ async function findCompetitionEdition(competitionId: string, name: string) {
   }
 
   return edition;
+}
+
+async function findCompetitionStanding(seed: MaradonaTeamHonorSeed) {
+  const standing = await prisma.competitionStanding.findFirst({
+    where: {
+      placement: seed.expectedPlacement,
+      edition: {
+        name: seed.editionName,
+        competition: {
+          code: seed.competitionCode
+        }
+      },
+      OR: [
+        {
+          club: {
+            name: seed.teamName
+          }
+        },
+        {
+          country: {
+            name: seed.teamName
+          }
+        }
+      ]
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!standing) {
+    throw new Error(
+      `Competition standing not found: ${seed.competitionCode} / ${seed.editionName} / ${seed.teamName} / ${seed.expectedPlacement}`
+    );
+  }
+
+  return standing;
+}
+
+async function findPlayerCareer(playerId: string, teamName: string) {
+  const career = await prisma.playerCareer.findFirst({
+    where: {
+      playerId,
+      OR: [
+        {
+          club: {
+            name: teamName
+          }
+        },
+        {
+          country: {
+            name: teamName
+          }
+        }
+      ]
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!career) {
+    throw new Error(`Player career not found: ${teamName}`);
+  }
+
+  return career;
 }
 
 async function seedSouthAmericanFootballerOfTheYear(
@@ -1771,6 +1987,112 @@ async function seedItalySerieATopScorer(
   );
 }
 
+async function seedItalySerieAPlayerOfTheYear(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE },
+    create: {
+      code: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE,
+      name: '意大利足球甲级联赛年度最佳球员',
+      englishName: "Guerin d'Oro",
+      shortName: '意甲年度最佳球员',
+      externalUrl: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联一级综合奖',
+      level: '一级',
+      description:
+        '《Guerin Sportivo》基于意甲赛季平均评分评出的赛季最佳球员，系统按国内顶级联赛一级综合奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-08-26T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入马拉多纳确认记录，未补完整历年获奖者。',
+      enabled: true,
+      sortOrder: 7115
+    },
+    update: {
+      name: '意大利足球甲级联赛年度最佳球员',
+      englishName: "Guerin d'Oro",
+      shortName: '意甲年度最佳球员',
+      externalUrl: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联一级综合奖',
+      level: '一级',
+      description:
+        '《Guerin Sportivo》基于意甲赛季平均评分评出的赛季最佳球员，系统按国内顶级联赛一级综合奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-08-26T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入马拉多纳确认记录，未补完整历年获奖者。',
+      enabled: true,
+      sortOrder: 7115
+    }
+  });
+
+  for (const result of ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS) {
+    const competitionEdition = await findCompetitionEdition(competitionId, result.season);
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: result.season
+        }
+      },
+      create: {
+        awardId: award.id,
+        competitionEditionId: competitionEdition.id,
+        name: result.season,
+        season: result.season,
+        year: result.year,
+        externalUrl: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: "意大利足球甲级联赛 Guerin d'Oro 年度最佳球员。"
+      },
+      update: {
+        competitionEditionId: competitionEdition.id,
+        season: result.season,
+        year: result.year,
+        externalUrl: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: "意大利足球甲级联赛 Guerin d'Oro 年度最佳球员。"
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: 1,
+        placement: result.placement,
+        externalUrl: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE}: ${ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
 async function seedItalyCoppaItaliaTopScorer(
   playerId: string,
   playerLabel: string,
@@ -2785,6 +3107,80 @@ async function seedNaslAssistsLeader(peleId: string, competitionId: string) {
 
   console.log(
     `Seeded ${NASL_ASSISTS_LEADER_AWARD_CODE}: ${NASL_ASSISTS_LEADER_PELE_RESULTS.length} Pele recipients.`
+  );
+}
+
+async function seedMaradonaTeamHonors(playerId: string, playerLabel: string) {
+  let upsertedCount = 0;
+
+  for (const seed of MARADONA_TEAM_HONOR_RESULTS) {
+    const standing = await findCompetitionStanding(seed);
+    const career = await findPlayerCareer(playerId, seed.careerTeamName);
+
+    await prisma.playerTeamHonor.upsert({
+      where: {
+        playerId_standingId: {
+          playerId,
+          standingId: standing.id
+        }
+      },
+      create: {
+        playerId,
+        standingId: standing.id,
+        careerId: career.id,
+        sourceType: PlayerTeamHonorSourceType.IMPORT,
+        status: PlayerTeamHonorStatus.CONFIRMED,
+        remark: seed.remark
+      },
+      update: {
+        careerId: career.id,
+        sourceType: PlayerTeamHonorSourceType.IMPORT,
+        status: PlayerTeamHonorStatus.CONFIRMED,
+        remark: seed.remark
+      }
+    });
+
+    upsertedCount += 1;
+  }
+
+  console.log(`Seeded Maradona team honors: ${upsertedCount} upserted for ${playerLabel}.`);
+}
+
+async function seedMaradonaAchievements(playerId: string, playerLabel: string) {
+  let createdCount = 0;
+  let skippedCount = 0;
+
+  for (const achievement of MARADONA_ACHIEVEMENT_RESULTS) {
+    const existing = await prisma.playerHonor.findFirst({
+      where: {
+        playerId,
+        name: achievement.name,
+        season: achievement.season
+      },
+      select: { id: true }
+    });
+
+    if (existing) {
+      skippedCount += 1;
+      continue;
+    }
+
+    await prisma.playerHonor.create({
+      data: {
+        playerId,
+        name: achievement.name,
+        season: achievement.season,
+        score: achievement.score,
+        externalUrl: achievement.externalUrl,
+        remark: achievement.remark,
+        sortOrder: achievement.sortOrder
+      }
+    });
+    createdCount += 1;
+  }
+
+  console.log(
+    `Seeded Maradona achievements: ${createdCount} created, ${skippedCount} skipped for ${playerLabel}.`
   );
 }
 
