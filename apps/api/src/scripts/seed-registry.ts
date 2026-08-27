@@ -238,6 +238,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'custom'
   },
   {
+    key: 'mitropa-cup',
+    label: '米特罗帕杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-mitropa-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/mitropa-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'custom'
+  },
+  {
     key: 'uefa-super-cup',
     label: '欧洲超级杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-super-cup.ts',

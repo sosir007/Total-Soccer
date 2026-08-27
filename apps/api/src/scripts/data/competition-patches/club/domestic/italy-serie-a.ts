@@ -43,6 +43,7 @@ export const ITALY_SERIE_A_PATCH_METADATA: CompetitionDataMetadata = {
     '1898-1928/29 前身已补可确认的冠亚季；无法确认或没有明确全国季军口径的名次留空。',
     '1926-27 冠军被撤销未授予，仅记录可确认的亚军和季军。',
     '1921-22 CCI / FIGC 两个官方冠军按 championShare=2 分摊冠军分。',
+    '1903、1904 部分 AC 米兰资料列 Milan 为第三名，但 RSSSF 逐场赛程、FIGC 赛制说明和 Wikipedia 冠军表均未明确官方全国季军，项目口径留空。',
     '1929-30 之后按 RSSSF 最终名次累计表派生冠军、亚军、季军；2004-05 因 Calciopoli 冠军未授予，仅录入调整后的亚军和季军。'
   ]
 };
@@ -281,8 +282,8 @@ const RAW_PRE_SERIE_A_STANDINGS = `
 1900	Genoa 1893		Juventus FC
 1901	Milan AC	Genoa 1893	Juventus FC
 1902	Genoa 1893	Milan AC
-1903	Genoa 1893	Juventus FC	Milan AC
-1904	Genoa 1893	Juventus FC	Milan AC
+1903	Genoa 1893	Juventus FC
+1904	Genoa 1893	Juventus FC
 1905	Juventus FC	Genoa 1893
 1906	Milan AC	Juventus FC	Genoa 1893
 1907	Milan AC	Torino

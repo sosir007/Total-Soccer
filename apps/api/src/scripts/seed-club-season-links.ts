@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 const validateOnly = process.argv.includes('--validate-only');
 
 const SANTOS_UID = '335';
+const AC_MILAN_UID = '1099';
 
 const SANTOS_SEASON_LINKS = [
   {
@@ -147,56 +148,239 @@ const SANTOS_SEASON_LINKS = [
   }
 ] as const;
 
+const AC_MILAN_SEASON_LINKS = [
+  {
+    year: 1978,
+    season: '1977-78',
+    externalUrl: 'https://en.wikipedia.org/wiki/1977%E2%80%9378_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1979,
+    season: '1978-79',
+    externalUrl: 'https://en.wikipedia.org/wiki/1978%E2%80%9379_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1980,
+    season: '1979-80',
+    externalUrl: 'https://en.wikipedia.org/wiki/1979%E2%80%9380_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1981,
+    season: '1980-81',
+    externalUrl: 'https://en.wikipedia.org/wiki/1980%E2%80%9381_Serie_B',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1982,
+    season: '1981-82',
+    externalUrl: 'https://en.wikipedia.org/wiki/1981%E2%80%9382_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1983,
+    season: '1982-83',
+    externalUrl: 'https://en.wikipedia.org/wiki/1982%E2%80%9383_Serie_B',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1984,
+    season: '1983-84',
+    externalUrl: 'https://en.wikipedia.org/wiki/1983%E2%80%9384_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1985,
+    season: '1984-85',
+    externalUrl: 'https://en.wikipedia.org/wiki/1984%E2%80%9385_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1986,
+    season: '1985-86',
+    externalUrl: 'https://en.wikipedia.org/wiki/1985%E2%80%9386_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1987,
+    season: '1986-87',
+    externalUrl: 'https://en.wikipedia.org/wiki/1986%E2%80%9387_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1988,
+    season: '1987-88',
+    externalUrl: 'https://en.wikipedia.org/wiki/1987%E2%80%9388_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1989,
+    season: '1988-89',
+    externalUrl: 'https://en.wikipedia.org/wiki/1988%E2%80%9389_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1990,
+    season: '1989-90',
+    externalUrl: 'https://en.wikipedia.org/wiki/1989%E2%80%9390_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1991,
+    season: '1990-91',
+    externalUrl: 'https://en.wikipedia.org/wiki/1990%E2%80%9391_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1992,
+    season: '1991-92',
+    externalUrl: 'https://en.wikipedia.org/wiki/1991%E2%80%9392_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1993,
+    season: '1992-93',
+    externalUrl: 'https://en.wikipedia.org/wiki/1992%E2%80%9393_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1994,
+    season: '1993-94',
+    externalUrl: 'https://en.wikipedia.org/wiki/1993%E2%80%9394_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1995,
+    season: '1994-95',
+    externalUrl: 'https://en.wikipedia.org/wiki/1994%E2%80%9395_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1996,
+    season: '1995-96',
+    externalUrl: 'https://en.wikipedia.org/wiki/1995%E2%80%9396_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1997,
+    season: '1996-97',
+    externalUrl: 'https://en.wikipedia.org/wiki/1996%E2%80%9397_AC_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2001,
+    season: '2000-01',
+    externalUrl: 'https://en.wikipedia.org/wiki/2000%E2%80%9301_A.C._Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2002,
+    season: '2001-02',
+    externalUrl: 'https://en.wikipedia.org/wiki/2001%E2%80%9302_A.C._Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2003,
+    season: '2002-03',
+    externalUrl: 'https://en.wikipedia.org/wiki/2002%E2%80%9303_A.C._Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2004,
+    season: '2003-04',
+    externalUrl: 'https://en.wikipedia.org/wiki/2003%E2%80%9304_A.C._Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2008,
+    season: '2007-08',
+    externalUrl: 'https://en.wikipedia.org/wiki/2007%E2%80%9308_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 2009,
+    season: '2008-09',
+    externalUrl: 'https://en.wikipedia.org/wiki/2008%E2%80%9309_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 2010,
+    season: '2009-10',
+    externalUrl: 'https://en.wikipedia.org/wiki/2009%E2%80%9310_AC_Milan_season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const CLUB_SEASON_LINK_SEEDS = [
+  {
+    uid: SANTOS_UID,
+    links: SANTOS_SEASON_LINKS
+  },
+  {
+    uid: AC_MILAN_UID,
+    links: AC_MILAN_SEASON_LINKS
+  }
+] as const;
+
 async function main() {
-  const club = await prisma.club.findFirst({
-    where: { uid: SANTOS_UID },
+  const clubs = await prisma.club.findMany({
+    where: { uid: { in: CLUB_SEASON_LINK_SEEDS.map((seed) => seed.uid) } },
     select: { id: true, name: true, uid: true }
   });
+  const clubByUid = new Map(clubs.map((club) => [club.uid, club]));
 
-  if (!club) {
-    throw new Error(`Club UID ${SANTOS_UID} not found.`);
+  const missingUid = CLUB_SEASON_LINK_SEEDS.find((seed) => !clubByUid.has(seed.uid))?.uid;
+  if (missingUid) {
+    throw new Error(`Club UID ${missingUid} not found.`);
   }
 
   if (validateOnly) {
-    const existingCount = await prisma.clubSeasonLink.count({
-      where: { clubId: club.id }
-    });
-    console.log(
-      `validate-only passed: club=${club.name} (${club.uid}), targetLinks=${SANTOS_SEASON_LINKS.length}, existingLinks=${existingCount}`
-    );
+    for (const seed of CLUB_SEASON_LINK_SEEDS) {
+      const club = clubByUid.get(seed.uid)!;
+      const existingCount = await prisma.clubSeasonLink.count({
+        where: { clubId: club.id }
+      });
+      console.log(
+        `validate-only passed: club=${club.name} (${club.uid}), targetLinks=${seed.links.length}, existingLinks=${existingCount}`
+      );
+    }
     return;
   }
 
-  for (const [index, link] of SANTOS_SEASON_LINKS.entries()) {
-    await prisma.clubSeasonLink.upsert({
-      where: {
-        clubId_season: {
-          clubId: club.id,
-          season: link.season
-        }
-      },
-      create: {
-        clubId: club.id,
-        year: link.year,
-        season: link.season,
-        externalUrl: link.externalUrl,
-        sourceName: 'Wikipedia',
-        remark: link.remark,
-        sortOrder: index + 1
-      },
-      update: {
-        year: link.year,
-        externalUrl: link.externalUrl,
-        sourceName: 'Wikipedia',
-        remark: link.remark,
-        sortOrder: index + 1
-      }
-    });
-  }
+  for (const seed of CLUB_SEASON_LINK_SEEDS) {
+    const club = clubByUid.get(seed.uid)!;
 
-  console.log(
-    `Seeded ${SANTOS_SEASON_LINKS.length} club season links for ${club.name} (${club.uid}).`
-  );
+    for (const [index, link] of seed.links.entries()) {
+      await prisma.clubSeasonLink.upsert({
+        where: {
+          clubId_season: {
+            clubId: club.id,
+            season: link.season
+          }
+        },
+        create: {
+          clubId: club.id,
+          year: link.year,
+          season: link.season,
+          externalUrl: link.externalUrl,
+          sourceName: 'Wikipedia',
+          remark: link.remark,
+          sortOrder: index + 1
+        },
+        update: {
+          year: link.year,
+          externalUrl: link.externalUrl,
+          sourceName: 'Wikipedia',
+          remark: link.remark,
+          sortOrder: index + 1
+        }
+      });
+    }
+
+    console.log(`Seeded ${seed.links.length} club season links for ${club.name} (${club.uid}).`);
+  }
 }
 
 void runSeed(prisma, main);

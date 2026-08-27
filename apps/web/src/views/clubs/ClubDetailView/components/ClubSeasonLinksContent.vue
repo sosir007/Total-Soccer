@@ -59,9 +59,12 @@ defineProps<{
 .season-link-item {
   display: inline-flex;
   align-items: center;
-  min-width: 56px;
+  justify-content: center;
+  flex: 0 0 82px;
+  width: 82px;
   height: 32px;
   padding: 0 10px;
+  box-sizing: border-box;
   border: 1px solid var(--color-border-default);
   border-radius: 6px;
   color: var(--text-color-regular);
@@ -78,7 +81,7 @@ defineProps<{
   pointer-events: none;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 640px) {
   .season-link-group {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -86,6 +89,7 @@ defineProps<{
 
   .season-link-group-title {
     line-height: 1.4;
+    text-align: left;
   }
 }
 </style>
