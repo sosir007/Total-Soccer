@@ -140,6 +140,7 @@ type CompetitionDataCompleteness = Pick<
 const DATA_COMPLETENESS_VERIFIED_AT = new Date('2026-08-04T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_05 = new Date('2026-08-05T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_10 = new Date('2026-08-10T00:00:00.000Z');
+const DATA_COMPLETENESS_UPDATED_AT_2026_08_27 = new Date('2026-08-27T00:00:00.000Z');
 const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
   dataComplete: true,
   dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
@@ -176,6 +177,14 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
       dataComplete: true,
       dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
       dataRemark: '1985、1993、2022 已录；2026 届已取消，不建届次。'
+    }
+  ],
+  [
+    'UEFA_NATIONS_LEAGUE',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_27,
+      dataRemark: '截至 2024-25 届已按冠亚季殿军完整录入；殿军仅展示不计分。'
     }
   ],
   [
@@ -1257,6 +1266,11 @@ function validateEditionStandings(
       assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 0, fourthPlace: 0, semiFinalist: 0 });
       break;
     case CompetitionEditionStandingMode.LEAGUE_TOP_THREE:
+      if (counts.runnerUp === 2 && counts.thirdPlace === 0) {
+        assertCounts({ champion: 1, runnerUp: 2, thirdPlace: 0, fourthPlace: 0, semiFinalist: 0 });
+        break;
+      }
+
       assertCounts({ champion: 1, runnerUp: 1, thirdPlace: 1, fourthPlace: 0, semiFinalist: 0 });
       break;
     case CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE:

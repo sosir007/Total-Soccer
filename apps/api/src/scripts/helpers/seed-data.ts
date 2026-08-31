@@ -97,6 +97,7 @@ const COUNTRY_SEEDS: Record<string, SeedCountry> = {
   奥地利: { uid: '755', name: '奥地利', confederationCode: 'UEFA' },
   比利时: { uid: '757', name: '比利时', confederationCode: 'UEFA' },
   保加利亚: { uid: '760', name: '保加利亚', confederationCode: 'UEFA' },
+  克罗地亚: { uid: '761', name: '克罗地亚', confederationCode: 'UEFA' },
   捷克: { uid: '763', name: '捷克', confederationCode: 'UEFA' },
   丹麦: { uid: '764', name: '丹麦', confederationCode: 'UEFA' },
   英格兰: { uid: '765', name: '英格兰', confederationCode: 'UEFA' },

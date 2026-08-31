@@ -22,6 +22,7 @@
     "prisma:migrate": "pnpm --filter @total-soccer/api prisma:migrate",
     "prisma:studio": "pnpm --filter @total-soccer/api prisma:studio",
     "seed:club-season-links": "pnpm --filter @total-soccer/api seed:club-season-links",
+    "seed:player-careers": "pnpm --filter @total-soccer/api seed:player-careers",
     "prepare": "husky",
     "commit": "cz"
   },

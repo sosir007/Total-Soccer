@@ -927,6 +927,7 @@ export class CompetitionsService {
   }> {
     const standings = body.standings ?? [];
     const usedPlacementKeys = new Set<string>();
+    const runnerUpOrders = new Set<number>();
     const semiFinalistOrders = new Set<number>();
     const thirdPlaceOrders = new Set<number>();
     const allowedPlacements = this.allowedPlacementsByMode(standingMode);
@@ -953,6 +954,9 @@ export class CompetitionsService {
 
       const placementKey =
         placement === CompetitionStandingPlacement.SEMI_FINALIST ||
+        (standingMode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE &&
+          placement === CompetitionStandingPlacement.RUNNER_UP &&
+          standingOrder > 0) ||
         (standingMode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE &&
           placement === CompetitionStandingPlacement.THIRD_PLACE)
           ? `${placement}:${standingOrder}`
@@ -963,6 +967,18 @@ export class CompetitionsService {
       }
 
       usedPlacementKeys.add(placementKey);
+
+      if (
+        standingMode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE &&
+        placement === CompetitionStandingPlacement.RUNNER_UP &&
+        standingOrder > 0
+      ) {
+        runnerUpOrders.add(standingOrder);
+
+        if (runnerUpOrders.size > 2) {
+          throw new BadRequestException('同一届赛事最多录入两支并列亚军球队。');
+        }
+      }
 
       if (placement === CompetitionStandingPlacement.SEMI_FINALIST) {
         semiFinalistOrders.add(standingOrder);
@@ -1137,6 +1153,9 @@ export class CompetitionsService {
   ) {
     const needsOrder =
       placement === CompetitionStandingPlacement.SEMI_FINALIST ||
+      (standingMode === CompetitionEditionStandingMode.LEAGUE_TOP_THREE &&
+        placement === CompetitionStandingPlacement.RUNNER_UP &&
+        Boolean(value)) ||
       (standingMode === CompetitionEditionStandingMode.DOUBLE_THIRD_PLACE &&
         placement === CompetitionStandingPlacement.THIRD_PLACE);
 

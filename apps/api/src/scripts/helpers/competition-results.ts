@@ -1,4 +1,4 @@
-import { CompetitionEditionStandingMode } from '@prisma/client';
+import { CompetitionEditionStandingMode, CompetitionStandingPlacement } from '@prisma/client';
 import {
   buildDoubleThirdPlaceStandings,
   buildFinalOnlyStandings,
@@ -28,6 +28,12 @@ export type TopThreeCompetitionResult = CompetitionResultBase & {
   thirdPlace: string;
 };
 
+export type DoubleRunnerUpCompetitionResult = CompetitionResultBase & {
+  mode: typeof CompetitionEditionStandingMode.LEAGUE_TOP_THREE;
+  champion: string;
+  runnerUps: [string, string];
+};
+
 export type FinalOnlyCompetitionResult = CompetitionResultBase & {
   mode: typeof CompetitionEditionStandingMode.FINAL_ONLY;
   champion: string;
@@ -51,6 +57,7 @@ export type DoubleThirdCompetitionResult = CompetitionResultBase & {
 export type CompetitionResult =
   | TopFourCompetitionResult
   | TopThreeCompetitionResult
+  | DoubleRunnerUpCompetitionResult
   | FinalOnlyCompetitionResult
   | SemiFinalistCompetitionResult
   | DoubleThirdCompetitionResult;
@@ -65,6 +72,10 @@ export function withStandingMode<T extends CompetitionResult>(results: T[]) {
 export function buildCompetitionResultStandings(result: CompetitionResult) {
   switch (result.mode) {
     case CompetitionEditionStandingMode.LEAGUE_TOP_THREE:
+      if ('runnerUps' in result) {
+        return buildDoubleRunnerUpStandings(result);
+      }
+
       return buildTopThreeStandings(result);
     case CompetitionEditionStandingMode.FINAL_ONLY:
       return buildFinalOnlyStandings(result);
@@ -78,4 +89,20 @@ export function buildCompetitionResultStandings(result: CompetitionResult) {
     default:
       throw new Error('Unsupported competition result mode.');
   }
+}
+
+function buildDoubleRunnerUpStandings(input: DoubleRunnerUpCompetitionResult) {
+  return [
+    { placement: CompetitionStandingPlacement.CHAMPION, countryName: input.champion },
+    {
+      placement: CompetitionStandingPlacement.RUNNER_UP,
+      countryName: input.runnerUps[0],
+      standingOrder: 1
+    },
+    {
+      placement: CompetitionStandingPlacement.RUNNER_UP,
+      countryName: input.runnerUps[1],
+      standingOrder: 2
+    }
+  ];
 }

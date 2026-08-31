@@ -29,9 +29,10 @@ export const OLYMPIC_MENS_FOOTBALL_METADATA: CompetitionDataMetadata = {
       remark: '用于核对最近一届奥运男足名次。'
     }
   ],
-  lastVerifiedAt: '2026-07-07',
+  lastVerifiedAt: '2026-08-27',
   notes: [
     '本 seed 从 1908 开始录入正式国家队/奥运代表队时代结果，不录入 1900、1904 俱乐部/混合代表队口径和 1932 未举办届次。',
+    '1920 决赛后通过附加赛决定银牌和铜牌名次，最终口径为西班牙亚军、荷兰季军、意大利殿军；不是普通淘汰赛三四名赛口径。',
     '1972 使用并列季军口径，苏联与东德均按季军录入，不录殿军。',
     '2020 届次保留年份 2020，并在届次备注中说明实际于 2021 年举办。',
     '英国奥运队独立统计，不归并英格兰；东德、德国联队继承到德国；苏联、西德、捷克斯洛伐克、南斯拉夫、阿拉伯联合共和国沿用系统历史国家继承口径。',
@@ -122,7 +123,7 @@ export const OLYMPIC_RESULTS: Array<TopFourCompetitionResult | DoubleThirdCompet
     champion: '比利时',
     runnerUp: '西班牙',
     thirdPlace: '荷兰',
-    fourthPlace: '法国'
+    fourthPlace: '意大利'
   },
   {
     year: 1924,

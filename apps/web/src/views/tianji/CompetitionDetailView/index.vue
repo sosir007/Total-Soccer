@@ -78,6 +78,8 @@ const standingModeOptions: Array<{ label: string; value: CompetitionEditionStand
 const allPlacementFields: PlacementField[] = [
   { key: 'CHAMPION', label: '冠军', placement: 'CHAMPION', standingOrder: 0 },
   { key: 'RUNNER_UP', label: '亚军', placement: 'RUNNER_UP', standingOrder: 0 },
+  { key: 'RUNNER_UP_1', label: '亚军 1', placement: 'RUNNER_UP', standingOrder: 1 },
+  { key: 'RUNNER_UP_2', label: '亚军 2', placement: 'RUNNER_UP', standingOrder: 2 },
   { key: 'THIRD_PLACE', label: '季军', placement: 'THIRD_PLACE', standingOrder: 0 },
   { key: 'FOURTH_PLACE', label: '殿军', placement: 'FOURTH_PLACE', standingOrder: 0 },
   { key: 'THIRD_PLACE_1', label: '季军 1', placement: 'THIRD_PLACE', standingOrder: 1 },
@@ -141,10 +143,16 @@ const detailForm = reactive({
 const sortedEditions = computed(() => sortEditions(competition.value?.editions ?? []));
 const sortedEditionRows = computed(() => sortRows(editionRows.value));
 const editionTablePlacementFields = computed(() =>
-  getPlacementFieldUnion(sortedEditions.value.map((edition) => edition.standingMode))
+  getPlacementFieldUnion(
+    sortedEditions.value.map((edition) => edition.standingMode),
+    hasDoubleRunnerUpEditions(sortedEditions.value)
+  )
 );
 const resultDialogPlacementFields = computed(() =>
-  getPlacementFieldUnion(sortedEditionRows.value.map((row) => row.standingMode))
+  getPlacementFieldUnion(
+    sortedEditionRows.value.map((row) => row.standingMode),
+    hasDoubleRunnerUpRows(sortedEditionRows.value)
+  )
 );
 const showDetailFormatField = computed(() => shouldUseCompetitionFormat(detailForm));
 const resultDialogTitle = computed(() =>
@@ -289,6 +297,8 @@ async function saveResultRows() {
   resultSaving.value = true;
 
   try {
+    const useDoubleRunnerUp = hasDoubleRunnerUpRows(editionRows.value);
+
     if (resultDialogMode.value === 'batch') {
       for (const id of deletedEditionIds.value) {
         await deleteCompetitionEdition(id);
@@ -312,7 +322,7 @@ async function saveResultRows() {
 
       await saveCompetitionStandings(edition.id, {
         standingMode: row.standingMode,
-        standings: getPlacementFieldsByMode(row.standingMode).map((field) => ({
+        standings: getPlacementFieldsByMode(row.standingMode, useDoubleRunnerUp).map((field) => ({
           placement: field.placement,
           standingOrder: field.standingOrder,
           countryId:
@@ -466,6 +476,11 @@ function mapEditionToRow(edition: CompetitionEdition): EditionRow {
 
     standings[fieldKey].countryId = standing.countryId ?? '';
     standings[fieldKey].clubId = standing.clubId ?? '';
+
+    if (standing.placement === 'RUNNER_UP' && !standing.standingOrder) {
+      standings.RUNNER_UP_1.countryId = standing.countryId ?? '';
+      standings.RUNNER_UP_1.clubId = standing.clubId ?? '';
+    }
   }
 
   return {
@@ -540,7 +555,10 @@ function getCompetitionCountryIds(item: CompetitionDetail) {
   return ids.length ? ids : item.countryId ? [item.countryId] : [];
 }
 
-function getPlacementFieldsByMode(standingMode: CompetitionEditionStandingMode) {
+function getPlacementFieldsByMode(
+  standingMode: CompetitionEditionStandingMode,
+  useDoubleRunnerUp = false
+) {
   if (standingMode === 'THIRD_PLACE_MATCH') {
     return allPlacementFields.filter((field) =>
       ['CHAMPION', 'RUNNER_UP', 'THIRD_PLACE', 'FOURTH_PLACE'].includes(field.key)
@@ -554,6 +572,12 @@ function getPlacementFieldsByMode(standingMode: CompetitionEditionStandingMode) 
   }
 
   if (standingMode === 'LEAGUE_TOP_THREE') {
+    if (useDoubleRunnerUp) {
+      return allPlacementFields.filter((field) =>
+        ['CHAMPION', 'RUNNER_UP_1', 'RUNNER_UP_2', 'THIRD_PLACE'].includes(field.key)
+      );
+    }
+
     return allPlacementFields.filter((field) =>
       ['CHAMPION', 'RUNNER_UP', 'THIRD_PLACE'].includes(field.key)
     );
@@ -568,10 +592,13 @@ function getPlacementFieldsByMode(standingMode: CompetitionEditionStandingMode) 
   return allPlacementFields.filter((field) => ['CHAMPION', 'RUNNER_UP'].includes(field.key));
 }
 
-function getPlacementFieldUnion(standingModes: CompetitionEditionStandingMode[]) {
+function getPlacementFieldUnion(
+  standingModes: CompetitionEditionStandingMode[],
+  useDoubleRunnerUp = false
+) {
   const keys = new Set(
     standingModes.flatMap((standingMode) =>
-      getPlacementFieldsByMode(standingMode).map((field) => field.key)
+      getPlacementFieldsByMode(standingMode, useDoubleRunnerUp).map((field) => field.key)
     )
   );
 
@@ -586,6 +613,10 @@ function getStandingFieldKey(
   placement: CompetitionStandingPlacement,
   standingOrder: number | null | undefined
 ) {
+  if (placement === 'RUNNER_UP' && standingOrder) {
+    return `RUNNER_UP_${standingOrder}`;
+  }
+
   if (placement === 'SEMI_FINALIST') {
     return `SEMI_FINALIST_${standingOrder || 1}`;
   }
@@ -598,11 +629,25 @@ function getStandingFieldKey(
 }
 
 function getEditionStanding(edition: CompetitionEdition, field: PlacementField) {
-  return edition.standings.find(
-    (item) =>
-      item.placement === field.placement &&
-      (field.standingOrder === 0 || item.standingOrder === field.standingOrder)
+  const exactStanding = edition.standings.find(
+    (item) => item.placement === field.placement && item.standingOrder === field.standingOrder
   );
+
+  if (exactStanding) {
+    return exactStanding;
+  }
+
+  if (field.standingOrder === 1) {
+    return edition.standings.find(
+      (item) => item.placement === field.placement && !item.standingOrder
+    );
+  }
+
+  if (field.standingOrder === 0) {
+    return edition.standings.find((item) => item.placement === field.placement);
+  }
+
+  return undefined;
 }
 
 function getStandingEntityType(edition: CompetitionEdition, field: PlacementField) {
@@ -637,6 +682,21 @@ function hasEditionStanding(edition: CompetitionEdition, field: PlacementField) 
   const standing = getEditionStanding(edition, field);
 
   return Boolean(standing?.country || standing?.club);
+}
+
+function hasDoubleRunnerUpEditions(editions: CompetitionEdition[]) {
+  return editions.some((edition) => {
+    const runnerUps = edition.standings.filter((standing) => standing.placement === 'RUNNER_UP');
+    return runnerUps.length > 1 || runnerUps.some((standing) => (standing.standingOrder ?? 0) > 1);
+  });
+}
+
+function hasDoubleRunnerUpRows(rows: EditionRow[]) {
+  return rows.some(hasDoubleRunnerUpRow);
+}
+
+function hasDoubleRunnerUpRow(row: EditionRow) {
+  return Boolean(row.standings.RUNNER_UP_2?.countryId || row.standings.RUNNER_UP_2?.clubId);
 }
 
 function formatText(value?: string | number | boolean | null) {

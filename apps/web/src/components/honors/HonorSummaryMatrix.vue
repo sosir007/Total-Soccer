@@ -68,6 +68,8 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   const columns: HonorSummaryDisplayCompetition[] = [];
   let continentalCupColumn: HonorSummaryDisplayCompetition | null = null;
   let internationalLevelThreeColumn: HonorSummaryDisplayCompetition | null = null;
+  let countryOtherLevelOneColumn: HonorSummaryDisplayCompetition | null = null;
+  let countryOtherLevelTwoColumn: HonorSummaryDisplayCompetition | null = null;
   let clubInternationalLevelFourColumn: HonorSummaryDisplayCompetition | null = null;
   let continentalLevelTwoColumn: HonorSummaryDisplayCompetition | null = null;
   let continentalLevelFourColumn: HonorSummaryDisplayCompetition | null = null;
@@ -79,6 +81,50 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   let clubCustomCupColumn: HonorSummaryDisplayCompetition | null = null;
 
   for (const competition of props.competitions) {
+    if (shouldMergeAsCountryOtherCup(competition, '一级')) {
+      if (!countryOtherLevelOneColumn) {
+        countryOtherLevelOneColumn = {
+          ...competition,
+          id: getCountryOtherLevelOneColumnId(),
+          code: getCountryOtherLevelOneColumnCode(),
+          name: getCountryOtherLevelOneColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(countryOtherLevelOneColumn);
+      }
+
+      countryOtherLevelOneColumn.sourceCompetitionIds.push(competition.id);
+      countryOtherLevelOneColumn.counts ??= createEmptyCounts();
+      addCounts(
+        countryOtherLevelOneColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsCountryOtherCup(competition, '二级')) {
+      if (!countryOtherLevelTwoColumn) {
+        countryOtherLevelTwoColumn = {
+          ...competition,
+          id: getCountryOtherLevelTwoColumnId(),
+          code: getCountryOtherLevelTwoColumnCode(),
+          name: getCountryOtherLevelTwoColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(countryOtherLevelTwoColumn);
+      }
+
+      countryOtherLevelTwoColumn.sourceCompetitionIds.push(competition.id);
+      countryOtherLevelTwoColumn.counts ??= createEmptyCounts();
+      addCounts(
+        countryOtherLevelTwoColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
     if (shouldMergeAsInternationalLevelThree(competition)) {
       if (!internationalLevelThreeColumn) {
         internationalLevelThreeColumn = {
@@ -468,6 +514,19 @@ function shouldMergeAsInternationalLevelThree(competition: HonorSummaryCompetiti
   );
 }
 
+function shouldMergeAsCountryOtherCup(
+  competition: HonorSummaryCompetition,
+  level: '一级' | '二级'
+) {
+  return (
+    props.entityType === 'country' &&
+    competition.targetType === 'COUNTRY' &&
+    competition.category === '其他' &&
+    competition.level === level &&
+    competition.format === '杯赛'
+  );
+}
+
 function shouldMergeAsClubInternationalLevelFour(competition: HonorSummaryCompetition) {
   return (
     props.entityType === 'club' &&
@@ -581,6 +640,30 @@ function getInternationalLevelThreeColumnCode() {
 
 function getInternationalLevelThreeColumnName() {
   return '国际三级';
+}
+
+function getCountryOtherLevelOneColumnId() {
+  return '__country_other_level_one__';
+}
+
+function getCountryOtherLevelOneColumnCode() {
+  return 'COUNTRY_OTHER_LEVEL_ONE';
+}
+
+function getCountryOtherLevelOneColumnName() {
+  return '其他一级';
+}
+
+function getCountryOtherLevelTwoColumnId() {
+  return '__country_other_level_two__';
+}
+
+function getCountryOtherLevelTwoColumnCode() {
+  return 'COUNTRY_OTHER_LEVEL_TWO';
+}
+
+function getCountryOtherLevelTwoColumnName() {
+  return '其他二级';
 }
 
 function getClubInternationalLevelFourColumnId() {

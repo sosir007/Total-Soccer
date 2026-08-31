@@ -17,7 +17,10 @@ const props = defineProps<{
   competition: CompetitionDetail | null;
   placementFields: PlacementField[];
   standingModeOptions: Array<{ label: string; value: CompetitionEditionStandingMode }>;
-  getPlacementFieldsByMode: (standingMode: CompetitionEditionStandingMode) => PlacementField[];
+  getPlacementFieldsByMode: (
+    standingMode: CompetitionEditionStandingMode,
+    useDoubleRunnerUp?: boolean
+  ) => PlacementField[];
   sortAscending: boolean;
   saving: boolean;
 }>();
@@ -45,9 +48,21 @@ const rowGridStyle = computed(() => ({
 }));
 
 function hasPlacementField(row: EditionRow, field: PlacementField) {
+  if (
+    row.standingMode === 'LEAGUE_TOP_THREE' &&
+    ['RUNNER_UP_1', 'RUNNER_UP_2'].includes(field.key) &&
+    props.placementFields.some((candidate) => candidate.key === 'RUNNER_UP_2')
+  ) {
+    return true;
+  }
+
   return props
-    .getPlacementFieldsByMode(row.standingMode)
+    .getPlacementFieldsByMode(row.standingMode, hasDoubleRunnerUpRow(row))
     .some((candidate) => candidate.key === field.key);
+}
+
+function hasDoubleRunnerUpRow(row: EditionRow) {
+  return Boolean(row.standings.RUNNER_UP_2?.countryId || row.standings.RUNNER_UP_2?.clubId);
 }
 </script>
 

@@ -115,6 +115,26 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'custom'
   },
   {
+    key: 'uefa-nations-league',
+    label: '欧洲国家联赛',
+    file: 'src/scripts/seeds/competitions/national-team/global/seed-uefa-nations-league.ts',
+    dataFiles: ['src/scripts/data/competition-results/national-team/global/uefa-nations-league.ts'],
+    dataKind: 'competition-results',
+    target: 'national-team',
+    scope: 'custom'
+  },
+  {
+    key: 'central-european-international-cup',
+    label: '中欧国际杯',
+    file: 'src/scripts/seeds/competitions/national-team/global/seed-central-european-international-cup.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/national-team/global/central-european-international-cup.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'national-team',
+    scope: 'custom'
+  },
+  {
     key: 'fifa-club-world-cup',
     label: '国际足联俱乐部世界杯',
     file: 'src/scripts/seeds/competitions/club/global/seed-fifa-club-world-cup.ts',

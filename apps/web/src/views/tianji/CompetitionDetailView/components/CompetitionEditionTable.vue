@@ -172,14 +172,14 @@ function compareStatisticRows(a: StandingStatRow, b: StandingStatRow) {
     return b.counts.CHAMPION - a.counts.CHAMPION;
   }
 
-  if (a.total !== b.total) {
-    return b.total - a.total;
-  }
-
   for (const placement of placementOrder.slice(1)) {
     if (a.counts[placement] !== b.counts[placement]) {
       return b.counts[placement] - a.counts[placement];
     }
+  }
+
+  if (a.total !== b.total) {
+    return b.total - a.total;
   }
 
   return a.name.localeCompare(b.name, 'zh-CN');

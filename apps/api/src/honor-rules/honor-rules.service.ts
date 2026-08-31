@@ -274,7 +274,7 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     level: '一级',
     format: '杯赛',
     baseScore: 3,
-    placementScope: HonorRulePlacementScope.TOP_TWO,
+    placementScope: HonorRulePlacementScope.TOP_THREE,
     conversionType: HonorRuleConversionType.NONE,
     sortOrder: 50
   },
@@ -286,7 +286,7 @@ const DEFAULT_RULES: HonorRuleDefaultDefinition[] = [
     level: '二级',
     format: '杯赛',
     baseScore: 2,
-    placementScope: HonorRulePlacementScope.TOP_TWO,
+    placementScope: HonorRulePlacementScope.TOP_THREE,
     conversionType: HonorRuleConversionType.NONE,
     sortOrder: 60
   },
@@ -1086,12 +1086,20 @@ export class HonorRulesService {
       format: definition.format,
       scopeType: definition.scopeType ?? null,
       baseScore: definition.baseScore,
+      championScore: definition.championScore ?? definition.baseScore,
+      runnerUpScore: definition.runnerUpScore ?? this.defaultPlacementScore(definition, 'runner'),
+      thirdPlaceScore:
+        definition.thirdPlaceScore ?? this.defaultPlacementScore(definition, 'third'),
+      fourthPlaceScore:
+        definition.fourthPlaceScore ?? this.defaultPlacementScore(definition, 'fourth'),
+      semiFinalistScore: definition.semiFinalistScore ?? this.defaultSemiFinalistScore(definition),
       coefficient: 1,
       qualityCoefficient: definition.qualityCoefficient ?? 1,
       placementScope: definition.placementScope,
       conversionType: definition.conversionType,
       isSystem: true,
-      sortOrder: definition.sortOrder
+      sortOrder: definition.sortOrder,
+      remark: definition.remark ?? null
     } satisfies Prisma.HonorRuleUncheckedUpdateInput;
   }
 
