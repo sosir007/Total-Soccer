@@ -45,12 +45,17 @@ const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
 const ITALY_SERIE_A_TOP_SCORER_AWARD_CODE = 'ITALY_SERIE_A_TOP_SCORER';
 const ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italtops.html';
 const ITALY_SERIE_A_COMPETITION_CODE = 'ITALY_SERIE_A';
+const ITALY_SERIE_B_COMPETITION_CODE = 'ITALY_SERIE_B';
 const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE = 'ITALY_SERIE_A_PLAYER_OF_THE_YEAR';
 const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/Guerin_d%27Oro';
 const ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE = 'ITALY_COPPA_ITALIA_TOP_SCORER';
 const ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italcuptops.html';
 const ITALY_COPPA_ITALIA_COMPETITION_CODE = 'ITALY_COPPA_ITALIA';
+const ITALY_SUPER_CUP_COMPETITION_CODE = 'ITALY_SUPER_CUP';
+const MITROPA_CUP_COMPETITION_CODE = 'MITROPA_CUP';
+const UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE = 'UEFA_CHAMPIONS_LEAGUE';
+const UEFA_SUPER_CUP_COMPETITION_CODE = 'UEFA_SUPER_CUP';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE = 'ARGENTINE_PRIMERA_DIVISION_TOP_SCORER';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL =
   'https://www.rsssf.org/tablesa/argtops.html';
@@ -135,7 +140,7 @@ type PlayerAchievementSeed = {
   sortOrder: number;
 };
 
-type MaradonaTeamHonorSeed = {
+type PlayerTeamHonorSeed = {
   competitionCode: string;
   editionName: string;
   teamName: string;
@@ -428,7 +433,7 @@ const ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
   }
 ];
 
-const MARADONA_TEAM_HONOR_RESULTS: MaradonaTeamHonorSeed[] = [
+const MARADONA_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
   {
     competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
     editionName: '1987-88',
@@ -452,6 +457,306 @@ const MARADONA_TEAM_HONOR_RESULTS: MaradonaTeamHonorSeed[] = [
     careerTeamName: '那不勒斯',
     expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
     remark: '马拉多纳 1988-89 赛季代表那不勒斯参加意大利杯，球队获得意大利杯亚军。'
+  }
+];
+
+const BARESI_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: 'FIFA_WORLD_CUP',
+    editionName: '1982年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西为意大利 1982 年世界杯冠军名单成员，但未出场。'
+  },
+  {
+    competitionCode: 'FIFA_WORLD_CUP',
+    editionName: '1990年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '巴雷西代表意大利出战 1990 年世界杯，球队获得季军。'
+  },
+  {
+    competitionCode: 'FIFA_WORLD_CUP',
+    editionName: '1994年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西代表意大利出战 1994 年世界杯并参加决赛，球队获得亚军。'
+  },
+  {
+    competitionCode: 'UEFA_EURO',
+    editionName: '1988年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.SEMI_FINALIST,
+    remark: '巴雷西代表意大利参加 1988 年欧洲足球锦标赛，球队进入四强。'
+  },
+  {
+    competitionCode: 'OLYMPIC_MENS_FOOTBALL',
+    editionName: '1984年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.FOURTH_PLACE,
+    remark: '巴雷西代表意大利奥林匹克队参加 1984 年奥运会男子足球赛，球队获得殿军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1978-79',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1978-79 赛季代表 AC米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1987-88',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1987-88 赛季代表 AC米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1991-92',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1991-92 赛季代表 AC米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1992-93',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1992-93 赛季代表 AC米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1993-94',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1993-94 赛季代表 AC米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1995-96',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1995-96 赛季代表 AC米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1979-80',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '巴雷西 1979-80 赛季代表 AC米兰出战意甲 28 场，球队获得意大利足球甲级联赛季军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1988-89',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '巴雷西 1988-89 赛季代表 AC米兰出战意甲 33 场，球队获得意大利足球甲级联赛季军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1989-90',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西 1989-90 赛季代表 AC米兰出战意甲 30 场，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1990-91',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西 1990-91 赛季代表 AC米兰出战意甲 31 场，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_B_COMPETITION_CODE,
+    editionName: '1980-81',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1980-81 赛季代表 AC米兰出战意乙，球队获得意大利足球乙级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_B_COMPETITION_CODE,
+    editionName: '1982-83',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1982-83 赛季代表 AC米兰出战意乙，球队获得意大利足球乙级联赛冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1988-89赛季',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1988-89 赛季代表 AC米兰出战欧洲冠军杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1989-90赛季',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1989-90 赛季代表 AC米兰出战欧洲冠军杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1993-94赛季',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1993-94 赛季代表 AC米兰出战欧洲冠军联赛，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1992-93赛季',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西 1992-93 赛季代表 AC米兰出战欧洲冠军联赛决赛，球队获得亚军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1994-95赛季',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西 1994-95 赛季代表 AC米兰出战欧洲冠军联赛决赛并担任队长，球队获得亚军。'
+  },
+  {
+    competitionCode: UEFA_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1990年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1990 年欧洲超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1994年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1994 年欧洲超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1993年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西代表 AC米兰参加 1993 年欧洲超级杯两回合比赛，球队获得亚军。'
+  },
+  {
+    competitionCode: ITALY_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1988',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1988 年意大利超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ITALY_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1992',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1992 年意大利超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ITALY_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1993',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1993 年意大利超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ITALY_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1994',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1994 年意大利超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ITALY_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1996',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西代表 AC米兰参加 1996 年意大利超级杯并担任队长，球队获得亚军。'
+  },
+  {
+    competitionCode: ITALY_COPPA_ITALIA_COMPETITION_CODE,
+    editionName: '1984-85',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西代表 AC米兰参加 1984-85 赛季意大利杯两回合决赛，球队获得亚军。'
+  },
+  {
+    competitionCode: ITALY_COPPA_ITALIA_COMPETITION_CODE,
+    editionName: '1989-90',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark:
+      '巴雷西代表 AC米兰参加 1989-90 赛季意大利杯两回合决赛，球队获得亚军；同届个人为意大利杯最佳射手。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1989年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1989 年欧洲/南美洲杯，球队获得冠军。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1990年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西代表 AC米兰参加 1990 年欧洲/南美洲杯，球队获得冠军。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1993年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西代表 AC米兰参加 1993 年欧洲/南美洲杯决赛并担任队长，球队获得亚军。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1994年',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '巴雷西代表 AC米兰参加 1994 年欧洲/南美洲杯决赛，球队获得亚军。'
+  },
+  {
+    competitionCode: MITROPA_CUP_COMPETITION_CODE,
+    editionName: '1981-82',
+    teamName: 'AC米兰',
+    careerTeamName: 'AC米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '巴雷西 1981-82 赛季代表 AC米兰参加米特罗帕杯，球队获得冠军。'
   }
 ];
 
@@ -751,6 +1056,19 @@ async function main() {
     throw new Error(`Player not found: ${MARADONA_NAME_KEYWORD}`);
   }
 
+  const baresi = await prisma.player.findFirst({
+    where: {
+      chineseName: {
+        contains: '巴雷西'
+      }
+    },
+    select: { id: true, chineseName: true }
+  });
+
+  if (!baresi) {
+    throw new Error('Player not found: 巴雷西');
+  }
+
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
@@ -825,7 +1143,8 @@ async function main() {
     maradona.chineseName,
     argentinePrimeraDivision.id
   );
-  await seedMaradonaTeamHonors(maradona.id, maradona.chineseName);
+  await seedPlayerTeamHonors(maradona.id, maradona.chineseName, MARADONA_TEAM_HONOR_RESULTS);
+  await seedPlayerTeamHonors(baresi.id, baresi.chineseName, BARESI_TEAM_HONOR_RESULTS);
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -875,7 +1194,7 @@ async function findCompetitionEdition(competitionId: string, name: string) {
   return edition;
 }
 
-async function findCompetitionStanding(seed: MaradonaTeamHonorSeed) {
+async function findCompetitionStanding(seed: PlayerTeamHonorSeed) {
   const standing = await prisma.competitionStanding.findFirst({
     where: {
       placement: seed.expectedPlacement,
@@ -3110,10 +3429,14 @@ async function seedNaslAssistsLeader(peleId: string, competitionId: string) {
   );
 }
 
-async function seedMaradonaTeamHonors(playerId: string, playerLabel: string) {
+async function seedPlayerTeamHonors(
+  playerId: string,
+  playerLabel: string,
+  results: PlayerTeamHonorSeed[]
+) {
   let upsertedCount = 0;
 
-  for (const seed of MARADONA_TEAM_HONOR_RESULTS) {
+  for (const seed of results) {
     const standing = await findCompetitionStanding(seed);
     const career = await findPlayerCareer(playerId, seed.careerTeamName);
 
@@ -3143,7 +3466,7 @@ async function seedMaradonaTeamHonors(playerId: string, playerLabel: string) {
     upsertedCount += 1;
   }
 
-  console.log(`Seeded Maradona team honors: ${upsertedCount} upserted for ${playerLabel}.`);
+  console.log(`Seeded team honors: ${upsertedCount} upserted for ${playerLabel}.`);
 }
 
 async function seedMaradonaAchievements(playerId: string, playerLabel: string) {
