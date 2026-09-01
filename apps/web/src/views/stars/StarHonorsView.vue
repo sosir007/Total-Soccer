@@ -205,18 +205,23 @@ function formatHonorCell(row: PlayerHonorListRow, key: PlayerHonorListColumn['ke
 
 function getHonorListColumnWidth(group: string, column: PlayerHonorListColumn) {
   if (column.key === 'achievement') {
-    return 320;
+    return 400;
   }
 
   if (
-    group === '国内联赛' &&
-    ['domesticLeagueTrophy', 'domesticLeagueAward'].includes(column.key)
+    ['洲际联赛', '国内联赛', '国内杯赛', '其他俱乐部'].includes(group) &&
+    [
+      'continentalLeagueTrophy',
+      'continentalLeagueAward',
+      'domesticLeagueTrophy',
+      'domesticLeagueAward',
+      'domesticCupTrophy',
+      'domesticCupAward',
+      'otherClubTrophy',
+      'otherClubAward'
+    ].includes(column.key)
   ) {
-    return 300;
-  }
-
-  if (group === '国内杯赛' && ['domesticCupTrophy', 'domesticCupAward'].includes(column.key)) {
-    return 300;
+    return 320;
   }
 
   return 240;

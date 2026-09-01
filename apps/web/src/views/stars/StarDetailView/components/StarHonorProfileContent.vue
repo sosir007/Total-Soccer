@@ -28,6 +28,10 @@ type HonorLine = {
   subjectType: HonorSubjectType;
   subjectId: string;
   subjectName: string;
+  subjectCategory?: string | null;
+  subjectLevel?: string | null;
+  subjectFormat?: string | null;
+  subjectSortOrder?: number | null;
   placement: string;
   rank?: number | null;
   awardScopeType?: AwardScopeType | null;
@@ -40,6 +44,10 @@ type HonorSubjectGroup = {
   subjectType: HonorSubjectType;
   subjectId: string;
   subjectName: string;
+  subjectCategory?: string | null;
+  subjectLevel?: string | null;
+  subjectFormat?: string | null;
+  subjectSortOrder?: number | null;
   awardScopeType?: AwardScopeType | null;
   placements: HonorLine[];
   sortYear: number;
@@ -126,11 +134,18 @@ function buildHonorGroups(player: PlayerDetail): HonorGroupView[] {
 
   return [...groupMap.values()]
     .map((group): HonorGroupView => {
-      const awards = groupHonorLines(group.awards);
+      const shouldSortClubCompetitionHonors = group.type === 'club';
+      const awards = groupHonorLines(
+        group.awards,
+        shouldSortClubCompetitionHonors ? 'clubCompetitionHonors' : 'default'
+      );
 
       return {
         ...group,
-        trophies: groupHonorLines(group.trophies),
+        trophies: groupHonorLines(
+          group.trophies,
+          shouldSortClubCompetitionHonors ? 'clubCompetitionHonors' : 'default'
+        ),
         awards,
         awardScopeGroups:
           group.type === 'personal'
@@ -295,6 +310,10 @@ function buildTeamHonorLine(honor: PlayerTeamHonor): HonorLine {
     subjectType: 'competition',
     subjectId: competition.id,
     subjectName: formatEntityName(competition),
+    subjectCategory: competition.category,
+    subjectLevel: competition.level,
+    subjectFormat: competition.format,
+    subjectSortOrder: competition.sortOrder,
     placement,
     rank: null,
     awardScopeType: null,
@@ -306,6 +325,7 @@ function buildTeamHonorLine(honor: PlayerTeamHonor): HonorLine {
 
 function buildAwardHonorLine(honor: AwardRecipientRecord): HonorLine {
   const award = honor.edition.award;
+  const competition = award.competition;
   const period = buildAwardHonorPeriod(honor);
   const placementInfo = formatAwardPlacement(honor);
 
@@ -314,6 +334,10 @@ function buildAwardHonorLine(honor: AwardRecipientRecord): HonorLine {
     subjectType: 'award',
     subjectId: award.id,
     subjectName: formatEntityName(award),
+    subjectCategory: competition?.category ?? null,
+    subjectLevel: competition?.level ?? null,
+    subjectFormat: competition?.format ?? null,
+    subjectSortOrder: competition?.sortOrder ?? award.sortOrder,
     placement: placementInfo.text,
     rank: honor.rank,
     awardScopeType: award.scopeType,
@@ -354,7 +378,10 @@ function sortAchievementLines(lines: AchievementLine[]) {
   );
 }
 
-function groupHonorLines(lines: HonorLine[]) {
+function groupHonorLines(
+  lines: HonorLine[],
+  sortMode: 'default' | 'clubCompetitionHonors' = 'default'
+) {
   const map = new Map<string, HonorSubjectGroup>();
 
   for (const line of lines) {
@@ -367,6 +394,10 @@ function groupHonorLines(lines: HonorLine[]) {
         subjectType: line.subjectType,
         subjectId: line.subjectId,
         subjectName: line.subjectName,
+        subjectCategory: line.subjectCategory,
+        subjectLevel: line.subjectLevel,
+        subjectFormat: line.subjectFormat,
+        subjectSortOrder: line.subjectSortOrder,
         awardScopeType: line.awardScopeType,
         placements: [line],
         sortYear: line.sortYear
@@ -375,6 +406,10 @@ function groupHonorLines(lines: HonorLine[]) {
     }
 
     existing.placements.push(line);
+    existing.subjectCategory = existing.subjectCategory ?? line.subjectCategory;
+    existing.subjectLevel = existing.subjectLevel ?? line.subjectLevel;
+    existing.subjectFormat = existing.subjectFormat ?? line.subjectFormat;
+    existing.subjectSortOrder = existing.subjectSortOrder ?? line.subjectSortOrder;
     existing.awardScopeType = existing.awardScopeType ?? line.awardScopeType;
     existing.sortYear = Math.min(existing.sortYear, line.sortYear);
   }
@@ -385,12 +420,61 @@ function groupHonorLines(lines: HonorLine[]) {
       placements: sortHonorPlacements(group.placements)
     }))
     .sort((left, right) => {
+      if (sortMode === 'clubCompetitionHonors') {
+        const leftCategory = clubCompetitionHonorCategorySortValue(left);
+        const rightCategory = clubCompetitionHonorCategorySortValue(right);
+
+        if (leftCategory !== rightCategory) {
+          return leftCategory - rightCategory;
+        }
+
+        const leftLevel = competitionLevelSortValue(left.subjectLevel);
+        const rightLevel = competitionLevelSortValue(right.subjectLevel);
+
+        if (leftLevel !== rightLevel) {
+          return leftLevel - rightLevel;
+        }
+
+        const leftSortOrder = left.subjectSortOrder ?? Number.MAX_SAFE_INTEGER;
+        const rightSortOrder = right.subjectSortOrder ?? Number.MAX_SAFE_INTEGER;
+
+        if (leftSortOrder !== rightSortOrder) {
+          return leftSortOrder - rightSortOrder;
+        }
+      }
+
       if (left.sortYear !== right.sortYear) {
         return left.sortYear - right.sortYear;
       }
 
       return left.subjectName.localeCompare(right.subjectName, 'zh-CN');
     });
+}
+
+function clubCompetitionHonorCategorySortValue(group: HonorSubjectGroup) {
+  if (group.subjectCategory === '国内') {
+    if (group.subjectFormat === '联赛') return 1;
+    if (group.subjectFormat === '杯赛') return 2;
+
+    return 3;
+  }
+
+  if (group.subjectCategory === '洲际') return 4;
+  if (group.subjectCategory === '国际') return 5;
+  if (group.subjectCategory === '其他') return 6;
+
+  return 99;
+}
+
+function competitionLevelSortValue(level?: string | null) {
+  const order: Record<string, number> = {
+    一级: 1,
+    二级: 2,
+    三级: 3,
+    四级: 4
+  };
+
+  return level ? (order[level] ?? 99) : 99;
 }
 
 function groupAwardScopeLines(lines: HonorLine[]): HonorAwardScopeGroup[] {
@@ -942,12 +1026,13 @@ function hasGroupMeta(group: HonorGroupBase) {
 
       <div v-if="group.achievements.length" class="honor-profile-block">
         <div class="honor-profile-block__title">成就</div>
-        <ul class="honor-profile-list">
+        <ul class="honor-profile-list is-numbered">
           <li
-            v-for="achievement in group.achievements"
+            v-for="(achievement, achievementIndex) in group.achievements"
             :key="achievement.id"
             class="honor-profile-line"
           >
+            <span class="honor-profile-number">{{ achievementIndex + 1 }}.</span>
             <a
               v-if="achievement.externalUrl"
               class="external-text-link"
@@ -1102,6 +1187,21 @@ function hasGroupMeta(group: HonorGroupBase) {
     color: inherit;
     font-weight: inherit;
   }
+}
+
+.honor-profile-list.is-numbered {
+  .honor-profile-line {
+    padding-left: 0;
+
+    &::before {
+      content: none;
+    }
+  }
+}
+
+.honor-profile-number {
+  flex: 0 0 auto;
+  color: var(--text-color-secondary);
 }
 
 .honor-profile-subject-wrap {

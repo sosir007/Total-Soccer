@@ -74,6 +74,7 @@ export interface AwardListItem {
     category?: string | null;
     level?: string | null;
     format?: string | null;
+    sortOrder?: number | null;
     editions?: Array<{
       id: string;
       name: string;

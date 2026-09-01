@@ -17,6 +17,9 @@ const SOUTH_AMERICAN_FOOTBALLER_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/South_American_Footballer_of_the_Year';
 const ONZE_DOR_AWARD_CODE = 'ONZE_DOR';
 const ONZE_DOR_EXTERNAL_URL = 'https://www.rsssf.org/miscellaneous/onze-awards.html';
+const BALLON_DOR_AWARD_CODE = 'BALLON_DOR';
+const BALLON_DOR_EXTERNAL_URL = 'https://www.rsssf.org/miscellaneous/europa-poy.html';
+const BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX = 'https://www.rsssf.org/miscellaneous/europa-poy';
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'ARGENTINE_FOOTBALLER_OF_THE_YEAR';
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
   'https://www.rsssf.org/miscellaneous/arg-poy.html';
@@ -87,6 +90,10 @@ const NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE = 'NORTH_AMERICAN_SOCCER_LEA
 
 const PELE_NAME_KEYWORD = '贝利';
 const MARADONA_NAME_KEYWORD = '马拉多纳';
+
+function buildBallonDorEditionExternalUrl(year: number) {
+  return `${BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX}${year.toString().slice(-2)}.html`;
+}
 
 type FIFAWorldCupGoldenBallSeed = {
   year: number;
@@ -232,6 +239,15 @@ const ONZE_DOR_MARADONA_RESULTS: RankedAwardSeed[] = [
   }
 ];
 
+const BALLON_DOR_BARESI_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1989,
+    rank: 2,
+    placement: '第二名',
+    remark: 'France Football 金球奖 1989 投票第二名，巴雷西效力 AC米兰时期。'
+  }
+];
+
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_MARADONA_RESULTS: RankedAwardSeed[] = [
   {
     year: 1979,
@@ -323,6 +339,14 @@ const FIFA_WORLD_CUP_ALL_STAR_TEAM_PELE_RESULTS: FIFAWorldCupAllStarTeamSeed[] =
     year: 1970,
     placement: '入选',
     remark: '1970年国际足联世界杯最佳阵容，前锋。'
+  }
+];
+
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_BARESI_RESULTS: FIFAWorldCupAllStarTeamSeed[] = [
+  {
+    year: 1990,
+    placement: '入选',
+    remark: '1990年国际足联世界杯最佳阵容，后卫。'
   }
 ];
 
@@ -423,6 +447,15 @@ const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS: LeaguePlayerOfTheYearSe
   }
 ];
 
+const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_BARESI_RESULTS: LeaguePlayerOfTheYearSeed[] = [
+  {
+    season: '1989-90',
+    year: 1990,
+    placement: '年度最佳球员',
+    remark: "1989-90 意大利足球甲级联赛 Guerin d'Oro，巴雷西效力 AC米兰时期。"
+  }
+];
+
 const ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
   {
     season: '1987-88',
@@ -430,6 +463,16 @@ const ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS: ItalianTopScorerSeed[] = [
     placement: '最佳射手',
     goals: 6,
     remark: '1987-88 意大利杯最佳射手，马拉多纳效力那不勒斯，6 球。'
+  }
+];
+
+const ITALY_COPPA_ITALIA_TOP_SCORER_BARESI_RESULTS: ItalianTopScorerSeed[] = [
+  {
+    season: '1989-90',
+    year: 1990,
+    placement: '最佳射手',
+    goals: 4,
+    remark: '1989-90 意大利杯最佳射手，巴雷西效力 AC米兰，4 球。'
   }
 ];
 
@@ -996,6 +1039,41 @@ const MARADONA_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
   }
 ];
 
+const BARESI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: '金球奖梦之队银阵',
+    season: '2020',
+    score: 1,
+    externalUrl: 'https://en.wikipedia.org/wiki/Ballon_d%27Or_Dream_Team',
+    remark: "France Football Ballon d'Or Dream Team 第二阵容 / 银阵。",
+    sortOrder: 1
+  },
+  {
+    name: 'IFFHS 历史最佳阵容',
+    season: '2021',
+    score: 1,
+    externalUrl: 'https://iffhs.com/posts/1110',
+    remark: 'IFFHS 男足历史最佳阵容口径。',
+    sortOrder: 2
+  },
+  {
+    name: 'AIC 意甲世纪最佳球员',
+    season: '2000',
+    score: 1,
+    externalUrl: 'https://en.wikipedia.org/wiki/Franco_Baresi',
+    remark: 'AIC 意甲世纪最佳球员口径。',
+    sortOrder: 3
+  },
+  {
+    name: 'AC米兰世纪最佳球员',
+    season: '1999',
+    score: 1,
+    externalUrl: 'https://www.acmilan.com/en/hall-of-fame/inductees/franco-baresi',
+    remark: 'AC米兰世纪最佳球员口径。',
+    sortOrder: 4
+  }
+];
+
 async function main() {
   const conmebol = await prisma.confederation.findFirst({
     where: {
@@ -1100,6 +1178,7 @@ async function main() {
     SOUTH_AMERICAN_FOOTBALLER_MARADONA_RESULTS
   );
   await seedOnzeDor(uefa.id, maradona.id, maradona.chineseName);
+  await seedBallonDor(baresi.id, baresi.chineseName, BALLON_DOR_BARESI_RESULTS);
   await seedArgentineFootballerOfTheYear(argentina.id, maradona.id, maradona.chineseName);
   await seedFifaWorldCupGoldenBall(
     pele.id,
@@ -1131,13 +1210,41 @@ async function main() {
     fifaWorldCup.id,
     FIFA_WORLD_CUP_ALL_STAR_TEAM_MARADONA_RESULTS
   );
+  await seedFifaWorldCupAllStarTeam(
+    baresi.id,
+    baresi.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_ALL_STAR_TEAM_BARESI_RESULTS
+  );
   await seedFifaWorldCupBestYoungPlayer(pele.id, fifaWorldCup.id);
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
   await seedBrazilSerieATopScorer(pele.id, brazilSerieA.id);
-  await seedItalySerieAPlayerOfTheYear(maradona.id, maradona.chineseName, italySerieA.id);
+  await seedItalySerieAPlayerOfTheYear(
+    maradona.id,
+    maradona.chineseName,
+    italySerieA.id,
+    ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS
+  );
+  await seedItalySerieAPlayerOfTheYear(
+    baresi.id,
+    baresi.chineseName,
+    italySerieA.id,
+    ITALY_SERIE_A_PLAYER_OF_THE_YEAR_BARESI_RESULTS
+  );
   await seedItalySerieATopScorer(maradona.id, maradona.chineseName, italySerieA.id);
-  await seedItalyCoppaItaliaTopScorer(maradona.id, maradona.chineseName, italyCoppaItalia.id);
+  await seedItalyCoppaItaliaTopScorer(
+    maradona.id,
+    maradona.chineseName,
+    italyCoppaItalia.id,
+    ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS
+  );
+  await seedItalyCoppaItaliaTopScorer(
+    baresi.id,
+    baresi.chineseName,
+    italyCoppaItalia.id,
+    ITALY_COPPA_ITALIA_TOP_SCORER_BARESI_RESULTS
+  );
   await seedArgentinePrimeraDivisionTopScorer(
     maradona.id,
     maradona.chineseName,
@@ -1152,7 +1259,8 @@ async function main() {
   await seedNaslMostValuablePlayer(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAllStarTeam(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAssistsLeader(pele.id, northAmericanSoccerLeague.id);
-  await seedMaradonaAchievements(maradona.id, maradona.chineseName);
+  await seedPlayerAchievements(maradona.id, maradona.chineseName, MARADONA_ACHIEVEMENT_RESULTS);
+  await seedPlayerAchievements(baresi.id, baresi.chineseName, BARESI_ACHIEVEMENT_RESULTS);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();
@@ -1437,6 +1545,96 @@ async function seedOnzeDor(uefaId: string, playerId: string, playerLabel: string
   console.log(
     `Seeded ${ONZE_DOR_AWARD_CODE}: ${ONZE_DOR_MARADONA_RESULTS.length} ${playerLabel} recipients.`
   );
+}
+
+async function seedBallonDor(
+  playerId: string,
+  playerLabel: string,
+  results: readonly RankedAwardSeed[]
+) {
+  const award = await prisma.award.upsert({
+    where: { code: BALLON_DOR_AWARD_CODE },
+    create: {
+      code: BALLON_DOR_AWARD_CODE,
+      name: '金球奖',
+      englishName: "Ballon d'Or",
+      shortName: '金球奖',
+      externalUrl: BALLON_DOR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '国际一级综合奖',
+      level: '一级',
+      description: 'France Football 年度个人综合奖，系统按国际一级综合奖口径计入。',
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 2010
+    },
+    update: {
+      name: '金球奖',
+      englishName: "Ballon d'Or",
+      shortName: '金球奖',
+      externalUrl: BALLON_DOR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '国际一级综合奖',
+      level: '一级',
+      description: 'France Football 年度个人综合奖，系统按国际一级综合奖口径计入。',
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 2010
+    }
+  });
+
+  for (const result of results) {
+    const editionExternalUrl = buildBallonDorEditionExternalUrl(result.year);
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: editionExternalUrl,
+        remark: result.editionRemark ?? null
+      },
+      update: {
+        year: result.year,
+        externalUrl: editionExternalUrl,
+        remark: result.editionRemark ?? null
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: edition.externalUrl,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: edition.externalUrl,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(`Seeded ${BALLON_DOR_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`);
 }
 
 async function seedArgentineFootballerOfTheYear(
@@ -1739,7 +1937,7 @@ async function seedFifaWorldCupAllStarTeam(
       description: '国际足联世界杯最佳阵容 / 全明星阵容，按入选记录计分，不分名次。',
       dataComplete: false,
       dataUpdatedAt: FIFA_WORLD_CUP_ALL_STAR_TEAM_DATA_UPDATED_AT,
-      dataRemark: '仅录入当前确认的贝利、马拉多纳记录，未补满各届完整 11 人最佳阵容。',
+      dataRemark: '仅录入当前确认的贝利、马拉多纳、巴雷西记录，未补满各届完整 11 人最佳阵容。',
       competitionId,
       lifecycleStatus: LifecycleStatus.CURRENT,
       enabled: true,
@@ -1757,7 +1955,7 @@ async function seedFifaWorldCupAllStarTeam(
       description: '国际足联世界杯最佳阵容 / 全明星阵容，按入选记录计分，不分名次。',
       dataComplete: false,
       dataUpdatedAt: FIFA_WORLD_CUP_ALL_STAR_TEAM_DATA_UPDATED_AT,
-      dataRemark: '仅录入当前确认的贝利、马拉多纳记录，未补满各届完整 11 人最佳阵容。',
+      dataRemark: '仅录入当前确认的贝利、马拉多纳、巴雷西记录，未补满各届完整 11 人最佳阵容。',
       competitionId,
       lifecycleStatus: LifecycleStatus.CURRENT,
       enabled: true,
@@ -2309,7 +2507,8 @@ async function seedItalySerieATopScorer(
 async function seedItalySerieAPlayerOfTheYear(
   playerId: string,
   playerLabel: string,
-  competitionId: string
+  competitionId: string,
+  results: readonly LeaguePlayerOfTheYearSeed[]
 ) {
   const award = await prisma.award.upsert({
     where: { code: ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE },
@@ -2329,7 +2528,7 @@ async function seedItalySerieAPlayerOfTheYear(
       lifecycleStatus: LifecycleStatus.DISCONTINUED,
       dataComplete: false,
       dataUpdatedAt: new Date('2026-08-26T00:00:00.000Z'),
-      dataRemark: '仅按当前球员录入节奏补入马拉多纳确认记录，未补完整历年获奖者。',
+      dataRemark: '仅按当前球员录入节奏补入马拉多纳、巴雷西确认记录，未补完整历年获奖者。',
       enabled: true,
       sortOrder: 7115
     },
@@ -2348,13 +2547,13 @@ async function seedItalySerieAPlayerOfTheYear(
       lifecycleStatus: LifecycleStatus.DISCONTINUED,
       dataComplete: false,
       dataUpdatedAt: new Date('2026-08-26T00:00:00.000Z'),
-      dataRemark: '仅按当前球员录入节奏补入马拉多纳确认记录，未补完整历年获奖者。',
+      dataRemark: '仅按当前球员录入节奏补入马拉多纳、巴雷西确认记录，未补完整历年获奖者。',
       enabled: true,
       sortOrder: 7115
     }
   });
 
-  for (const result of ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS) {
+  for (const result of results) {
     const competitionEdition = await findCompetitionEdition(competitionId, result.season);
     const edition = await prisma.awardEdition.upsert({
       where: {
@@ -2408,14 +2607,15 @@ async function seedItalySerieAPlayerOfTheYear(
   }
 
   console.log(
-    `Seeded ${ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE}: ${ITALY_SERIE_A_PLAYER_OF_THE_YEAR_MARADONA_RESULTS.length} ${playerLabel} recipients.`
+    `Seeded ${ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`
   );
 }
 
 async function seedItalyCoppaItaliaTopScorer(
   playerId: string,
   playerLabel: string,
-  competitionId: string
+  competitionId: string,
+  results: readonly ItalianTopScorerSeed[]
 ) {
   const award = await prisma.award.upsert({
     where: { code: ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE },
@@ -2452,7 +2652,7 @@ async function seedItalyCoppaItaliaTopScorer(
     }
   });
 
-  for (const result of ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS) {
+  for (const result of results) {
     const competitionEdition = await findCompetitionEdition(competitionId, result.season);
     const edition = await prisma.awardEdition.upsert({
       where: {
@@ -2506,7 +2706,7 @@ async function seedItalyCoppaItaliaTopScorer(
   }
 
   console.log(
-    `Seeded ${ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE}: ${ITALY_COPPA_ITALIA_TOP_SCORER_MARADONA_RESULTS.length} ${playerLabel} recipients.`
+    `Seeded ${ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`
   );
 }
 
@@ -3469,11 +3669,15 @@ async function seedPlayerTeamHonors(
   console.log(`Seeded team honors: ${upsertedCount} upserted for ${playerLabel}.`);
 }
 
-async function seedMaradonaAchievements(playerId: string, playerLabel: string) {
+async function seedPlayerAchievements(
+  playerId: string,
+  playerLabel: string,
+  achievements: readonly PlayerAchievementSeed[]
+) {
   let createdCount = 0;
   let skippedCount = 0;
 
-  for (const achievement of MARADONA_ACHIEVEMENT_RESULTS) {
+  for (const achievement of achievements) {
     const existing = await prisma.playerHonor.findFirst({
       where: {
         playerId,
@@ -3503,7 +3707,7 @@ async function seedMaradonaAchievements(playerId: string, playerLabel: string) {
   }
 
   console.log(
-    `Seeded Maradona achievements: ${createdCount} created, ${skippedCount} skipped for ${playerLabel}.`
+    `Seeded player achievements: ${createdCount} created, ${skippedCount} skipped for ${playerLabel}.`
   );
 }
 

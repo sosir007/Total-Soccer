@@ -1815,11 +1815,12 @@ export class PlayersService {
 
   private buildPlayerHonorListRow(player: PlayerHonorSummaryPlayer) {
     const entryMap = this.createEmptyPlayerHonorListEntryMap();
-    const hideLowerDomesticLeagueHonors = this.shouldHideLowerDomesticLeagueHonors(player);
+    const primaryDomesticLeagueChampionCountryIds =
+      this.resolvePrimaryDomesticLeagueChampionCountryIds(player);
 
     for (const recipient of player.awardRecipients) {
       const award = recipient.edition.award;
-      if (this.shouldHideHonorListAward(award, hideLowerDomesticLeagueHonors)) {
+      if (this.shouldHideHonorListAward(award, primaryDomesticLeagueChampionCountryIds)) {
         continue;
       }
 
@@ -1842,7 +1843,9 @@ export class PlayersService {
     for (const teamHonor of player.teamHonors) {
       const standing = teamHonor.standing;
       const competition = standing.edition.competition;
-      if (this.shouldHideHonorListCompetition(competition, hideLowerDomesticLeagueHonors)) {
+      if (
+        this.shouldHideHonorListCompetition(competition, primaryDomesticLeagueChampionCountryIds)
+      ) {
         continue;
       }
 
@@ -2073,10 +2076,12 @@ export class PlayersService {
         column.sourceType === 'AWARD'
           ? this.formatAwardHonorListEntries(entries, column)
           : entries.map((entry) => this.formatHonorListEntry(entry, column));
+      const numberedItems =
+        column.key === 'achievement' ? items.map((item, index) => `${index + 1}. ${item}`) : items;
 
       cells[column.key] = {
-        text: items.join(column.sourceType === 'AWARD' ? '，' : '；'),
-        items
+        text: numberedItems.join(column.sourceType === 'AWARD' ? '，' : '；'),
+        items: numberedItems
       };
 
       return cells;
@@ -2098,8 +2103,9 @@ export class PlayersService {
   private formatHonorListEntry(entry: PlayerHonorListEntry, column: PlayerHonorListColumn) {
     const placementGroups = new Map<string, PlayerHonorListEntry['periods']>();
     const title = this.formatHonorListTitle(entry.title, column);
+    const periods = this.filterDomesticTrophyListPeriods(entry.periods, column);
 
-    for (const period of entry.periods) {
+    for (const period of periods) {
       const placement = this.resolveVisibleHonorPlacement(period.placement, entry.title);
       const group = placementGroups.get(placement ?? '') ?? [];
       group.push(period);
@@ -2118,49 +2124,106 @@ export class PlayersService {
     return segments.join('，');
   }
 
+  private filterDomesticTrophyListPeriods(
+    periods: PlayerHonorListEntry['periods'],
+    column: PlayerHonorListColumn
+  ) {
+    if (!['domesticLeagueTrophy', 'domesticCupTrophy'].includes(column.key)) {
+      return periods;
+    }
+
+    const rankedPeriods = periods
+      .map((period) => ({
+        period,
+        sortValue: this.honorListPlacementSortValue(period.placement)
+      }))
+      .filter(
+        (
+          item
+        ): item is {
+          period: PlayerHonorListEntry['periods'][number];
+          sortValue: number;
+        } => item.sortValue !== null
+      );
+
+    if (!rankedPeriods.length) {
+      return periods;
+    }
+
+    const bestSortValue = Math.min(...rankedPeriods.map((item) => item.sortValue));
+
+    return rankedPeriods
+      .filter((item) => item.sortValue === bestSortValue)
+      .map((item) => item.period);
+  }
+
+  private honorListPlacementSortValue(placement: string | null) {
+    const order: Record<string, number> = {
+      冠军: 1,
+      亚军: 2,
+      季军: 3,
+      殿军: 4,
+      四强: 5
+    };
+    const normalizedPlacement = this.normalizeText(placement);
+
+    return normalizedPlacement ? (order[normalizedPlacement] ?? null) : null;
+  }
+
   private formatEntityDisplayName(entity: { name: string; shortName?: string | null }) {
     return entity.shortName?.trim() || entity.name;
   }
 
   /**
-   * 荣誉清单展示压缩：同一球员已经有 2 种以上国内一级联赛奖杯时，
-   * 国内二级/以下联赛奖杯及其赛事绑定奖项不再展示，避免低级联赛把清单撑得过长。
+   * 荣誉清单展示压缩：同一球员已经有某国国内一级联赛冠军时，
+   * 该国国内二级/以下联赛奖杯及其赛事绑定奖项不再展示，避免低级联赛把清单撑得过长。
    */
-  private shouldHideLowerDomesticLeagueHonors(player: PlayerHonorSummaryPlayer) {
-    const primaryDomesticLeagueCompetitionIds = new Set<string>();
+  private resolvePrimaryDomesticLeagueChampionCountryIds(player: PlayerHonorSummaryPlayer) {
+    const countryIds = new Set<string>();
 
     for (const teamHonor of player.teamHonors) {
+      if (teamHonor.standing.placement !== CompetitionStandingPlacement.CHAMPION) {
+        continue;
+      }
+
       const competition = teamHonor.standing.edition.competition;
 
       if (
         this.resolveTeamHonorScoreBucket(competition) === 'domesticLeagueScore' &&
-        competition.level === '一级'
+        competition.level === '一级' &&
+        competition.countryId
       ) {
-        primaryDomesticLeagueCompetitionIds.add(competition.id);
+        countryIds.add(competition.countryId);
       }
     }
 
-    return primaryDomesticLeagueCompetitionIds.size > 1;
+    return countryIds;
   }
 
   private shouldHideHonorListAward(
     award: PlayerAwardRecipientRecord['edition']['award'],
-    hideLowerDomesticLeagueHonors: boolean
+    primaryDomesticLeagueChampionCountryIds: Set<string>
   ) {
-    return (
-      hideLowerDomesticLeagueHonors &&
-      Boolean(award.competition && this.shouldHideHonorListCompetition(award.competition, true))
+    if (!award.competition) {
+      return false;
+    }
+
+    return this.shouldHideHonorListCompetition(
+      award.competition,
+      primaryDomesticLeagueChampionCountryIds
     );
   }
 
   private shouldHideHonorListCompetition(
     competition: PlayerAwardCompetition | PlayerHonorCompetition,
-    hideLowerDomesticLeagueHonors: boolean
+    primaryDomesticLeagueChampionCountryIds: Set<string>
   ) {
     return (
-      hideLowerDomesticLeagueHonors &&
       this.resolveTeamHonorScoreBucket(competition) === 'domesticLeagueScore' &&
-      competition.level !== '一级'
+      competition.level !== '一级' &&
+      Boolean(
+        competition.countryId && primaryDomesticLeagueChampionCountryIds.has(competition.countryId)
+      )
     );
   }
 
