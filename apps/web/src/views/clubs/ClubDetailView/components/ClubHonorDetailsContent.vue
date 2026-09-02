@@ -3,13 +3,15 @@ import { computed } from 'vue';
 import NoDataView from '@/components/NoDataView.vue';
 import HonorGroupList from '@/components/honors/HonorGroupList.vue';
 import type { HonorGroupedRecord } from '@/services/types/catalog';
-import { mergeEnglishTopFlightGroups } from '../utils/honor-groups';
+import { mergeEnglishTopFlightGroups, mergeGermanTopFlightGroups } from '../utils/honor-groups';
 
 const props = defineProps<{
   groups?: HonorGroupedRecord[];
 }>();
 
-const mergedHonorGroups = computed(() => mergeEnglishTopFlightGroups(props.groups ?? []));
+const mergedHonorGroups = computed(() =>
+  mergeGermanTopFlightGroups(mergeEnglishTopFlightGroups(props.groups ?? []))
+);
 const internationalHonorGroups = computed(() =>
   mergedHonorGroups.value.filter(isInternationalOrContinentalHonor)
 );

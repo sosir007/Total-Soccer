@@ -15,7 +15,7 @@ import ClubBasicInfoContent from './ClubBasicInfoContent.vue';
 import ClubDatabaseStatsContent from './ClubDatabaseStatsContent.vue';
 import ClubHonorDetailsContent from './ClubHonorDetailsContent.vue';
 import ClubSeasonLinksContent from './ClubSeasonLinksContent.vue';
-import { mergeEnglishTopFlightGroups } from '../utils/honor-groups';
+import { mergeEnglishTopFlightGroups, mergeGermanTopFlightGroups } from '../utils/honor-groups';
 
 const props = defineProps<{
   club: ClubDetail;
@@ -63,7 +63,7 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
 }
 
 const displayHonorGroups = computed(() =>
-  mergeEnglishTopFlightGroups(props.club.honorGroups ?? [])
+  mergeGermanTopFlightGroups(mergeEnglishTopFlightGroups(props.club.honorGroups ?? []))
 );
 </script>
 

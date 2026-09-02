@@ -448,6 +448,26 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'germany-bundesliga',
+    label: '德国足球甲级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-germany-bundesliga.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/germany-bundesliga.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'german-football-championship',
+    label: '德国足球锦标赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-german-football-championship.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/german-football-championship.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'spain-segunda-division',
     label: '西班牙足球乙级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-segunda-division.ts',

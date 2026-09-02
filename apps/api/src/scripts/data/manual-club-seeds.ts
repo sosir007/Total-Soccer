@@ -631,5 +631,23 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     countryName: '法国',
     confederationCode: 'UEFA',
     visibleInCatalog: false
+  },
+  {
+    uid: '1905',
+    name: '达拉斯FC',
+    englishName: 'FC Dallas',
+    shortName: '达拉斯',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: true
+  },
+  {
+    uid: '72041885',
+    name: '纽约城FC',
+    englishName: 'New York City FC',
+    shortName: '纽约城',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: true
   }
 ];
