@@ -120,6 +120,7 @@ export interface HonorGroupedPlacementEntry {
 
 export interface HonorGroupedRecord {
   competition: HonorCompetitionRef;
+  titleLinks?: Array<Pick<HonorCompetitionRef, 'id' | 'name'>>;
   placements: Partial<Record<CompetitionStandingPlacement, HonorGroupedPlacementEntry[]>>;
 }
 

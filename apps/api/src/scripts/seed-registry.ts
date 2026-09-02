@@ -430,6 +430,24 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'premier-league',
+    label: '英格兰足球超级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-premier-league.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/premier-league.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'old-first-division',
+    label: '英格兰足球甲级联赛（旧英甲）',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-old-first-division.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/old-first-division.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'spain-segunda-division',
     label: '西班牙足球乙级联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-spain-segunda-division.ts',

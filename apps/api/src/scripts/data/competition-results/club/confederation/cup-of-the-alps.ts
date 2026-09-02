@@ -8,6 +8,10 @@ type CupOfTheAlpsResult = FinalOnlyCompetitionResult & {
   note?: string;
 };
 
+function getCupOfTheAlpsEditionUrl(year: number) {
+  return `https://www.rsssf.org/tablesa/alpi${String(year).slice(-2)}.html`;
+}
+
 export const CUP_OF_THE_ALPS_METADATA: CompetitionDataMetadata = {
   competitionCode: 'CUP_OF_THE_ALPS',
   name: '阿尔卑斯杯',
@@ -346,6 +350,10 @@ const RAW_CUP_OF_THE_ALPS_RESULTS: CupOfTheAlpsResult[] = [
 
 export const CUP_OF_THE_ALPS_RESULTS: CupOfTheAlpsResult[] = RAW_CUP_OF_THE_ALPS_RESULTS.map(
   (result) => {
+    if (typeof result.year !== 'number') {
+      throw new Error('Cup of the Alps result must include year.');
+    }
+
     const missingTeams = [result.champion, result.runnerUp].filter(
       (clubName) => !SEEDED_CLUB_NAMES.has(clubName)
     );
@@ -353,6 +361,7 @@ export const CUP_OF_THE_ALPS_RESULTS: CupOfTheAlpsResult[] = RAW_CUP_OF_THE_ALPS
     return {
       ...result,
       name: `${result.year}年`,
+      externalUrl: getCupOfTheAlpsEditionUrl(result.year),
       remark: [
         result.remark,
         missingTeams.length ? `未录入当前库缺失俱乐部：${missingTeams.join('、')}。` : null

@@ -7,6 +7,16 @@ type AngloItalianLeagueCupResult = FinalOnlyCompetitionResult & {
   score: string;
 };
 
+const ANGLO_ITALIAN_LEAGUE_CUP_RSSSF_URL = 'https://www.rsssf.org/tablesa/angloitleagcup.html';
+
+function getAngloItalianLeagueCupEditionUrl(year: number) {
+  if (year === 1969) {
+    return 'https://en.wikipedia.org/wiki/1969_Anglo-Italian_League_Cup';
+  }
+
+  return ANGLO_ITALIAN_LEAGUE_CUP_RSSSF_URL;
+}
+
 export const ANGLO_ITALIAN_LEAGUE_CUP_METADATA: CompetitionDataMetadata = {
   competitionCode: 'ANGLO_ITALIAN_LEAGUE_CUP',
   name: '英意联赛杯',
@@ -114,6 +124,10 @@ const RAW_ANGLO_ITALIAN_LEAGUE_CUP_RESULTS: AngloItalianLeagueCupResult[] = [
 
 export const ANGLO_ITALIAN_LEAGUE_CUP_RESULTS: AngloItalianLeagueCupResult[] =
   RAW_ANGLO_ITALIAN_LEAGUE_CUP_RESULTS.map((result) => {
+    if (typeof result.year !== 'number') {
+      throw new Error('Anglo-Italian League Cup result must include year.');
+    }
+
     const missingTeams = [result.champion, result.runnerUp].filter(
       (clubName) => !SEEDED_CLUB_NAMES.has(clubName)
     );
@@ -121,6 +135,7 @@ export const ANGLO_ITALIAN_LEAGUE_CUP_RESULTS: AngloItalianLeagueCupResult[] =
     return {
       ...result,
       name: `${result.year}年`,
+      externalUrl: getAngloItalianLeagueCupEditionUrl(result.year),
       remark: [
         result.remark,
         missingTeams.length ? `未录入当前库缺失俱乐部：${missingTeams.join('、')}。` : null

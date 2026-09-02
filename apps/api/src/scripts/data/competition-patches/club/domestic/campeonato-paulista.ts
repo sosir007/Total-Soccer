@@ -38,6 +38,10 @@ export const CAMPEONATO_PAULISTA_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
+function buildWikipediaSeasonUrl(title: string) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(title).replace(/%20/g, '_')}`;
+}
+
 const RAW_CAMPEONATO_PAULISTA_PATCHES: SeedCompetitionPatch[] = [
   {
     competitionCode: 'CAMPEONATO_PAULISTA',
@@ -1863,5 +1867,6 @@ const RAW_CAMPEONATO_PAULISTA_PATCHES: SeedCompetitionPatch[] = [
 export const CAMPEONATO_PAULISTA_PATCHES: SeedCompetitionPatch[] =
   RAW_CAMPEONATO_PAULISTA_PATCHES.map((patch) => ({
     ...patch,
+    externalUrl: buildWikipediaSeasonUrl(`${patch.season ?? patch.name} Campeonato Paulista`),
     quantity: patch.standings.length
   }));

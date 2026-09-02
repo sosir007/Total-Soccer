@@ -28,6 +28,14 @@ export const SPAIN_LA_LIGA_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
+function buildWikipediaSeasonUrl(title: string) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(title).replace(/%20/g, '_')}`;
+}
+
+function formatWikiSeasonLabel(season: string) {
+  return season.replace(/-/g, '–');
+}
+
 export const SPAIN_LA_LIGA_REQUIRED_CLUBS: SeedClub[] = [
   {
     uid: '1736',
@@ -359,12 +367,15 @@ function normalizeClubName(name: string) {
 export const SPAIN_LA_LIGA_PATCHES: SeedCompetitionPatch[] = RAW_LA_LIGA_RESULTS.map(
   ([season, champion, runnerUp, thirdPlace]) => {
     const normalizedSeason = normalizeSeasonLabel(season);
+    const wikiSeasonLabel =
+      normalizedSeason === '1929' ? '1929' : formatWikiSeasonLabel(normalizedSeason);
 
     return {
       competitionCode: 'SPAIN_LA_LIGA',
       name: normalizedSeason,
       year: resolveSeasonYear(normalizedSeason),
       season: normalizedSeason,
+      externalUrl: buildWikipediaSeasonUrl(`${wikiSeasonLabel} La Liga`),
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
       standings: [
         {

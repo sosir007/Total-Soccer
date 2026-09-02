@@ -10,6 +10,14 @@ type RawStandingRow = {
   remark?: string | null;
 };
 
+function buildWikipediaSeasonUrl(title: string) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(title).replace(/%20/g, '_')}`;
+}
+
+function formatWikiSeasonLabel(season: string) {
+  return season.replace(/-/g, '–');
+}
+
 export const SPAIN_SEGUNDA_DIVISION_PATCH_METADATA: CompetitionDataMetadata = {
   competitionCode: 'SPAIN_SEGUNDA_DIVISION',
   name: '西班牙足球乙级联赛',
@@ -732,6 +740,7 @@ export const SPAIN_SEGUNDA_DIVISION_PATCHES: SeedCompetitionPatch[] = RAW_SEGUND
       name: season,
       year: resolveSeasonYear(season),
       season,
+      externalUrl: buildWikipediaSeasonUrl(`${formatWikiSeasonLabel(season)} Segunda División`),
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
       championShare: row.champions.length > 1 ? row.champions.length : null,
       championGroupKey: row.champions.length > 1 ? season : null,

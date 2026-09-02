@@ -75,6 +75,12 @@
   }
 }
 
+.honor-group-title-divider {
+  color: var(--text-color-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .honor-group-placements {
   display: grid;
   gap: 8px;

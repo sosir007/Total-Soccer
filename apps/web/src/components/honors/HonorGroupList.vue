@@ -40,6 +40,10 @@ function getCompetitionLifecycleStatus(group: HonorGroupedRecord) {
   return group.competition.lifecycleStatus ?? 'CURRENT';
 }
 
+function getCompetitionLinks(group: HonorGroupedRecord) {
+  return group.titleLinks?.length ? group.titleLinks : [group.competition];
+}
+
 function getPlacementStyle(placement: CompetitionStandingPlacement) {
   return {
     '--honor-placement-color': getPlacementTextColor(placement)
@@ -53,11 +57,22 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
   <div v-else class="honor-group-list">
     <div v-for="group in groups" :key="group.competition.id" class="honor-group">
       <div class="honor-group-title">
-        <EntityLink
-          :id="group.competition.id"
-          type="competition"
-          :name="formatEntityName(group.competition)"
-        />
+        <template
+          v-for="(competitionLink, index) in getCompetitionLinks(group)"
+          :key="competitionLink.id"
+        >
+          <EntityLink
+            :id="competitionLink.id"
+            type="competition"
+            :name="formatEntityName(competitionLink)"
+          />
+          <span
+            v-if="index < getCompetitionLinks(group).length - 1"
+            class="honor-group-title-divider"
+          >
+            /
+          </span>
+        </template>
         <SemanticTag
           size="small"
           :variant="getCompetitionCategoryVariant(group.competition.category)"

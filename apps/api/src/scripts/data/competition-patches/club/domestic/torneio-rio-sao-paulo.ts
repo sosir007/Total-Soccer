@@ -34,6 +34,10 @@ export const TORNEIO_RIO_SAO_PAULO_PATCH_METADATA: CompetitionDataMetadata = {
   ]
 };
 
+function buildWikipediaSeasonUrl(title: string) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(title).replace(/%20/g, '_')}`;
+}
+
 const RAW_TORNEIO_RIO_SAO_PAULO_PATCHES: SeedCompetitionPatch[] = [
   {
     competitionCode: 'TORNEIO_RIO_SAO_PAULO',
@@ -448,5 +452,6 @@ const RAW_TORNEIO_RIO_SAO_PAULO_PATCHES: SeedCompetitionPatch[] = [
 export const TORNEIO_RIO_SAO_PAULO_PATCHES: SeedCompetitionPatch[] =
   RAW_TORNEIO_RIO_SAO_PAULO_PATCHES.map((patch) => ({
     ...patch,
+    externalUrl: buildWikipediaSeasonUrl(`${patch.season ?? patch.name} Torneio Rio-São Paulo`),
     quantity: patch.standings.length
   }));

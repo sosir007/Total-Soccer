@@ -12,6 +12,26 @@ type RawStandingRow = {
   remark?: string | null;
 };
 
+function buildWikipediaSeasonUrl(title: string) {
+  return `https://en.wikipedia.org/wiki/${encodeURIComponent(title).replace(/%20/g, '_')}`;
+}
+
+function formatWikiSeasonLabel(season: string) {
+  return season.replace(/-/g, '–');
+}
+
+function getSerieBWikiCompetitionName(row: RawStandingRow) {
+  if (row.remark?.includes('Seconda Divisione')) {
+    return 'Seconda Divisione';
+  }
+
+  if (row.remark?.includes('Prima Divisione')) {
+    return 'Prima Divisione';
+  }
+
+  return 'Serie B';
+}
+
 export const ITALY_SERIE_B_PATCH_METADATA: CompetitionDataMetadata = {
   competitionCode: COMPETITION_CODE,
   name: '意大利足球乙级联赛',
@@ -466,16 +486,15 @@ export const ITALY_SERIE_B_PATCHES: SeedCompetitionPatch[] = RAW_SERIE_B_ROWS.fl
     });
   });
 
-  if (!standings.length) {
-    return [];
-  }
-
   return [
     {
       competitionCode: COMPETITION_CODE,
       name: season,
       year: resolveSeasonYear(season),
       season,
+      externalUrl: buildWikipediaSeasonUrl(
+        `${formatWikiSeasonLabel(season)} ${getSerieBWikiCompetitionName(row)}`
+      ),
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
       championShare: row.champions.length > 1 && champions.length > 0 ? row.champions.length : null,
       championGroupKey: row.champions.length > 1 && champions.length > 0 ? season : null,

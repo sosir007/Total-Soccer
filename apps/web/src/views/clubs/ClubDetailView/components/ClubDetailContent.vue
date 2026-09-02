@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import CareerTimelineContent from '@/components/CareerTimelineContent.vue';
 import DetailHero from '@/components/DetailHero.vue';
 import TeamBonusHonorList from '@/components/honors/TeamBonusHonorList.vue';
@@ -14,6 +15,7 @@ import ClubBasicInfoContent from './ClubBasicInfoContent.vue';
 import ClubDatabaseStatsContent from './ClubDatabaseStatsContent.vue';
 import ClubHonorDetailsContent from './ClubHonorDetailsContent.vue';
 import ClubSeasonLinksContent from './ClubSeasonLinksContent.vue';
+import { mergeEnglishTopFlightGroups } from '../utils/honor-groups';
 
 const props = defineProps<{
   club: ClubDetail;
@@ -59,6 +61,10 @@ function countSeasonLinks() {
 function countLineupItems(groups?: LineupPositionGroup[]) {
   return groups?.reduce((sum, group) => sum + group.items.length, 0) ?? 0;
 }
+
+const displayHonorGroups = computed(() =>
+  mergeEnglishTopFlightGroups(props.club.honorGroups ?? [])
+);
 </script>
 
 <template>
@@ -128,8 +134,8 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
     </SectionCard>
   </div>
 
-  <SectionCard title="荣誉明细" :badge="`${club.honorGroups?.length ?? 0} 项赛事`">
-    <ClubHonorDetailsContent :groups="club.honorGroups" />
+  <SectionCard title="荣誉明细" :badge="`${displayHonorGroups.length} 项赛事`">
+    <ClubHonorDetailsContent :groups="displayHonorGroups" />
   </SectionCard>
 
   <SectionCard title="团队附加分" :badge="`${club.bonusHonorDetails?.length ?? 0} 项奖项`">
