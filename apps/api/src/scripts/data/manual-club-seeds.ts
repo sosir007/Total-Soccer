@@ -649,5 +649,181 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     countryName: '美国',
     confederationCode: 'CONCACAF',
     visibleInCatalog: true
+  },
+  {
+    uid: '1903',
+    name: '科罗拉多急流',
+    englishName: 'Colorado Rapids',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72023746',
+    name: '堪萨斯城体育',
+    englishName: 'Sporting Kansas City',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1910',
+    name: '圣何塞地震',
+    englishName: 'San Jose Earthquakes',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1909',
+    name: '新英格兰革命',
+    englishName: 'New England Revolution',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72000160',
+    name: '纽约红牛',
+    englishName: 'New York Red Bulls',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '980543',
+    name: '皇家盐湖城',
+    englishName: 'Real Salt Lake',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '975489',
+    name: '波特兰伐木者',
+    englishName: 'Portland Timbers',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72014006',
+    name: '西雅图海湾人',
+    englishName: 'Seattle Sounders FC',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72000789',
+    name: '多伦多FC',
+    englishName: 'Toronto FC',
+    shortName: '多伦多',
+    countryName: '加拿大',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72047296',
+    name: '亚特兰大联',
+    englishName: 'Atlanta United FC',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72049313',
+    name: '洛杉矶FC',
+    englishName: 'Los Angeles FC',
+    shortName: '洛杉矶',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72019000',
+    name: '费城联合',
+    englishName: 'Philadelphia Union',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72052048',
+    name: '迈阿密国际',
+    englishName: 'Inter Miami CF',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '4400014',
+    name: '温哥华白浪',
+    englishName: 'Vancouver Whitecaps FC',
+    countryName: '加拿大',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72053036',
+    name: '奥斯汀FC',
+    englishName: 'Austin FC',
+    shortName: '奥斯汀',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '2000152066',
+    name: '蒙特利尔CF',
+    englishName: 'CF Montréal',
+    shortName: '蒙特利尔',
+    countryName: '加拿大',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '20041327',
+    name: '辛辛那提FC',
+    englishName: 'FC Cincinnati',
+    shortName: '辛辛那提',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '20030048',
+    name: '明尼苏达联',
+    englishName: 'Minnesota United FC',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '20046403',
+    name: '纳什维尔SC',
+    englishName: 'Nashville SC',
+    shortName: '纳什维尔',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '72014193',
+    name: '奥兰多城',
+    englishName: 'Orlando City SC',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '-',
+    name: '圣地亚哥FC',
+    englishName: 'San Diego FC',
+    shortName: '圣地亚哥',
+    alias: '圣迭戈FC',
+    countryName: '美国',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
   }
 ];

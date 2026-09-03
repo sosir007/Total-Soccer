@@ -24,7 +24,7 @@ async function main() {
 async function upsertManualClub(prisma: PrismaClient, club: ManualClubSeed) {
   const existing = await prisma.club.findFirst({
     where: {
-      OR: [{ uid: club.uid }, { name: club.name }]
+      OR: club.uid === '-' ? [{ name: club.name }] : [{ uid: club.uid }, { name: club.name }]
     },
     select: {
       id: true,
@@ -66,7 +66,7 @@ async function upsertManualClub(prisma: PrismaClient, club: ManualClubSeed) {
   }
 
   const data = {
-    importKey: existing?.importKey ?? `manual-club:${club.uid}`,
+    importKey: existing?.importKey ?? `manual-club:${club.uid === '-' ? club.name : club.uid}`,
     uid: club.uid,
     name: club.name,
     englishName: club.englishName ?? existing?.englishName ?? null,

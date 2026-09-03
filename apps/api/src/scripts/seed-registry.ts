@@ -632,6 +632,55 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'mls-cup',
+    label: '美国职业足球大联盟杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-mls-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/mls-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'mls-supporters-shield',
+    label: '美国大联盟支持者盾',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-mls-supporters-shield.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/mls-supporters-shield.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'us-open-cup',
+    label: '美国公开杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-us-open-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/us-open-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'mls-eastern-conference-playoffs',
+    label: '美国职业足球大联盟东区季后赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-mls-eastern-conference-playoffs.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/mls-eastern-conference-playoffs.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'mls-western-conference-playoffs',
+    label: '美国职业足球大联盟西区季后赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-mls-western-conference-playoffs.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/domestic/mls-western-conference-playoffs.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'club-patches',
     label: '俱乐部部分荣誉补录',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-club-patches.ts',
