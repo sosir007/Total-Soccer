@@ -29,7 +29,7 @@ export const GERMAN_FOOTBALL_CHAMPIONSHIP_PATCH_METADATA: CompetitionDataMetadat
       remark: '用于核对 1903-1963 德国全国冠军决赛阶段的冠亚军、停赛年份和无冠军年份。'
     }
   ],
-  lastVerifiedAt: '2026-09-02',
+  lastVerifiedAt: '2026-09-03',
   notes: [
     '本补录只写入当前数据库已存在的俱乐部 standings，库外历史球队对应名次直接过滤，不创建新俱乐部。',
     '本赛事为德甲成立前德国全国冠军决赛阶段，不并入德国足球甲级联赛。',
@@ -69,6 +69,30 @@ export const GERMAN_FOOTBALL_CHAMPIONSHIP_REQUIRED_CLUBS: SeedClub[] = [
     uid: '2247',
     name: '柏林赫塔',
     englishName: 'Hertha Berlin',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '927',
+    name: '汉诺威96',
+    englishName: 'Hannover 96',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '931',
+    name: '卡尔斯鲁厄',
+    englishName: 'Karlsruher SC',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '932',
+    name: '奥芬巴赫踢球者',
+    englishName: 'Kickers Offenbach',
     countryName: '德国',
     confederationCode: 'UEFA',
     visibleInCatalog: false
@@ -174,6 +198,11 @@ export const GERMAN_FOOTBALL_CHAMPIONSHIP_REQUIRED_CLUBS: SeedClub[] = [
 const RAW_GERMAN_FOOTBALL_CHAMPIONSHIP_ROWS: GermanFootballChampionshipRow[] = [
   { year: 1903, champion: '莱比锡火车头' },
   { year: 1906, champion: '莱比锡火车头' },
+  {
+    year: 1909,
+    champion: '卡尔斯鲁厄',
+    remark: '冠军 Phönix Karlsruhe 按历史前身口径映射到库内“卡尔斯鲁厄”。'
+  },
   { year: 1911, runnerUp: '莱比锡火车头' },
   { year: 1913, champion: '莱比锡火车头' },
   { year: 1914, runnerUp: '莱比锡火车头' },
@@ -194,7 +223,7 @@ const RAW_GERMAN_FOOTBALL_CHAMPIONSHIP_ROWS: GermanFootballChampionshipRow[] = [
   { year: 1935, champion: '沙尔克04', runnerUp: '斯图加特' },
   { year: 1936, champion: '纽伦堡', runnerUp: '杜塞尔多夫' },
   { year: 1937, champion: '沙尔克04', runnerUp: '纽伦堡' },
-  { year: 1938, runnerUp: '沙尔克04' },
+  { year: 1938, champion: '汉诺威96', runnerUp: '沙尔克04' },
   { year: 1939, champion: '沙尔克04' },
   { year: 1940, champion: '沙尔克04' },
   {
@@ -207,16 +236,16 @@ const RAW_GERMAN_FOOTBALL_CHAMPIONSHIP_ROWS: GermanFootballChampionshipRow[] = [
   { year: 1943, runnerUp: '萨尔布吕肯' },
   { year: 1948, champion: '纽伦堡', runnerUp: '凯泽斯劳滕' },
   { year: 1949, runnerUp: '多特蒙德' },
-  { year: 1950, champion: '斯图加特' },
+  { year: 1950, champion: '斯图加特', runnerUp: '奥芬巴赫踢球者' },
   { year: 1951, champion: '凯泽斯劳滕', runnerUp: '普鲁士明斯特' },
   { year: 1952, champion: '斯图加特', runnerUp: '萨尔布吕肯' },
   { year: 1953, champion: '凯泽斯劳滕', runnerUp: '斯图加特' },
-  { year: 1954, runnerUp: '凯泽斯劳滕' },
+  { year: 1954, champion: '汉诺威96', runnerUp: '凯泽斯劳滕' },
   { year: 1955, runnerUp: '凯泽斯劳滕' },
-  { year: 1956, champion: '多特蒙德' },
+  { year: 1956, champion: '多特蒙德', runnerUp: '卡尔斯鲁厄' },
   { year: 1957, champion: '多特蒙德', runnerUp: '汉堡' },
   { year: 1958, champion: '沙尔克04', runnerUp: '汉堡' },
-  { year: 1959, champion: '法兰克福' },
+  { year: 1959, champion: '法兰克福', runnerUp: '奥芬巴赫踢球者' },
   { year: 1960, champion: '汉堡', runnerUp: '科隆' },
   { year: 1961, champion: '纽伦堡', runnerUp: '多特蒙德' },
   { year: 1962, champion: '科隆', runnerUp: '纽伦堡' },

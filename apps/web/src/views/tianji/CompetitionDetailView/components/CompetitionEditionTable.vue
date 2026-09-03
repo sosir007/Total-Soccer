@@ -28,6 +28,11 @@ type StandingStatRow = {
   total: number;
 };
 
+type EditionRowspan = {
+  rowspan: number;
+  colspan: number;
+};
+
 const placementOrder: CompetitionStandingPlacement[] = [
   'CHAMPION',
   'RUNNER_UP',
@@ -70,6 +75,71 @@ const statisticsPlacementColumns = computed(() =>
   )
 );
 const statisticsRows = computed(() => buildStatisticsRows(props.editions));
+const editionMergeSpans = computed(() => buildEditionMergeSpans(props.editions));
+
+function buildEditionMergeSpans(editions: CompetitionEdition[]) {
+  const spans = new Map<string, number>();
+
+  editions.forEach((edition, index) => {
+    const mergeKey = getEditionMergeKey(edition);
+
+    if (!mergeKey) {
+      return;
+    }
+
+    const previousKey = index > 0 ? getEditionMergeKey(editions[index - 1]) : null;
+
+    if (previousKey === mergeKey) {
+      spans.set(edition.id, 0);
+      return;
+    }
+
+    let rowspan = 1;
+    for (let cursor = index + 1; cursor < editions.length; cursor += 1) {
+      if (getEditionMergeKey(editions[cursor]) !== mergeKey) {
+        break;
+      }
+      rowspan += 1;
+    }
+
+    if (rowspan > 1) {
+      spans.set(edition.id, rowspan);
+    }
+  });
+
+  return spans;
+}
+
+function getEditionMergeKey(edition: CompetitionEdition) {
+  if (!edition.championGroupKey || !edition.championShare || edition.championShare <= 1) {
+    return null;
+  }
+
+  return edition.championGroupKey;
+}
+
+function getEditionTableCellSpan({
+  row,
+  columnIndex
+}: {
+  row: CompetitionEdition;
+  columnIndex: number;
+}): EditionRowspan | undefined {
+  if (columnIndex !== 1) {
+    return undefined;
+  }
+
+  const rowspan = editionMergeSpans.value.get(row.id);
+
+  if (rowspan === undefined) {
+    return undefined;
+  }
+
+  return {
+    rowspan,
+    colspan: rowspan === 0 ? 0 : 1
+  };
+}
 
 function buildStatisticsRows(editions: CompetitionEdition[]) {
   const rowMap = new Map<string, StandingStatRow>();
@@ -241,7 +311,7 @@ function getPlacementStyle(placement: CompetitionStandingPlacement) {
 
     <NoDataView v-if="!editions.length" text="暂无年份结果" />
 
-    <el-table v-else :data="editions" border>
+    <el-table v-else :data="editions" border :span-method="getEditionTableCellSpan">
       <el-table-column label="序号" width="60" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>

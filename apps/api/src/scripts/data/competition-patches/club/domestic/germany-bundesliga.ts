@@ -123,9 +123,73 @@ export const GERMANY_BUNDESLIGA_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
+    uid: '931',
+    name: '卡尔斯鲁厄',
+    englishName: 'Karlsruher SC',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
     uid: '899',
     name: '纽伦堡',
     englishName: 'Nurnberg',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '946',
+    name: '圣保利',
+    englishName: 'FC St. Pauli',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '905',
+    name: '波鸿',
+    englishName: 'VfL Bochum',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '918',
+    name: '美因茨05',
+    englishName: 'Mainz 05',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '2238',
+    name: '奥格斯堡',
+    englishName: 'FC Augsburg',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '121182',
+    name: '柏林联合',
+    englishName: 'Union Berlin',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '932',
+    name: '奥芬巴赫踢球者',
+    englishName: 'Kickers Offenbach',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '121198',
+    name: '帕德博恩',
+    englishName: 'SC Paderborn',
     countryName: '德国',
     confederationCode: 'UEFA',
     visibleInCatalog: false
@@ -150,6 +214,14 @@ export const GERMANY_BUNDESLIGA_REQUIRED_CLUBS: SeedClub[] = [
     uid: '2247',
     name: '柏林赫塔',
     englishName: 'Hertha Berlin',
+    countryName: '德国',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '927',
+    name: '汉诺威96',
+    englishName: 'Hannover 96',
     countryName: '德国',
     confederationCode: 'UEFA',
     visibleInCatalog: false

@@ -141,6 +141,7 @@ const DATA_COMPLETENESS_VERIFIED_AT = new Date('2026-08-04T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_05 = new Date('2026-08-05T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_10 = new Date('2026-08-10T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_27 = new Date('2026-08-27T00:00:00.000Z');
+const DATA_COMPLETENESS_UPDATED_AT_2026_09_03 = new Date('2026-09-03T00:00:00.000Z');
 const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
   dataComplete: true,
   dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
@@ -227,6 +228,48 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
       dataComplete: true,
       dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_08_05,
       dataRemark: null
+    }
+  ],
+  [
+    'DFB_POKAL',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_03,
+      dataRemark: '1934-35 至 2025-26 已按当前库内俱乐部录入冠亚军；库外历史俱乐部留空。'
+    }
+  ],
+  [
+    'GERMANY_2_BUNDESLIGA',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_03,
+      dataRemark:
+        '1974-75 至 2025-26 已按当前库内俱乐部录入；分区赛季按北/南区分别建届，库外球队留空。'
+    }
+  ],
+  [
+    'GERMAN_FOOTBALL_CHAMPIONSHIP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_03,
+      dataRemark:
+        '1903-1963 德甲前全国冠军决赛阶段；当前只录入数据库已有俱乐部冠亚军，库外历史俱乐部留空；1904、1922 无冠军，1915-1919、1945-1947 停赛；东德冠军未纳入。'
+    }
+  ],
+  [
+    'GERMAN_SUPER_CUP',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_03,
+      dataRemark: '1987-1996、2010-2026 已按当前库内俱乐部录入；2008-2009 非正式届次不纳入。'
+    }
+  ],
+  [
+    'GERMAN_LEAGUE_CUP',
+    {
+      dataComplete: true,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_03,
+      dataRemark: '1972-73、1997-2007 已按当前库内俱乐部完整录入冠亚军。'
     }
   ],
   [

@@ -91,6 +91,8 @@ export interface CompetitionEdition {
   season?: string | null;
   year?: number | null;
   quantity?: number | null;
+  championGroupKey?: string | null;
+  championShare?: number | null;
   standingMode: CompetitionEditionStandingMode;
   host?: string | null;
   externalUrl?: string | null;

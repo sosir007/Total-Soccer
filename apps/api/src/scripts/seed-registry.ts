@@ -457,12 +457,48 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'germany-2-bundesliga',
+    label: '德国足球乙级联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-germany-2-bundesliga.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/germany-2-bundesliga.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'german-football-championship',
     label: '德国足球锦标赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-german-football-championship.ts',
     dataFiles: [
       'src/scripts/data/competition-results/club/domestic/german-football-championship.ts'
     ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'dfb-pokal',
+    label: '德国足协杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-dfb-pokal.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/dfb-pokal.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'german-league-cup',
+    label: '德国联赛杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-german-league-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/german-league-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'german-super-cup',
+    label: '德国超级杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-german-super-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/german-super-cup.ts'],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'domestic'
