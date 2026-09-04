@@ -240,6 +240,194 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
+    uid: '721',
+    name: '斯托克城',
+    englishName: 'Stoke City',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '677',
+    name: '卢顿镇',
+    englishName: 'Luton Town',
+    shortName: '卢顿',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '658',
+    name: '格林斯比镇',
+    englishName: 'Grimsby Town',
+    shortName: '格林斯比',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '674',
+    name: '莱顿东方',
+    englishName: 'Leyton Orient',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '689',
+    name: '北安普顿镇',
+    englishName: 'Northampton Town',
+    shortName: '北安普顿',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '626',
+    name: '卡莱尔联',
+    englishName: 'Carlisle United',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '618',
+    name: '布莱顿',
+    englishName: 'Brighton & Hove Albion',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '724',
+    name: '斯旺西城',
+    englishName: 'Swansea City',
+    shortName: '斯旺西',
+    countryName: '威尔士',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '695',
+    name: '牛津联',
+    englishName: 'Oxford United',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '5110769',
+    name: 'AFC温布尔登',
+    englishName: 'Wimbledon',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '686',
+    name: '米尔沃尔',
+    englishName: 'Millwall',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '702',
+    name: '雷丁',
+    englishName: 'Reading',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '606',
+    name: '巴恩斯利',
+    englishName: 'Barnsley',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '737',
+    name: '维冈竞技',
+    englishName: 'Wigan Athletic',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '665',
+    name: '赫尔城',
+    englishName: 'Hull City',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '600',
+    name: '伯恩茅斯',
+    englishName: 'Bournemouth',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '617',
+    name: '布伦特福德',
+    englishName: 'Brentford',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '741',
+    name: '雷克瑟姆',
+    englishName: 'Wrexham',
+    countryName: '威尔士',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '697',
+    name: '普利茅斯',
+    englishName: 'Plymouth Argyle',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '704',
+    name: '罗瑟汉姆',
+    englishName: 'Rotherham United',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '703',
+    name: '罗奇代尔',
+    englishName: 'Rochdale',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '620',
+    name: '布里斯托尔流浪者',
+    englishName: 'Bristol Rovers',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '4002013',
+    name: '布拉德福德公园大道',
+    englishName: 'Bradford Park Avenue',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
     uid: '1474',
     name: '贝伦人',
     englishName: 'Belenenses',

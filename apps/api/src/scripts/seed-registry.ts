@@ -439,10 +439,46 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'fa-cup',
+    label: '英格兰足总杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-fa-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/fa-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'england-league-cup',
+    label: '英格兰联赛杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-england-league-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/england-league-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'england-championship',
+    label: '英格兰足球冠军联赛',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-england-championship.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/england-championship.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'old-first-division',
     label: '英格兰足球甲级联赛（旧英甲）',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-old-first-division.ts',
     dataFiles: ['src/scripts/data/competition-results/club/domestic/old-first-division.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
+    key: 'old-second-division',
+    label: '英格兰足球乙级联赛（旧英乙）',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-old-second-division.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/old-second-division.ts'],
     dataKind: 'competition-results',
     target: 'club',
     scope: 'domestic'

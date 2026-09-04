@@ -2,6 +2,7 @@ import type { HonorGroupedPlacementEntry, HonorGroupedRecord } from '@/services/
 import type { CompetitionStandingPlacement } from '@/services/types/competitions';
 
 const ENGLISH_TOP_FLIGHT_CODES = ['ENGLAND_PREMIER_LEAGUE', 'ENGLAND_FIRST_DIVISION'] as const;
+const ENGLISH_SECOND_TIER_CODES = ['ENGLAND_CHAMPIONSHIP', 'ENGLAND_SECOND_DIVISION'] as const;
 const GERMAN_TOP_FLIGHT_CODES = ['GERMANY_BUNDESLIGA', 'GERMAN_FOOTBALL_CHAMPIONSHIP'] as const;
 
 export function mergeEnglishTopFlightGroups(groups: HonorGroupedRecord[]) {
@@ -10,6 +11,14 @@ export function mergeEnglishTopFlightGroups(groups: HonorGroupedRecord[]) {
     codes: ENGLISH_TOP_FLIGHT_CODES,
     code: 'ENGLAND_TOP_FLIGHT',
     shortName: '英格兰顶级联赛'
+  });
+}
+
+export function mergeEnglishSecondTierGroups(groups: HonorGroupedRecord[]) {
+  return mergeTopFlightGroups(groups, {
+    codes: ENGLISH_SECOND_TIER_CODES,
+    code: 'ENGLAND_SECOND_TIER',
+    shortName: '英格兰第二级联赛'
   });
 }
 

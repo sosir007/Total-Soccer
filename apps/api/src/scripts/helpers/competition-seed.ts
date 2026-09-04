@@ -142,6 +142,7 @@ const DATA_COMPLETENESS_UPDATED_AT_2026_08_05 = new Date('2026-08-05T00:00:00.00
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_10 = new Date('2026-08-10T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_27 = new Date('2026-08-27T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_09_03 = new Date('2026-09-03T00:00:00.000Z');
+const DATA_COMPLETENESS_UPDATED_AT_2026_09_04 = new Date('2026-09-04T00:00:00.000Z');
 const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
   dataComplete: true,
   dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
@@ -270,6 +271,15 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
       dataComplete: true,
       dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_03,
       dataRemark: '1972-73、1997-2007 已按当前库内俱乐部完整录入冠亚军。'
+    }
+  ],
+  [
+    'ENGLAND_LEAGUE_CUP',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_04,
+      dataRemark:
+        '1960-61 至 2025-26 已按当前库内俱乐部录入冠亚军；1999-00 亚军特兰米尔流浪者未入库，对应亚军荣誉留空。'
     }
   ],
   [
@@ -1080,7 +1090,9 @@ async function findExistingClub(prisma: PrismaClient, uid: string, name: string)
   }
 
   return prisma.club.findFirst({
-    where: { name },
+    where: {
+      OR: [{ name }, { shortName: name }, { formerName: name }, { alias: name }]
+    },
     select
   });
 }
