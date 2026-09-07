@@ -6,6 +6,8 @@ const validateOnly = process.argv.includes('--validate-only');
 
 const SANTOS_UID = '335';
 const AC_MILAN_UID = '1099';
+const LA_GALAXY_UID = '1907';
+const LIVERPOOL_UID = '676';
 
 const SANTOS_SEASON_LINKS = [
   {
@@ -313,6 +315,210 @@ const AC_MILAN_SEASON_LINKS = [
   }
 ] as const;
 
+const LA_GALAXY_SEASON_LINKS = [
+  {
+    year: 2011,
+    season: '2011',
+    externalUrl: 'https://en.wikipedia.org/wiki/2011_Los_Angeles_Galaxy_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2012,
+    season: '2012',
+    externalUrl: 'https://en.wikipedia.org/wiki/2012_Los_Angeles_Galaxy_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2013,
+    season: '2013',
+    externalUrl: 'https://en.wikipedia.org/wiki/2013_Los_Angeles_Galaxy_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2014,
+    season: '2014',
+    externalUrl: 'https://en.wikipedia.org/wiki/2014_LA_Galaxy_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2015,
+    season: '2015',
+    externalUrl: 'https://en.wikipedia.org/wiki/2015_LA_Galaxy_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2016,
+    season: '2016',
+    externalUrl: 'https://en.wikipedia.org/wiki/2016_LA_Galaxy_season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const LIVERPOOL_SEASON_LINKS = [
+  {
+    year: 1999,
+    season: '1998-99',
+    externalUrl: 'https://en.wikipedia.org/wiki/1998%E2%80%9399_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2000,
+    season: '1999-00',
+    externalUrl: 'https://en.wikipedia.org/wiki/1999%E2%80%932000_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2001,
+    season: '2000-01',
+    externalUrl: 'https://en.wikipedia.org/wiki/2000%E2%80%9301_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2002,
+    season: '2001-02',
+    externalUrl: 'https://en.wikipedia.org/wiki/2001%E2%80%9302_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2003,
+    season: '2002-03',
+    externalUrl: 'https://en.wikipedia.org/wiki/2002%E2%80%9303_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2004,
+    season: '2003-04',
+    externalUrl: 'https://en.wikipedia.org/wiki/2003%E2%80%9304_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2005,
+    season: '2004-05',
+    externalUrl: 'https://en.wikipedia.org/wiki/2004%E2%80%9305_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2006,
+    season: '2005-06',
+    externalUrl: 'https://en.wikipedia.org/wiki/2005%E2%80%9306_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2007,
+    season: '2006-07',
+    externalUrl: 'https://en.wikipedia.org/wiki/2006%E2%80%9307_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2008,
+    season: '2007-08',
+    externalUrl: 'https://en.wikipedia.org/wiki/2007%E2%80%9308_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2009,
+    season: '2008-09',
+    externalUrl: 'https://en.wikipedia.org/wiki/2008%E2%80%9309_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2010,
+    season: '2009-10',
+    externalUrl: 'https://en.wikipedia.org/wiki/2009%E2%80%9310_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2011,
+    season: '2010-11',
+    externalUrl: 'https://en.wikipedia.org/wiki/2010%E2%80%9311_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2012,
+    season: '2011-12',
+    externalUrl: 'https://en.wikipedia.org/wiki/2011%E2%80%9312_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2013,
+    season: '2012-13',
+    externalUrl: 'https://en.wikipedia.org/wiki/2012%E2%80%9313_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2014,
+    season: '2013-14',
+    externalUrl: 'https://en.wikipedia.org/wiki/2013%E2%80%9314_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2015,
+    season: '2014-15',
+    externalUrl: 'https://en.wikipedia.org/wiki/2014%E2%80%9315_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2016,
+    season: '2015-16',
+    externalUrl: 'https://en.wikipedia.org/wiki/2015%E2%80%9316_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2017,
+    season: '2016-17',
+    externalUrl: 'https://en.wikipedia.org/wiki/2016%E2%80%9317_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2018,
+    season: '2017-18',
+    externalUrl: 'https://en.wikipedia.org/wiki/2017%E2%80%9318_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2019,
+    season: '2018-19',
+    externalUrl: 'https://en.wikipedia.org/wiki/2018%E2%80%9319_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2020,
+    season: '2019-20',
+    externalUrl: 'https://en.wikipedia.org/wiki/2019%E2%80%9320_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2021,
+    season: '2020-21',
+    externalUrl: 'https://en.wikipedia.org/wiki/2020%E2%80%9321_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2022,
+    season: '2021-22',
+    externalUrl: 'https://en.wikipedia.org/wiki/2021%E2%80%9322_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2023,
+    season: '2022-23',
+    externalUrl: 'https://en.wikipedia.org/wiki/2022%E2%80%9323_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2024,
+    season: '2023-24',
+    externalUrl: 'https://en.wikipedia.org/wiki/2023%E2%80%9324_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2025,
+    season: '2024-25',
+    externalUrl: 'https://en.wikipedia.org/wiki/2024%E2%80%9325_Liverpool_F.C._season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
 const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: SANTOS_UID,
@@ -321,6 +527,14 @@ const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: AC_MILAN_UID,
     links: AC_MILAN_SEASON_LINKS
+  },
+  {
+    uid: LA_GALAXY_UID,
+    links: LA_GALAXY_SEASON_LINKS
+  },
+  {
+    uid: LIVERPOOL_UID,
+    links: LIVERPOOL_SEASON_LINKS
   }
 ] as const;
 
