@@ -35,14 +35,14 @@ export const ENGLAND_PREMIER_LEAGUE_PATCH_METADATA: CompetitionDataMetadata = {
     {
       label: 'List of Premier League seasons - Wikipedia',
       url: 'https://en.wikipedia.org/wiki/List_of_Premier_League_seasons',
-      remark: '用于核对 1992-93 至 2024-25 各赛季最终前三名。'
+      remark: '用于核对 1992-93 至 2025-26 各赛季最终前三名。'
     }
   ],
-  lastVerifiedAt: '2026-09-01',
+  lastVerifiedAt: '2026-09-07',
   notes: [
     '本补录只写入当前数据库里已存在的英格兰俱乐部 standings，缺失俱乐部对应名次留空。',
     'Blackburn Rovers 对应库内俱乐部“布莱克本流浪者”，简称已补为“布莱克本”。',
-    '英超 1992-93 至 2024-25 赛季按 League Top Three 口径录入冠军、亚军和季军。',
+    '英超 1992-93 至 2025-26 赛季按 League Top Three 口径录入冠军、亚军和季军。',
     '英格兰国内一级联赛命中 CLUB_DOMESTIC_LEVEL_1_LEAGUE。'
   ]
 };
@@ -193,7 +193,7 @@ const RAW_PREMIER_LEAGUE_ROWS: RawPremierLeagueRow[] = [
   { season: '2007-08', year: 2008, champion: '曼联', runnerUp: '切尔西', thirdPlace: '阿森纳' },
   { season: '2008-09', year: 2009, champion: '曼联', runnerUp: '利物浦', thirdPlace: '切尔西' },
   { season: '2009-10', year: 2010, champion: '切尔西', runnerUp: '曼联', thirdPlace: '阿森纳' },
-  { season: '2010-11', year: 2011, champion: '曼联', runnerUp: '切尔西', thirdPlace: '阿森纳' },
+  { season: '2010-11', year: 2011, champion: '曼联', runnerUp: '切尔西', thirdPlace: '曼城' },
   { season: '2011-12', year: 2012, champion: '曼城', runnerUp: '曼联', thirdPlace: '阿森纳' },
   { season: '2012-13', year: 2013, champion: '曼联', runnerUp: '曼城', thirdPlace: '切尔西' },
   { season: '2013-14', year: 2014, champion: '曼城', runnerUp: '利物浦', thirdPlace: '切尔西' },
@@ -219,7 +219,8 @@ const RAW_PREMIER_LEAGUE_ROWS: RawPremierLeagueRow[] = [
   { season: '2021-22', year: 2022, champion: '曼城', runnerUp: '利物浦', thirdPlace: '切尔西' },
   { season: '2022-23', year: 2023, champion: '曼城', runnerUp: '阿森纳', thirdPlace: '曼联' },
   { season: '2023-24', year: 2024, champion: '曼城', runnerUp: '阿森纳', thirdPlace: '利物浦' },
-  { season: '2024-25', year: 2025, champion: '利物浦', runnerUp: '阿森纳', thirdPlace: '曼城' }
+  { season: '2024-25', year: 2025, champion: '利物浦', runnerUp: '阿森纳', thirdPlace: '曼城' },
+  { season: '2025-26', year: 2026, champion: '阿森纳', runnerUp: '曼城', thirdPlace: '曼联' }
 ];
 
 export const ENGLAND_PREMIER_LEAGUE_PATCHES: SeedCompetitionPatch[] = RAW_PREMIER_LEAGUE_ROWS.map(

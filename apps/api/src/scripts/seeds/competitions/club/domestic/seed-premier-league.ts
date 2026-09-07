@@ -35,8 +35,8 @@ async function main() {
         description: '英格兰顶级职业足球联赛，自 1992-93 赛季起举办。',
         lifecycleStatus: LifecycleStatus.CURRENT,
         dataComplete: true,
-        dataUpdatedAt: new Date('2026-09-01T00:00:00.000Z'),
-        dataRemark: null,
+        dataUpdatedAt: new Date('2026-09-07T00:00:00.000Z'),
+        dataRemark: '1992-93 至 2025-26 已按最终联赛前三名完整录入；2026-27 赛季进行中。',
         enabled: true,
         includeInStats: true,
         sortOrder: 7650
@@ -55,8 +55,8 @@ async function main() {
         description: '英格兰顶级职业足球联赛，自 1992-93 赛季起举办。',
         lifecycleStatus: LifecycleStatus.CURRENT,
         dataComplete: true,
-        dataUpdatedAt: new Date('2026-09-01T00:00:00.000Z'),
-        dataRemark: null,
+        dataUpdatedAt: new Date('2026-09-07T00:00:00.000Z'),
+        dataRemark: '1992-93 至 2025-26 已按最终联赛前三名完整录入；2026-27 赛季进行中。',
         enabled: true,
         includeInStats: true,
         sortOrder: 7650

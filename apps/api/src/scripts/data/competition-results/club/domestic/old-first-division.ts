@@ -19,7 +19,7 @@ export const ENGLAND_FIRST_DIVISION_METADATA: CompetitionDataMetadata = {
       remark: '用于核对 1888-89 至 1991-92 各赛季最终前三名。'
     }
   ],
-  lastVerifiedAt: '2026-09-01',
+  lastVerifiedAt: '2026-09-07',
   notes: [
     '本文件只负责创建英格兰足球甲级联赛（旧英甲）赛事本体，历届 standings 统一走 domestic competition patches。',
     '旧英甲自 1888-89 赛季起举办，1991-92 赛季结束后由英超接替，不并入英超文件。',

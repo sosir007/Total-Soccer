@@ -143,6 +143,7 @@ const DATA_COMPLETENESS_UPDATED_AT_2026_08_10 = new Date('2026-08-10T00:00:00.00
 const DATA_COMPLETENESS_UPDATED_AT_2026_08_27 = new Date('2026-08-27T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_09_03 = new Date('2026-09-03T00:00:00.000Z');
 const DATA_COMPLETENESS_UPDATED_AT_2026_09_04 = new Date('2026-09-04T00:00:00.000Z');
+const DATA_COMPLETENESS_UPDATED_AT_2026_09_07 = new Date('2026-09-07T00:00:00.000Z');
 const COMPLETE_COMPETITION_DATA: CompetitionDataCompleteness = {
   dataComplete: true,
   dataUpdatedAt: DATA_COMPLETENESS_VERIFIED_AT,
@@ -280,6 +281,15 @@ const COMPETITION_DATA_COMPLETENESS_BY_CODE = new Map<string, CompetitionDataCom
       dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_04,
       dataRemark:
         '1960-61 至 2025-26 已按当前库内俱乐部录入冠亚军；1999-00 亚军特兰米尔流浪者未入库，对应亚军荣誉留空。'
+    }
+  ],
+  [
+    'ENGLAND_COMMUNITY_SHIELD',
+    {
+      dataComplete: false,
+      dataUpdatedAt: DATA_COMPLETENESS_UPDATED_AT_2026_09_07,
+      dataRemark:
+        '1908 至 2026 已按当前库内俱乐部录入；早期职业联队、业余联队、世界杯队、FA XI 等非俱乐部对象不录入；1927 亚军 Corinthians 当前库内无该俱乐部，亚军荣誉留空。'
     }
   ],
   [

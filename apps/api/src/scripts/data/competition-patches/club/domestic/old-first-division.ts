@@ -269,9 +269,9 @@ const RAW_OLD_FIRST_DIVISION_ROWS: RawOldFirstDivisionRow[] = [
   {
     season: '1925-26',
     year: 1926,
-    champion: '阿森纳',
-    runnerUp: '桑德兰',
-    thirdPlace: '哈德斯菲尔德'
+    champion: '哈德斯菲尔德',
+    runnerUp: '阿森纳',
+    thirdPlace: '桑德兰'
   },
   {
     season: '1926-27',

@@ -35,9 +35,9 @@ async function main() {
         description:
           '英格兰第二级别职业足球联赛；1992-93 至 2003-04 为 Football League First Division，2004-05 起为 Championship / EFL Championship。',
         lifecycleStatus: LifecycleStatus.CURRENT,
-        dataComplete: false,
-        dataUpdatedAt: new Date('2026-09-03T00:00:00.000Z'),
-        dataRemark: '1992-93 至 2024-25 已按最终联赛前三名录入；2025-26 最终名次待核对后补录。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-09-07T00:00:00.000Z'),
+        dataRemark: '1992-93 至 2025-26 已按最终联赛前三名完整录入；2026-27 赛季进行中。',
         enabled: true,
         includeInStats: true,
         sortOrder: 7650
@@ -56,9 +56,9 @@ async function main() {
         description:
           '英格兰第二级别职业足球联赛；1992-93 至 2003-04 为 Football League First Division，2004-05 起为 Championship / EFL Championship。',
         lifecycleStatus: LifecycleStatus.CURRENT,
-        dataComplete: false,
-        dataUpdatedAt: new Date('2026-09-03T00:00:00.000Z'),
-        dataRemark: '1992-93 至 2024-25 已按最终联赛前三名录入；2025-26 最终名次待核对后补录。',
+        dataComplete: true,
+        dataUpdatedAt: new Date('2026-09-07T00:00:00.000Z'),
+        dataRemark: '1992-93 至 2025-26 已按最终联赛前三名完整录入；2026-27 赛季进行中。',
         enabled: true,
         includeInStats: true,
         sortOrder: 7650

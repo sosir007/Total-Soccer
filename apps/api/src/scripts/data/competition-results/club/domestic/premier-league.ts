@@ -16,10 +16,10 @@ export const ENGLAND_PREMIER_LEAGUE_METADATA: CompetitionDataMetadata = {
     {
       label: 'List of Premier League seasons - Wikipedia',
       url: 'https://en.wikipedia.org/wiki/List_of_Premier_League_seasons',
-      remark: '用于核对 1992-93 至 2024-25 各赛季最终前三名。'
+      remark: '用于核对 1992-93 至 2025-26 各赛季最终前三名。'
     }
   ],
-  lastVerifiedAt: '2026-09-01',
+  lastVerifiedAt: '2026-09-07',
   notes: [
     '本文件只负责创建英格兰足球超级联赛赛事本体，历届 standings 统一走 domestic competition patches。',
     '英超自 1992-93 赛季起举办；旧英甲另行按历史赛事处理，不并入本文件。',

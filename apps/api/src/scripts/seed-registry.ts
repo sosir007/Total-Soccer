@@ -457,6 +457,15 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'domestic'
   },
   {
+    key: 'england-community-shield',
+    label: '英格兰社区盾杯',
+    file: 'src/scripts/seeds/competitions/club/domestic/seed-england-community-shield.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/domestic/england-community-shield.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'domestic'
+  },
+  {
     key: 'england-championship',
     label: '英格兰足球冠军联赛',
     file: 'src/scripts/seeds/competitions/club/domestic/seed-england-championship.ts',

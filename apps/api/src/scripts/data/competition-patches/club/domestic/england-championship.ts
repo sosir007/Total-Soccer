@@ -49,10 +49,10 @@ export const ENGLAND_CHAMPIONSHIP_PATCH_METADATA: CompetitionDataMetadata = {
     {
       label: 'List of winners of the EFL Championship and predecessors - Wikipedia',
       url: 'https://en.wikipedia.org/wiki/List_of_winners_of_the_EFL_Championship_and_predecessors',
-      remark: '用于核对 1992-93 至 2024-25 英格兰第二级别联赛最终前三名。'
+      remark: '用于核对 1992-93 至 2025-26 英格兰第二级别联赛最终前三名。'
     }
   ],
-  lastVerifiedAt: '2026-09-03',
+  lastVerifiedAt: '2026-09-07',
   notes: [
     '本补录只写入当前数据库已存在的俱乐部 standings，不创建新俱乐部。',
     '1992-93 至 2003-04 为 Football League First Division，但这是英超成立后的第二级联赛，不等同于顶级旧英甲。',
@@ -95,6 +95,14 @@ export const ENGLAND_CHAMPIONSHIP_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
+    uid: '639',
+    name: '考文垂',
+    englishName: 'Coventry City',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
     uid: '692',
     name: '诺丁汉森林',
     englishName: 'Nottingham Forest',
@@ -122,6 +130,14 @@ export const ENGLAND_CHAMPIONSHIP_REQUIRED_CLUBS: SeedClub[] = [
     uid: '702',
     name: '雷丁',
     englishName: 'Reading',
+    countryName: '英格兰',
+    confederationCode: 'UEFA',
+    visibleInCatalog: false
+  },
+  {
+    uid: '686',
+    name: '米尔沃尔',
+    englishName: 'Millwall',
     countryName: '英格兰',
     confederationCode: 'UEFA',
     visibleInCatalog: false
@@ -551,6 +567,13 @@ const RAW_CHAMPIONSHIP_ROWS: RawChampionshipRow[] = [
     champion: '利兹联',
     runnerUp: '伯恩利',
     thirdPlace: '谢菲尔德联'
+  },
+  {
+    season: '2025-26',
+    year: 2026,
+    champion: '考文垂',
+    runnerUp: '伊普斯维奇',
+    thirdPlace: '米尔沃尔'
   }
 ];
 
