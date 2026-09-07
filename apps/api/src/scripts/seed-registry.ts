@@ -200,6 +200,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'concacaf-champions-cup',
+    label: '中北美洲及加勒比海冠军杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-concacaf-champions-cup.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/confederation/concacaf-champions-cup.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'uefa-europa-league',
     label: '欧足联欧洲联赛',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-europa-league.ts',

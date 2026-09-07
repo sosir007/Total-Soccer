@@ -821,6 +821,49 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
+    uid: '104360',
+    name: '新莱昂自治大学老虎',
+    englishName: 'Tigres UANL',
+    alias: '墨西哥老虎',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1260',
+    name: '墨西哥美洲狮',
+    englishName: 'Pumas UNAM',
+    shortName: '美洲狮',
+    alias: '国立自治大学美洲狮',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1257',
+    name: '蒙特雷',
+    englishName: 'CF Monterrey',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1255',
+    name: '瓜达拉哈拉',
+    englishName: 'Guadalajara',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '1259',
+    name: '莱昂',
+    englishName: 'Club León',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
     uid: '1905',
     name: '达拉斯FC',
     englishName: 'FC Dallas',

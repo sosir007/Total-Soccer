@@ -194,7 +194,7 @@ export const CONMEBOL_LIBERTADORES_REQUIRED_CLUBS: SeedClub[] = [
     visibleInCatalog: false
   },
   {
-    uid: '1260',
+    uid: '104360',
     name: '新莱昂自治大学老虎',
     countryName: '墨西哥',
     confederationCode: 'CONCACAF',

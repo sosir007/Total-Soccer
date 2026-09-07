@@ -214,7 +214,7 @@ export const FIFA_CLUB_WORLD_CUP_REQUIRED_CLUBS: SeedClub[] = [
   { uid: '322', name: '弗拉门戈', countryName: '巴西', confederationCode: 'CONMEBOL' },
   { uid: '329', name: '帕尔梅拉斯', countryName: '巴西', confederationCode: 'CONMEBOL' },
   {
-    uid: '1260',
+    uid: '104360',
     name: '新莱昂自治大学老虎',
     countryName: '墨西哥',
     confederationCode: 'CONCACAF',

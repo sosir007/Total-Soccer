@@ -997,6 +997,12 @@ async function upsertClub(
     return prisma.club.update({
       where: { id: existing.id },
       data: {
+        importKey:
+          input.forceUid &&
+          existing.uid !== uid &&
+          existing.importKey === `seed:club:${existing.uid}`
+            ? `seed:club:${uid}`
+            : existing.importKey,
         uid: input.forceUid ? uid : existing.uid,
         name: input.forceName ? input.name : existing.name,
         englishName: seedNameValue(input.englishName, existing.englishName),
@@ -1072,6 +1078,7 @@ async function findExistingCountry(prisma: PrismaClient, uid: string, name: stri
 async function findExistingClub(prisma: PrismaClient, uid: string, name: string) {
   const select = {
     id: true,
+    importKey: true,
     uid: true,
     name: true,
     englishName: true,
