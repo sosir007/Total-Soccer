@@ -249,6 +249,24 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'custom'
   },
   {
+    key: 'leagues-cup',
+    label: '北美联赛杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-leagues-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/leagues-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'custom'
+  },
+  {
+    key: 'campeones-cup',
+    label: '冠军杯',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-campeones-cup.ts',
+    dataFiles: ['src/scripts/data/competition-results/club/confederation/campeones-cup.ts'],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'custom'
+  },
+  {
     key: 'cup-of-the-alps',
     label: '阿尔卑斯杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-cup-of-the-alps.ts',

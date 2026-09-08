@@ -864,6 +864,49 @@ export const MANUAL_CLUB_SEEDS: ManualClubSeed[] = [
     visibleInCatalog: false
   },
   {
+    uid: '102355',
+    name: '托卢卡体育',
+    englishName: 'Deportivo Toluca F.C.',
+    shortName: '托卢卡',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '106029',
+    name: '桑托斯拉古纳',
+    englishName: 'Santos Laguna',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '106028',
+    name: '莫雷利亚',
+    englishName: 'Atlético Morelia',
+    formerName: 'Monarcas Morelia',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '5661084',
+    name: '瓜达拉哈拉大学',
+    englishName: 'Leones Negros UdeG',
+    countryName: '墨西哥',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
+    uid: '102369',
+    name: '奥林匹亚体育',
+    englishName: 'C.D. Olimpia',
+    shortName: 'CD奥林匹亚',
+    countryName: '洪都拉斯',
+    confederationCode: 'CONCACAF',
+    visibleInCatalog: false
+  },
+  {
     uid: '1905',
     name: '达拉斯FC',
     englishName: 'FC Dallas',

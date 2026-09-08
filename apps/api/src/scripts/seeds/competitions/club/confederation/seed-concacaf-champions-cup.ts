@@ -49,7 +49,7 @@ async function main() {
   await runCompetitionSeed({
     prisma,
     confederations: CONFEDERATION_SEEDS,
-    countries: pickSeedCountries(['加拿大', '哥斯达黎加', '墨西哥', '美国']),
+    countries: pickSeedCountries(['加拿大', '哥斯达黎加', '洪都拉斯', '墨西哥', '美国']),
     clubs: CONCACAF_CHAMPIONS_CUP_REQUIRED_CLUBS,
     competition: {
       code: 'CONCACAF_CHAMPIONS_CUP',
@@ -73,9 +73,9 @@ async function main() {
         includeInStats: true,
         sortOrder: 40,
         dataComplete: false,
-        dataUpdatedAt: new Date('2026-09-07T00:00:00.000Z'),
+        dataUpdatedAt: new Date('2026-09-08T00:00:00.000Z'),
         dataRemark:
-          '1962 至 2026 已按当前库内俱乐部录入冠亚军；托卢卡、桑托斯拉古纳、莫雷利亚等库外俱乐部名次留空；1978 三队并列冠军均未入库。'
+          '1962 至 2026 已按当前库内俱乐部录入冠亚军；已补齐托卢卡体育、桑托斯拉古纳、莫雷利亚、瓜达拉哈拉大学和奥林匹亚体育相关名次；其他库外俱乐部名次留空；1978 三队并列冠军现仅瓜达拉哈拉大学入库并按 1/3 分摊冠军分。'
       },
       update: {
         name: '中北美洲及加勒比海冠军杯',
@@ -96,9 +96,9 @@ async function main() {
         includeInStats: true,
         sortOrder: 40,
         dataComplete: false,
-        dataUpdatedAt: new Date('2026-09-07T00:00:00.000Z'),
+        dataUpdatedAt: new Date('2026-09-08T00:00:00.000Z'),
         dataRemark:
-          '1962 至 2026 已按当前库内俱乐部录入冠亚军；托卢卡、桑托斯拉古纳、莫雷利亚等库外俱乐部名次留空；1978 三队并列冠军均未入库。'
+          '1962 至 2026 已按当前库内俱乐部录入冠亚军；已补齐托卢卡体育、桑托斯拉古纳、莫雷利亚、瓜达拉哈拉大学和奥林匹亚体育相关名次；其他库外俱乐部名次留空；1978 三队并列冠军现仅瓜达拉哈拉大学入库并按 1/3 分摊冠军分。'
       }
     },
     scope: {
@@ -111,7 +111,7 @@ async function main() {
     buildStandings: buildConcacafChampionsCupStandings,
     expected: {
       editions: 61,
-      standings: 71
+      standings: 86
     },
     allowPartialStandings: true,
     completedMessage: 'CONCACAF Champions Cup seed completed.'

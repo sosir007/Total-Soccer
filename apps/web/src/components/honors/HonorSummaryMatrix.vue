@@ -78,7 +78,8 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
   let domesticLevelOneCupColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelTwoCupColumn: HonorSummaryDisplayCompetition | null = null;
   let domesticLevelThreeCupColumn: HonorSummaryDisplayCompetition | null = null;
-  let clubCustomCupColumn: HonorSummaryDisplayCompetition | null = null;
+  let clubOtherLevelOneCupColumn: HonorSummaryDisplayCompetition | null = null;
+  let clubOtherLevelTwoCupColumn: HonorSummaryDisplayCompetition | null = null;
 
   for (const competition of props.competitions) {
     if (shouldMergeAsCountryOtherCup(competition, '一级')) {
@@ -345,23 +346,45 @@ const displayCompetitions = computed<HonorSummaryDisplayCompetition[]>(() => {
       continue;
     }
 
-    if (shouldMergeAsClubCustomCup(competition)) {
-      if (!clubCustomCupColumn) {
-        clubCustomCupColumn = {
+    if (shouldMergeAsClubOtherCup(competition, '一级')) {
+      if (!clubOtherLevelOneCupColumn) {
+        clubOtherLevelOneCupColumn = {
           ...competition,
-          id: getClubCustomCupColumnId(),
-          code: getClubCustomCupColumnCode(),
-          name: getClubCustomCupColumnName(),
+          id: getClubOtherLevelOneCupColumnId(),
+          code: getClubOtherLevelOneCupColumnCode(),
+          name: getClubOtherLevelOneCupColumnName(),
           sourceCompetitionIds: [],
           counts: createEmptyCounts()
         };
-        columns.push(clubCustomCupColumn);
+        columns.push(clubOtherLevelOneCupColumn);
       }
 
-      clubCustomCupColumn.sourceCompetitionIds.push(competition.id);
-      clubCustomCupColumn.counts ??= createEmptyCounts();
+      clubOtherLevelOneCupColumn.sourceCompetitionIds.push(competition.id);
+      clubOtherLevelOneCupColumn.counts ??= createEmptyCounts();
       addCounts(
-        clubCustomCupColumn.counts,
+        clubOtherLevelOneCupColumn.counts,
+        competition.counts ?? getCompetitionCountsFromRows(competition.id)
+      );
+      continue;
+    }
+
+    if (shouldMergeAsClubOtherCup(competition, '二级')) {
+      if (!clubOtherLevelTwoCupColumn) {
+        clubOtherLevelTwoCupColumn = {
+          ...competition,
+          id: getClubOtherLevelTwoCupColumnId(),
+          code: getClubOtherLevelTwoCupColumnCode(),
+          name: getClubOtherLevelTwoCupColumnName(),
+          sourceCompetitionIds: [],
+          counts: createEmptyCounts()
+        };
+        columns.push(clubOtherLevelTwoCupColumn);
+      }
+
+      clubOtherLevelTwoCupColumn.sourceCompetitionIds.push(competition.id);
+      clubOtherLevelTwoCupColumn.counts ??= createEmptyCounts();
+      addCounts(
+        clubOtherLevelTwoCupColumn.counts,
         competition.counts ?? getCompetitionCountsFromRows(competition.id)
       );
       continue;
@@ -607,11 +630,13 @@ function shouldMergeAsDomesticLevelThreeCup(competition: HonorSummaryCompetition
   );
 }
 
-function shouldMergeAsClubCustomCup(competition: HonorSummaryCompetition) {
+function shouldMergeAsClubOtherCup(competition: HonorSummaryCompetition, level: '一级' | '二级') {
   return (
     props.entityType === 'club' &&
     competition.targetType === 'CLUB' &&
     competition.scopeType === 'CUSTOM' &&
+    competition.category === '其他' &&
+    competition.level === level &&
     competition.format === '杯赛'
   );
 }
@@ -762,16 +787,28 @@ function getDomesticLevelThreeCupColumnName() {
   return '国内三级杯赛';
 }
 
-function getClubCustomCupColumnId() {
-  return '__club_custom_cup__';
+function getClubOtherLevelOneCupColumnId() {
+  return '__club_other_level_one_cup__';
 }
 
-function getClubCustomCupColumnCode() {
-  return 'CLUB_CUSTOM_CUP';
+function getClubOtherLevelOneCupColumnCode() {
+  return 'CLUB_OTHER_LEVEL_ONE_CUP';
 }
 
-function getClubCustomCupColumnName() {
-  return '其他杯赛';
+function getClubOtherLevelOneCupColumnName() {
+  return '其他一级杯赛';
+}
+
+function getClubOtherLevelTwoCupColumnId() {
+  return '__club_other_level_two_cup__';
+}
+
+function getClubOtherLevelTwoCupColumnCode() {
+  return 'CLUB_OTHER_LEVEL_TWO_CUP';
+}
+
+function getClubOtherLevelTwoCupColumnName() {
+  return '其他二级杯赛';
 }
 
 const placementValues = placements.map(
