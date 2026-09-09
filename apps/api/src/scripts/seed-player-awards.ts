@@ -58,7 +58,11 @@ const ITALY_COPPA_ITALIA_COMPETITION_CODE = 'ITALY_COPPA_ITALIA';
 const ITALY_SUPER_CUP_COMPETITION_CODE = 'ITALY_SUPER_CUP';
 const MITROPA_CUP_COMPETITION_CODE = 'MITROPA_CUP';
 const UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE = 'UEFA_CHAMPIONS_LEAGUE';
+const UEFA_EUROPA_LEAGUE_COMPETITION_CODE = 'UEFA_EUROPA_LEAGUE';
 const UEFA_SUPER_CUP_COMPETITION_CODE = 'UEFA_SUPER_CUP';
+const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'UEFA_CLUB_FOOTBALLER_OF_THE_YEAR';
+const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/UEFA_Club_Footballer_of_the_Year';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE = 'ARGENTINE_PRIMERA_DIVISION_TOP_SCORER';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL =
   'https://www.rsssf.org/tablesa/argtops.html';
@@ -87,9 +91,14 @@ const NASL_ALL_STAR_TEAM_EXTERNAL_URL = 'https://www.nationalsoccerhof.com/playe
 const NASL_ASSISTS_LEADER_AWARD_CODE = 'NASL_ASSISTS_LEADER';
 const NASL_ASSISTS_LEADER_EXTERNAL_URL = 'https://www.statscrew.com/soccer/leaders/l-NASL/y-1976';
 const NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE = 'NORTH_AMERICAN_SOCCER_LEAGUE_1968_1984';
+const ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE = 'ENGLAND_PREMIER_LEAGUE';
+const ENGLAND_FA_CUP_COMPETITION_CODE = 'ENGLAND_FA_CUP';
+const ENGLAND_LEAGUE_CUP_COMPETITION_CODE = 'ENGLAND_LEAGUE_CUP';
+const ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE = 'ENGLAND_COMMUNITY_SHIELD';
 
 const PELE_NAME_KEYWORD = '贝利';
 const MARADONA_NAME_KEYWORD = '马拉多纳';
+const GERRARD_NAME_KEYWORD = '杰拉德';
 
 function buildBallonDorEditionExternalUrl(year: number) {
   return `${BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX}${year.toString().slice(-2)}.html`;
@@ -239,12 +248,39 @@ const ONZE_DOR_MARADONA_RESULTS: RankedAwardSeed[] = [
   }
 ];
 
+const ONZE_DOR_GERRARD_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 2005,
+    rank: 2,
+    placement: '银奖',
+    remark: "Onze d'Or 2005 银奖，杰拉德效力利物浦时期。"
+  }
+];
+
 const BALLON_DOR_BARESI_RESULTS: RankedAwardSeed[] = [
   {
     year: 1989,
     rank: 2,
     placement: '第二名',
     remark: 'France Football 金球奖 1989 投票第二名，巴雷西效力 AC米兰时期。'
+  }
+];
+
+const BALLON_DOR_GERRARD_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 2005,
+    rank: 3,
+    placement: '第三名',
+    remark: 'France Football 金球奖 2005 投票第三名，杰拉德效力利物浦时期。'
+  }
+];
+
+const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 2005,
+    rank: 1,
+    placement: '获奖',
+    remark: '欧足联年度最佳俱乐部球员 2004-05 赛季获奖，杰拉德效力利物浦时期。'
   }
 ];
 
@@ -803,6 +839,167 @@ const BARESI_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
   }
 ];
 
+const GERRARD_PREMIER_LEAGUE_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE,
+    editionName: '2000-01',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '杰拉德代表利物浦参加 2000-01 赛季英超，球队获得季军。'
+  },
+  {
+    competitionCode: ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE,
+    editionName: '2001-02',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2001-02 赛季英超，球队获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE,
+    editionName: '2005-06',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '杰拉德代表利物浦参加 2005-06 赛季英超，球队获得季军。'
+  },
+  {
+    competitionCode: ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE,
+    editionName: '2006-07',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '杰拉德代表利物浦参加 2006-07 赛季英超，球队获得季军。'
+  },
+  {
+    competitionCode: ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE,
+    editionName: '2008-09',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2008-09 赛季英超，球队获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE,
+    editionName: '2013-14',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2013-14 赛季英超，球队获得亚军。'
+  }
+];
+
+const GERRARD_ENGLAND_CUP_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: ENGLAND_FA_CUP_COMPETITION_CODE,
+    editionName: '2000-01',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2000-01 赛季足总杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_FA_CUP_COMPETITION_CODE,
+    editionName: '2005-06',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2005-06 赛季足总杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_FA_CUP_COMPETITION_CODE,
+    editionName: '2011-12',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2011-12 赛季足总杯，球队获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_LEAGUE_CUP_COMPETITION_CODE,
+    editionName: '2000-01',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2000-01 赛季英格兰联赛杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_LEAGUE_CUP_COMPETITION_CODE,
+    editionName: '2002-03',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2002-03 赛季英格兰联赛杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_LEAGUE_CUP_COMPETITION_CODE,
+    editionName: '2004-05',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2004-05 赛季英格兰联赛杯，球队获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_LEAGUE_CUP_COMPETITION_CODE,
+    editionName: '2011-12',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2011-12 赛季英格兰联赛杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE,
+    editionName: '2006',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2006 年社区盾杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE,
+    editionName: '2002',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2002 年社区盾杯，球队获得亚军。'
+  }
+];
+
+const GERRARD_EUROPEAN_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '2004-05赛季',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2004-05 赛季欧冠，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '2006-07赛季',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '杰拉德代表利物浦参加 2006-07 赛季欧冠，球队获得亚军。'
+  },
+  {
+    competitionCode: UEFA_EUROPA_LEAGUE_COMPETITION_CODE,
+    editionName: '2000-01赛季',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2000-01 赛季欧洲联盟杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_SUPER_CUP_COMPETITION_CODE,
+    editionName: '2001年',
+    teamName: '利物浦',
+    careerTeamName: '利物浦',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '杰拉德代表利物浦参加 2001 年欧洲超级杯，球队获得冠军。'
+  }
+];
+
 const CAMPEONATO_PAULISTA_TOP_SCORER_PELE_RESULTS = [
   {
     year: 1957,
@@ -1147,6 +1344,19 @@ async function main() {
     throw new Error('Player not found: 巴雷西');
   }
 
+  const gerrard = await prisma.player.findFirst({
+    where: {
+      chineseName: {
+        contains: GERRARD_NAME_KEYWORD
+      }
+    },
+    select: { id: true, chineseName: true }
+  });
+
+  if (!gerrard) {
+    throw new Error(`Player not found: ${GERRARD_NAME_KEYWORD}`);
+  }
+
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
@@ -1177,8 +1387,11 @@ async function main() {
     maradona.chineseName,
     SOUTH_AMERICAN_FOOTBALLER_MARADONA_RESULTS
   );
-  await seedOnzeDor(uefa.id, maradona.id, maradona.chineseName);
+  await seedOnzeDor(uefa.id, maradona.id, maradona.chineseName, ONZE_DOR_MARADONA_RESULTS);
+  await seedOnzeDor(uefa.id, gerrard.id, gerrard.chineseName, ONZE_DOR_GERRARD_RESULTS);
   await seedBallonDor(baresi.id, baresi.chineseName, BALLON_DOR_BARESI_RESULTS);
+  await seedBallonDor(gerrard.id, gerrard.chineseName, BALLON_DOR_GERRARD_RESULTS);
+  await seedUefaClubFootballerOfTheYear(uefa.id, gerrard.id, gerrard.chineseName);
   await seedArgentineFootballerOfTheYear(argentina.id, maradona.id, maradona.chineseName);
   await seedFifaWorldCupGoldenBall(
     pele.id,
@@ -1252,6 +1465,17 @@ async function main() {
   );
   await seedPlayerTeamHonors(maradona.id, maradona.chineseName, MARADONA_TEAM_HONOR_RESULTS);
   await seedPlayerTeamHonors(baresi.id, baresi.chineseName, BARESI_TEAM_HONOR_RESULTS);
+  await seedPlayerTeamHonors(
+    gerrard.id,
+    gerrard.chineseName,
+    GERRARD_PREMIER_LEAGUE_TEAM_HONOR_RESULTS
+  );
+  await seedPlayerTeamHonors(
+    gerrard.id,
+    gerrard.chineseName,
+    GERRARD_ENGLAND_CUP_TEAM_HONOR_RESULTS
+  );
+  await seedPlayerTeamHonors(gerrard.id, gerrard.chineseName, GERRARD_EUROPEAN_TEAM_HONOR_RESULTS);
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -1460,7 +1684,12 @@ async function seedSouthAmericanFootballerOfTheYear(
   );
 }
 
-async function seedOnzeDor(uefaId: string, playerId: string, playerLabel: string) {
+async function seedOnzeDor(
+  uefaId: string,
+  playerId: string,
+  playerLabel: string,
+  results: readonly RankedAwardSeed[]
+) {
   const award = await prisma.award.upsert({
     where: { code: ONZE_DOR_AWARD_CODE },
     create: {
@@ -1496,7 +1725,7 @@ async function seedOnzeDor(uefaId: string, playerId: string, playerLabel: string
     }
   });
 
-  for (const result of ONZE_DOR_MARADONA_RESULTS) {
+  for (const result of results) {
     const edition = await prisma.awardEdition.upsert({
       where: {
         awardId_name: {
@@ -1542,9 +1771,7 @@ async function seedOnzeDor(uefaId: string, playerId: string, playerLabel: string
     });
   }
 
-  console.log(
-    `Seeded ${ONZE_DOR_AWARD_CODE}: ${ONZE_DOR_MARADONA_RESULTS.length} ${playerLabel} recipients.`
-  );
+  console.log(`Seeded ${ONZE_DOR_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`);
 }
 
 async function seedBallonDor(
@@ -1635,6 +1862,99 @@ async function seedBallonDor(
   }
 
   console.log(`Seeded ${BALLON_DOR_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`);
+}
+
+async function seedUefaClubFootballerOfTheYear(
+  uefaId: string,
+  playerId: string,
+  playerLabel: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE },
+    create: {
+      code: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE,
+      name: '欧足联年度最佳俱乐部球员',
+      englishName: 'UEFA Club Footballer of the Year',
+      shortName: '欧足联年度最佳俱乐部球员',
+      externalUrl: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际一级综合奖',
+      level: '一级',
+      description: '欧足联 1997-98 至 2009-10 赛季颁发的欧洲俱乐部年度最佳球员奖。',
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 6100
+    },
+    update: {
+      name: '欧足联年度最佳俱乐部球员',
+      englishName: 'UEFA Club Footballer of the Year',
+      shortName: '欧足联年度最佳俱乐部球员',
+      externalUrl: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际一级综合奖',
+      level: '一级',
+      description: '欧足联 1997-98 至 2009-10 赛季颁发的欧洲俱乐部年度最佳球员奖。',
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      enabled: true,
+      sortOrder: 6100
+    }
+  });
+
+  for (const result of UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS) {
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: '2004-05赛季'
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: '2004-05赛季',
+        season: '2004-05',
+        year: result.year,
+        externalUrl: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL
+      },
+      update: {
+        season: '2004-05',
+        year: result.year,
+        externalUrl: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE}: ${UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS.length} ${playerLabel} recipients.`
+  );
 }
 
 async function seedArgentineFootballerOfTheYear(
