@@ -6,6 +6,7 @@ import {
   HonorRuleConversionType,
   HonorRulePlacementScope
 } from '@prisma/client';
+import { competitionScaleCoefficient } from './competition-scale-coefficient.js';
 
 export const EVENT_TEAM_BONUS_COMPETITION_CODE_BY_AWARD_CODE = {
   FIFA_WORLD_CUP_FAIR_PLAY_TROPHY: 'FIFA_WORLD_CUP',
@@ -241,15 +242,7 @@ function scaleCoefficient(competition: CompetitionForTeamBonusScoring, quantity:
   const resolvedQuantity =
     quantity ?? median(competition.editions.map((edition) => edition.quantity));
 
-  if (!resolvedQuantity) return 1;
-  if (resolvedQuantity >= 24) return 1;
-  if (resolvedQuantity >= 16) return 0.9;
-  if (resolvedQuantity >= 10) return 0.75;
-  if (resolvedQuantity >= 8) return 0.65;
-  if (resolvedQuantity >= 4) return 0.5;
-  if (resolvedQuantity === 3) return 0.35;
-  if (resolvedQuantity === 2) return 0.25;
-  return 0;
+  return competitionScaleCoefficient(competition.code, resolvedQuantity);
 }
 
 function median(values: Array<number | null>) {

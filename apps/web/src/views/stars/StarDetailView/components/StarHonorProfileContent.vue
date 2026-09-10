@@ -337,7 +337,7 @@ function buildAwardHonorLine(honor: AwardRecipientRecord): HonorLine {
     subjectCategory: competition?.category ?? null,
     subjectLevel: competition?.level ?? null,
     subjectFormat: competition?.format ?? null,
-    subjectSortOrder: competition?.sortOrder ?? award.sortOrder,
+    subjectSortOrder: award.sortOrder,
     placement: placementInfo.text,
     rank: honor.rank,
     awardScopeType: award.scopeType,
@@ -435,6 +435,15 @@ function groupHonorLines(
           return leftLevel - rightLevel;
         }
 
+        const leftSortOrder = left.subjectSortOrder ?? Number.MAX_SAFE_INTEGER;
+        const rightSortOrder = right.subjectSortOrder ?? Number.MAX_SAFE_INTEGER;
+
+        if (leftSortOrder !== rightSortOrder) {
+          return leftSortOrder - rightSortOrder;
+        }
+      }
+
+      if (sortMode === 'default' && left.subjectType === 'award' && right.subjectType === 'award') {
         const leftSortOrder = left.subjectSortOrder ?? Number.MAX_SAFE_INTEGER;
         const rightSortOrder = right.subjectSortOrder ?? Number.MAX_SAFE_INTEGER;
 

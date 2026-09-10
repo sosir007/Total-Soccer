@@ -13,6 +13,7 @@ import {
 import { CatalogStatsService } from '../common/catalog-stats.service.js';
 import { resolvePagination, toInteger } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { competitionScaleCoefficient } from '../honor-rules/competition-scale-coefficient.js';
 import type {
   CountryHonorListQuery,
   CountryHonorSummaryQuery,
@@ -1527,16 +1528,7 @@ export class CountriesService {
     const resolvedQuantity =
       quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
 
-    if (!resolvedQuantity) return 1;
-    if (resolvedQuantity >= 24) return 1;
-    if (resolvedQuantity >= 16) return 0.9;
-    if (resolvedQuantity >= 10) return 0.75;
-    if (resolvedQuantity >= 8) return 0.65;
-    if (resolvedQuantity >= 4) return 0.5;
-    if (resolvedQuantity === 3) return 0.35;
-    if (resolvedQuantity === 2) return 0.25;
-
-    return 0;
+    return competitionScaleCoefficient(competition.code, resolvedQuantity);
   }
 
   private median(values: Array<number | null>) {

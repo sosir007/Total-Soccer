@@ -15,6 +15,11 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { resolvePagination, toNumber } from '../common/pagination.js';
+import { competitionScaleCoefficient } from '../honor-rules/competition-scale-coefficient.js';
+import {
+  buildLeagueComprehensiveAwardGroupKey,
+  selectHighestLeagueComprehensiveAwardRecipientIds
+} from '../award-rules/award-score-combination.js';
 import type {
   PlayerAwardRecipientPayload,
   PlayerCareerPayload,
@@ -513,11 +518,20 @@ type PlayerPaEvaluationData = {
   teamContribution?: string | null;
 };
 type ScoredPlayerAward = {
+  recipientId: string;
   playerId: string;
   scoreKey: PlayerHonorSummaryScoreKey;
   groupKey: string;
+  leagueComprehensiveGroupKey: string | null;
   rule: PlayerAwardRule;
   score: number;
+  scopeType: AwardScopeType;
+  category: string | null;
+  competitionId: string | null;
+  competitionEditionId: string | null;
+  period: string;
+  awardSortOrder: number;
+  awardCode: string;
   detail: PlayerHonorScoreDetail;
 };
 
@@ -2819,16 +2833,26 @@ export class PlayersService {
         competitionEdition: recipient.edition.competitionEdition,
         honorRules
       });
+      const period = this.resolveAwardEditionPeriod(recipient.edition);
       const scoredAward = {
+        recipientId: recipient.id,
         playerId: recipient.playerId ?? '',
         scoreKey: this.resolveHonorListAwardColumn(recipient.edition.award),
         groupKey: this.buildAwardCombinationGroupKey({
           playerId: recipient.playerId ?? '',
-          period: this.resolveAwardEditionPeriod(recipient.edition),
+          period,
           scopeType: recipient.edition.award.scopeType,
           confederationId: recipient.edition.award.confederationId,
           countryId: recipient.edition.award.countryId,
           category: rule.category
+        }),
+        leagueComprehensiveGroupKey: buildLeagueComprehensiveAwardGroupKey({
+          playerId: recipient.playerId ?? '',
+          scopeType: recipient.edition.award.scopeType,
+          category: rule.category,
+          competitionId: recipient.edition.award.competitionId,
+          competitionEditionId: recipient.edition.competitionEditionId,
+          period
         }),
         rule,
         score:
@@ -2836,8 +2860,15 @@ export class PlayersService {
           rule.coefficient *
           eventCoefficient.competitionCoefficient *
           eventCoefficient.editionShareCoefficient,
+        scopeType: recipient.edition.award.scopeType,
+        category: rule.category,
+        competitionId: recipient.edition.award.competitionId,
+        competitionEditionId: recipient.edition.competitionEditionId,
+        period,
+        awardSortOrder: recipient.edition.award.sortOrder,
+        awardCode: recipient.edition.award.code,
         detail: {
-          label: this.resolveAwardEditionPeriod(recipient.edition),
+          label: period,
           competitionName: this.formatHonorListAwardTitle(recipient),
           placementLabel: this.formatAwardRecipientPlacement(recipient),
           score: 0,
@@ -2864,17 +2895,28 @@ export class PlayersService {
     }
 
     let total = 0;
+    const highestLeagueComprehensiveAwardRecipientIds =
+      selectHighestLeagueComprehensiveAwardRecipientIds(scoredAwards);
 
     for (const award of scoredAwards) {
-      const combinationCoefficient =
-        this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey) ? 0.5 : 1;
+      const isLowerScoringLeagueComprehensiveAward =
+        award.leagueComprehensiveGroupKey !== null &&
+        !highestLeagueComprehensiveAwardRecipientIds.has(award.recipientId);
+      const combinationCoefficient = isLowerScoringLeagueComprehensiveAward
+        ? 0
+        : this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey)
+          ? 0.5
+          : 1;
       const score = award.score * combinationCoefficient;
 
       scores[award.scoreKey] = this.round(scores[award.scoreKey] + score);
       scoreDetails[award.scoreKey].push({
         ...award.detail,
         score: this.round(score),
-        combinationCoefficient
+        combinationCoefficient,
+        ruleName: isLowerScoringLeagueComprehensiveAward
+          ? `${award.detail.ruleName}（同届国联一级综合奖仅最高项计分）`
+          : award.detail.ruleName
       });
       total += score;
     }
@@ -3298,15 +3340,7 @@ export class PlayersService {
     const resolvedQuantity =
       quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
 
-    if (!resolvedQuantity) return 1;
-    if (resolvedQuantity >= 24) return 1;
-    if (resolvedQuantity >= 16) return 0.9;
-    if (resolvedQuantity >= 10) return 0.75;
-    if (resolvedQuantity >= 8) return 0.65;
-    if (resolvedQuantity >= 4) return 0.5;
-    if (resolvedQuantity === 3) return 0.35;
-    if (resolvedQuantity === 2) return 0.25;
-    return 0;
+    return competitionScaleCoefficient(competition.code, resolvedQuantity);
   }
 
   private median(values: Array<number | null>) {

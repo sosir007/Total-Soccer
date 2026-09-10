@@ -8,6 +8,11 @@ import {
 } from '@prisma/client';
 import { resolvePagination } from '../common/pagination.js';
 import { PrismaService } from '../database/prisma.service.js';
+import { competitionScaleCoefficient } from '../honor-rules/competition-scale-coefficient.js';
+import {
+  buildLeagueComprehensiveAwardGroupKey,
+  selectHighestLeagueComprehensiveAwardRecipientIds
+} from './award-score-combination.js';
 import { DEFAULT_AWARD_RULES, type AwardRuleDefaultDefinition } from './default-award-rules.js';
 import type { AwardRuleListQuery, AwardRulePayload } from './award-rules.types.js';
 
@@ -27,10 +32,19 @@ type AwardRuleMatchTarget = {
 };
 
 type ScoredAwardRecipient = {
+  recipientId: string;
   playerId: string;
   groupKey: string;
+  leagueComprehensiveGroupKey: string | null;
   rule: AwardRule;
   score: number;
+  scopeType: AwardScopeType;
+  category: string | null;
+  competitionId: string | null;
+  competitionEditionId: string | null;
+  period: string;
+  awardSortOrder: number;
+  awardCode: string;
 };
 
 type CompetitionHonorRule = Prisma.HonorRuleGetPayload<{ include: { coefficients: true } }>;
@@ -171,15 +185,25 @@ export class AwardRulesService {
         stats.topAwardCount += 1;
       }
       if (rule) {
+        const period = this.resolveEditionPeriod(recipient.edition);
         const scoredRecipient = {
+          recipientId: recipient.id,
           playerId: recipient.playerId,
           groupKey: this.buildCombinationGroupKey({
             playerId: recipient.playerId,
-            period: this.resolveEditionPeriod(recipient.edition),
+            period,
             scopeType: recipient.edition.award.scopeType,
             confederationId: recipient.edition.award.confederationId,
             countryId: recipient.edition.award.countryId,
             category: rule.category
+          }),
+          leagueComprehensiveGroupKey: buildLeagueComprehensiveAwardGroupKey({
+            playerId: recipient.playerId,
+            scopeType: recipient.edition.award.scopeType,
+            category: rule.category,
+            competitionId: recipient.edition.award.competitionId,
+            competitionEditionId: recipient.edition.competitionEditionId,
+            period
           }),
           rule,
           score:
@@ -189,7 +213,14 @@ export class AwardRulesService {
               competition: recipient.edition.award.competition,
               competitionEdition: recipient.edition.competitionEdition,
               honorRules: competitionHonorRules
-            })
+            }),
+          scopeType: recipient.edition.award.scopeType,
+          category: rule.category,
+          competitionId: recipient.edition.award.competitionId,
+          competitionEditionId: recipient.edition.competitionEditionId,
+          period,
+          awardSortOrder: recipient.edition.award.sortOrder,
+          awardCode: recipient.edition.award.code
         };
 
         scoredRecipients.push(scoredRecipient);
@@ -202,10 +233,17 @@ export class AwardRulesService {
       statsByPlayer.set(recipient.playerId, stats);
     }
 
+    const highestLeagueComprehensiveAwardRecipientIds =
+      selectHighestLeagueComprehensiveAwardRecipientIds(scoredRecipients);
+
     for (const recipient of scoredRecipients) {
       const stats = statsByPlayer.get(recipient.playerId) ?? this.emptyStats();
-      const score =
-        this.isSpecialtyRule(recipient.rule) && lineupGroups.has(recipient.groupKey)
+      const isLowerScoringLeagueComprehensiveAward =
+        recipient.leagueComprehensiveGroupKey !== null &&
+        !highestLeagueComprehensiveAwardRecipientIds.has(recipient.recipientId);
+      const score = isLowerScoringLeagueComprehensiveAward
+        ? 0
+        : this.isSpecialtyRule(recipient.rule) && lineupGroups.has(recipient.groupKey)
           ? recipient.score * 0.5
           : recipient.score;
 
@@ -437,15 +475,7 @@ export class AwardRulesService {
     const resolvedQuantity =
       quantity ?? this.median(competition.editions.map((edition) => edition.quantity));
 
-    if (!resolvedQuantity) return 1;
-    if (resolvedQuantity >= 24) return 1;
-    if (resolvedQuantity >= 16) return 0.9;
-    if (resolvedQuantity >= 10) return 0.75;
-    if (resolvedQuantity >= 8) return 0.65;
-    if (resolvedQuantity >= 4) return 0.5;
-    if (resolvedQuantity === 3) return 0.35;
-    if (resolvedQuantity === 2) return 0.25;
-    return 0;
+    return competitionScaleCoefficient(competition.code, resolvedQuantity);
   }
 
   private median(values: Array<number | null>) {

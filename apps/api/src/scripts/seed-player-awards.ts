@@ -20,6 +20,10 @@ const ONZE_DOR_EXTERNAL_URL = 'https://www.rsssf.org/miscellaneous/onze-awards.h
 const BALLON_DOR_AWARD_CODE = 'BALLON_DOR';
 const BALLON_DOR_EXTERNAL_URL = 'https://www.rsssf.org/miscellaneous/europa-poy.html';
 const BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX = 'https://www.rsssf.org/miscellaneous/europa-poy';
+const FIFPRO_WORLD_11_AWARD_CODE = 'FIFPRO_WORLD_11';
+const FIFPRO_WORLD_11_EXTERNAL_URL = 'https://www.fifpro.org/en/world-11';
+const FIFPRO_WORLD_11_HISTORY_EXTERNAL_URL =
+  'https://www.fifpro.org/en/articles/2023/10/history-mens-world-11';
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'ARGENTINE_FOOTBALLER_OF_THE_YEAR';
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
   'https://www.rsssf.org/miscellaneous/arg-poy.html';
@@ -63,6 +67,29 @@ const UEFA_SUPER_CUP_COMPETITION_CODE = 'UEFA_SUPER_CUP';
 const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'UEFA_CLUB_FOOTBALLER_OF_THE_YEAR';
 const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/UEFA_Club_Footballer_of_the_Year';
+const UEFA_TEAM_OF_THE_YEAR_AWARD_CODE = 'UEFA_TEAM_OF_THE_YEAR';
+const UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL = 'https://en.wikipedia.org/wiki/UEFA_Team_of_the_Year';
+const PFA_PLAYERS_PLAYER_OF_THE_YEAR_AWARD_CODE = 'PFA_PLAYERS_PLAYER_OF_THE_YEAR';
+const PFA_PLAYERS_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/PFA_Players%27_Player_of_the_Year';
+const PFA_YOUNG_PLAYER_OF_THE_YEAR_AWARD_CODE = 'PFA_YOUNG_PLAYER_OF_THE_YEAR';
+const PFA_YOUNG_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/PFA_Young_Player_of_the_Year';
+const PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_AWARD_CODE = 'PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR';
+const PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/PFA_Team_of_the_Year';
+const FWA_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'FWA_FOOTBALLER_OF_THE_YEAR';
+const FWA_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/FWA_Footballer_of_the_Year';
+const UEFA_EURO_TEAM_OF_THE_TOURNAMENT_AWARD_CODE = 'UEFA_EURO_TEAM_OF_THE_TOURNAMENT';
+const UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/UEFA_Euro_2012#Awards';
+const FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_AWARD_CODE = 'FIFA_CLUB_WORLD_CUP_GOLDEN_BALL';
+const FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL =
+  'https://web.archive.org/web/20150704030052/http://www.fifa.com/tournaments/archive/clubworldcup/japan2005/awards/index.html';
+const ENGLAND_PLAYER_OF_THE_YEAR_AWARD_CODE = 'ENGLAND_PLAYER_OF_THE_YEAR';
+const ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/Steven_Gerrard#Honours';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_AWARD_CODE = 'ARGENTINE_PRIMERA_DIVISION_TOP_SCORER';
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_EXTERNAL_URL =
   'https://www.rsssf.org/tablesa/argtops.html';
@@ -92,6 +119,8 @@ const NASL_ASSISTS_LEADER_AWARD_CODE = 'NASL_ASSISTS_LEADER';
 const NASL_ASSISTS_LEADER_EXTERNAL_URL = 'https://www.statscrew.com/soccer/leaders/l-NASL/y-1976';
 const NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE = 'NORTH_AMERICAN_SOCCER_LEAGUE_1968_1984';
 const ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE = 'ENGLAND_PREMIER_LEAGUE';
+const UEFA_EURO_COMPETITION_CODE = 'UEFA_EURO';
+const FIFA_CLUB_WORLD_CUP_COMPETITION_CODE = 'FIFA_CLUB_WORLD_CUP';
 const ENGLAND_FA_CUP_COMPETITION_CODE = 'ENGLAND_FA_CUP';
 const ENGLAND_LEAGUE_CUP_COMPETITION_CODE = 'ENGLAND_LEAGUE_CUP';
 const ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE = 'ENGLAND_COMMUNITY_SHIELD';
@@ -147,6 +176,10 @@ type LeaguePlayerOfTheYearSeed = {
   remark: string;
 };
 
+type EnglishLeagueAwardSeed = LeaguePlayerOfTheYearSeed & {
+  rank?: number;
+};
+
 type PlayerAchievementSeed = {
   name: string;
   season: string;
@@ -171,6 +204,13 @@ type RankedAwardSeed = {
   placement: string;
   remark: string;
   editionRemark?: string;
+};
+
+type AnnualSelectionAwardSeed = {
+  year: number;
+  placement: string;
+  remark: string;
+  editionRemark: string;
 };
 
 const SOUTH_AMERICAN_FOOTBALLER_PELE_RESULTS = [
@@ -275,12 +315,115 @@ const BALLON_DOR_GERRARD_RESULTS: RankedAwardSeed[] = [
   }
 ];
 
+const FIFPRO_WORLD_11_GERRARD_RESULTS: AnnualSelectionAwardSeed[] = [
+  {
+    year: 2007,
+    placement: '入选',
+    remark: '杰拉德效力利物浦期间，以中场身份入选 2007 年 FIFPRO World 11。',
+    editionRemark: '该届正式名称为 FIFPRO World 11。'
+  },
+  {
+    year: 2008,
+    placement: '入选',
+    remark: '杰拉德效力利物浦期间，以中场身份入选 2008 年 FIFPRO World 11。',
+    editionRemark: '该届正式名称为 FIFPRO World 11。'
+  },
+  {
+    year: 2009,
+    placement: '入选',
+    remark: '杰拉德效力利物浦期间，以中场身份入选 2009 年 FIFA FIFPRO World 11。',
+    editionRemark: '该届处于 FIFPRO 与 FIFA 合作期间，正式名称为 FIFA FIFPRO World 11。'
+  }
+];
+
 const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS: RankedAwardSeed[] = [
   {
     year: 2005,
     rank: 1,
     placement: '获奖',
     remark: '欧足联年度最佳俱乐部球员 2004-05 赛季获奖，杰拉德效力利物浦时期。'
+  }
+];
+
+const UEFA_TEAM_OF_THE_YEAR_GERRARD_RESULTS: AnnualSelectionAwardSeed[] = [
+  {
+    year: 2005,
+    placement: '入选',
+    remark: '杰拉德效力利物浦期间，以中场身份入选 UEFA.com 2005 年球迷票选年度最佳阵容。',
+    editionRemark: '由 UEFA.com 用户投票产生，不是 UEFA 技术观察员评选的赛事最佳阵容。'
+  },
+  {
+    year: 2006,
+    placement: '入选',
+    remark: '杰拉德效力利物浦期间，以中场身份入选 UEFA.com 2006 年球迷票选年度最佳阵容。',
+    editionRemark: '由 UEFA.com 用户投票产生，不是 UEFA 技术观察员评选的赛事最佳阵容。'
+  },
+  {
+    year: 2007,
+    placement: '入选',
+    remark: '杰拉德效力利物浦期间，以中场身份入选 UEFA.com 2007 年球迷票选年度最佳阵容。',
+    editionRemark: '由 UEFA.com 用户投票产生，不是 UEFA 技术观察员评选的赛事最佳阵容。'
+  }
+];
+
+const PFA_PLAYERS_PLAYER_OF_THE_YEAR_GERRARD_RESULTS: EnglishLeagueAwardSeed[] = [
+  {
+    season: '2005-06',
+    year: 2006,
+    rank: 1,
+    placement: '获奖',
+    remark: '杰拉德效力利物浦期间，由职业球员互投当选 2005-06 赛季 PFA 球员票选年度最佳球员。'
+  }
+];
+
+const PFA_YOUNG_PLAYER_OF_THE_YEAR_GERRARD_RESULTS: EnglishLeagueAwardSeed[] = [
+  {
+    season: '2000-01',
+    year: 2001,
+    rank: 1,
+    placement: '获奖',
+    remark: '杰拉德效力利物浦期间，当选 2000-01 赛季 PFA 年度最佳年轻球员。'
+  }
+];
+
+const PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_GERRARD_RESULTS: EnglishLeagueAwardSeed[] = [
+  '2000-01',
+  '2003-04',
+  '2004-05',
+  '2005-06',
+  '2006-07',
+  '2007-08',
+  '2008-09',
+  '2013-14'
+].map((season) => ({
+  season,
+  year: 2000 + Number(season.slice(-2)),
+  placement: '入选',
+  remark: `杰拉德效力利物浦期间，入选 ${season} 赛季 PFA 英超年度最佳阵容。`
+}));
+
+const FWA_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS: EnglishLeagueAwardSeed[] = [
+  {
+    season: '2008-09',
+    year: 2009,
+    rank: 1,
+    placement: '获奖',
+    remark: '杰拉德效力利物浦期间，当选 2008-09 赛季英格兰足球记者协会年度足球先生。'
+  }
+];
+
+const ENGLAND_PLAYER_OF_THE_YEAR_GERRARD_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 2007,
+    rank: 1,
+    placement: '获奖',
+    remark: '杰拉德经英格兰球迷投票，当选英足总 2007 年度英格兰代表队最佳球员。'
+  },
+  {
+    year: 2012,
+    rank: 1,
+    placement: '获奖',
+    remark: '杰拉德经英格兰球迷投票，当选英足总 2012 年度英格兰代表队最佳球员。'
   }
 ];
 
@@ -1374,6 +1517,19 @@ async function main() {
   const northAmericanSoccerLeague = await findCompetition(
     NORTH_AMERICAN_SOCCER_LEAGUE_COMPETITION_CODE
   );
+  const englandPremierLeague = await findCompetition(ENGLAND_PREMIER_LEAGUE_COMPETITION_CODE);
+  const uefaEuro = await findCompetition(UEFA_EURO_COMPETITION_CODE);
+  const fifaClubWorldCup = await findCompetition(FIFA_CLUB_WORLD_CUP_COMPETITION_CODE);
+  const england = await prisma.country.findFirst({
+    where: {
+      OR: [{ uid: '765' }, { name: '英格兰' }]
+    },
+    select: { id: true }
+  });
+
+  if (!england) {
+    throw new Error('Country not found: England / 英格兰');
+  }
 
   await seedSouthAmericanFootballerOfTheYear(
     conmebol.id,
@@ -1391,7 +1547,13 @@ async function main() {
   await seedOnzeDor(uefa.id, gerrard.id, gerrard.chineseName, ONZE_DOR_GERRARD_RESULTS);
   await seedBallonDor(baresi.id, baresi.chineseName, BALLON_DOR_BARESI_RESULTS);
   await seedBallonDor(gerrard.id, gerrard.chineseName, BALLON_DOR_GERRARD_RESULTS);
+  await seedFifproWorld11(gerrard.id, gerrard.chineseName);
   await seedUefaClubFootballerOfTheYear(uefa.id, gerrard.id, gerrard.chineseName);
+  await seedUefaTeamOfTheYear(uefa.id, gerrard.id, gerrard.chineseName);
+  await seedEnglishLeagueAwards(gerrard.id, gerrard.chineseName, englandPremierLeague.id);
+  await seedUefaEuroTeamOfTheTournament(uefa.id, gerrard.id, gerrard.chineseName, uefaEuro.id);
+  await seedFifaClubWorldCupGoldenBall(gerrard.id, gerrard.chineseName, fifaClubWorldCup.id);
+  await seedEnglandPlayerOfTheYear(england.id, gerrard.id, gerrard.chineseName);
   await seedArgentineFootballerOfTheYear(argentina.id, maradona.id, maradona.chineseName);
   await seedFifaWorldCupGoldenBall(
     pele.id,
@@ -1864,6 +2026,99 @@ async function seedBallonDor(
   console.log(`Seeded ${BALLON_DOR_AWARD_CODE}: ${results.length} ${playerLabel} recipients.`);
 }
 
+async function seedFifproWorld11(playerId: string, playerLabel: string) {
+  const award = await prisma.award.upsert({
+    where: { code: FIFPRO_WORLD_11_AWARD_CODE },
+    create: {
+      code: FIFPRO_WORLD_11_AWARD_CODE,
+      name: 'FIFPRO年度最佳阵容',
+      englishName: 'FIFPRO World 11',
+      shortName: 'FIFPRO World 11',
+      externalUrl: FIFPRO_WORLD_11_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '国际二级阵容奖',
+      level: '二级',
+      description: '由全球职业球员投票产生的年度世界最佳阵容，按入选记录计分，不分名次。',
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年最佳阵容。',
+      enabled: true,
+      sortOrder: 2020
+    },
+    update: {
+      name: 'FIFPRO年度最佳阵容',
+      englishName: 'FIFPRO World 11',
+      shortName: 'FIFPRO World 11',
+      externalUrl: FIFPRO_WORLD_11_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.WORLD,
+      category: '国际二级阵容奖',
+      level: '二级',
+      description: '由全球职业球员投票产生的年度世界最佳阵容，按入选记录计分，不分名次。',
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年最佳阵容。',
+      enabled: true,
+      sortOrder: 2020
+    }
+  });
+
+  for (const result of FIFPRO_WORLD_11_GERRARD_RESULTS) {
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: FIFPRO_WORLD_11_HISTORY_EXTERNAL_URL,
+        remark: result.editionRemark
+      },
+      update: {
+        year: result.year,
+        externalUrl: FIFPRO_WORLD_11_HISTORY_EXTERNAL_URL,
+        remark: result.editionRemark
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: null,
+        placement: result.placement,
+        externalUrl: FIFPRO_WORLD_11_HISTORY_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: null,
+        placement: result.placement,
+        externalUrl: FIFPRO_WORLD_11_HISTORY_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${FIFPRO_WORLD_11_AWARD_CODE}: ${FIFPRO_WORLD_11_GERRARD_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
 async function seedUefaClubFootballerOfTheYear(
   uefaId: string,
   playerId: string,
@@ -1954,6 +2209,546 @@ async function seedUefaClubFootballerOfTheYear(
 
   console.log(
     `Seeded ${UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE}: ${UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedUefaTeamOfTheYear(uefaId: string, playerId: string, playerLabel: string) {
+  const award = await prisma.award.upsert({
+    where: { code: UEFA_TEAM_OF_THE_YEAR_AWARD_CODE },
+    create: {
+      code: UEFA_TEAM_OF_THE_YEAR_AWARD_CODE,
+      name: '欧洲足联年度最佳阵容',
+      englishName: 'UEFA Team of the Year',
+      shortName: '欧足联年度最佳阵容',
+      externalUrl: UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际二级阵容奖',
+      level: '二级',
+      description: 'UEFA 于 2001 至 2020 年通过 UEFA.com 用户或球迷投票产生的欧洲年度最佳阵容。',
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年最佳阵容。',
+      enabled: true,
+      sortOrder: 6200
+    },
+    update: {
+      name: '欧洲足联年度最佳阵容',
+      englishName: 'UEFA Team of the Year',
+      shortName: '欧足联年度最佳阵容',
+      externalUrl: UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际二级阵容奖',
+      level: '二级',
+      description: 'UEFA 于 2001 至 2020 年通过 UEFA.com 用户或球迷投票产生的欧洲年度最佳阵容。',
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.DISCONTINUED,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年最佳阵容。',
+      enabled: true,
+      sortOrder: 6200
+    }
+  });
+
+  for (const result of UEFA_TEAM_OF_THE_YEAR_GERRARD_RESULTS) {
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.editionRemark
+      },
+      update: {
+        year: result.year,
+        externalUrl: UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.editionRemark
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: null,
+        placement: result.placement,
+        externalUrl: UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: null,
+        placement: result.placement,
+        externalUrl: UEFA_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${UEFA_TEAM_OF_THE_YEAR_AWARD_CODE}: ${UEFA_TEAM_OF_THE_YEAR_GERRARD_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedEnglishLeagueAwards(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const seeds = [
+    {
+      code: PFA_PLAYERS_PLAYER_OF_THE_YEAR_AWARD_CODE,
+      name: 'PFA球员票选年度最佳球员',
+      englishName: "PFA Players' Player of the Year",
+      shortName: 'PFA年度最佳球员',
+      externalUrl: PFA_PLAYERS_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+      category: '国联一级综合奖',
+      level: '一级',
+      description: '由英格兰职业球员工会会员球员互投产生的赛季最佳球员奖。',
+      sortOrder: 7120,
+      results: PFA_PLAYERS_PLAYER_OF_THE_YEAR_GERRARD_RESULTS
+    },
+    {
+      code: PFA_YOUNG_PLAYER_OF_THE_YEAR_AWARD_CODE,
+      name: 'PFA年度最佳年轻球员',
+      englishName: 'PFA Young Player of the Year',
+      shortName: 'PFA最佳年轻球员',
+      externalUrl: PFA_YOUNG_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+      category: '国联三级补充奖',
+      level: '三级',
+      description: '由英格兰职业球员工会评选的赛季最佳年轻球员奖。',
+      sortOrder: 7320,
+      results: PFA_YOUNG_PLAYER_OF_THE_YEAR_GERRARD_RESULTS
+    },
+    {
+      code: PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_AWARD_CODE,
+      name: 'PFA英超年度最佳阵容',
+      englishName: 'PFA Premier League Team of the Year',
+      shortName: 'PFA英超最佳阵容',
+      externalUrl: PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+      category: '国联二级阵容奖',
+      level: '二级',
+      description: '由英格兰职业球员工会评选的英格兰顶级联赛赛季最佳阵容。',
+      sortOrder: 7220,
+      results: PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_GERRARD_RESULTS
+    },
+    {
+      code: FWA_FOOTBALLER_OF_THE_YEAR_AWARD_CODE,
+      name: '英格兰足球记者协会年度足球先生',
+      englishName: 'FWA Footballer of the Year',
+      shortName: 'FWA年度足球先生',
+      externalUrl: FWA_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL,
+      category: '国联一级综合奖',
+      level: '一级',
+      description: '由英格兰足球记者协会会员投票产生、评价英格兰赛季表现的年度足球先生奖。',
+      sortOrder: 7130,
+      results: FWA_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS
+    }
+  ] as const;
+
+  for (const seed of seeds) {
+    const award = await prisma.award.upsert({
+      where: { code: seed.code },
+      create: {
+        code: seed.code,
+        name: seed.name,
+        englishName: seed.englishName,
+        shortName: seed.shortName,
+        externalUrl: seed.externalUrl,
+        targetType: AwardTargetType.PLAYER,
+        scopeType: AwardScopeType.LEAGUE,
+        category: seed.category,
+        level: seed.level,
+        description: seed.description,
+        competitionId,
+        lifecycleStatus: LifecycleStatus.CURRENT,
+        dataComplete: false,
+        dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+        dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年获奖者。',
+        enabled: true,
+        sortOrder: seed.sortOrder
+      },
+      update: {
+        name: seed.name,
+        englishName: seed.englishName,
+        shortName: seed.shortName,
+        externalUrl: seed.externalUrl,
+        targetType: AwardTargetType.PLAYER,
+        scopeType: AwardScopeType.LEAGUE,
+        category: seed.category,
+        level: seed.level,
+        description: seed.description,
+        competitionId,
+        lifecycleStatus: LifecycleStatus.CURRENT,
+        dataComplete: false,
+        dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+        dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年获奖者。',
+        enabled: true,
+        sortOrder: seed.sortOrder
+      }
+    });
+
+    for (const result of seed.results) {
+      const competitionEdition = await findCompetitionEdition(competitionId, result.season);
+      const edition = await prisma.awardEdition.upsert({
+        where: {
+          awardId_name: {
+            awardId: award.id,
+            name: result.season
+          }
+        },
+        create: {
+          awardId: award.id,
+          competitionEditionId: competitionEdition.id,
+          name: result.season,
+          season: result.season,
+          year: result.year,
+          externalUrl: seed.externalUrl
+        },
+        update: {
+          competitionEditionId: competitionEdition.id,
+          season: result.season,
+          year: result.year,
+          externalUrl: seed.externalUrl
+        }
+      });
+
+      await prisma.awardRecipient.upsert({
+        where: {
+          editionId_targetType_playerId: {
+            editionId: edition.id,
+            targetType: AwardTargetType.PLAYER,
+            playerId
+          }
+        },
+        create: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId,
+          rank: result.rank,
+          placement: result.placement,
+          externalUrl: seed.externalUrl,
+          remark: result.remark
+        },
+        update: {
+          rank: result.rank ?? null,
+          placement: result.placement,
+          externalUrl: seed.externalUrl,
+          remark: result.remark
+        }
+      });
+    }
+
+    console.log(`Seeded ${seed.code}: ${seed.results.length} ${playerLabel} recipients.`);
+  }
+}
+
+async function seedUefaEuroTeamOfTheTournament(
+  uefaId: string,
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_AWARD_CODE },
+    create: {
+      code: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_AWARD_CODE,
+      name: '欧洲杯赛事最佳阵容',
+      englishName: 'UEFA European Championship Team of the Tournament',
+      shortName: '欧洲杯最佳阵容',
+      externalUrl: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际杯二级阵容奖',
+      level: '二级',
+      description: '欧足联欧洲足球锦标赛官方赛事最佳阵容，按入选记录计分，不分名次。',
+      competitionId,
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德 2012 年确认记录，未补完整历届阵容。',
+      enabled: true,
+      sortOrder: 3200
+    },
+    update: {
+      name: '欧洲杯赛事最佳阵容',
+      englishName: 'UEFA European Championship Team of the Tournament',
+      shortName: '欧洲杯最佳阵容',
+      externalUrl: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CONFEDERATION,
+      category: '洲际杯二级阵容奖',
+      level: '二级',
+      description: '欧足联欧洲足球锦标赛官方赛事最佳阵容，按入选记录计分，不分名次。',
+      competitionId,
+      confederationId: uefaId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德 2012 年确认记录，未补完整历届阵容。',
+      enabled: true,
+      sortOrder: 3200
+    }
+  });
+  const competitionEdition = await findCompetitionEdition(competitionId, '2012年');
+  const edition = await prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId: award.id,
+        name: '2012年'
+      }
+    },
+    create: {
+      awardId: award.id,
+      competitionEditionId: competitionEdition.id,
+      name: '2012年',
+      year: 2012,
+      externalUrl: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL,
+      remark: '欧足联技术团队评选的 UEFA Euro 2012 赛事最佳阵容。'
+    },
+    update: {
+      competitionEditionId: competitionEdition.id,
+      year: 2012,
+      externalUrl: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL,
+      remark: '欧足联技术团队评选的 UEFA Euro 2012 赛事最佳阵容。'
+    }
+  });
+
+  await prisma.awardRecipient.upsert({
+    where: {
+      editionId_targetType_playerId: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId
+      }
+    },
+    create: {
+      editionId: edition.id,
+      targetType: AwardTargetType.PLAYER,
+      playerId,
+      rank: null,
+      placement: '入选',
+      externalUrl: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL,
+      remark: '杰拉德作为英格兰队长，以中场身份入选 UEFA Euro 2012 官方赛事最佳阵容。'
+    },
+    update: {
+      rank: null,
+      placement: '入选',
+      externalUrl: UEFA_EURO_TEAM_OF_THE_TOURNAMENT_EXTERNAL_URL,
+      remark: '杰拉德作为英格兰队长，以中场身份入选 UEFA Euro 2012 官方赛事最佳阵容。'
+    }
+  });
+
+  console.log(`Seeded ${UEFA_EURO_TEAM_OF_THE_TOURNAMENT_AWARD_CODE}: 1 ${playerLabel} recipient.`);
+}
+
+async function seedFifaClubWorldCupGoldenBall(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_AWARD_CODE },
+    create: {
+      code: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_AWARD_CODE,
+      name: '国际足联俱乐部世界杯金球奖',
+      englishName: 'FIFA Club World Cup Golden Ball',
+      shortName: '世俱杯金球奖',
+      externalUrl: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '俱乐部国际赛事一级综合奖',
+      level: '一级',
+      description: '国际足联俱乐部世界杯最佳球员奖项，统一承接金球奖、银球奖和铜球奖。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德 2005 年银球奖记录，未补完整历届获奖者。',
+      enabled: true,
+      sortOrder: 5100
+    },
+    update: {
+      name: '国际足联俱乐部世界杯金球奖',
+      englishName: 'FIFA Club World Cup Golden Ball',
+      shortName: '世俱杯金球奖',
+      externalUrl: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '俱乐部国际赛事一级综合奖',
+      level: '一级',
+      description: '国际足联俱乐部世界杯最佳球员奖项，统一承接金球奖、银球奖和铜球奖。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德 2005 年银球奖记录，未补完整历届获奖者。',
+      enabled: true,
+      sortOrder: 5100
+    }
+  });
+  const competitionEdition = await findCompetitionEdition(competitionId, '2005年');
+  const edition = await prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId: award.id,
+        name: '2005年'
+      }
+    },
+    create: {
+      awardId: award.id,
+      competitionEditionId: competitionEdition.id,
+      name: '2005年',
+      year: 2005,
+      externalUrl: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL
+    },
+    update: {
+      competitionEditionId: competitionEdition.id,
+      year: 2005,
+      externalUrl: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL
+    }
+  });
+
+  await prisma.awardRecipient.upsert({
+    where: {
+      editionId_targetType_playerId: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId
+      }
+    },
+    create: {
+      editionId: edition.id,
+      targetType: AwardTargetType.PLAYER,
+      playerId,
+      rank: 2,
+      placement: '银球奖',
+      externalUrl: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
+      remark: '杰拉德代表利物浦参加 2005 年国际足联俱乐部世界锦标赛，获得赛事银球奖。'
+    },
+    update: {
+      rank: 2,
+      placement: '银球奖',
+      externalUrl: FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_EXTERNAL_URL,
+      remark: '杰拉德代表利物浦参加 2005 年国际足联俱乐部世界锦标赛，获得赛事银球奖。'
+    }
+  });
+
+  console.log(`Seeded ${FIFA_CLUB_WORLD_CUP_GOLDEN_BALL_AWARD_CODE}: 1 ${playerLabel} recipient.`);
+}
+
+async function seedEnglandPlayerOfTheYear(
+  englandId: string,
+  playerId: string,
+  playerLabel: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: ENGLAND_PLAYER_OF_THE_YEAR_AWARD_CODE },
+    create: {
+      code: ENGLAND_PLAYER_OF_THE_YEAR_AWARD_CODE,
+      name: '英格兰年度最佳球员',
+      englishName: "England Men's Player of the Year",
+      shortName: '英格兰年度最佳球员',
+      externalUrl: ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.COUNTRY,
+      category: '国家一级综合奖',
+      level: '一级',
+      description: '英足总组织、由英格兰球迷投票评选的英格兰男子代表队年度最佳球员奖。',
+      countryId: englandId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德 2007、2012 年确认记录，未补完整历届获奖者。',
+      enabled: true,
+      sortOrder: 8100
+    },
+    update: {
+      name: '英格兰年度最佳球员',
+      englishName: "England Men's Player of the Year",
+      shortName: '英格兰年度最佳球员',
+      externalUrl: ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.COUNTRY,
+      category: '国家一级综合奖',
+      level: '一级',
+      description: '英足总组织、由英格兰球迷投票评选的英格兰男子代表队年度最佳球员奖。',
+      countryId: englandId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入杰拉德 2007、2012 年确认记录，未补完整历届获奖者。',
+      enabled: true,
+      sortOrder: 8100
+    }
+  });
+
+  for (const result of ENGLAND_PLAYER_OF_THE_YEAR_GERRARD_RESULTS) {
+    const edition = await prisma.awardEdition.upsert({
+      where: {
+        awardId_name: {
+          awardId: award.id,
+          name: `${result.year}年`
+        }
+      },
+      create: {
+        awardId: award.id,
+        name: `${result.year}年`,
+        year: result.year,
+        externalUrl: ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL
+      },
+      update: {
+        year: result.year,
+        externalUrl: ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL
+      }
+    });
+
+    await prisma.awardRecipient.upsert({
+      where: {
+        editionId_targetType_playerId: {
+          editionId: edition.id,
+          targetType: AwardTargetType.PLAYER,
+          playerId
+        }
+      },
+      create: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId,
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      },
+      update: {
+        rank: result.rank,
+        placement: result.placement,
+        externalUrl: ENGLAND_PLAYER_OF_THE_YEAR_EXTERNAL_URL,
+        remark: result.remark
+      }
+    });
+  }
+
+  console.log(
+    `Seeded ${ENGLAND_PLAYER_OF_THE_YEAR_AWARD_CODE}: ${ENGLAND_PLAYER_OF_THE_YEAR_GERRARD_RESULTS.length} ${playerLabel} recipients.`
   );
 }
 
