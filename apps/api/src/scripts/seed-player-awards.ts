@@ -78,6 +78,15 @@ const PFA_YOUNG_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
 const PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_AWARD_CODE = 'PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR';
 const PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/PFA_Team_of_the_Year';
+const ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER_AWARD_CODE = 'ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER';
+const ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/2013%E2%80%9314_Premier_League#Top_assists';
+const PFA_MERIT_AWARD_EXTERNAL_URL =
+  'https://web.archive.org/web/20200706203926/https://www.goal.com/en/news/9/english-football/2015/04/26/11170022/gerrard-lampard-share-pfa-merit-award';
+const UEFA_ULTIMATE_TEAM_OF_THE_YEAR_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/UEFA_Team_of_the_Year#UEFA_Ultimate_Team_of_the_Year';
+const LIVERPOOL_GREATEST_EXTERNAL_URL =
+  'https://www.liverpoolfc.com/news/liverpools-greatest-no1-steven-gerrard';
 const FWA_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'FWA_FOOTBALLER_OF_THE_YEAR';
 const FWA_FOOTBALLER_OF_THE_YEAR_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/FWA_Footballer_of_the_Year';
@@ -401,6 +410,16 @@ const PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_GERRARD_RESULTS: EnglishLeagueAwardSee
   placement: '入选',
   remark: `杰拉德效力利物浦期间，入选 ${season} 赛季 PFA 英超年度最佳阵容。`
 }));
+
+const ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER_GERRARD_RESULTS: EnglishLeagueAwardSeed[] = [
+  {
+    season: '2013-14',
+    year: 2014,
+    rank: 1,
+    placement: '助攻王',
+    remark: '杰拉德效力利物浦期间，以 13 次助攻位列 2013-14 赛季英超助攻榜第一。'
+  }
+];
 
 const FWA_FOOTBALLER_OF_THE_YEAR_GERRARD_RESULTS: EnglishLeagueAwardSeed[] = [
   {
@@ -1414,6 +1433,35 @@ const BARESI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
   }
 ];
 
+const GERRARD_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: 'PFA功勋奖',
+    season: '2015',
+    score: 1,
+    externalUrl: PFA_MERIT_AWARD_EXTERNAL_URL,
+    remark: 'PFA Merit Award；PFA 于 2015 年授予杰拉德和兰帕德的职业生涯贡献荣誉。',
+    sortOrder: 1
+  },
+  {
+    name: '欧足联世纪迄今终极年度最佳阵容',
+    season: '2017',
+    score: 1,
+    externalUrl: UEFA_ULTIMATE_TEAM_OF_THE_YEAR_EXTERNAL_URL,
+    remark:
+      'UEFA Ultimate Team of the Year；欧足联 2017 年发布的世纪迄今历史最佳十一人，杰拉德入选中场。',
+    sortOrder: 2
+  },
+  {
+    name: '利物浦官方历史最佳球员评选第一名',
+    season: '2026',
+    score: 1,
+    externalUrl: LIVERPOOL_GREATEST_EXTERNAL_URL,
+    remark:
+      "Liverpool's Greatest；利物浦官方结合俱乐部历史数据、球迷选择和名宿意见评选，杰拉德排名第一。",
+    sortOrder: 3
+  }
+];
+
 async function main() {
   const conmebol = await prisma.confederation.findFirst({
     where: {
@@ -1647,6 +1695,7 @@ async function main() {
   await seedNaslAssistsLeader(pele.id, northAmericanSoccerLeague.id);
   await seedPlayerAchievements(maradona.id, maradona.chineseName, MARADONA_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(baresi.id, baresi.chineseName, BARESI_ACHIEVEMENT_RESULTS);
+  await seedPlayerAchievements(gerrard.id, gerrard.chineseName, GERRARD_ACHIEVEMENT_RESULTS);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();
@@ -2350,6 +2399,19 @@ async function seedEnglishLeagueAwards(
       results: PFA_PREMIER_LEAGUE_TEAM_OF_THE_YEAR_GERRARD_RESULTS
     },
     {
+      code: ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER_AWARD_CODE,
+      name: '英格兰足球超级联赛助攻王',
+      englishName: 'Premier League Assists Leader',
+      shortName: '英超助攻王',
+      externalUrl: ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER_EXTERNAL_URL,
+      category: '国联二级专项奖',
+      level: '二级',
+      description:
+        '英格兰足球超级联赛赛季助攻榜第一；2017-18赛季以前按统计榜首记录，不等同于后来设立的赛季最佳组织者奖。',
+      sortOrder: 7310,
+      results: ENGLAND_PREMIER_LEAGUE_ASSISTS_LEADER_GERRARD_RESULTS
+    },
+    {
       code: FWA_FOOTBALLER_OF_THE_YEAR_AWARD_CODE,
       name: '英格兰足球记者协会年度足球先生',
       englishName: 'FWA Footballer of the Year',
@@ -2380,7 +2442,7 @@ async function seedEnglishLeagueAwards(
         competitionId,
         lifecycleStatus: LifecycleStatus.CURRENT,
         dataComplete: false,
-        dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+        dataUpdatedAt: new Date('2026-09-10T00:00:00.000Z'),
         dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年获奖者。',
         enabled: true,
         sortOrder: seed.sortOrder
@@ -2398,7 +2460,7 @@ async function seedEnglishLeagueAwards(
         competitionId,
         lifecycleStatus: LifecycleStatus.CURRENT,
         dataComplete: false,
-        dataUpdatedAt: new Date('2026-09-09T00:00:00.000Z'),
+        dataUpdatedAt: new Date('2026-09-10T00:00:00.000Z'),
         dataRemark: '仅按当前球员录入节奏补入杰拉德确认记录，未补完整历年获奖者。',
         enabled: true,
         sortOrder: seed.sortOrder
