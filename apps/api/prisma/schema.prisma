@@ -614,6 +614,7 @@ model PlayerHonor {
   player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   name        String
   score       Float    @default(1)
+  isScoring   Boolean  @default(true)
   season      String?
   externalUrl String?
   remark      String?

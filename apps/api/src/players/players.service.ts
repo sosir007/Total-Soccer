@@ -1570,6 +1570,7 @@ export class PlayersService {
       name: this.requiredText(body.name, '成就名称'),
       season: this.optionalText(body.season),
       score: this.optionalFloat(body.score, '成就分', 0, PLAYER_ACHIEVEMENT_SCORE_CAP) ?? 1,
+      isScoring: this.optionalBoolean(body.isScoring) ?? true,
       externalUrl: this.optionalText(body.externalUrl),
       remark: this.optionalText(body.remark),
       sortOrder: this.optionalInteger(body.sortOrder, '排序', 0, 999999) ?? 0
@@ -1800,7 +1801,8 @@ export class PlayersService {
       player.teamHonors,
       honorRules
     );
-    const achievementScore = this.addPlayerAchievementScores(scores, scoreDetails, player.honors);
+    const scoringHonors = player.honors.filter((honor) => honor.isScoring);
+    const achievementScore = this.addPlayerAchievementScores(scores, scoreDetails, scoringHonors);
     const totalAwardScore = this.round(awardScore + achievementScore);
     const totalScore = this.round(totalAwardScore + teamHonorScore);
 
@@ -1816,7 +1818,7 @@ export class PlayersService {
       club: player.club,
       awardCount: player.awardRecipients.length,
       teamHonorCount: player.teamHonors.length,
-      achievementCount: player.honors.length,
+      achievementCount: scoringHonors.length,
       personalAwardScore: this.round(awardScore),
       achievementScore,
       awardScore: totalAwardScore,
@@ -1880,7 +1882,7 @@ export class PlayersService {
       });
     }
 
-    for (const honor of player.honors) {
+    for (const honor of player.honors.filter((item) => item.isScoring)) {
       this.addPlayerHonorListEntry(entryMap, 'achievement', {
         title: honor.name,
         subjectName: null,

@@ -1,0 +1,2 @@
+ALTER TABLE "PlayerHonor"
+ADD COLUMN "isScoring" BOOLEAN NOT NULL DEFAULT true;

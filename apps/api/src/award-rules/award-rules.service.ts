@@ -159,6 +159,7 @@ export class AwardRulesService {
         }
       }),
       this.prisma.playerHonor.findMany({
+        where: { isScoring: true },
         orderBy: [{ playerId: 'asc' }, { sortOrder: 'asc' }, { season: 'asc' }, { name: 'asc' }]
       })
     ]);

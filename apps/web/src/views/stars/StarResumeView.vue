@@ -113,6 +113,7 @@ interface AwardRecipientGroup {
 interface AchievementForm {
   title: string;
   score: number;
+  isScoring: boolean;
   externalUrl: string;
   remark: string;
   sortOrder: number;
@@ -236,6 +237,7 @@ const honorForm = reactive({
 const achievementForm = reactive<AchievementForm>({
   title: '',
   score: 1,
+  isScoring: true,
   externalUrl: '',
   remark: '',
   sortOrder: 0
@@ -449,6 +451,7 @@ const personalHonorGroups = computed<AwardRecipientGroup[]>(() => {
 const achievementRows = computed(() =>
   [...playerHonors.value].sort(
     (left, right) =>
+      Number(right.isScoring) - Number(left.isScoring) ||
       left.sortOrder - right.sortOrder ||
       (left.season ?? '').localeCompare(right.season ?? '') ||
       left.name.localeCompare(right.name, 'zh-Hans-CN')
@@ -843,6 +846,7 @@ function openAchievementDialog(honor?: PlayerHonor) {
   Object.assign(achievementForm, {
     title: formatAchievementTitle(honor),
     score: honor?.score ?? 1,
+    isScoring: honor?.isScoring ?? true,
     externalUrl: honor?.externalUrl ?? '',
     remark: honor?.remark ?? '',
     sortOrder: honor?.sortOrder ?? achievementRows.value.length + 1
@@ -857,6 +861,7 @@ function buildAchievementPayload(): PlayerHonorPayload {
     name: name || achievementForm.title.trim(),
     season: season || undefined,
     score: 1,
+    isScoring: achievementForm.isScoring,
     externalUrl: achievementForm.externalUrl.trim() || undefined,
     remark: achievementForm.remark.trim() || undefined,
     sortOrder: achievementForm.sortOrder ?? 0
@@ -1803,7 +1808,9 @@ onMounted(() => {
         <div class="panel-header resume-tab-header">
           <div>
             <h3>成就</h3>
-            <p>维护高含金量生涯成就，每条默认 1 分，汇总计分最多 10 分。</p>
+            <p>
+              维护高含金量生涯成就；计分成就默认 1 分，汇总计分最多 10 分，仅展示成就不参与计分。
+            </p>
           </div>
           <el-button type="primary" @click="openAchievementDialog()">
             <IconFont name="add" />
@@ -1826,7 +1833,19 @@ onMounted(() => {
               <span v-else>{{ formatAchievementTitle(row) }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="score" label="分值" width="80" align="center" />
+          <el-table-column label="计分方式" width="100" align="center">
+            <template #default="{ row }">
+              <SemanticTag
+                :variant="row.isScoring ? 'status-included' : 'status-excluded'"
+                size="small"
+              >
+                {{ row.isScoring ? '计分' : '仅展示' }}
+              </SemanticTag>
+            </template>
+          </el-table-column>
+          <el-table-column label="分值" width="80" align="center">
+            <template #default="{ row }">{{ row.isScoring ? row.score : '-' }}</template>
+          </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
@@ -2029,6 +2048,13 @@ onMounted(() => {
               :max="1"
               :precision="0"
               disabled
+            />
+          </el-form-item>
+          <el-form-item label="计入荣誉分">
+            <el-switch
+              v-model="achievementForm.isScoring"
+              active-text="计分"
+              inactive-text="仅展示"
             />
           </el-form-item>
           <el-form-item label="排序">

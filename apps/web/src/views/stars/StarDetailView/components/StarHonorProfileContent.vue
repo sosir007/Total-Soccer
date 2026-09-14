@@ -62,6 +62,7 @@ type AchievementLine = {
   label: string;
   sortYear: number;
   sortOrder: number;
+  isScoring: boolean;
   externalUrl?: string | null;
 };
 type HonorGroup = {
@@ -353,6 +354,7 @@ function buildAchievementLine(honor: PlayerHonor): AchievementLine {
     label: [honor.season, honor.name].filter(Boolean).join(' '),
     sortYear: resolveSortYear(honor.season),
     sortOrder: honor.sortOrder,
+    isScoring: honor.isScoring,
     externalUrl: honor.externalUrl
   };
 }
@@ -372,6 +374,7 @@ function addHonorLine(lines: HonorLine[], nextLine: HonorLine) {
 function sortAchievementLines(lines: AchievementLine[]) {
   return [...lines].sort(
     (left, right) =>
+      Number(right.isScoring) - Number(left.isScoring) ||
       left.sortOrder - right.sortOrder ||
       left.sortYear - right.sortYear ||
       left.label.localeCompare(right.label, 'zh-CN')
@@ -1040,6 +1043,7 @@ function hasGroupMeta(group: HonorGroupBase) {
             v-for="(achievement, achievementIndex) in group.achievements"
             :key="achievement.id"
             class="honor-profile-line"
+            :class="{ 'is-display-only': !achievement.isScoring }"
           >
             <span class="honor-profile-number">{{ achievementIndex + 1 }}.</span>
             <a
@@ -1052,6 +1056,12 @@ function hasGroupMeta(group: HonorGroupBase) {
               {{ achievement.label }}
             </a>
             <span v-else>{{ achievement.label }}</span>
+            <SemanticTag
+              :variant="achievement.isScoring ? 'status-included' : 'status-excluded'"
+              size="small"
+            >
+              {{ achievement.isScoring ? '计分' : '仅展示' }}
+            </SemanticTag>
           </li>
         </ul>
       </div>
@@ -1195,6 +1205,11 @@ function hasGroupMeta(group: HonorGroupBase) {
   .external-text-link {
     color: inherit;
     font-weight: inherit;
+  }
+
+  &.is-display-only {
+    color: var(--text-color-secondary);
+    font-weight: 500;
   }
 }
 

@@ -164,6 +164,7 @@ export interface PlayerHonorPayload {
   name?: string;
   season?: string;
   score?: number | string | null;
+  isScoring?: boolean | string | null;
   externalUrl?: string;
   remark?: string;
   sortOrder?: number | string | null;

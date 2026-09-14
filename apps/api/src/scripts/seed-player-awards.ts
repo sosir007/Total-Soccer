@@ -193,6 +193,7 @@ type PlayerAchievementSeed = {
   name: string;
   season: string;
   score: number;
+  isScoring?: boolean;
   externalUrl: string;
   remark: string;
   sortOrder: number;
@@ -1349,9 +1350,10 @@ const MARADONA_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     name: 'FIFA 世纪最佳进球',
     season: '2002',
     score: 1,
+    isScoring: false,
     externalUrl:
       'https://inside.fifa.com/en/tournaments/mens/worldcup/1986mexico/news/maradona-s-immortal-11-second-dash-2802747',
-    remark: '1986 国际足联世界杯对英格兰的第二粒进球，FIFA 世纪最佳进球口径。',
+    remark: '1986 国际足联世界杯对英格兰的第二粒进球，FIFA 世纪最佳进球口径；仅展示，不计分。',
     sortOrder: 4
   },
   {
@@ -1366,35 +1368,153 @@ const MARADONA_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     name: 'World Soccer 历史最佳阵容',
     season: '2013',
     score: 1,
+    isScoring: false,
     externalUrl:
       'https://www.worldsoccer.com/world-soccer-latest/the-greatest-xi-how-the-panel-voted-341427',
-    remark: 'World Soccer 由专家评选的历史最佳十一人阵容。',
+    remark: 'World Soccer 由专家评选的历史最佳十一人阵容；仅展示，不计分。',
     sortOrder: 6
   },
   {
     name: 'AFA 阿根廷历史最佳阵容',
     season: '2016',
     score: 1,
+    isScoring: false,
     externalUrl: 'https://www.afa.com.ar/Futbol/posts/la-seleccion-de-todos-los-tiempos',
-    remark: '阿根廷足协历史最佳阵容口径。',
+    remark: '阿根廷足协历史最佳阵容口径；仅展示，不计分。',
     sortOrder: 7
   },
   {
     name: '金球奖梦之队第一阵容',
     season: '2020',
     score: 1,
+    isScoring: false,
     externalUrl:
       'https://www.francefootball.fr/news/Ballon-d-or-dream-team-le-roi-pele-et-diego-maradona-elus-dans-ce-onze-de-legende/1205768',
-    remark: "France Football Ballon d'Or Dream Team 第一阵容。",
+    remark: "France Football Ballon d'Or Dream Team 第一阵容；仅展示，不计分。",
     sortOrder: 8
   },
   {
     name: 'IFFHS 历史最佳阵容',
     season: '2021',
     score: 1,
+    isScoring: false,
     externalUrl: 'https://iffhs.com/posts/1110',
-    remark: 'IFFHS 男足历史最佳阵容口径。',
+    remark: 'IFFHS 男足历史最佳阵容口径；仅展示，不计分。',
     sortOrder: 9
+  },
+  {
+    name: '那不勒斯退役 10 号球衣',
+    season: '2000',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Diego_Maradona',
+    remark: '那不勒斯为表彰马拉多纳对俱乐部的贡献退役其 10 号球衣；仅展示，不计分。',
+    sortOrder: 10
+  },
+  {
+    name: '曾保持那不勒斯队史正式比赛进球纪录 26 年',
+    season: '1991-2017',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Diego_Maradona',
+    remark:
+      '马拉多纳以 115 个正式比赛进球保持那不勒斯队史纪录，直至 2017 年被超越；仅展示，不计分。',
+    sortOrder: 11
+  }
+];
+
+const PELE_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: '入选美国国家足球名人堂',
+    season: '1992',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.nationalsoccerhof.com/players/pele.html',
+    remark: '美国国家足球名人堂成员；仅展示，不计分。',
+    sortOrder: 1
+  },
+  {
+    name: '获国际足联功勋勋章',
+    season: '1984',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Pel%C3%A9',
+    remark: '获国际足联功勋勋章（FIFA Order of Merit）；仅展示，不计分。',
+    sortOrder: 2
+  },
+  {
+    name: '获巴西国家功勋勋章',
+    season: '1991',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Pel%C3%A9',
+    remark: '获巴西国家功勋勋章（National Order of Merit）；仅展示，不计分。',
+    sortOrder: 3
+  },
+  {
+    name: '国际奥委会世纪运动员',
+    season: '1999',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Pel%C3%A9',
+    remark: '国际奥委会评选的 20 世纪最佳运动员；仅展示，不计分。',
+    sortOrder: 4
+  },
+  {
+    name: 'BBC 体育人物终身成就奖',
+    season: '2005',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Pel%C3%A9',
+    remark: 'BBC Sports Personality of the Year Lifetime Achievement Award；仅展示，不计分。',
+    sortOrder: 5
+  },
+  {
+    name: '获奥林匹克勋章',
+    season: '2016',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://olympics.com/ioc/news/pele-receives-olympic-order',
+    remark: '国际奥委会授予的奥林匹克勋章；仅展示，不计分。',
+    sortOrder: 6
+  },
+  {
+    name: '入选 IFFHS 世界历史最佳阵容',
+    season: '2021',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://iffhs.com/posts/1110',
+    remark: 'IFFHS 男足世界历史最佳阵容；仅展示，不计分。',
+    sortOrder: 7
+  },
+  {
+    name: '入选 IFFHS 南美历史最佳阵容',
+    season: '2021',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Pel%C3%A9',
+    remark: 'IFFHS 男足南美历史最佳阵容；仅展示，不计分。',
+    sortOrder: 8
+  },
+  {
+    name: '吉尼斯认证职业生涯进球纪录',
+    season: '2013',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://www.guinnessworldrecords.com/news/2013/10/pele-honoured-with-two-guinness-world-records-achievements-in-london-52558',
+    remark: '吉尼斯世界纪录按包含友谊赛的统计口径认定贝利职业生涯攻入 1,283 球；仅展示，不计分。',
+    sortOrder: 9
+  },
+  {
+    name: '世界杯历史最年轻冠军球员',
+    season: '1958',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://www.guinnessworldrecords.com/world-records/youngest-winner-of-the-football-soccer-world-cup',
+    remark: '1958 年以 17 岁 249 天成为世界杯历史最年轻冠军球员；仅展示，不计分。',
+    sortOrder: 10
   }
 ];
 
@@ -1403,6 +1523,7 @@ const BARESI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     name: '金球奖梦之队银阵',
     season: '2020',
     score: 1,
+    isScoring: true,
     externalUrl: 'https://en.wikipedia.org/wiki/Ballon_d%27Or_Dream_Team',
     remark: "France Football Ballon d'Or Dream Team 第二阵容 / 银阵。",
     sortOrder: 1
@@ -1411,6 +1532,7 @@ const BARESI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     name: 'IFFHS 历史最佳阵容',
     season: '2021',
     score: 1,
+    isScoring: true,
     externalUrl: 'https://iffhs.com/posts/1110',
     remark: 'IFFHS 男足历史最佳阵容口径。',
     sortOrder: 2
@@ -1419,6 +1541,7 @@ const BARESI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     name: 'AIC 意甲世纪最佳球员',
     season: '2000',
     score: 1,
+    isScoring: true,
     externalUrl: 'https://en.wikipedia.org/wiki/Franco_Baresi',
     remark: 'AIC 意甲世纪最佳球员口径。',
     sortOrder: 3
@@ -1427,9 +1550,65 @@ const BARESI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     name: 'AC米兰世纪最佳球员',
     season: '1999',
     score: 1,
+    isScoring: true,
     externalUrl: 'https://www.acmilan.com/en/hall-of-fame/inductees/franco-baresi',
     remark: 'AC米兰世纪最佳球员口径。',
     sortOrder: 4
+  },
+  {
+    name: '入选意大利足球名人堂',
+    season: '2013',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Franco_Baresi',
+    remark: '意大利足球名人堂成员；仅展示，不计分。',
+    sortOrder: 5
+  },
+  {
+    name: '入选 IFFHS 男足传奇人物（第二阶段）',
+    season: '2019',
+    score: 1,
+    isScoring: false,
+    externalUrl: "https://en.wikipedia.org/wiki/IFFHS_World's_Best_Player#Men_Legends",
+    remark:
+      'IFFHS 传奇球员计划第二阶段 48 位入选者之一；荣誉性历史名单，不设个人排名，仅展示、不计分。',
+    sortOrder: 6
+  },
+  {
+    name: 'AC米兰队史担任队长 15 个赛季',
+    season: '1982-1997',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Franco_Baresi',
+    remark: '巴雷西担任 AC 米兰队长达 15 个赛季，为俱乐部纪录；仅展示，不计分。',
+    sortOrder: 7
+  },
+  {
+    name: 'AC米兰一人一队 20 年职业生涯',
+    season: '1977-1997',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Franco_Baresi',
+    remark: '整个职业生涯均效力 AC 米兰；仅展示，不计分。',
+    sortOrder: 8
+  },
+  {
+    name: 'AC米兰退役 6 号球衣',
+    season: '1997',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.acmilan.com/en/hall-of-fame/inductees/franco-baresi',
+    remark: 'AC 米兰为纪念巴雷西退役其 6 号球衣；仅展示，不计分。',
+    sortOrder: 9
+  },
+  {
+    name: '入选 World Soccer 20 世纪百大球员第 19 位',
+    season: '1999',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Franco_Baresi',
+    remark: 'World Soccer 杂志 20 世纪百大球员历史排名第 19 位；仅展示，不计分。',
+    sortOrder: 10
   }
 ];
 
@@ -1459,7 +1638,113 @@ const GERRARD_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
     remark:
       "Liverpool's Greatest；利物浦官方结合俱乐部历史数据、球迷选择和名宿意见评选，杰拉德排名第一。",
     sortOrder: 3
+  },
+  {
+    name: '利物浦队史担任队长场次最多的球员',
+    season: '2003-2015',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.liverpoolfc.com/news/liverpools-greatest-no1-steven-gerrard',
+    remark: '利物浦官方称杰拉德担任队长的比赛数为俱乐部历史最多；仅展示，不计分。',
+    sortOrder: 10
+  },
+  {
+    name: '利物浦队史仅有的三位 700 次以上出场球员之一',
+    season: '1998-2015',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.liverpoolfc.com/news/liverpools-greatest-no1-steven-gerrard',
+    remark:
+      '利物浦官方称杰拉德共出场 710 次、打进 186 球，是队史仅有的三位 700 次以上出场球员之一；仅展示，不计分。',
+    sortOrder: 11
+  },
+  {
+    name: '英格兰百场国脚',
+    season: '2000-2014',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Steven_Gerrard',
+    remark: '杰拉德代表英格兰出场 114 次，其中 38 次担任队长；仅展示，不计分。',
+    sortOrder: 13
+  },
+  {
+    name: '2005 年欧冠决赛完成伊斯坦布尔逆转并作为队长捧杯',
+    season: '2005',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/2005_UEFA_Champions_League_final',
+    remark: '作为队长在欧冠决赛落后 0-3 时打进反击首球并最终捧杯；仅展示，不计分。',
+    sortOrder: 14
+  },
+  {
+    name: '2006 年足总杯决赛贡献进球、助攻并罚入制胜点球',
+    season: '2006',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/2006_FA_Cup_final',
+    remark: '足总杯决赛贡献助攻、进球、扳平远射并罚入点球；仅展示，不计分。',
+    sortOrder: 15
+  },
+  {
+    name: '在联盟杯、联赛杯、欧冠和足总杯决赛均取得进球',
+    season: '2001-2006',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Steven_Gerrard',
+    remark: '分别在联盟杯、联赛杯、欧冠和足总杯决赛取得进球；仅展示，不计分。',
+    sortOrder: 16
+  },
+  {
+    name: '入选英格兰足球名人堂',
+    season: '2017',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20170923002826/http://www.nationalfootballmuseum.com/halloffame/steven-gerrard',
+    remark: '国家足球博物馆英格兰足球名人堂；仅展示，不计分。',
+    sortOrder: 17
+  },
+  {
+    name: '入选英超名人堂',
+    season: '2021',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.premierleague.com/en/news/2147433',
+    remark: '英超官方名人堂成员；仅展示，不计分。',
+    sortOrder: 18
+  },
+  {
+    name: '获授大英帝国勋章成员（MBE）',
+    season: '2007',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Steven_Gerrard',
+    remark: '国家授勋荣誉，不属于足球竞技奖项；仅展示，不计分。',
+    sortOrder: 19
+  },
+  {
+    name: '入选英超20赛季梦幻球队（公众票选）',
+    season: '2012',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://en.wikipedia.org/wiki/Premier_League_20_Seasons_Awards#Fantasy_Teams_of_the_20_Seasons',
+    remark: '英超 1992-93 至 2011-12 赛季回顾性公众票选梦幻球队；仅展示，不计分。',
+    sortOrder: 20
   }
+];
+
+const GERRARD_LEGACY_ACHIEVEMENT_NAMES = [
+  '利物浦队长纪录',
+  '利物浦正式比赛出场 710 次、进球 186 个',
+  '英超生涯 504 次出场、120 球、92 次助攻',
+  '英格兰成年国家队 114 次出场、38 次担任队长',
+  '伊斯坦布尔奇迹决赛关键表现',
+  '足总杯决赛关键表现',
+  '四类主要赛事决赛进球纪录',
+  '英格兰足球名人堂成员',
+  '英超名人堂成员',
+  '大英帝国勋章成员（MBE）'
 ];
 
 async function main() {
@@ -1693,8 +1978,12 @@ async function main() {
   await seedNaslMostValuablePlayer(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAllStarTeam(pele.id, northAmericanSoccerLeague.id);
   await seedNaslAssistsLeader(pele.id, northAmericanSoccerLeague.id);
+  await seedPlayerAchievements(pele.id, pele.chineseName, PELE_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(maradona.id, maradona.chineseName, MARADONA_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(baresi.id, baresi.chineseName, BARESI_ACHIEVEMENT_RESULTS);
+  await prisma.playerHonor.deleteMany({
+    where: { playerId: gerrard.id, name: { in: GERRARD_LEGACY_ACHIEVEMENT_NAMES } }
+  });
   await seedPlayerAchievements(gerrard.id, gerrard.chineseName, GERRARD_ACHIEVEMENT_RESULTS);
 
   const awardRulesService = new AwardRulesService(prisma);
@@ -4861,10 +5150,16 @@ async function seedPlayerAchievements(
         name: achievement.name,
         season: achievement.season
       },
-      select: { id: true }
+      select: { id: true, isScoring: true }
     });
 
     if (existing) {
+      if (achievement.isScoring !== undefined && existing.isScoring !== achievement.isScoring) {
+        await prisma.playerHonor.update({
+          where: { id: existing.id },
+          data: { isScoring: achievement.isScoring }
+        });
+      }
       skippedCount += 1;
       continue;
     }
@@ -4875,6 +5170,7 @@ async function seedPlayerAchievements(
         name: achievement.name,
         season: achievement.season,
         score: achievement.score,
+        isScoring: achievement.isScoring ?? true,
         externalUrl: achievement.externalUrl,
         remark: achievement.remark,
         sortOrder: achievement.sortOrder

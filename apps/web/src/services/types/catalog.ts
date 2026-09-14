@@ -191,6 +191,7 @@ export interface PlayerHonorPayload {
   name?: string;
   season?: string;
   score?: number | string | null;
+  isScoring?: boolean | string | null;
   externalUrl?: string;
   remark?: string;
   sortOrder?: number | string | null;
@@ -581,6 +582,7 @@ export interface PlayerHonor {
   playerId: string;
   name: string;
   score: number;
+  isScoring: boolean;
   season?: string | null;
   externalUrl?: string | null;
   remark?: string | null;
