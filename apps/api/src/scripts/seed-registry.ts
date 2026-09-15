@@ -220,6 +220,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'confederation'
   },
   {
+    key: 'uefa-conference-league',
+    label: '欧足联协会联赛',
+    file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-conference-league.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/club/confederation/uefa-conference-league.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'club',
+    scope: 'confederation'
+  },
+  {
     key: 'uefa-cup-winners-cup',
     label: '欧洲优胜者杯',
     file: 'src/scripts/seeds/competitions/club/confederation/seed-uefa-cup-winners-cup.ts',

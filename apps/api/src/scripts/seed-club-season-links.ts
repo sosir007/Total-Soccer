@@ -8,6 +8,10 @@ const SANTOS_UID = '335';
 const AC_MILAN_UID = '1099';
 const LA_GALAXY_UID = '1907';
 const LIVERPOOL_UID = '676';
+const WEST_HAM_UNITED_UID = '735';
+const CHELSEA_UID = '630';
+const MANCHESTER_CITY_UID = '679';
+const NEW_YORK_CITY_FC_UID = '72041885';
 
 const SANTOS_SEASON_LINKS = [
   {
@@ -519,6 +523,204 @@ const LIVERPOOL_SEASON_LINKS = [
   }
 ] as const;
 
+const WEST_HAM_UNITED_SEASON_LINKS = [
+  {
+    year: 1996,
+    season: '1995-96',
+    externalUrl: 'https://en.wikipedia.org/wiki/1995%E2%80%9396_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1997,
+    season: '1996-97',
+    externalUrl: 'https://en.wikipedia.org/wiki/1996%E2%80%9397_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1998,
+    season: '1997-98',
+    externalUrl: 'https://en.wikipedia.org/wiki/1997%E2%80%9398_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1999,
+    season: '1998-99',
+    externalUrl: 'https://en.wikipedia.org/wiki/1998%E2%80%9399_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2000,
+    season: '1999-00',
+    externalUrl: 'https://en.wikipedia.org/wiki/1999%E2%80%932000_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2001,
+    season: '2000-01',
+    externalUrl: 'https://en.wikipedia.org/wiki/2000%E2%80%9301_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2011,
+    season: '2010-11',
+    externalUrl: 'https://en.wikipedia.org/wiki/2010%E2%80%9311_West_Ham_United_F.C._season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const CHELSEA_SEASON_LINKS = [
+  {
+    year: 2002,
+    season: '2001-02',
+    externalUrl: 'https://en.wikipedia.org/wiki/2001%E2%80%9302_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2003,
+    season: '2002-03',
+    externalUrl: 'https://en.wikipedia.org/wiki/2002%E2%80%9303_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2004,
+    season: '2003-04',
+    externalUrl: 'https://en.wikipedia.org/wiki/2003%E2%80%9304_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2005,
+    season: '2004-05',
+    externalUrl: 'https://en.wikipedia.org/wiki/2004%E2%80%9305_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2006,
+    season: '2005-06',
+    externalUrl: 'https://en.wikipedia.org/wiki/2005%E2%80%9306_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2007,
+    season: '2006-07',
+    externalUrl: 'https://en.wikipedia.org/wiki/2006%E2%80%9307_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2008,
+    season: '2007-08',
+    externalUrl: 'https://en.wikipedia.org/wiki/2007%E2%80%9308_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2009,
+    season: '2008-09',
+    externalUrl: 'https://en.wikipedia.org/wiki/2008%E2%80%9309_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2010,
+    season: '2009-10',
+    externalUrl: 'https://en.wikipedia.org/wiki/2009%E2%80%9310_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2011,
+    season: '2010-11',
+    externalUrl: 'https://en.wikipedia.org/wiki/2010%E2%80%9311_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2012,
+    season: '2011-12',
+    externalUrl: 'https://en.wikipedia.org/wiki/2011%E2%80%9312_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2013,
+    season: '2012-13',
+    externalUrl: 'https://en.wikipedia.org/wiki/2012%E2%80%9313_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2014,
+    season: '2013-14',
+    externalUrl: 'https://en.wikipedia.org/wiki/2013%E2%80%9314_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2015,
+    season: '2014-15',
+    externalUrl: 'https://en.wikipedia.org/wiki/2014%E2%80%9315_Chelsea_F.C._season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const MANCHESTER_CITY_SEASON_LINKS = [
+  {
+    year: 1960,
+    season: '1959-60',
+    externalUrl: 'https://en.wikipedia.org/wiki/1959%E2%80%9360_Football_League#First_Division',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1961,
+    season: '1960-61',
+    externalUrl: 'https://en.wikipedia.org/wiki/1960%E2%80%9361_Football_League#First_Division',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1974,
+    season: '1973-74',
+    externalUrl: 'https://en.wikipedia.org/wiki/1973%E2%80%9374_Football_League#First_Division',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 2006,
+    season: '2005-06',
+    externalUrl: 'https://en.wikipedia.org/wiki/2005%E2%80%9306_Manchester_City_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2007,
+    season: '2006-07',
+    externalUrl: 'https://en.wikipedia.org/wiki/2006%E2%80%9307_Manchester_City_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2008,
+    season: '2007-08',
+    externalUrl: 'https://en.wikipedia.org/wiki/2007%E2%80%9308_Manchester_City_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2009,
+    season: '2008-09',
+    externalUrl: 'https://en.wikipedia.org/wiki/2008%E2%80%9309_Manchester_City_F.C._season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2015,
+    season: '2014-15',
+    externalUrl: 'https://en.wikipedia.org/wiki/2014%E2%80%9315_Manchester_City_F.C._season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const NEW_YORK_CITY_FC_SEASON_LINKS = [
+  {
+    year: 2015,
+    season: '2015',
+    externalUrl: 'https://en.wikipedia.org/wiki/2015_New_York_City_FC_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2016,
+    season: '2016',
+    externalUrl: 'https://en.wikipedia.org/wiki/2016_New_York_City_FC_season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
 const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: SANTOS_UID,
@@ -535,6 +737,22 @@ const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: LIVERPOOL_UID,
     links: LIVERPOOL_SEASON_LINKS
+  },
+  {
+    uid: WEST_HAM_UNITED_UID,
+    links: WEST_HAM_UNITED_SEASON_LINKS
+  },
+  {
+    uid: CHELSEA_UID,
+    links: CHELSEA_SEASON_LINKS
+  },
+  {
+    uid: MANCHESTER_CITY_UID,
+    links: MANCHESTER_CITY_SEASON_LINKS
+  },
+  {
+    uid: NEW_YORK_CITY_FC_UID,
+    links: NEW_YORK_CITY_FC_SEASON_LINKS
   }
 ] as const;
 
