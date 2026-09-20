@@ -24,6 +24,7 @@ const props = defineProps<{
     competitionEditionId: string;
     season: string;
     year?: number;
+    month?: number;
     externalUrl: string;
     remark: string;
     recipients: RecipientFormRow[];
@@ -33,6 +34,7 @@ const props = defineProps<{
   playerOptions: PlayerListItem[];
   playerOptionMeta: (player: PlayerListItem) => string;
   targetType: AwardTargetType;
+  monthlyLayout?: boolean;
   targetTypeLabels: Record<AwardTargetType, string>;
   competitionEditionOptions: SelectOption[];
 }>();
@@ -69,7 +71,7 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
 <template>
   <el-dialog v-model="visible" :title="title" width="860px">
     <el-form class="competition-form-grid" label-position="top" @submit.prevent="emit('save')">
-      <el-form-item label="名称" required>
+      <el-form-item v-if="!monthlyLayout" label="名称" required>
         <el-input v-model="form.name" placeholder="2024 金球奖" />
       </el-form-item>
       <el-form-item label="关联赛事届次">
@@ -82,8 +84,11 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
       <el-form-item label="年份">
         <el-input-number v-model="form.year" :min="1800" :max="2200" :controls="false" />
       </el-form-item>
-      <el-form-item label="赛季">
+      <el-form-item label="赛季" :required="monthlyLayout">
         <el-input v-model="form.season" placeholder="2023-24" />
+      </el-form-item>
+      <el-form-item v-if="monthlyLayout" label="月份" required>
+        <el-input-number v-model="form.month" :min="1" :max="12" :controls="false" />
       </el-form-item>
       <el-form-item label="外链">
         <el-input v-model="form.externalUrl" placeholder="https://..." />
@@ -141,10 +146,10 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
           <el-form-item v-else label="俱乐部">
             <ClubSelect v-model="recipient.clubId" placeholder="选择俱乐部" />
           </el-form-item>
-          <el-form-item label="排名">
+          <el-form-item v-if="!monthlyLayout" label="排名">
             <el-input-number v-model="recipient.rank" :min="1" :controls="false" />
           </el-form-item>
-          <el-form-item label="名次文本">
+          <el-form-item v-if="!monthlyLayout" label="名次文本">
             <el-input v-model="recipient.placement" placeholder="冠军 / 金球奖 / 第二名" />
           </el-form-item>
           <el-form-item label="外链">
@@ -167,7 +172,7 @@ function clearRecipientRow(form: { recipients: RecipientFormRow[] }, index: numb
       <el-button :disabled="saving" @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="saving" @click="emit('save')">
         <IconFont name="save" />
-        保存年份
+        {{ monthlyLayout ? '保存记录' : '保存年份' }}
       </el-button>
     </template>
   </el-dialog>

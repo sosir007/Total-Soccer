@@ -107,7 +107,7 @@ const AWARD_DETAIL_INCLUDE = {
     }
   },
   editions: {
-    orderBy: [{ year: 'desc' }, { name: 'desc' }],
+    orderBy: [{ year: 'desc' }, { month: 'desc' }, { name: 'desc' }],
     include: {
       competitionEdition: {
         include: {
@@ -140,6 +140,7 @@ const AWARD_DETAIL_INCLUDE = {
                   id: true,
                   uid: true,
                   name: true,
+                  shortName: true,
                   externalUrl: true,
                   exists: true
                 }
@@ -159,6 +160,7 @@ const AWARD_DETAIL_INCLUDE = {
               id: true,
               uid: true,
               name: true,
+              shortName: true,
               externalUrl: true,
               exists: true,
               visibleInCatalog: true
@@ -194,6 +196,7 @@ const AWARD_RECIPIENT_INCLUDE = {
           id: true,
           uid: true,
           name: true,
+          shortName: true,
           externalUrl: true,
           exists: true
         }
@@ -213,6 +216,7 @@ const AWARD_RECIPIENT_INCLUDE = {
       id: true,
       uid: true,
       name: true,
+      shortName: true,
       externalUrl: true,
       exists: true,
       visibleInCatalog: true
@@ -585,7 +589,10 @@ export class AwardsService {
   }
 
   async createEdition(awardId: string, body: CreateAwardEditionBody) {
-    await this.assertCompetitionEditionMatchesAward(awardId, body.competitionEditionId);
+    await this.assertCompetitionEditionMatchesAward(awardId, body.competitionEditionId, {
+      season: body.season,
+      month: body.month
+    });
 
     return this.prisma.awardEdition.create({
       data: this.buildEditionData(awardId, body),
@@ -597,7 +604,10 @@ export class AwardsService {
 
   async updateEdition(id: string, body: UpdateAwardEditionBody) {
     const edition = await this.assertEditionExists(id);
-    await this.assertCompetitionEditionMatchesAward(edition.awardId, body.competitionEditionId);
+    await this.assertCompetitionEditionMatchesAward(edition.awardId, body.competitionEditionId, {
+      season: body.season ?? edition.season ?? undefined,
+      month: body.month ?? edition.month ?? undefined
+    });
 
     return this.prisma.awardEdition.update({
       where: { id },
@@ -1040,6 +1050,7 @@ export class AwardsService {
       name,
       season: this.toNullableString(body.season),
       year: this.toNullableNumber(body.year),
+      month: this.toNullableMonth(body.month),
       externalUrl: this.toNullableString(body.externalUrl),
       remark: this.toNullableString(body.remark)
     } satisfies Prisma.AwardEditionUncheckedCreateInput;
@@ -1053,6 +1064,7 @@ export class AwardsService {
         : {}),
       ...(body.season !== undefined ? { season: this.toNullableString(body.season) } : {}),
       ...(body.year !== undefined ? { year: this.toNullableNumber(body.year) } : {}),
+      ...(body.month !== undefined ? { month: this.toNullableMonth(body.month) } : {}),
       ...(body.externalUrl !== undefined
         ? { externalUrl: this.toNullableString(body.externalUrl) }
         : {}),
@@ -1128,6 +1140,8 @@ export class AwardsService {
       select: {
         id: true,
         awardId: true,
+        season: true,
+        month: true,
         award: {
           select: {
             targetType: true
@@ -1145,18 +1159,30 @@ export class AwardsService {
 
   private async assertCompetitionEditionMatchesAward(
     awardId: string,
-    competitionEditionId?: string
+    competitionEditionId?: string,
+    edition?: { season?: string; month?: number }
   ) {
     const award = await this.prisma.award.findUnique({
       where: { id: awardId },
       select: {
         id: true,
-        competitionId: true
+        competitionId: true,
+        category: true
       }
     });
 
     if (!award) {
       throw new NotFoundException('奖项不存在。');
+    }
+
+    if (award.category === '国联月度奖') {
+      if (!this.toNullableString(edition?.season)) {
+        throw new BadRequestException('月度奖必须填写赛季。');
+      }
+
+      if (this.toNullableMonth(edition?.month) === null) {
+        throw new BadRequestException('月度奖必须填写月份。');
+      }
     }
 
     const editionId = this.toNullableString(competitionEditionId);
@@ -1299,5 +1325,17 @@ export class AwardsService {
 
   private toNullableNumber(value: number | undefined | null) {
     return Number.isFinite(value) ? value : null;
+  }
+
+  private toNullableMonth(value: number | undefined | null) {
+    if (value === undefined || value === null) {
+      return null;
+    }
+
+    if (!Number.isInteger(value) || value < 1 || value > 12) {
+      throw new BadRequestException('月份必须是 1 到 12 之间的整数。');
+    }
+
+    return value;
   }
 }

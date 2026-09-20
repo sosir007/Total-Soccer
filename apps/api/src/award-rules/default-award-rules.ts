@@ -356,6 +356,15 @@ export const DEFAULT_AWARD_RULES: AwardRuleDefaultDefinition[] = [
     baseScore: 1,
     sortOrder: 6030
   }),
+  selectionRule({
+    code: 'LEAGUE_TOP_MONTHLY_AWARD_WINNER',
+    name: '国联月度奖获奖',
+    scopeType: AwardScopeType.LEAGUE,
+    category: '国联月度奖',
+    baseScore: 1,
+    sortOrder: 6040,
+    remark: '逐月记录并完整展示；同一球员、同一联赛、同一赛季最多计一次基础分。'
+  }),
 
   ...rankedCategory({
     codePrefix: 'COUNTRY_ANNUAL_LEVEL_1_OVERALL',

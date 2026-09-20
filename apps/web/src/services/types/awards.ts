@@ -99,6 +99,7 @@ export interface AwardEdition {
   name: string;
   season?: string | null;
   year?: number | null;
+  month?: number | null;
   externalUrl?: string | null;
   remark?: string | null;
   competitionEdition?: {
@@ -178,6 +179,7 @@ export interface CreateAwardEditionPayload {
   competitionEditionId?: string;
   season?: string;
   year?: number;
+  month?: number;
   externalUrl?: string;
   remark?: string;
 }

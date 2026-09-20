@@ -14,6 +14,11 @@ type RecipientStatEntry = {
   label: string;
 };
 
+type MonthlyRecipientStatEntry = {
+  label: string;
+  externalUrl: string | null;
+};
+
 type RecipientStatRow = {
   key: string;
   id: string | null;
@@ -21,6 +26,15 @@ type RecipientStatRow = {
   name: string;
   counts: Record<RecipientRankColumn, number>;
   entries: Record<RecipientRankColumn, RecipientStatEntry[]>;
+  total: number;
+};
+
+type MonthlyRecipientStatRow = {
+  key: string;
+  id: string | null;
+  type: 'player' | 'country' | 'club';
+  name: string;
+  entries: MonthlyRecipientStatEntry[];
   total: number;
 };
 
@@ -35,6 +49,7 @@ const lineupColumns: Array<{ key: LineupPositionColumn; label: string; minWidth:
 const props = defineProps<{
   editions: AwardEdition[];
   rankedLayout: boolean;
+  monthlyLayout?: boolean;
   lineupLayout?: boolean;
   rankColumnLabels?: Partial<Record<RecipientRankColumn, string>>;
   formatEditionRecipients: (edition: AwardEdition) => string;
@@ -47,6 +62,7 @@ const emit = defineEmits<{
 }>();
 
 const statisticsRows = computed(() => buildStatisticsRows(props.editions));
+const monthlyStatisticsRows = computed(() => buildMonthlyStatisticsRows(props.editions));
 const hasSeasonEditionLabel = computed(() =>
   props.editions.some((edition) => isSeasonEditionLabel(formatEditionYear(edition)))
 );
@@ -197,6 +213,37 @@ function buildStatisticsRows(editions: AwardEdition[]) {
     .sort(compareStatisticRows);
 }
 
+function buildMonthlyStatisticsRows(editions: AwardEdition[]) {
+  const rowMap = new Map<string, MonthlyRecipientStatRow>();
+
+  for (const edition of editions) {
+    for (const recipient of edition.recipients ?? []) {
+      const entity = getRecipientEntity(recipient);
+
+      if (!entity.name) {
+        continue;
+      }
+
+      const row = rowMap.get(entity.key) ?? {
+        ...entity,
+        entries: [],
+        total: 0
+      };
+
+      row.entries.push({
+        label: formatMonthlyEditionLabel(edition),
+        externalUrl: resolveMonthlyEditionUrl(edition, recipient)
+      });
+      row.total += 1;
+      rowMap.set(entity.key, row);
+    }
+  }
+
+  return [...rowMap.values()].sort(
+    (left, right) => right.total - left.total || left.name.localeCompare(right.name, 'zh-CN')
+  );
+}
+
 function getRecipientEntity(recipient: AwardEditionRecipient) {
   if (recipient.player) {
     return {
@@ -221,7 +268,7 @@ function getRecipientEntity(recipient: AwardEditionRecipient) {
       key: `club:${recipient.club.id}`,
       id: recipient.club.id,
       type: 'club' as const,
-      name: formatEntityName(recipient.club)
+      name: formatEntityName(recipient.club, true)
     };
   }
 
@@ -300,6 +347,37 @@ function formatEditionTime(edition: AwardEdition) {
   return formatAwardEditionDisplayLabel(edition);
 }
 
+function formatEditionMonth(edition: AwardEdition) {
+  return edition.month ? `${edition.month}月` : '-';
+}
+
+function formatMonthlyEditionLabel(edition: AwardEdition) {
+  return [formatEditionYear(edition), formatEditionMonth(edition)]
+    .filter((value) => value !== '-')
+    .join(' ');
+}
+
+function resolveMonthlyEditionUrl(edition: AwardEdition, recipient?: AwardEditionRecipient) {
+  return (
+    recipient?.externalUrl ??
+    edition.recipients?.find((item) => item.externalUrl)?.externalUrl ??
+    edition.externalUrl ??
+    edition.competitionEdition?.externalUrl ??
+    null
+  );
+}
+
+function formatMonthlyEditionRemark(edition: AwardEdition) {
+  return (
+    edition.remark ||
+    (edition.recipients ?? [])
+      .map((recipient) => recipient.remark?.trim())
+      .filter(Boolean)
+      .join('；') ||
+    '-'
+  );
+}
+
 function shouldShowEditionName(edition: AwardEdition) {
   if (!edition.name) {
     return false;
@@ -349,16 +427,84 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
   <div class="panel">
     <div class="panel-header">
       <div>
-        <h3>年份与获奖人</h3>
-        <p>一个奖项下维护所有年份和当年获奖对象。</p>
+        <h3>{{ monthlyLayout ? '赛季、月份与获奖人' : '年份与获奖人' }}</h3>
+        <p>
+          {{
+            monthlyLayout
+              ? '每次月度获奖独立记录，同一赛季可维护多个月份。'
+              : '一个奖项下维护所有年份和当年获奖对象。'
+          }}
+        </p>
       </div>
       <el-button type="success" @click="emit('create')">
         <IconFont name="add" />
-        新增年份
+        {{ monthlyLayout ? '新增记录' : '新增年份' }}
       </el-button>
     </div>
 
     <NoDataView v-if="!editions.length" text="暂无奖项年份" />
+
+    <el-table v-else-if="monthlyLayout" :data="editions" border>
+      <el-table-column label="序号" width="60" align="center">
+        <template #default="{ $index }">{{ $index + 1 }}</template>
+      </el-table-column>
+      <el-table-column label="赛季" min-width="120" sortable>
+        <template #default="{ row }">{{ formatEditionYear(row) }}</template>
+      </el-table-column>
+      <el-table-column label="月份" width="100" sortable>
+        <template #default="{ row }">
+          <a
+            v-if="resolveMonthlyEditionUrl(row)"
+            class="external-text-link monthly-edition-link"
+            :href="resolveMonthlyEditionUrl(row) ?? undefined"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.stop
+          >
+            {{ formatEditionMonth(row) }}
+          </a>
+          <span v-else>{{ formatEditionMonth(row) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="获奖人" min-width="220" show-overflow-tooltip>
+        <template #default="{ row }">
+          <div v-if="row.recipients?.length" class="inline-entity-list">
+            <template v-for="recipient in row.recipients" :key="recipient.id">
+              <EntityLink
+                v-if="recipient.player"
+                :id="recipient.player.id"
+                type="player"
+                :name="recipient.player.chineseName"
+              />
+              <EntityLink
+                v-else-if="recipient.country"
+                :id="recipient.country.id"
+                type="country"
+                :name="formatEntityName(recipient.country)"
+              />
+              <EntityLink
+                v-else-if="recipient.club"
+                :id="recipient.club.id"
+                type="club"
+                :name="formatEntityName(recipient.club, true)"
+              />
+            </template>
+          </div>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="备注" min-width="180" show-overflow-tooltip>
+        <template #default="{ row }">{{ formatMonthlyEditionRemark(row) }}</template>
+      </el-table-column>
+      <el-table-column label="操作" width="90" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="emit('edit', row)">
+            <IconFont name="edit" />
+            编辑
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
 
     <el-table v-else-if="lineupLayout" :data="editions" border>
       <el-table-column label="序号" width="60" align="center">
@@ -429,7 +575,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
               v-else-if="getRecipientByRank(row, 1)?.club"
               :id="getRecipientByRank(row, 1)?.club?.id"
               type="club"
-              :name="formatEntityName(getRecipientByRank(row, 1)?.club)"
+              :name="formatEntityName(getRecipientByRank(row, 1)?.club, true)"
             />
           </template>
           <span v-else>-</span>
@@ -454,7 +600,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
               v-else-if="getRecipientByRank(row, 2)?.club"
               :id="getRecipientByRank(row, 2)?.club?.id"
               type="club"
-              :name="formatEntityName(getRecipientByRank(row, 2)?.club)"
+              :name="formatEntityName(getRecipientByRank(row, 2)?.club, true)"
             />
           </template>
           <span v-else>-</span>
@@ -479,7 +625,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
               v-else-if="getRecipientByRank(row, 3)?.club"
               :id="getRecipientByRank(row, 3)?.club?.id"
               type="club"
-              :name="formatEntityName(getRecipientByRank(row, 3)?.club)"
+              :name="formatEntityName(getRecipientByRank(row, 3)?.club, true)"
             />
           </template>
           <span v-else>-</span>
@@ -537,7 +683,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
                 v-else-if="recipient.club"
                 :id="recipient.club.id"
                 type="club"
-                :name="formatEntityName(recipient.club)"
+                :name="formatEntityName(recipient.club, true)"
               />
               <span v-else>-</span>
             </span>
@@ -558,7 +704,51 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       </el-table-column>
     </el-table>
 
-    <div v-if="rankedLayout && editions.length" class="edition-statistics">
+    <div v-if="monthlyLayout && editions.length" class="edition-statistics">
+      <div class="edition-statistics__header">
+        <h4>获奖统计</h4>
+        <p>按获奖人汇总已录入的全部月度获奖记录。</p>
+      </div>
+
+      <el-table :data="monthlyStatisticsRows" border class="edition-statistics-table">
+        <el-table-column label="序号" width="60" align="center">
+          <template #default="{ $index }">{{ $index + 1 }}</template>
+        </el-table-column>
+        <el-table-column label="获奖人" width="180">
+          <template #default="{ row }">
+            <EntityLink :id="row.id" :type="row.type" :name="row.name" />
+          </template>
+        </el-table-column>
+        <el-table-column label="获奖记录" min-width="320" show-overflow-tooltip>
+          <template #default="{ row }">
+            <template
+              v-for="(entry, entryIndex) in row.entries"
+              :key="`${row.key}-${entry.label}-${entryIndex}`"
+            >
+              <a
+                v-if="entry.externalUrl"
+                class="external-text-link monthly-edition-link"
+                :href="entry.externalUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                @click.stop
+              >
+                {{ entry.label }}
+              </a>
+              <span v-else>{{ entry.label }}</span>
+              <span v-if="entryIndex < row.entries.length - 1">、</span>
+            </template>
+          </template>
+        </el-table-column>
+        <el-table-column label="总数" width="80" align="center">
+          <template #default="{ row }">
+            <strong>{{ row.total }}</strong>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div v-if="rankedLayout && !monthlyLayout && editions.length" class="edition-statistics">
       <div class="edition-statistics__header">
         <h4>荣誉统计</h4>
         <p>按获奖对象汇总该奖项已录入年份的最终名次。</p>
@@ -638,6 +828,11 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
 .lineup-entity-list {
   align-items: center;
   gap: 8px 12px;
+}
+
+.monthly-edition-link {
+  color: var(--color-accent-gold);
+  font-weight: 800;
 }
 
 .edition-statistics {

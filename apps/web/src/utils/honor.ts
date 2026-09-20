@@ -27,15 +27,18 @@ export function formatHonorEditionLabel(
     season?: string | null;
     name?: string | null;
     year?: number | null;
+    month?: number | null;
   } | null
 ) {
   if (!edition) {
     return '-';
   }
 
-  return normalizeHonorEditionLabel(
+  const label = normalizeHonorEditionLabel(
     edition.season || edition.name || (edition.year ? String(edition.year) : '-')
   );
+
+  return edition.month ? `${label} ${edition.month}月` : label;
 }
 
 export function formatHonorEdition(record: HonorRecord) {

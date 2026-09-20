@@ -11,7 +11,9 @@ import { PrismaService } from '../database/prisma.service.js';
 import { competitionScaleCoefficient } from '../honor-rules/competition-scale-coefficient.js';
 import {
   buildLeagueComprehensiveAwardGroupKey,
-  selectHighestLeagueComprehensiveAwardRecipientIds
+  buildMonthlyAwardGroupKey,
+  selectHighestLeagueComprehensiveAwardRecipientIds,
+  selectScoringMonthlyAwardRecipientIds
 } from './award-score-combination.js';
 import { DEFAULT_AWARD_RULES, type AwardRuleDefaultDefinition } from './default-award-rules.js';
 import type { AwardRuleListQuery, AwardRulePayload } from './award-rules.types.js';
@@ -36,6 +38,7 @@ type ScoredAwardRecipient = {
   playerId: string;
   groupKey: string;
   leagueComprehensiveGroupKey: string | null;
+  monthlyAwardGroupKey: string | null;
   rule: AwardRule;
   score: number;
   scopeType: AwardScopeType;
@@ -206,6 +209,13 @@ export class AwardRulesService {
             competitionEditionId: recipient.edition.competitionEditionId,
             period
           }),
+          monthlyAwardGroupKey: buildMonthlyAwardGroupKey({
+            playerId: recipient.playerId,
+            category: rule.category,
+            competitionId: recipient.edition.award.competitionId,
+            period: recipient.edition.season ?? period,
+            awardCode: recipient.edition.award.code
+          }),
           rule,
           score:
             rule.baseScore *
@@ -236,17 +246,22 @@ export class AwardRulesService {
 
     const highestLeagueComprehensiveAwardRecipientIds =
       selectHighestLeagueComprehensiveAwardRecipientIds(scoredRecipients);
+    const scoringMonthlyAwardRecipientIds = selectScoringMonthlyAwardRecipientIds(scoredRecipients);
 
     for (const recipient of scoredRecipients) {
       const stats = statsByPlayer.get(recipient.playerId) ?? this.emptyStats();
       const isLowerScoringLeagueComprehensiveAward =
         recipient.leagueComprehensiveGroupKey !== null &&
         !highestLeagueComprehensiveAwardRecipientIds.has(recipient.recipientId);
-      const score = isLowerScoringLeagueComprehensiveAward
-        ? 0
-        : this.isSpecialtyRule(recipient.rule) && lineupGroups.has(recipient.groupKey)
-          ? recipient.score * 0.5
-          : recipient.score;
+      const isRepeatedMonthlyAward =
+        recipient.monthlyAwardGroupKey !== null &&
+        !scoringMonthlyAwardRecipientIds.has(recipient.recipientId);
+      const score =
+        isLowerScoringLeagueComprehensiveAward || isRepeatedMonthlyAward
+          ? 0
+          : this.isSpecialtyRule(recipient.rule) && lineupGroups.has(recipient.groupKey)
+            ? recipient.score * 0.5
+            : recipient.score;
 
       stats.honorScore += score;
       statsByPlayer.set(recipient.playerId, stats);
@@ -618,7 +633,7 @@ export class AwardRulesService {
     season: string | null;
     name: string;
   }) {
-    return edition.year?.toString() ?? edition.season ?? edition.name;
+    return edition.season ?? edition.year?.toString() ?? edition.name;
   }
 
   private buildCombinationGroupKey({

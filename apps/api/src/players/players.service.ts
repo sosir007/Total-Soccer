@@ -18,7 +18,9 @@ import { resolvePagination, toNumber } from '../common/pagination.js';
 import { competitionScaleCoefficient } from '../honor-rules/competition-scale-coefficient.js';
 import {
   buildLeagueComprehensiveAwardGroupKey,
-  selectHighestLeagueComprehensiveAwardRecipientIds
+  buildMonthlyAwardGroupKey,
+  selectHighestLeagueComprehensiveAwardRecipientIds,
+  selectScoringMonthlyAwardRecipientIds
 } from '../award-rules/award-score-combination.js';
 import type {
   PlayerAwardRecipientPayload,
@@ -523,6 +525,7 @@ type ScoredPlayerAward = {
   scoreKey: PlayerHonorSummaryScoreKey;
   groupKey: string;
   leagueComprehensiveGroupKey: string | null;
+  monthlyAwardGroupKey: string | null;
   rule: PlayerAwardRule;
   score: number;
   scopeType: AwardScopeType;
@@ -1841,13 +1844,14 @@ export class PlayersService {
       }
 
       const period = this.resolveAwardEditionPeriod(recipient.edition);
+      const displayPeriod = this.resolveAwardEditionDisplayPeriod(recipient.edition);
 
       this.addPlayerHonorListEntry(entryMap, this.resolveHonorListAwardColumn(award), {
         title: this.formatHonorListAwardTitle(recipient),
         subjectName: null,
         periods: [
           {
-            label: period,
+            label: displayPeriod,
             sortYear: recipient.edition.year ?? this.resolveSortYear(period),
             placement: this.formatAwardRecipientPlacement(recipient)
           }
@@ -2568,7 +2572,7 @@ export class PlayersService {
     const standing = teamHonor.standing;
 
     if (standing.club?.name) {
-      return standing.club.name;
+      return this.formatEntityDisplayName(standing.club);
     }
 
     if (
@@ -2637,6 +2641,7 @@ export class PlayersService {
       .map((career) => ({
         id: career.club?.id ?? null,
         name: career.club?.name ?? null,
+        shortName: career.club?.shortName ?? null,
         federationRef: career.club?.federationRef ?? null,
         period: this.formatCompactCareerPeriod(career)
       }));
@@ -2651,6 +2656,7 @@ export class PlayersService {
       clubs.push({
         id: club.id,
         name: club.name,
+        shortName: club.shortName,
         federationRef: club.federationRef ?? null,
         period: teamHonor.career ? this.formatCompactCareerPeriod(teamHonor.career) : null
       });
@@ -2836,6 +2842,7 @@ export class PlayersService {
         honorRules
       });
       const period = this.resolveAwardEditionPeriod(recipient.edition);
+      const displayPeriod = this.resolveAwardEditionDisplayPeriod(recipient.edition);
       const scoredAward = {
         recipientId: recipient.id,
         playerId: recipient.playerId ?? '',
@@ -2856,6 +2863,13 @@ export class PlayersService {
           competitionEditionId: recipient.edition.competitionEditionId,
           period
         }),
+        monthlyAwardGroupKey: buildMonthlyAwardGroupKey({
+          playerId: recipient.playerId ?? '',
+          category: rule.category,
+          competitionId: recipient.edition.award.competitionId,
+          period,
+          awardCode: recipient.edition.award.code
+        }),
         rule,
         score:
           rule.baseScore *
@@ -2870,7 +2884,7 @@ export class PlayersService {
         awardSortOrder: recipient.edition.award.sortOrder,
         awardCode: recipient.edition.award.code,
         detail: {
-          label: period,
+          label: displayPeriod,
           competitionName: this.formatHonorListAwardTitle(recipient),
           placementLabel: this.formatAwardRecipientPlacement(recipient),
           score: 0,
@@ -2899,16 +2913,21 @@ export class PlayersService {
     let total = 0;
     const highestLeagueComprehensiveAwardRecipientIds =
       selectHighestLeagueComprehensiveAwardRecipientIds(scoredAwards);
+    const scoringMonthlyAwardRecipientIds = selectScoringMonthlyAwardRecipientIds(scoredAwards);
 
     for (const award of scoredAwards) {
       const isLowerScoringLeagueComprehensiveAward =
         award.leagueComprehensiveGroupKey !== null &&
         !highestLeagueComprehensiveAwardRecipientIds.has(award.recipientId);
-      const combinationCoefficient = isLowerScoringLeagueComprehensiveAward
-        ? 0
-        : this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey)
-          ? 0.5
-          : 1;
+      const isRepeatedMonthlyAward =
+        award.monthlyAwardGroupKey !== null &&
+        !scoringMonthlyAwardRecipientIds.has(award.recipientId);
+      const combinationCoefficient =
+        isLowerScoringLeagueComprehensiveAward || isRepeatedMonthlyAward
+          ? 0
+          : this.isPlayerAwardSpecialtyRule(award.rule) && lineupGroups.has(award.groupKey)
+            ? 0.5
+            : 1;
       const score = award.score * combinationCoefficient;
 
       scores[award.scoreKey] = this.round(scores[award.scoreKey] + score);
@@ -2918,7 +2937,9 @@ export class PlayersService {
         combinationCoefficient,
         ruleName: isLowerScoringLeagueComprehensiveAward
           ? `${award.detail.ruleName}（同届国联一级综合奖仅最高项计分）`
-          : award.detail.ruleName
+          : isRepeatedMonthlyAward
+            ? `${award.detail.ruleName}（同赛季月度奖仅计一次）`
+            : award.detail.ruleName
       });
       total += score;
     }
@@ -3402,6 +3423,17 @@ export class PlayersService {
     return this.normalizeHonorEditionPeriod(
       edition.season ?? edition.name ?? edition.year?.toString() ?? '-'
     );
+  }
+
+  private resolveAwardEditionDisplayPeriod(edition: {
+    year: number | null;
+    season: string | null;
+    month: number | null;
+    name: string;
+  }) {
+    const period = this.resolveAwardEditionPeriod(edition);
+
+    return edition.month ? `${period}（${edition.month}月）` : period;
   }
 
   private awardCategoryFamily(category: string | null) {

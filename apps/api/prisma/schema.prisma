@@ -806,6 +806,7 @@ model AwardEdition {
   name                 String
   season               String?
   year                 Int?
+  month                Int?
   externalUrl          String?
   remark               String?
   award                Award               @relation(fields: [awardId], references: [id], onDelete: Cascade)
@@ -818,6 +819,7 @@ model AwardEdition {
   @@index([awardId])
   @@index([competitionEditionId])
   @@index([year])
+  @@index([month])
 }
 
 model AwardRecipient {

@@ -121,13 +121,20 @@ const editionForm = reactive({
   competitionEditionId: '',
   season: '',
   year: undefined as number | undefined,
+  month: undefined as number | undefined,
   externalUrl: '',
   remark: '',
   recipients: [] as RecipientFormRow[]
 });
 
 const hasRows = computed(() => awards.value.length > 0);
-const editionDialogTitle = computed(() => (editingEdition.value ? '编辑奖项年份' : '新增奖项年份'));
+const editionDialogTitle = computed(() => {
+  if (monthlyAwardLayout.value) {
+    return editingEdition.value ? '编辑月度获奖记录' : '新增月度获奖记录';
+  }
+
+  return editingEdition.value ? '编辑奖项年份' : '新增奖项年份';
+});
 const sortedEditions = computed(() =>
   [...(selectedAward.value?.editions ?? [])].sort(compareAwardEditions)
 );
@@ -136,6 +143,7 @@ const lineupAwardLayout = computed(
     selectedAward.value?.targetType === 'PLAYER' &&
     Boolean(selectedAward.value?.category?.includes('阵容奖'))
 );
+const monthlyAwardLayout = computed(() => selectedAward.value?.category === '国联月度奖');
 const rankedAwardLayout = computed(() =>
   sortedEditions.value.some((edition) =>
     (edition.recipients ?? []).some((recipient) => isRankedRecipient(recipient))
@@ -465,6 +473,7 @@ function openEditEditionDialog(edition: AwardEdition) {
   editionForm.competitionEditionId = edition.competitionEditionId ?? '';
   editionForm.season = edition.season ?? '';
   editionForm.year = edition.year ?? undefined;
+  editionForm.month = edition.month ?? undefined;
   editionForm.externalUrl = edition.externalUrl ?? '';
   editionForm.remark = edition.remark ?? '';
   editionForm.recipients = (edition.recipients ?? []).map((recipient) => ({
@@ -490,8 +499,18 @@ async function saveEdition() {
     return;
   }
 
-  if (!editionForm.name.trim()) {
+  if (!monthlyAwardLayout.value && !editionForm.name.trim()) {
     ElMessage.warning('请填写奖项年份名称。');
+    return;
+  }
+
+  if (monthlyAwardLayout.value && !editionForm.season.trim()) {
+    ElMessage.warning('请填写月度奖所属赛季。');
+    return;
+  }
+
+  if (monthlyAwardLayout.value && !editionForm.month) {
+    ElMessage.warning('请填写获奖月份。');
     return;
   }
 
@@ -503,11 +522,15 @@ async function saveEdition() {
   editionSaving.value = true;
 
   try {
+    const editionName = monthlyAwardLayout.value
+      ? `${editionForm.season.trim()}赛季${editionForm.month}月`
+      : editionForm.name.trim();
     const payload = {
-      name: editionForm.name.trim(),
+      name: editionName,
       competitionEditionId: editionForm.competitionEditionId || undefined,
       season: editionForm.season.trim() || undefined,
       year: editionForm.year,
+      month: monthlyAwardLayout.value ? editionForm.month : undefined,
       externalUrl: editionForm.externalUrl.trim() || undefined,
       remark: editionForm.remark.trim() || undefined
     };
@@ -520,14 +543,24 @@ async function saveEdition() {
         .filter((recipient) => getRecipientTargetId(recipient))
         .map((recipient) => ({
           ...buildRecipientTargetPayload(recipient),
-          rank: recipient.rank ?? null,
-          placement: recipient.placement.trim() || undefined,
+          rank: monthlyAwardLayout.value ? null : (recipient.rank ?? null),
+          placement: monthlyAwardLayout.value
+            ? '月度最佳球员'
+            : recipient.placement.trim() || undefined,
           externalUrl: recipient.externalUrl.trim() || undefined,
           remark: recipient.remark.trim() || undefined
         }))
     });
 
-    ElMessage.success(editingEdition.value ? '奖项年份已更新。' : '奖项年份已创建。');
+    ElMessage.success(
+      monthlyAwardLayout.value
+        ? editingEdition.value
+          ? '月度获奖记录已更新。'
+          : '月度获奖记录已创建。'
+        : editingEdition.value
+          ? '奖项年份已更新。'
+          : '奖项年份已创建。'
+    );
     editionDialogVisible.value = false;
     await refreshSelectedAward();
     await loadAwards();
@@ -659,6 +692,7 @@ function resetEditionForm() {
   editionForm.competitionEditionId = '';
   editionForm.season = '';
   editionForm.year = undefined;
+  editionForm.month = undefined;
   editionForm.externalUrl = '';
   editionForm.remark = '';
   editionForm.recipients = [];
@@ -670,7 +704,7 @@ function addRecipientRow() {
     countryId: '',
     clubId: '',
     rank: undefined,
-    placement: '',
+    placement: monthlyAwardLayout.value ? '月度最佳球员' : '',
     externalUrl: '',
     remark: ''
   });
@@ -736,7 +770,11 @@ function formatEditionRecipients(edition: AwardEdition) {
 }
 
 function formatRecipientTargetName(recipient: NonNullable<AwardEdition['recipients']>[number]) {
-  return recipient.player?.chineseName ?? recipient.country?.name ?? recipient.club?.name ?? '-';
+  if (recipient.player) return recipient.player.chineseName;
+  if (recipient.country) return formatEntityName(recipient.country);
+  if (recipient.club) return formatEntityName(recipient.club, true);
+
+  return '-';
 }
 
 function formatRecipientPlacement(recipient: NonNullable<AwardEdition['recipients']>[number]) {
@@ -761,6 +799,10 @@ function compareAwardEditions(left: AwardEdition, right: AwardEdition) {
 
   if (leftYear !== rightYear) {
     return leftYear - rightYear;
+  }
+
+  if ((left.month ?? 0) !== (right.month ?? 0)) {
+    return (left.month ?? 0) - (right.month ?? 0);
   }
 
   return (left.season || left.name || '').localeCompare(right.season || right.name || '', 'zh-CN');
@@ -983,8 +1025,9 @@ onMounted(() => {
 
         <AwardEditionsPanel
           :editions="sortedEditions"
-          :ranked-layout="rankedAwardLayout && !lineupAwardLayout"
+          :ranked-layout="rankedAwardLayout && !lineupAwardLayout && !monthlyAwardLayout"
           :lineup-layout="lineupAwardLayout"
+          :monthly-layout="monthlyAwardLayout"
           :rank-column-labels="rankColumnLabels"
           :format-edition-recipients="formatEditionRecipients"
           :format-recipient-placement="formatRecipientPlacement"
@@ -1003,6 +1046,7 @@ onMounted(() => {
       :player-options="playerOptions"
       :player-option-meta="playerOptionMeta"
       :target-type="selectedAward?.targetType ?? 'PLAYER'"
+      :monthly-layout="monthlyAwardLayout"
       :target-type-labels="targetTypeLabels"
       :competition-edition-options="competitionEditionOptions"
       @search-players="searchPlayerOptions"

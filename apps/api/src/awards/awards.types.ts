@@ -56,6 +56,7 @@ export interface CreateAwardEditionBody {
   competitionEditionId?: string;
   season?: string;
   year?: number;
+  month?: number;
   externalUrl?: string;
   remark?: string;
 }

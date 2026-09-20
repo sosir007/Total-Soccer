@@ -1,6 +1,7 @@
 import { AwardScopeType } from '@prisma/client';
 
 const DOMESTIC_LEAGUE_PRIMARY_COMPREHENSIVE_CATEGORY = '国联一级综合奖';
+const DOMESTIC_LEAGUE_MONTHLY_CATEGORY = '国联月度奖';
 
 export type LeagueComprehensiveAwardCandidate = {
   recipientId: string;
@@ -12,6 +13,15 @@ export type LeagueComprehensiveAwardCandidate = {
   period: string;
   score: number;
   awardSortOrder: number;
+  awardCode: string;
+};
+
+export type MonthlyAwardCandidate = {
+  recipientId: string;
+  playerId: string;
+  category: string | null;
+  competitionId: string | null;
+  period: string;
   awardCode: string;
 };
 
@@ -56,6 +66,54 @@ export function selectHighestLeagueComprehensiveAwardRecipientIds<
     const currentWinner = winnerByGroup.get(groupKey);
 
     if (!currentWinner || compareCandidates(candidate, currentWinner) < 0) {
+      winnerByGroup.set(groupKey, candidate);
+    }
+  }
+
+  return new Set([...winnerByGroup.values()].map((candidate) => candidate.recipientId));
+}
+
+export function buildMonthlyAwardGroupKey(
+  candidate: Pick<
+    MonthlyAwardCandidate,
+    'playerId' | 'category' | 'competitionId' | 'period' | 'awardCode'
+  >
+) {
+  if (candidate.category?.trim() !== DOMESTIC_LEAGUE_MONTHLY_CATEGORY) {
+    return null;
+  }
+
+  const period = candidate.period.trim().toLocaleLowerCase('zh-CN');
+
+  if (!period || period === '-') {
+    return null;
+  }
+
+  const awardScope = candidate.competitionId
+    ? `competition:${candidate.competitionId}`
+    : `award:${candidate.awardCode}`;
+
+  return `${candidate.playerId}|${awardScope}|period:${period}`;
+}
+
+export function selectScoringMonthlyAwardRecipientIds<T extends MonthlyAwardCandidate>(
+  candidates: T[]
+) {
+  const winnerByGroup = new Map<string, T>();
+
+  for (const candidate of candidates) {
+    const groupKey = buildMonthlyAwardGroupKey(candidate);
+
+    if (!groupKey) {
+      continue;
+    }
+
+    const currentWinner = winnerByGroup.get(groupKey);
+
+    if (
+      !currentWinner ||
+      candidate.recipientId.localeCompare(currentWinner.recipientId, 'en') < 0
+    ) {
       winnerByGroup.set(groupKey, candidate);
     }
   }

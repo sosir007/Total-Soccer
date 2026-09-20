@@ -1340,6 +1340,7 @@ function formatCompetitionEditionLabel(edition: {
   season?: string | null;
   name?: string | null;
   year?: number | null;
+  month?: number | null;
 }) {
   return formatHonorEditionLabel(edition);
 }
