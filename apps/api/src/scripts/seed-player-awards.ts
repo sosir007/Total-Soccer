@@ -163,6 +163,7 @@ const PELE_NAME_KEYWORD = '贝利';
 const MARADONA_NAME_KEYWORD = '马拉多纳';
 const GERRARD_NAME_KEYWORD = '杰拉德';
 const LAMPARD_NAME_KEYWORD = '兰帕德';
+const FACCHETTI_NAME_KEYWORD = '法切蒂';
 
 function buildBallonDorEditionExternalUrl(year: number) {
   return `${BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX}${year.toString().slice(-2)}.html`;
@@ -374,6 +375,15 @@ const BALLON_DOR_LAMPARD_RESULTS: RankedAwardSeed[] = [
     rank: 2,
     placement: '第二名',
     remark: 'France Football 金球奖 2005 投票第二名，兰帕德效力切尔西时期。'
+  }
+];
+
+const BALLON_DOR_FACCHETTI_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1965,
+    rank: 2,
+    placement: '第二名',
+    remark: 'France Football 金球奖 1965 投票第二名，法切蒂效力国际米兰时期。'
   }
 ];
 
@@ -673,6 +683,15 @@ const UEFA_EURO_TEAM_OF_THE_TOURNAMENT_LAMPARD_RESULTS: AnnualSelectionAwardSeed
   }
 ];
 
+const UEFA_EURO_TEAM_OF_THE_TOURNAMENT_FACCHETTI_RESULTS: AnnualSelectionAwardSeed[] = [
+  {
+    year: 1968,
+    placement: '入选',
+    remark: '法切蒂作为意大利队队长，以后卫身份入选 UEFA Euro 1968 官方赛事最佳阵容。',
+    editionRemark: '欧足联技术团队评选的 UEFA Euro 1968 赛事最佳阵容。'
+  }
+];
+
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_MARADONA_RESULTS: RankedAwardSeed[] = [
   {
     year: 1979,
@@ -772,6 +791,14 @@ const FIFA_WORLD_CUP_ALL_STAR_TEAM_BARESI_RESULTS: FIFAWorldCupAllStarTeamSeed[]
     year: 1990,
     placement: '入选',
     remark: '1990年国际足联世界杯最佳阵容，后卫。'
+  }
+];
+
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_FACCHETTI_RESULTS: FIFAWorldCupAllStarTeamSeed[] = [
+  {
+    year: 1970,
+    placement: '入选',
+    remark: '1970年国际足联世界杯最佳阵容，后卫。'
   }
 ];
 
@@ -1225,6 +1252,169 @@ const BARESI_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
     careerTeamName: 'AC米兰',
     expectedPlacement: CompetitionStandingPlacement.CHAMPION,
     remark: '巴雷西 1981-82 赛季代表 AC米兰参加米特罗帕杯，球队获得冠军。'
+  }
+];
+
+const FACCHETTI_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1962-63',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1962-63 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1964-65',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1964-65 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1965-66',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1965-66 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1970-71',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1970-71 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_COPPA_ITALIA_COMPETITION_CODE,
+    editionName: '1977-78',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1977-78 赛季代表国际米兰参加意大利杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1963-64赛季',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1963-64 赛季代表国际米兰出战欧洲冠军杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1964-65赛季',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂 1964-65 赛季代表国际米兰出战欧洲冠军杯，球队获得冠军。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1964年',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂代表国际米兰参加 1964 年欧洲/南美洲杯，球队获得冠军。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1965年',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂代表国际米兰参加 1965 年欧洲/南美洲杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1960-61',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '法切蒂 1960-61 赛季代表国际米兰出战意甲 3 场，球队获得意大利足球甲级联赛季军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1961-62',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1961-62 赛季代表国际米兰出战意甲 15 场，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1963-64',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1963-64 赛季代表国际米兰出战意甲 33 场，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1966-67',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1966-67 赛季代表国际米兰出战意甲 34 场，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1969-70',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1969-70 赛季代表国际米兰出战意甲 28 场，球队获得意大利足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: ITALY_COPPA_ITALIA_COMPETITION_CODE,
+    editionName: '1964-65',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1964-65 赛季代表国际米兰参加意大利杯 3 场，球队获得亚军。'
+  },
+  {
+    competitionCode: ITALY_COPPA_ITALIA_COMPETITION_CODE,
+    editionName: '1976-77',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1976-77 赛季代表国际米兰参加意大利杯 9 场，球队获得亚军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1966-67赛季',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1966-67 赛季代表国际米兰参加欧洲冠军杯 10 场，球队获得亚军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1971-72赛季',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂 1971-72 赛季代表国际米兰参加欧洲冠军杯 9 场，球队获得亚军。'
+  },
+  {
+    competitionCode: UEFA_EURO_COMPETITION_CODE,
+    editionName: '1968年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '法切蒂以队长身份代表意大利参加 1968 年欧洲足球锦标赛，球队获得冠军。'
+  },
+  {
+    competitionCode: 'FIFA_WORLD_CUP',
+    editionName: '1970年',
+    teamName: '意大利',
+    careerTeamName: '意大利',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '法切蒂以队长身份代表意大利参加 1970 年国际足联世界杯，球队获得亚军。'
   }
 ];
 
@@ -2339,6 +2529,74 @@ const LAMPARD_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
   }
 ];
 
+const FACCHETTI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: '国际足联主席奖',
+    season: '2006',
+    score: 1,
+    externalUrl:
+      'https://web.archive.org/web/20071117100931/http://www.fifa.com/classicfootball/awards/gala/news/newsid=108681.html',
+    remark: 'FIFA 为表彰法切蒂的球员生涯、领导力和足球价值观授予国际足联主席奖；计分成就。',
+    sortOrder: 1
+  },
+  {
+    name: '入选 FIFA 100',
+    season: '2004',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://news.bbc.co.uk/sport2/hi/football/3533891.stm',
+    remark: '入选贝利评选的 FIFA 100 杰出现役 / 在世球员名单；仅展示，不计分。',
+    sortOrder: 2
+  },
+  {
+    name: '入选金足奖足球传奇',
+    season: '2006',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20150416024500/http://www.goldenfoot.com/en/legends.html',
+    remark: '入选金足奖足球传奇名单；生涯荣誉名单，不设竞技名次；仅展示，不计分。',
+    sortOrder: 3
+  },
+  {
+    name: '国际米兰退役 3 号球衣',
+    season: '2006',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Giacinto_Facchetti',
+    remark: '国际米兰为纪念法切蒂退役其 3 号球衣；仅展示，不计分。',
+    sortOrder: 4
+  },
+  {
+    name: '入选意大利足球名人堂',
+    season: '2015',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Giacinto_Facchetti',
+    remark: '意大利足球名人堂成员；仅展示，不计分。',
+    sortOrder: 5
+  },
+  {
+    name: '入选国际米兰名人堂',
+    season: '2019',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://www.inter.it/en/news/67625/toldo-facchetti-stankovic-and-meazza-join-the-inter-hall-of-fame',
+    remark: '国际米兰名人堂成员；仅展示，不计分。',
+    sortOrder: 6
+  },
+  {
+    name: '获授意大利共和国功绩勋章指挥官级',
+    season: '1994',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.quirinale.it/onorificenze/insigniti/156309',
+    remark: '意大利国家勋章荣誉，不属于足球竞技奖项；仅展示，不计分。',
+    sortOrder: 7
+  }
+];
+
 const GERRARD_LEGACY_ACHIEVEMENT_NAMES = [
   '利物浦队长纪录',
   '利物浦正式比赛出场 710 次、进球 186 个',
@@ -2451,6 +2709,19 @@ async function main() {
     throw new Error(`Player not found: ${LAMPARD_NAME_KEYWORD}`);
   }
 
+  const facchetti = await prisma.player.findFirst({
+    where: {
+      chineseName: {
+        contains: FACCHETTI_NAME_KEYWORD
+      }
+    },
+    select: { id: true, chineseName: true }
+  });
+
+  if (!facchetti) {
+    throw new Error(`Player not found: ${FACCHETTI_NAME_KEYWORD}`);
+  }
+
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
@@ -2501,6 +2772,7 @@ async function main() {
   await seedBallonDor(baresi.id, baresi.chineseName, BALLON_DOR_BARESI_RESULTS);
   await seedBallonDor(gerrard.id, gerrard.chineseName, BALLON_DOR_GERRARD_RESULTS);
   await seedBallonDor(lampard.id, lampard.chineseName, BALLON_DOR_LAMPARD_RESULTS);
+  await seedBallonDor(facchetti.id, facchetti.chineseName, BALLON_DOR_FACCHETTI_RESULTS);
   await seedFifaWorldPlayerOfTheYear(lampard.id, lampard.chineseName);
   await seedFifproWorld11(gerrard.id, gerrard.chineseName, FIFPRO_WORLD_11_GERRARD_RESULTS);
   await seedFifproWorld11(lampard.id, lampard.chineseName, FIFPRO_WORLD_11_LAMPARD_RESULTS);
@@ -2538,6 +2810,13 @@ async function main() {
     uefaEuro.id,
     UEFA_EURO_TEAM_OF_THE_TOURNAMENT_LAMPARD_RESULTS
   );
+  await seedUefaEuroTeamOfTheTournament(
+    uefa.id,
+    facchetti.id,
+    facchetti.chineseName,
+    uefaEuro.id,
+    UEFA_EURO_TEAM_OF_THE_TOURNAMENT_FACCHETTI_RESULTS
+  );
   await seedArgentineFootballerOfTheYear(argentina.id, maradona.id, maradona.chineseName);
   await seedFifaWorldCupGoldenBall(
     pele.id,
@@ -2574,6 +2853,12 @@ async function main() {
     baresi.chineseName,
     fifaWorldCup.id,
     FIFA_WORLD_CUP_ALL_STAR_TEAM_BARESI_RESULTS
+  );
+  await seedFifaWorldCupAllStarTeam(
+    facchetti.id,
+    facchetti.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_ALL_STAR_TEAM_FACCHETTI_RESULTS
   );
   await seedFifaWorldCupBestYoungPlayer(pele.id, fifaWorldCup.id);
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
@@ -2637,6 +2922,7 @@ async function main() {
     lampard.chineseName,
     LAMPARD_EUROPEAN_AND_GLOBAL_TEAM_HONOR_RESULTS
   );
+  await seedPlayerTeamHonors(facchetti.id, facchetti.chineseName, FACCHETTI_TEAM_HONOR_RESULTS);
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -2652,6 +2938,7 @@ async function main() {
   });
   await seedPlayerAchievements(gerrard.id, gerrard.chineseName, GERRARD_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(lampard.id, lampard.chineseName, LAMPARD_ACHIEVEMENT_RESULTS);
+  await seedPlayerAchievements(facchetti.id, facchetti.chineseName, FACCHETTI_ACHIEVEMENT_RESULTS);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();

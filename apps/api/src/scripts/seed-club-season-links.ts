@@ -6,6 +6,7 @@ const validateOnly = process.argv.includes('--validate-only');
 
 const SANTOS_UID = '335';
 const AC_MILAN_UID = '1099';
+const INTER_MILAN_UID = '1135';
 const LA_GALAXY_UID = '1907';
 const LIVERPOOL_UID = '676';
 const WEST_HAM_UNITED_UID = '735';
@@ -315,6 +316,255 @@ const AC_MILAN_SEASON_LINKS = [
     year: 2010,
     season: '2009-10',
     externalUrl: 'https://en.wikipedia.org/wiki/2009%E2%80%9310_AC_Milan_season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const INTER_MILAN_SEASON_LINKS = [
+  {
+    year: 1961,
+    season: '1960-61',
+    externalUrl: 'https://en.wikipedia.org/wiki/1960%E2%80%9361_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1962,
+    season: '1961-62',
+    externalUrl: 'https://en.wikipedia.org/wiki/1961%E2%80%9362_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1963,
+    season: '1962-63',
+    externalUrl: 'https://en.wikipedia.org/wiki/1962%E2%80%9363_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1964,
+    season: '1963-64',
+    externalUrl: 'https://en.wikipedia.org/wiki/1963%E2%80%9364_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1965,
+    season: '1964-65',
+    externalUrl: 'https://en.wikipedia.org/wiki/1964%E2%80%9365_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1966,
+    season: '1965-66',
+    externalUrl: 'https://en.wikipedia.org/wiki/1965%E2%80%9366_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1967,
+    season: '1966-67',
+    externalUrl: 'https://en.wikipedia.org/wiki/1966%E2%80%9367_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1968,
+    season: '1967-68',
+    externalUrl: 'https://en.wikipedia.org/wiki/1967%E2%80%9368_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1969,
+    season: '1968-69',
+    externalUrl: 'https://en.wikipedia.org/wiki/1968%E2%80%9369_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1970,
+    season: '1969-70',
+    externalUrl: 'https://en.wikipedia.org/wiki/1969%E2%80%9370_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1971,
+    season: '1970-71',
+    externalUrl: 'https://en.wikipedia.org/wiki/1970%E2%80%9371_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1972,
+    season: '1971-72',
+    externalUrl: 'https://en.wikipedia.org/wiki/1971%E2%80%9372_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1973,
+    season: '1972-73',
+    externalUrl: 'https://en.wikipedia.org/wiki/1972%E2%80%9373_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1974,
+    season: '1973-74',
+    externalUrl: 'https://en.wikipedia.org/wiki/1973%E2%80%9374_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1975,
+    season: '1974-75',
+    externalUrl: 'https://en.wikipedia.org/wiki/1974%E2%80%9375_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1976,
+    season: '1975-76',
+    externalUrl: 'https://en.wikipedia.org/wiki/1975%E2%80%9376_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1977,
+    season: '1976-77',
+    externalUrl: 'https://en.wikipedia.org/wiki/1976%E2%80%9377_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1978,
+    season: '1977-78',
+    externalUrl: 'https://en.wikipedia.org/wiki/1977%E2%80%9378_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1989,
+    season: '1988-89',
+    externalUrl: 'https://en.wikipedia.org/wiki/1988%E2%80%9389_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1990,
+    season: '1989-90',
+    externalUrl: 'https://en.wikipedia.org/wiki/1989%E2%80%9390_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1991,
+    season: '1990-91',
+    externalUrl: 'https://en.wikipedia.org/wiki/1990%E2%80%9391_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1992,
+    season: '1991-92',
+    externalUrl: 'https://en.wikipedia.org/wiki/1991%E2%80%9392_Serie_A',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1993,
+    season: '1992-93',
+    externalUrl: 'https://en.wikipedia.org/wiki/1992%E2%80%9393_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1994,
+    season: '1993-94',
+    externalUrl: 'https://en.wikipedia.org/wiki/1993%E2%80%9394_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1995,
+    season: '1994-95',
+    externalUrl: 'https://en.wikipedia.org/wiki/1994%E2%80%9395_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1998,
+    season: '1997-98',
+    externalUrl: 'https://en.wikipedia.org/wiki/1997%E2%80%9398_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 1999,
+    season: '1998-99',
+    externalUrl: 'https://en.wikipedia.org/wiki/1998%E2%80%9399_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2000,
+    season: '1999-00',
+    externalUrl: 'https://en.wikipedia.org/wiki/1999%E2%80%932000_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2001,
+    season: '2000-01',
+    externalUrl: 'https://en.wikipedia.org/wiki/2000%E2%80%9301_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2002,
+    season: '2001-02',
+    externalUrl: 'https://en.wikipedia.org/wiki/2001%E2%80%9302_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2003,
+    season: '2002-03',
+    externalUrl: 'https://en.wikipedia.org/wiki/2002%E2%80%9303_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2004,
+    season: '2003-04',
+    externalUrl: 'https://en.wikipedia.org/wiki/2003%E2%80%9304_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2005,
+    season: '2004-05',
+    externalUrl: 'https://en.wikipedia.org/wiki/2004%E2%80%9305_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2006,
+    season: '2005-06',
+    externalUrl: 'https://en.wikipedia.org/wiki/2005%E2%80%9306_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2007,
+    season: '2006-07',
+    externalUrl: 'https://en.wikipedia.org/wiki/2006%E2%80%9307_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2008,
+    season: '2007-08',
+    externalUrl: 'https://en.wikipedia.org/wiki/2007%E2%80%9308_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2009,
+    season: '2008-09',
+    externalUrl: 'https://en.wikipedia.org/wiki/2008%E2%80%9309_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2010,
+    season: '2009-10',
+    externalUrl: 'https://en.wikipedia.org/wiki/2009%E2%80%9310_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2011,
+    season: '2010-11',
+    externalUrl: 'https://en.wikipedia.org/wiki/2010%E2%80%9311_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2012,
+    season: '2011-12',
+    externalUrl: 'https://en.wikipedia.org/wiki/2011%E2%80%9312_Inter_Milan_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2013,
+    season: '2012-13',
+    externalUrl: 'https://en.wikipedia.org/wiki/2012%E2%80%9313_Inter_Milan_season',
     remark: '俱乐部单季页'
   }
 ] as const;
@@ -729,6 +979,10 @@ const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: AC_MILAN_UID,
     links: AC_MILAN_SEASON_LINKS
+  },
+  {
+    uid: INTER_MILAN_UID,
+    links: INTER_MILAN_SEASON_LINKS
   },
   {
     uid: LA_GALAXY_UID,
