@@ -132,7 +132,7 @@ function countLineupItems(groups?: LineupPositionGroup[]) {
   </SectionCard>
 
   <SectionCard
-    title="国家队时间线"
+    title="时间线"
     :badge="`${country.careerTimeline?.length ?? 0} 个年代`"
     :empty="!country.careerTimeline?.length"
     empty-text="暂无结构化国家队经历"

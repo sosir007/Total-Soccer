@@ -1871,7 +1871,16 @@ export class CountriesService {
     }
 
     if (career.startYear || career.endYear) {
-      return [career.startYear, career.endYear].filter(Boolean).join(' - ');
+      if (career.startYear && career.endYear) {
+        const endYearText =
+          Math.floor(career.startYear / 100) === Math.floor(career.endYear / 100)
+            ? String(career.endYear).slice(2)
+            : String(career.endYear);
+
+        return `${career.startYear}-${endYearText}`;
+      }
+
+      return career.startYear ? `${career.startYear}-` : `-${career.endYear}`;
     }
 
     return null;
