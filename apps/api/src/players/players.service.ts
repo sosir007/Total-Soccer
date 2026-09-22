@@ -42,6 +42,7 @@ import type {
 } from './players.types.js';
 
 const FIFA_WORLD_CUP_GOLDEN_BALL_CODE = 'FIFA_WORLD_CUP_GOLDEN_BALL';
+const DOMESTIC_LEAGUE_MONTHLY_AWARD_CATEGORY = '国联月度奖';
 
 const PLAYER_CAREER_INCLUDE = {
   club: {
@@ -1836,17 +1837,36 @@ export class PlayersService {
     const entryMap = this.createEmptyPlayerHonorListEntryMap();
     const primaryDomesticLeagueChampionCountryIds =
       this.resolvePrimaryDomesticLeagueChampionCountryIds(player);
+    const visibleAwardRecipients = player.awardRecipients.filter(
+      (recipient) =>
+        !this.shouldHideHonorListAward(
+          recipient.edition.award,
+          primaryDomesticLeagueChampionCountryIds
+        )
+    );
+    const columnsWithOtherAwards = new Set(
+      visibleAwardRecipients
+        .filter(
+          (recipient) =>
+            recipient.edition.award.category?.trim() !== DOMESTIC_LEAGUE_MONTHLY_AWARD_CATEGORY
+        )
+        .map((recipient) => this.resolveHonorListAwardColumn(recipient.edition.award))
+    );
 
-    for (const recipient of player.awardRecipients) {
+    for (const recipient of visibleAwardRecipients) {
       const award = recipient.edition.award;
-      if (this.shouldHideHonorListAward(award, primaryDomesticLeagueChampionCountryIds)) {
+      const column = this.resolveHonorListAwardColumn(award);
+      if (
+        award.category?.trim() === DOMESTIC_LEAGUE_MONTHLY_AWARD_CATEGORY &&
+        columnsWithOtherAwards.has(column)
+      ) {
         continue;
       }
 
       const period = this.resolveAwardEditionPeriod(recipient.edition);
       const displayPeriod = this.resolveAwardEditionDisplayPeriod(recipient.edition);
 
-      this.addPlayerHonorListEntry(entryMap, this.resolveHonorListAwardColumn(award), {
+      this.addPlayerHonorListEntry(entryMap, column, {
         title: this.formatHonorListAwardTitle(recipient),
         subjectName: null,
         periods: [
