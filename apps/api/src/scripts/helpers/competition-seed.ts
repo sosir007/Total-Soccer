@@ -61,6 +61,7 @@ export type SeedStanding = {
   placement: CompetitionStandingPlacement;
   countryName?: string;
   clubName?: string;
+  replacesClubName?: string;
   standingOrder?: number;
   remark?: string | null;
 };
@@ -1736,7 +1737,12 @@ async function validatePatchConflicts<T extends SeedCompetitionPatch>(
       const club = standing.clubName ? clubs.get(standing.clubName) : null;
       const existingStanding = existing[0];
 
-      if (existingStanding && club && existingStanding.clubId !== club.id) {
+      if (
+        existingStanding &&
+        club &&
+        existingStanding.clubId !== club.id &&
+        (!standing.replacesClubName || existingStanding.club?.name !== standing.replacesClubName)
+      ) {
         throw new Error(
           `${patch.competitionCode} ${editionName}: ${standing.placement} already belongs to ${existingStanding.club?.name ?? 'unknown club'}.`
         );
@@ -1802,14 +1808,31 @@ async function applyCompetitionPatches<T extends SeedCompetitionPatch>(
           placement: standing.placement,
           standingOrder: standing.standingOrder ?? 0
         },
-        select: { id: true, clubId: true }
+        select: { id: true, clubId: true, club: { select: { name: true } } }
       });
 
       if (existing) {
         if (existing.clubId !== club.id) {
-          throw new Error(
-            `${patch.competitionCode} ${editionName}: ${standing.placement} already belongs to another club.`
-          );
+          if (!standing.replacesClubName || existing.club?.name !== standing.replacesClubName) {
+            throw new Error(
+              `${patch.competitionCode} ${editionName}: ${standing.placement} already belongs to another club.`
+            );
+          }
+
+          const linkedHonors = await prisma.playerTeamHonor.count({
+            where: { standingId: existing.id }
+          });
+          if (linkedHonors) {
+            throw new Error(
+              `${patch.competitionCode} ${editionName}: cannot replace standing linked to ${linkedHonors} player honors.`
+            );
+          }
+
+          await prisma.competitionStanding.update({
+            where: { id: existing.id },
+            data: { clubId: club.id, remark: standing.remark ?? null }
+          });
+          continue;
         }
 
         await prisma.competitionStanding.update({

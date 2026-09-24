@@ -468,8 +468,8 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       </el-table-column>
       <el-table-column label="获奖人" min-width="220" show-overflow-tooltip>
         <template #default="{ row }">
-          <div v-if="row.recipients?.length" class="inline-entity-list">
-            <template v-for="recipient in row.recipients" :key="recipient.id">
+          <div v-if="row.recipients?.length" class="inline-entity-list award-recipient-list">
+            <template v-for="(recipient, index) in row.recipients" :key="recipient.id">
               <EntityLink
                 v-if="recipient.player"
                 :id="recipient.player.id"
@@ -488,6 +488,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
                 type="club"
                 :name="formatEntityName(recipient.club, true)"
               />
+              <span v-if="index < row.recipients.length - 1" class="recipient-separator">、</span>
             </template>
           </div>
           <span v-else>-</span>
@@ -523,15 +524,23 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
         <template #default="{ row }">
           <div
             v-if="getLineupRecipients(row, column.key).length"
-            class="inline-entity-list lineup-entity-list"
+            class="inline-entity-list lineup-entity-list award-recipient-list"
           >
-            <EntityLink
-              v-for="recipient in getLineupRecipients(row, column.key)"
-              :id="recipient.player?.id"
-              :key="recipient.id"
-              type="player"
-              :name="recipient.player?.chineseName"
-            />
+            <template
+              v-for="(recipient, index) in getLineupRecipients(row, column.key)"
+              :key="`separator-${recipient.id}`"
+            >
+              <EntityLink
+                :id="recipient.player?.id"
+                type="player"
+                :name="recipient.player?.chineseName"
+              />
+              <span
+                v-if="index < getLineupRecipients(row, column.key).length - 1"
+                class="recipient-separator"
+                >、</span
+              >
+            </template>
           </div>
           <span v-else>-</span>
         </template>
@@ -658,9 +667,9 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
       </el-table-column>
       <el-table-column label="获奖对象" min-width="260" show-overflow-tooltip>
         <template #default="{ row }">
-          <div v-if="row.recipients?.length" class="inline-entity-list">
+          <div v-if="row.recipients?.length" class="inline-entity-list award-recipient-list">
             <span
-              v-for="recipient in row.recipients"
+              v-for="(recipient, index) in row.recipients"
               :key="recipient.id"
               class="award-recipient-chip"
             >
@@ -686,6 +695,7 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
                 :name="formatEntityName(recipient.club, true)"
               />
               <span v-else>-</span>
+              <span v-if="index < row.recipients.length - 1" class="recipient-separator">、</span>
             </span>
           </div>
           <span v-else>{{ formatEditionRecipients(row) }}</span>
@@ -828,6 +838,10 @@ function formatStatCell(row: RecipientStatRow, rank: RecipientRankColumn) {
 .lineup-entity-list {
   align-items: center;
   gap: 8px 12px;
+}
+
+.lineup-entity-list.award-recipient-list {
+  gap: 0;
 }
 
 .monthly-edition-link {

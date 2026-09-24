@@ -3,10 +3,17 @@ import { runSeed } from './helpers/competition-seed.js';
 
 const prisma = new PrismaClient();
 const validateOnly = process.argv.includes('--validate-only');
+const selectedUids = new Set(
+  process.argv.filter((arg) => arg.startsWith('--uid=')).map((arg) => arg.slice('--uid='.length))
+);
 
 const SANTOS_UID = '335';
 const AC_MILAN_UID = '1099';
 const INTER_MILAN_UID = '1135';
+const SAARBRUCKEN_UID = '949';
+const KAISERSLAUTERN_UID = '945';
+const BAYERN_MUNICH_UID = '915';
+const REAL_ZARAGOZA_UID = '1749';
 const LA_GALAXY_UID = '1907';
 const LIVERPOOL_UID = '676';
 const WEST_HAM_UNITED_UID = '735';
@@ -971,6 +978,168 @@ const NEW_YORK_CITY_FC_SEASON_LINKS = [
   }
 ] as const;
 
+const SAARBRUCKEN_SEASON_LINKS = [
+  {
+    year: 1981,
+    season: '1980-81',
+    externalUrl: 'https://en.wikipedia.org/wiki/1980%E2%80%9381_2._Bundesliga',
+    remark: '赛事赛季页'
+  }
+] as const;
+
+const KAISERSLAUTERN_SEASON_LINKS = [
+  {
+    year: 1982,
+    season: '1981-82',
+    externalUrl: 'https://en.wikipedia.org/wiki/1981%E2%80%9382_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1983,
+    season: '1982-83',
+    externalUrl: 'https://en.wikipedia.org/wiki/1982%E2%80%9383_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1984,
+    season: '1983-84',
+    externalUrl: 'https://en.wikipedia.org/wiki/1983%E2%80%9384_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1985,
+    season: '1984-85',
+    externalUrl: 'https://en.wikipedia.org/wiki/1984%E2%80%9385_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1986,
+    season: '1985-86',
+    externalUrl: 'https://en.wikipedia.org/wiki/1985%E2%80%9386_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1994,
+    season: '1993-94',
+    externalUrl: 'https://en.wikipedia.org/wiki/1993%E2%80%9394_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1995,
+    season: '1994-95',
+    externalUrl: 'https://en.wikipedia.org/wiki/1994%E2%80%9395_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1996,
+    season: '1995-96',
+    externalUrl: 'https://en.wikipedia.org/wiki/1995%E2%80%9396_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1997,
+    season: '1996-97',
+    externalUrl: 'https://en.wikipedia.org/wiki/1996%E2%80%9397_2._Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1998,
+    season: '1997-98',
+    externalUrl: 'https://en.wikipedia.org/wiki/1997%E2%80%9398_Bundesliga',
+    remark: '赛事赛季页'
+  }
+] as const;
+
+const BAYERN_MUNICH_SEASON_LINKS = [
+  {
+    year: 1983,
+    season: '1982-83',
+    externalUrl: 'https://en.wikipedia.org/wiki/1982%E2%80%9383_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1984,
+    season: '1983-84',
+    externalUrl: 'https://en.wikipedia.org/wiki/1983%E2%80%9384_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1985,
+    season: '1984-85',
+    externalUrl: 'https://en.wikipedia.org/wiki/1984%E2%80%9385_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1986,
+    season: '1985-86',
+    externalUrl: 'https://en.wikipedia.org/wiki/1985%E2%80%9386_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1987,
+    season: '1986-87',
+    externalUrl: 'https://en.wikipedia.org/wiki/1986%E2%80%9387_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 1988,
+    season: '1987-88',
+    externalUrl: 'https://en.wikipedia.org/wiki/1987%E2%80%9388_Bundesliga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 2010,
+    season: '2009-10',
+    externalUrl: 'https://en.wikipedia.org/wiki/2009%E2%80%9310_FC_Bayern_Munich_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2011,
+    season: '2010-11',
+    externalUrl: 'https://en.wikipedia.org/wiki/2010%E2%80%9311_FC_Bayern_Munich_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2012,
+    season: '2011-12',
+    externalUrl: 'https://en.wikipedia.org/wiki/2011%E2%80%9312_FC_Bayern_Munich_season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
+const REAL_ZARAGOZA_SEASON_LINKS = [
+  {
+    year: 1993,
+    season: '1992-93',
+    externalUrl: 'https://en.wikipedia.org/wiki/1992%E2%80%9393_La_Liga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 2004,
+    season: '2003-04',
+    externalUrl: 'https://en.wikipedia.org/wiki/2003%E2%80%9304_La_Liga',
+    remark: '赛事赛季页'
+  },
+  {
+    year: 2005,
+    season: '2004-05',
+    externalUrl: 'https://en.wikipedia.org/wiki/2004%E2%80%9305_Real_Zaragoza_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2006,
+    season: '2005-06',
+    externalUrl: 'https://en.wikipedia.org/wiki/2005%E2%80%9306_Real_Zaragoza_season',
+    remark: '俱乐部单季页'
+  },
+  {
+    year: 2007,
+    season: '2006-07',
+    externalUrl: 'https://en.wikipedia.org/wiki/2006%E2%80%9307_Real_Zaragoza_season',
+    remark: '俱乐部单季页'
+  }
+] as const;
+
 const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: SANTOS_UID,
@@ -1007,23 +1176,47 @@ const CLUB_SEASON_LINK_SEEDS = [
   {
     uid: NEW_YORK_CITY_FC_UID,
     links: NEW_YORK_CITY_FC_SEASON_LINKS
+  },
+  {
+    uid: SAARBRUCKEN_UID,
+    links: SAARBRUCKEN_SEASON_LINKS
+  },
+  {
+    uid: KAISERSLAUTERN_UID,
+    links: KAISERSLAUTERN_SEASON_LINKS
+  },
+  {
+    uid: BAYERN_MUNICH_UID,
+    links: BAYERN_MUNICH_SEASON_LINKS
+  },
+  {
+    uid: REAL_ZARAGOZA_UID,
+    links: REAL_ZARAGOZA_SEASON_LINKS
   }
 ] as const;
 
 async function main() {
+  const seeds = selectedUids.size
+    ? CLUB_SEASON_LINK_SEEDS.filter((seed) => selectedUids.has(seed.uid))
+    : CLUB_SEASON_LINK_SEEDS;
+  const unknownUids = [...selectedUids].filter((uid) => !seeds.some((seed) => seed.uid === uid));
+  if (unknownUids.length) {
+    throw new Error(`Unknown club UID: ${unknownUids.join(', ')}.`);
+  }
+
   const clubs = await prisma.club.findMany({
-    where: { uid: { in: CLUB_SEASON_LINK_SEEDS.map((seed) => seed.uid) } },
+    where: { uid: { in: seeds.map((seed) => seed.uid) } },
     select: { id: true, name: true, uid: true }
   });
   const clubByUid = new Map(clubs.map((club) => [club.uid, club]));
 
-  const missingUid = CLUB_SEASON_LINK_SEEDS.find((seed) => !clubByUid.has(seed.uid))?.uid;
+  const missingUid = seeds.find((seed) => !clubByUid.has(seed.uid))?.uid;
   if (missingUid) {
     throw new Error(`Club UID ${missingUid} not found.`);
   }
 
   if (validateOnly) {
-    for (const seed of CLUB_SEASON_LINK_SEEDS) {
+    for (const seed of seeds) {
       const club = clubByUid.get(seed.uid)!;
       const existingCount = await prisma.clubSeasonLink.count({
         where: { clubId: club.id }
@@ -1035,7 +1228,7 @@ async function main() {
     return;
   }
 
-  for (const seed of CLUB_SEASON_LINK_SEEDS) {
+  for (const seed of seeds) {
     const club = clubByUid.get(seed.uid)!;
 
     for (const [index, link] of seed.links.entries()) {

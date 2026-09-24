@@ -301,6 +301,14 @@
   gap: 4px 8px;
 }
 
+.award-recipient-list {
+  gap: 0;
+}
+
+.recipient-separator {
+  color: var(--text-color-secondary);
+}
+
 .award-recipient-chip {
   display: inline-flex;
   gap: 3px;

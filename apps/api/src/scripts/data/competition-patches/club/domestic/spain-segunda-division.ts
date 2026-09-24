@@ -7,6 +7,7 @@ type RawStandingRow = {
   champions: string[];
   runnerUp?: string | null;
   thirdPlace?: string | null;
+  previousThirdPlace?: string;
   remark?: string | null;
 };
 
@@ -120,7 +121,7 @@ const CLUB_NAME_MAP: Record<string, string> = {
   Valladolid: '巴拉多利德',
   Villarreal: '比利亚雷亚尔',
   Xerez: '赫雷斯',
-  Zaragoza: '萨拉戈萨'
+  Zaragoza: '皇家萨拉戈萨'
 };
 
 const INCLUDED_SEGUNDA_CLUB_NAMES = new Set([
@@ -147,7 +148,7 @@ const INCLUDED_SEGUNDA_CLUB_NAMES = new Set([
   '特内里费',
   '瓦伦西亚',
   '比利亚雷亚尔',
-  '萨拉戈萨'
+  '皇家萨拉戈萨'
 ]);
 
 const RAW_SEGUNDA_DIVISION_ROWS: RawStandingRow[] = [
@@ -635,7 +636,9 @@ const RAW_SEGUNDA_DIVISION_ROWS: RawStandingRow[] = [
     season: '2017-18',
     champions: ['Rayo Vallecano'],
     runnerUp: 'Huesca',
-    thirdPlace: 'Valladolid'
+    thirdPlace: 'Zaragoza',
+    previousThirdPlace: 'Valladolid',
+    remark: '按联赛最终积分榜录入；巴拉多利德为升级附加赛胜者，并非联赛第三名。'
   },
   {
     season: '2018-19',
@@ -646,7 +649,9 @@ const RAW_SEGUNDA_DIVISION_ROWS: RawStandingRow[] = [
   {
     season: '2019-20',
     champions: ['Huesca'],
-    runnerUp: 'Cádiz'
+    runnerUp: 'Cádiz',
+    thirdPlace: 'Zaragoza',
+    remark: '按联赛最终积分榜录入；埃尔切为升级附加赛胜者，并非联赛第三名。'
   },
   {
     season: '2020-21',
@@ -706,7 +711,8 @@ function normalizeClubName(name: string) {
 function buildStanding(
   placement: CompetitionStandingPlacement,
   standingOrder: number,
-  rawClubName: string | null | undefined
+  rawClubName: string | null | undefined,
+  previousRawClubName?: string
 ): SeedCompetitionPatch['standings'][number] | null {
   if (!rawClubName) return null;
 
@@ -716,7 +722,8 @@ function buildStanding(
   return {
     placement,
     standingOrder,
-    clubName
+    clubName,
+    replacesClubName: previousRawClubName ? normalizeClubName(previousRawClubName) : undefined
   };
 }
 
@@ -730,7 +737,12 @@ export const SPAIN_SEGUNDA_DIVISION_PATCHES: SeedCompetitionPatch[] = RAW_SEGUND
         buildStanding(CompetitionStandingPlacement.CHAMPION, index + 1, clubName)
       ),
       buildStanding(CompetitionStandingPlacement.RUNNER_UP, 1, row.runnerUp),
-      buildStanding(CompetitionStandingPlacement.THIRD_PLACE, 1, row.thirdPlace)
+      buildStanding(
+        CompetitionStandingPlacement.THIRD_PLACE,
+        1,
+        row.thirdPlace,
+        row.previousThirdPlace
+      )
     ].filter((standing): standing is SeedCompetitionPatch['standings'][number] =>
       Boolean(standing)
     );

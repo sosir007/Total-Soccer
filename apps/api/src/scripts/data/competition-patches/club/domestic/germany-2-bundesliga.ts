@@ -12,6 +12,8 @@ type Raw2BundesligaRow = {
   champion?: string | null;
   runnerUp?: string | null;
   thirdPlace?: string | null;
+  previousThirdPlace?: string;
+  externalUrl?: string;
   remark?: string | null;
 };
 
@@ -280,15 +282,19 @@ const RAW_2_BUNDESLIGA_ROWS: Raw2BundesligaRow[] = [
     year: 1989,
     champion: 'Fortuna Düsseldorf',
     runnerUp: 'FC Homburg/Saar',
-    remark: 'promotion table 记录冠亚军。'
+    thirdPlace: '1. FC Saarbrücken',
+    externalUrl: 'https://en.wikipedia.org/wiki/1988%E2%80%9389_2._Bundesliga',
+    remark: '联赛积分榜第三名为萨尔布吕肯；不能只按升级球队名单判断前三名。'
   },
   {
     season: '1989-90',
     year: 1990,
     champion: 'Hertha BSC',
     runnerUp: 'Wattenscheid 09',
-    thirdPlace: 'FC Bayer 05 Uerdingen',
-    remark: 'promotion table 记录冠亚军与 playoff 晋级席位。'
+    thirdPlace: '1. FC Saarbrücken',
+    previousThirdPlace: '乌丁根05',
+    externalUrl: 'https://en.wikipedia.org/wiki/1989%E2%80%9390_2._Bundesliga',
+    remark: '联赛积分榜第三名为萨尔布吕肯；乌丁根05是升级附加赛的德甲对手。'
   },
   {
     season: '1990-91',
@@ -894,7 +900,8 @@ function buildPatchRow(row: Raw2BundesligaRow): SeedCompetitionPatch | null {
     resolvedStandings.push({
       placement: CompetitionStandingPlacement.THIRD_PLACE,
       standingOrder: 1,
-      clubName: thirdPlace
+      clubName: thirdPlace,
+      replacesClubName: row.previousThirdPlace
     });
   }
 
@@ -912,7 +919,7 @@ function buildPatchRow(row: Raw2BundesligaRow): SeedCompetitionPatch | null {
     season: row.season,
     championGroupKey: row.group ? row.season : null,
     championShare,
-    externalUrl: SOURCE_URL,
+    externalUrl: row.externalUrl ?? SOURCE_URL,
     standingMode:
       row.group || (!row.runnerUp && !row.thirdPlace)
         ? CompetitionEditionStandingMode.FINAL_ONLY

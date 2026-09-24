@@ -57,10 +57,15 @@ const BRAZIL_SERIE_A_COMPETITION_CODE = 'BRAZIL_SERIE_A';
 const ITALY_SERIE_A_TOP_SCORER_AWARD_CODE = 'ITALY_SERIE_A_TOP_SCORER';
 const ITALY_SERIE_A_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italtops.html';
 const ITALY_SERIE_A_COMPETITION_CODE = 'ITALY_SERIE_A';
+const GERMANY_BUNDESLIGA_COMPETITION_CODE = 'GERMANY_BUNDESLIGA';
 const ITALY_SERIE_B_COMPETITION_CODE = 'ITALY_SERIE_B';
 const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_AWARD_CODE = 'ITALY_SERIE_A_PLAYER_OF_THE_YEAR';
 const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_EXTERNAL_URL =
   'https://en.wikipedia.org/wiki/Guerin_d%27Oro';
+const KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_AWARD_CODE =
+  'KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON';
+const KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/Andreas_Brehme#Honours';
 const ITALY_COPPA_ITALIA_TOP_SCORER_AWARD_CODE = 'ITALY_COPPA_ITALIA_TOP_SCORER';
 const ITALY_COPPA_ITALIA_TOP_SCORER_EXTERNAL_URL = 'https://www.rsssf.org/tablesi/italcuptops.html';
 const ITALY_COPPA_ITALIA_COMPETITION_CODE = 'ITALY_COPPA_ITALIA';
@@ -164,6 +169,7 @@ const MARADONA_NAME_KEYWORD = '马拉多纳';
 const GERRARD_NAME_KEYWORD = '杰拉德';
 const LAMPARD_NAME_KEYWORD = '兰帕德';
 const FACCHETTI_NAME_KEYWORD = '法切蒂';
+const BREHME_NAME_KEYWORD = '布雷默';
 
 function buildBallonDorEditionExternalUrl(year: number) {
   return `${BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX}${year.toString().slice(-2)}.html`;
@@ -384,6 +390,15 @@ const BALLON_DOR_FACCHETTI_RESULTS: RankedAwardSeed[] = [
     rank: 2,
     placement: '第二名',
     remark: 'France Football 金球奖 1965 投票第二名，法切蒂效力国际米兰时期。'
+  }
+];
+
+const BALLON_DOR_BREHME_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1990,
+    rank: 3,
+    placement: '第三名',
+    remark: 'France Football 金球奖 1990 投票第三名，布雷默效力国际米兰时期。'
   }
 ];
 
@@ -692,6 +707,21 @@ const UEFA_EURO_TEAM_OF_THE_TOURNAMENT_FACCHETTI_RESULTS: AnnualSelectionAwardSe
   }
 ];
 
+const UEFA_EURO_TEAM_OF_THE_TOURNAMENT_BREHME_RESULTS: AnnualSelectionAwardSeed[] = [
+  {
+    year: 1984,
+    placement: '入选',
+    remark: '布雷默代表西德参加 UEFA Euro 1984，以后卫身份入选官方赛事最佳阵容。',
+    editionRemark: '欧足联技术团队评选的 UEFA Euro 1984 赛事最佳阵容。'
+  },
+  {
+    year: 1992,
+    placement: '入选',
+    remark: '布雷默代表德国参加 UEFA Euro 1992，以后卫身份入选官方赛事最佳阵容。',
+    editionRemark: '欧足联技术团队评选的 UEFA Euro 1992 赛事最佳阵容。'
+  }
+];
+
 const ARGENTINE_FOOTBALLER_OF_THE_YEAR_MARADONA_RESULTS: RankedAwardSeed[] = [
   {
     year: 1979,
@@ -802,6 +832,14 @@ const FIFA_WORLD_CUP_ALL_STAR_TEAM_FACCHETTI_RESULTS: FIFAWorldCupAllStarTeamSee
   }
 ];
 
+const FIFA_WORLD_CUP_ALL_STAR_TEAM_BREHME_RESULTS: FIFAWorldCupAllStarTeamSeed[] = [
+  {
+    year: 1990,
+    placement: '入选',
+    remark: '1990年国际足联世界杯最佳阵容，后卫。'
+  }
+];
+
 const ARGENTINE_PRIMERA_DIVISION_TOP_SCORER_MARADONA_RESULTS: ArgentinePrimeraDivisionTopScorerSeed[] =
   [
     {
@@ -905,6 +943,15 @@ const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_BARESI_RESULTS: LeaguePlayerOfTheYearSeed
     year: 1990,
     placement: '年度最佳球员',
     remark: "1989-90 意大利足球甲级联赛 Guerin d'Oro，巴雷西效力 AC米兰时期。"
+  }
+];
+
+const ITALY_SERIE_A_PLAYER_OF_THE_YEAR_BREHME_RESULTS: LeaguePlayerOfTheYearSeed[] = [
+  {
+    season: '1988-89',
+    year: 1989,
+    placement: '年度最佳球员',
+    remark: "1988-89 意大利足球甲级联赛 Guerin d'Oro，布雷默效力国际米兰时期。"
   }
 ];
 
@@ -1415,6 +1462,162 @@ const FACCHETTI_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
     careerTeamName: '意大利',
     expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
     remark: '法切蒂以队长身份代表意大利参加 1970 年国际足联世界杯，球队获得亚军。'
+  }
+];
+
+const BREHME_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: 'FIFA_WORLD_CUP',
+    editionName: '1990年',
+    teamName: '西德',
+    careerTeamName: '德国',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默代表西德参加 1990 年国际足联世界杯并在决赛攻入制胜点球，球队获得冠军。'
+  },
+  {
+    competitionCode: 'GERMANY_BUNDESLIGA',
+    editionName: '1986-87',
+    teamName: '拜仁慕尼黑',
+    careerTeamName: '拜仁慕尼黑',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默 1986-87 赛季代表拜仁慕尼黑出战德甲，球队获得德国足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: 'GERMAN_SUPER_CUP',
+    editionName: '1987',
+    teamName: '拜仁慕尼黑',
+    careerTeamName: '拜仁慕尼黑',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默代表拜仁慕尼黑参加 1987 年德国超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1988-89',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默 1988-89 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: ITALY_SUPER_CUP_COMPETITION_CODE,
+    editionName: '1989',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默代表国际米兰参加 1989 年意大利超级杯，球队获得冠军。'
+  },
+  {
+    competitionCode: UEFA_EUROPA_LEAGUE_COMPETITION_CODE,
+    editionName: '1990-91赛季',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默 1990-91 赛季代表国际米兰参加欧洲联盟杯，球队获得冠军。'
+  },
+  {
+    competitionCode: 'DFB_POKAL',
+    editionName: '1995-96',
+    teamName: '凯泽斯劳滕',
+    careerTeamName: '凯泽斯劳滕',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默 1995-96 赛季代表凯泽斯劳滕参加德国足协杯，球队获得冠军。'
+  },
+  {
+    competitionCode: 'GERMANY_2_BUNDESLIGA',
+    editionName: '1996-97',
+    teamName: '凯泽斯劳滕',
+    careerTeamName: '凯泽斯劳滕',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默 1996-97 赛季代表凯泽斯劳滕出战德乙，球队获得德国足球乙级联赛冠军。'
+  },
+  {
+    competitionCode: 'GERMANY_BUNDESLIGA',
+    editionName: '1997-98',
+    teamName: '凯泽斯劳滕',
+    careerTeamName: '凯泽斯劳滕',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '布雷默 1997-98 赛季代表凯泽斯劳滕出战德甲，球队获得德国足球甲级联赛冠军。'
+  },
+  {
+    competitionCode: 'FIFA_WORLD_CUP',
+    editionName: '1986年',
+    teamName: '西德',
+    careerTeamName: '德国',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默代表西德参加 1986 年国际足联世界杯，球队获得亚军。'
+  },
+  {
+    competitionCode: 'UEFA_CHAMPIONS_LEAGUE',
+    editionName: '1986-87赛季',
+    teamName: '拜仁慕尼黑',
+    careerTeamName: '拜仁慕尼黑',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默 1986-87 赛季代表拜仁慕尼黑参加欧洲冠军杯，球队获得亚军。'
+  },
+  {
+    competitionCode: 'GERMANY_BUNDESLIGA',
+    editionName: '1987-88',
+    teamName: '拜仁慕尼黑',
+    careerTeamName: '拜仁慕尼黑',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默 1987-88 赛季代表拜仁慕尼黑出战德甲，球队获得德国足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: 'UEFA_EURO',
+    editionName: '1988年',
+    teamName: '西德',
+    careerTeamName: '德国',
+    expectedPlacement: CompetitionStandingPlacement.SEMI_FINALIST,
+    remark:
+      '布雷默代表西德参加 1988 年欧洲足球锦标赛，球队进入四强；系统按半决赛球队记录，页面按当前口径显示为殿军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1989-90',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '布雷默 1989-90 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛季军。'
+  },
+  {
+    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
+    editionName: '1990-91',
+    teamName: '国际米兰',
+    careerTeamName: '国际米兰',
+    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
+    remark: '布雷默 1990-91 赛季代表国际米兰出战意甲，球队获得意大利足球甲级联赛季军。'
+  },
+  {
+    competitionCode: 'UEFA_EURO',
+    editionName: '1992年',
+    teamName: '德国',
+    careerTeamName: '德国',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默代表德国参加 1992 年欧洲足球锦标赛，球队获得亚军。'
+  },
+  {
+    competitionCode: 'SPAIN_COPA_DEL_REY',
+    editionName: '1992-93',
+    teamName: '皇家萨拉戈萨',
+    careerTeamName: '皇家萨拉戈萨',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默 1992-93 赛季代表皇家萨拉戈萨参加西班牙国王杯，球队获得亚军。'
+  },
+  {
+    competitionCode: 'GERMANY_BUNDESLIGA',
+    editionName: '1993-94',
+    teamName: '凯泽斯劳滕',
+    careerTeamName: '凯泽斯劳滕',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默 1993-94 赛季代表凯泽斯劳滕出战德甲，球队获得德国足球甲级联赛亚军。'
+  },
+  {
+    competitionCode: 'GERMAN_SUPER_CUP',
+    editionName: '1996',
+    teamName: '凯泽斯劳滕',
+    careerTeamName: '凯泽斯劳滕',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '布雷默代表凯泽斯劳滕参加 1996 年德国超级杯，球队获得亚军。'
   }
 ];
 
@@ -2597,6 +2800,19 @@ const FACCHETTI_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
   }
 ];
 
+const BREHME_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: '1990 年世界杯决赛攻入制胜点球',
+    season: '1990',
+    score: 0,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/1990_FIFA_World_Cup_final',
+    remark:
+      '布雷默在 1990 年世界杯决赛第 85 分钟主罚点球得分，帮助西德 1-0 战胜阿根廷夺冠；仅展示，不计分。',
+    sortOrder: 1
+  }
+];
+
 const GERRARD_LEGACY_ACHIEVEMENT_NAMES = [
   '利物浦队长纪录',
   '利物浦正式比赛出场 710 次、进球 186 个',
@@ -2722,10 +2938,24 @@ async function main() {
     throw new Error(`Player not found: ${FACCHETTI_NAME_KEYWORD}`);
   }
 
+  const brehme = await prisma.player.findFirst({
+    where: {
+      chineseName: {
+        contains: BREHME_NAME_KEYWORD
+      }
+    },
+    select: { id: true, chineseName: true }
+  });
+
+  if (!brehme) {
+    throw new Error(`Player not found: ${BREHME_NAME_KEYWORD}`);
+  }
+
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
   const italySerieA = await findCompetition(ITALY_SERIE_A_COMPETITION_CODE);
+  const germanyBundesliga = await findCompetition(GERMANY_BUNDESLIGA_COMPETITION_CODE);
   const italyCoppaItalia = await findCompetition(ITALY_COPPA_ITALIA_COMPETITION_CODE);
   const argentinePrimeraDivision = await findCompetition(
     ARGENTINE_PRIMERA_DIVISION_COMPETITION_CODE
@@ -2773,6 +3003,7 @@ async function main() {
   await seedBallonDor(gerrard.id, gerrard.chineseName, BALLON_DOR_GERRARD_RESULTS);
   await seedBallonDor(lampard.id, lampard.chineseName, BALLON_DOR_LAMPARD_RESULTS);
   await seedBallonDor(facchetti.id, facchetti.chineseName, BALLON_DOR_FACCHETTI_RESULTS);
+  await seedBallonDor(brehme.id, brehme.chineseName, BALLON_DOR_BREHME_RESULTS);
   await seedFifaWorldPlayerOfTheYear(lampard.id, lampard.chineseName);
   await seedFifproWorld11(gerrard.id, gerrard.chineseName, FIFPRO_WORLD_11_GERRARD_RESULTS);
   await seedFifproWorld11(lampard.id, lampard.chineseName, FIFPRO_WORLD_11_LAMPARD_RESULTS);
@@ -2817,6 +3048,13 @@ async function main() {
     uefaEuro.id,
     UEFA_EURO_TEAM_OF_THE_TOURNAMENT_FACCHETTI_RESULTS
   );
+  await seedUefaEuroTeamOfTheTournament(
+    uefa.id,
+    brehme.id,
+    brehme.chineseName,
+    uefaEuro.id,
+    UEFA_EURO_TEAM_OF_THE_TOURNAMENT_BREHME_RESULTS
+  );
   await seedArgentineFootballerOfTheYear(argentina.id, maradona.id, maradona.chineseName);
   await seedFifaWorldCupGoldenBall(
     pele.id,
@@ -2860,6 +3098,12 @@ async function main() {
     fifaWorldCup.id,
     FIFA_WORLD_CUP_ALL_STAR_TEAM_FACCHETTI_RESULTS
   );
+  await seedFifaWorldCupAllStarTeam(
+    brehme.id,
+    brehme.chineseName,
+    fifaWorldCup.id,
+    FIFA_WORLD_CUP_ALL_STAR_TEAM_BREHME_RESULTS
+  );
   await seedFifaWorldCupBestYoungPlayer(pele.id, fifaWorldCup.id);
   await seedCopaAmericaBestPlayer(conmebol.id, copaAmerica.id, pele.id);
   await seedCopaAmericaTopScorer(conmebol.id, copaAmerica.id, pele.id);
@@ -2875,6 +3119,17 @@ async function main() {
     baresi.chineseName,
     italySerieA.id,
     ITALY_SERIE_A_PLAYER_OF_THE_YEAR_BARESI_RESULTS
+  );
+  await seedItalySerieAPlayerOfTheYear(
+    brehme.id,
+    brehme.chineseName,
+    italySerieA.id,
+    ITALY_SERIE_A_PLAYER_OF_THE_YEAR_BREHME_RESULTS
+  );
+  await seedKickerGermanBundesligaTeamOfTheSeason(
+    brehme.id,
+    brehme.chineseName,
+    germanyBundesliga.id
   );
   await seedItalySerieATopScorer(maradona.id, maradona.chineseName, italySerieA.id);
   await seedItalyCoppaItaliaTopScorer(
@@ -2923,6 +3178,7 @@ async function main() {
     LAMPARD_EUROPEAN_AND_GLOBAL_TEAM_HONOR_RESULTS
   );
   await seedPlayerTeamHonors(facchetti.id, facchetti.chineseName, FACCHETTI_TEAM_HONOR_RESULTS);
+  await seedPlayerTeamHonors(brehme.id, brehme.chineseName, BREHME_TEAM_HONOR_RESULTS);
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -2939,6 +3195,7 @@ async function main() {
   await seedPlayerAchievements(gerrard.id, gerrard.chineseName, GERRARD_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(lampard.id, lampard.chineseName, LAMPARD_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(facchetti.id, facchetti.chineseName, FACCHETTI_ACHIEVEMENT_RESULTS);
+  await seedPlayerAchievements(brehme.id, brehme.chineseName, BREHME_ACHIEVEMENT_RESULTS);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();
@@ -5321,6 +5578,108 @@ async function seedItalySerieATopScorer(
 
   console.log(
     `Seeded ${ITALY_SERIE_A_TOP_SCORER_AWARD_CODE}: ${ITALY_SERIE_A_TOP_SCORER_MARADONA_RESULTS.length} ${playerLabel} recipients.`
+  );
+}
+
+async function seedKickerGermanBundesligaTeamOfTheSeason(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_AWARD_CODE },
+    create: {
+      code: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_AWARD_CODE,
+      name: '踢球者德甲赛季最佳阵容',
+      englishName: 'kicker Bundesliga Team of the Season',
+      shortName: '踢球者德甲最佳阵容',
+      externalUrl: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级阵容奖',
+      level: '二级',
+      description: '德国《踢球者》评选的德国足球甲级联赛赛季最佳阵容，按国联二级阵容奖计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-23T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入布雷默 1985-86 赛季确认记录。',
+      enabled: true,
+      sortOrder: 7230
+    },
+    update: {
+      name: '踢球者德甲赛季最佳阵容',
+      englishName: 'kicker Bundesliga Team of the Season',
+      shortName: '踢球者德甲最佳阵容',
+      externalUrl: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.LEAGUE,
+      category: '国联二级阵容奖',
+      level: '二级',
+      description: '德国《踢球者》评选的德国足球甲级联赛赛季最佳阵容，按国联二级阵容奖计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      dataComplete: false,
+      dataUpdatedAt: new Date('2026-09-23T00:00:00.000Z'),
+      dataRemark: '仅按当前球员录入节奏补入布雷默 1985-86 赛季确认记录。',
+      enabled: true,
+      sortOrder: 7230
+    }
+  });
+
+  const competitionEdition = await findCompetitionEdition(competitionId, '1985-86');
+  const edition = await prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId: award.id,
+        name: '1985-86'
+      }
+    },
+    create: {
+      awardId: award.id,
+      competitionEditionId: competitionEdition.id,
+      name: '1985-86',
+      season: '1985-86',
+      year: 1986,
+      externalUrl: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL,
+      remark: '布雷默入选 1985-86 赛季德国《踢球者》德甲赛季最佳阵容。'
+    },
+    update: {
+      competitionEditionId: competitionEdition.id,
+      season: '1985-86',
+      year: 1986,
+      externalUrl: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL,
+      remark: '布雷默入选 1985-86 赛季德国《踢球者》德甲赛季最佳阵容。'
+    }
+  });
+
+  await prisma.awardRecipient.upsert({
+    where: {
+      editionId_targetType_playerId: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId
+      }
+    },
+    create: {
+      editionId: edition.id,
+      targetType: AwardTargetType.PLAYER,
+      playerId,
+      rank: null,
+      placement: '入选',
+      externalUrl: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL,
+      remark: '布雷默以拜仁慕尼黑球员身份入选 1985-86 赛季德国《踢球者》德甲赛季最佳阵容。'
+    },
+    update: {
+      rank: null,
+      placement: '入选',
+      externalUrl: KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_EXTERNAL_URL,
+      remark: '布雷默以拜仁慕尼黑球员身份入选 1985-86 赛季德国《踢球者》德甲赛季最佳阵容。'
+    }
+  });
+
+  console.log(
+    `Seeded ${KICKER_GERMANY_BUNDESLIGA_TEAM_OF_THE_SEASON_AWARD_CODE}: 1 ${playerLabel} recipient.`
   );
 }
 
