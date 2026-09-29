@@ -235,7 +235,7 @@ function openExternalLink(row: PlayerListItem) {
             <AbilityBadge type="PA" :value="row.pa" size="small" />
           </template>
         </el-table-column>
-        <el-table-column prop="honorScore" label="荣誉分" width="100" sortable>
+        <el-table-column prop="honorScore" label="荣誉分" min-width="91" align="center" sortable>
           <template #default="{ row }">
             <el-tooltip placement="top" effect="dark">
               <template #content>

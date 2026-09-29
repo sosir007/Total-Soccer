@@ -108,6 +108,7 @@ type CompetitionSeedOptions<T extends SeedEdition> = {
     editions: number;
     standings: number;
   };
+  allowSharedStandings?: boolean;
   allowPartialStandings?: boolean;
   validateOnly?: boolean;
   completedMessage: string;
@@ -499,6 +500,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
   buildStandings,
   scope,
   expected,
+  allowSharedStandings = false,
   allowPartialStandings = false,
   validateOnly = isValidateOnlyRequested(),
   completedMessage
@@ -530,6 +532,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
     editionStandings,
     scope,
     expected,
+    allowSharedStandings,
     allowPartialStandings
   });
 
@@ -618,6 +621,7 @@ export async function runCompetitionSeed<T extends SeedEdition>({
       editionName,
       standingMode,
       standings,
+      allowSharedStandings,
       allowPartialStandings
     );
 
@@ -1303,6 +1307,7 @@ function validateEditionStandings(
   editionName: string,
   mode: CompetitionEditionStandingMode,
   standings: SeedStanding[],
+  allowSharedStandings = false,
   allowPartial = false
 ) {
   const context = `${competitionCode} ${editionName}`;
@@ -1336,6 +1341,25 @@ function validateEditionStandings(
       }
     }
   };
+
+  if (allowSharedStandings) {
+    const totalStandings = standings.length;
+    if (
+      counts.champion < 1 ||
+      counts.champion > 4 ||
+      counts.runnerUp > 4 ||
+      counts.thirdPlace > 4 ||
+      counts.fourthPlace > 4 ||
+      counts.semiFinalist > 0 ||
+      totalStandings !== 4
+    ) {
+      throw new Error(
+        `${context}: invalid shared standings. Expected four final standings with no semi-finalists.`
+      );
+    }
+
+    return;
+  }
 
   switch (mode) {
     case CompetitionEditionStandingMode.THIRD_PLACE_MATCH:
@@ -1398,6 +1422,7 @@ function validateSeedInput<T extends SeedEdition>({
   editionStandings,
   scope,
   expected,
+  allowSharedStandings,
   allowPartialStandings
 }: {
   competitionCode: string;
@@ -1410,6 +1435,7 @@ function validateSeedInput<T extends SeedEdition>({
   editionStandings: Array<{ edition: T; standings: SeedStanding[] }>;
   scope?: CompetitionSeedOptions<T>['scope'];
   expected?: CompetitionSeedOptions<T>['expected'];
+  allowSharedStandings?: boolean;
   allowPartialStandings?: boolean;
 }) {
   const editionNames = editions.map((edition) => edition.name ?? formatEditionName(edition));
@@ -1429,6 +1455,7 @@ function validateSeedInput<T extends SeedEdition>({
       editionName,
       standingMode,
       standings,
+      allowSharedStandings,
       allowPartialStandings
     );
     validateStandingTargets(`${competitionCode} ${editionName}`, targetType, standings);

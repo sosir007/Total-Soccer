@@ -44,6 +44,7 @@ export const ITALY_SERIE_A_PATCH_METADATA: CompetitionDataMetadata = {
     '1926-27 冠军被撤销未授予，仅记录可确认的亚军和季军。',
     '1921-22 CCI / FIGC 两个官方冠军按 championShare=2 分摊冠军分。',
     '1903、1904 部分 AC 米兰资料列 Milan 为第三名，但 RSSSF 逐场赛程、FIGC 赛制说明和 Wikipedia 冠军表均未明确官方全国季军，项目口径留空。',
+    '1979-80 因 Totonero 案，AC 米兰被官方调整为第十五名并降级；最终第三名为都灵。',
     '1929-30 之后按 RSSSF 最终名次累计表派生冠军、亚军、季军；2004-05 因 Calciopoli 冠军未授予，仅录入调整后的亚军和季军。'
   ]
 };
@@ -357,7 +358,7 @@ const RAW_SERIE_A_TOP_THREE = `
 1976-77	Juventus Turin	AC/FC Turin/Torino Calcio	AC/ACF Florenz
 1977-78	Juventus Turin	AC/Lanerossi Vicenza Calcio	AC/FC Turin/Torino Calcio
 1978-79	FC/AC Mailand	AC Perugia	Juventus Turin
-1979-80	Ambrosiana/Inter Mailand	Juventus Turin	FC/AC Mailand
+1979-80	Ambrosiana/Inter Mailand	Juventus Turin	AC/FC Turin/Torino Calcio
 1980-81	Juventus Turin	AS Rom	AC/SSC Neapel
 1981-82	Juventus Turin	AC/ACF Florenz	AS Rom
 1982-83	AS Rom	Juventus Turin	Ambrosiana/Inter Mailand
@@ -434,7 +435,8 @@ function buildStanding(
   placement: CompetitionStandingPlacement,
   standingOrder: number,
   rawClubName: string | undefined,
-  remark: string
+  remark: string,
+  replacesClubName?: string
 ): SeedCompetitionPatch['standings'][number] | null {
   if (!rawClubName?.trim()) return null;
 
@@ -445,7 +447,8 @@ function buildStanding(
     placement,
     standingOrder,
     clubName,
-    remark
+    remark,
+    replacesClubName
   };
 }
 
@@ -478,9 +481,9 @@ const PRE_SERIE_A_PATCHES: SeedCompetitionPatch[] = RAW_PRE_SERIE_A_STANDINGS.tr
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
       remark,
       standings: [
-        buildStanding(CompetitionStandingPlacement.CHAMPION, 1, champion, remark),
-        buildStanding(CompetitionStandingPlacement.RUNNER_UP, 2, runnerUp, remark),
-        buildStanding(CompetitionStandingPlacement.THIRD_PLACE, 3, thirdPlace, remark)
+        buildStanding(CompetitionStandingPlacement.CHAMPION, 0, champion, remark),
+        buildStanding(CompetitionStandingPlacement.RUNNER_UP, 0, runnerUp, remark),
+        buildStanding(CompetitionStandingPlacement.THIRD_PLACE, 0, thirdPlace, remark)
       ].filter((standing): standing is SeedCompetitionPatch['standings'][number] =>
         Boolean(standing)
       )
@@ -506,9 +509,15 @@ const SERIE_A_TOP_THREE_PATCHES: SeedCompetitionPatch[] = RAW_SERIE_A_TOP_THREE.
       standingMode: CompetitionEditionStandingMode.LEAGUE_TOP_THREE,
       remark,
       standings: [
-        buildStanding(CompetitionStandingPlacement.CHAMPION, 1, champion, remark),
-        buildStanding(CompetitionStandingPlacement.RUNNER_UP, 2, runnerUp, remark),
-        buildStanding(CompetitionStandingPlacement.THIRD_PLACE, 3, thirdPlace, remark)
+        buildStanding(CompetitionStandingPlacement.CHAMPION, 0, champion, remark),
+        buildStanding(CompetitionStandingPlacement.RUNNER_UP, 0, runnerUp, remark),
+        buildStanding(
+          CompetitionStandingPlacement.THIRD_PLACE,
+          0,
+          thirdPlace,
+          remark,
+          season === '1979-80' ? 'AC米兰' : undefined
+        )
       ].filter((standing): standing is SeedCompetitionPatch['standings'][number] =>
         Boolean(standing)
       )

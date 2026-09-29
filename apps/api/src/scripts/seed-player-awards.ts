@@ -72,6 +72,9 @@ const ITALY_COPPA_ITALIA_COMPETITION_CODE = 'ITALY_COPPA_ITALIA';
 const ITALY_SUPER_CUP_COMPETITION_CODE = 'ITALY_SUPER_CUP';
 const MITROPA_CUP_COMPETITION_CODE = 'MITROPA_CUP';
 const UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE = 'UEFA_CHAMPIONS_LEAGUE';
+const UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_AWARD_CODE = 'UEFA_CHAMPIONS_LEAGUE_TOP_SCORER';
+const UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL =
+  'https://en.wikipedia.org/wiki/1968%E2%80%9369_European_Cup#Top_scorers';
 const UEFA_EUROPA_LEAGUE_COMPETITION_CODE = 'UEFA_EUROPA_LEAGUE';
 const UEFA_SUPER_CUP_COMPETITION_CODE = 'UEFA_SUPER_CUP';
 const UEFA_CLUB_FOOTBALLER_OF_THE_YEAR_AWARD_CODE = 'UEFA_CLUB_FOOTBALLER_OF_THE_YEAR';
@@ -163,6 +166,8 @@ const FIFA_CLUB_WORLD_CUP_COMPETITION_CODE = 'FIFA_CLUB_WORLD_CUP';
 const ENGLAND_FA_CUP_COMPETITION_CODE = 'ENGLAND_FA_CUP';
 const ENGLAND_LEAGUE_CUP_COMPETITION_CODE = 'ENGLAND_LEAGUE_CUP';
 const ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE = 'ENGLAND_COMMUNITY_SHIELD';
+const ENGLAND_FIRST_DIVISION_COMPETITION_CODE = 'ENGLAND_FIRST_DIVISION';
+const BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE = 'BRITISH_HOME_CHAMPIONSHIP';
 
 const PELE_NAME_KEYWORD = '贝利';
 const MARADONA_NAME_KEYWORD = '马拉多纳';
@@ -170,6 +175,7 @@ const GERRARD_NAME_KEYWORD = '杰拉德';
 const LAMPARD_NAME_KEYWORD = '兰帕德';
 const FACCHETTI_NAME_KEYWORD = '法切蒂';
 const BREHME_NAME_KEYWORD = '布雷默';
+const DENIS_LAW_NAME_KEYWORD = '丹尼斯·劳';
 
 function buildBallonDorEditionExternalUrl(year: number) {
   return `${BALLON_DOR_EDITION_EXTERNAL_URL_PREFIX}${year.toString().slice(-2)}.html`;
@@ -399,6 +405,15 @@ const BALLON_DOR_BREHME_RESULTS: RankedAwardSeed[] = [
     rank: 3,
     placement: '第三名',
     remark: 'France Football 金球奖 1990 投票第三名，布雷默效力国际米兰时期。'
+  }
+];
+
+const BALLON_DOR_DENIS_LAW_RESULTS: RankedAwardSeed[] = [
+  {
+    year: 1964,
+    rank: 1,
+    placement: '第一名',
+    remark: 'France Football 金球奖 1964 投票第一名，丹尼斯·劳效力曼联时期。'
   }
 ];
 
@@ -1093,14 +1108,6 @@ const BARESI_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
   },
   {
     competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
-    editionName: '1979-80',
-    teamName: 'AC米兰',
-    careerTeamName: 'AC米兰',
-    expectedPlacement: CompetitionStandingPlacement.THIRD_PLACE,
-    remark: '巴雷西 1979-80 赛季代表 AC米兰出战意甲 28 场，球队获得意大利足球甲级联赛季军。'
-  },
-  {
-    competitionCode: ITALY_SERIE_A_COMPETITION_CODE,
     editionName: '1988-89',
     teamName: 'AC米兰',
     careerTeamName: 'AC米兰',
@@ -1618,6 +1625,153 @@ const BREHME_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
     careerTeamName: '凯泽斯劳滕',
     expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
     remark: '布雷默代表凯泽斯劳滕参加 1996 年德国超级杯，球队获得亚军。'
+  }
+];
+
+const DENIS_LAW_TEAM_HONOR_RESULTS: PlayerTeamHonorSeed[] = [
+  {
+    competitionCode: ENGLAND_FA_CUP_COMPETITION_CODE,
+    editionName: '1962-63',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '丹尼斯·劳代表曼联参加 1962-63 赛季英格兰足总杯，球队获得冠军；他在决赛中进球。'
+  },
+  {
+    competitionCode: ENGLAND_FIRST_DIVISION_COMPETITION_CODE,
+    editionName: '1964-65',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '丹尼斯·劳代表曼联参加 1964-65 赛季英格兰足球甲级联赛（旧英甲），球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_FIRST_DIVISION_COMPETITION_CODE,
+    editionName: '1966-67',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '丹尼斯·劳代表曼联参加 1966-67 赛季英格兰足球甲级联赛（旧英甲），球队获得冠军。'
+  },
+  {
+    competitionCode: ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE,
+    editionName: '1965',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '丹尼斯·劳代表曼联参加 1965 年英格兰社区盾杯，球队与利物浦战平并共享冠军。'
+  },
+  {
+    competitionCode: ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE,
+    editionName: '1967',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark: '丹尼斯·劳代表曼联参加 1967 年英格兰社区盾杯，球队与托特纳姆热刺战平并共享冠军。'
+  },
+  {
+    competitionCode: UEFA_CHAMPIONS_LEAGUE_COMPETITION_CODE,
+    editionName: '1967-68赛季',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表曼联参加 1967-68 赛季欧洲冠军联赛，球队获得冠军；他因膝伤缺席半决赛次回合和决赛，但属于冠军成员。'
+  },
+  {
+    competitionCode: ENGLAND_COMMUNITY_SHIELD_COMPETITION_CODE,
+    editionName: '1963',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '丹尼斯·劳代表曼联参加 1963 年英格兰社区盾杯，球队获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_FIRST_DIVISION_COMPETITION_CODE,
+    editionName: '1963-64',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '丹尼斯·劳代表曼联参加 1963-64 赛季英格兰足球甲级联赛（旧英甲），球队获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_FIRST_DIVISION_COMPETITION_CODE,
+    editionName: '1967-68',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '丹尼斯·劳代表曼联参加 1967-68 赛季英格兰足球甲级联赛（旧英甲），球队获得亚军。'
+  },
+  {
+    competitionCode: EUROPEAN_SOUTH_AMERICAN_CUP_COMPETITION_CODE,
+    editionName: '1968年',
+    teamName: '曼彻斯特联',
+    careerTeamName: '曼彻斯特联',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark:
+      '丹尼斯·劳代表曼联参加 1968 年欧洲/南美洲杯，球队两回合总比分 1-2 负于拉普拉塔大学生，获得亚军。'
+  },
+  {
+    competitionCode: ENGLAND_LEAGUE_CUP_COMPETITION_CODE,
+    editionName: '1973-74',
+    teamName: '曼彻斯特城',
+    careerTeamName: '曼彻斯特城',
+    expectedPlacement: CompetitionStandingPlacement.RUNNER_UP,
+    remark: '丹尼斯·劳代表曼城参加 1973-74 赛季英格兰联赛杯，球队获得亚军。'
+  },
+  {
+    competitionCode: BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE,
+    editionName: '1959年',
+    teamName: '苏格兰',
+    careerTeamName: '苏格兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表苏格兰参加 1959-60 赛季英国本土锦标赛，球队获得冠军；该赛事仅展示、不计分。'
+  },
+  {
+    competitionCode: BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE,
+    editionName: '1961年',
+    teamName: '苏格兰',
+    careerTeamName: '苏格兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表苏格兰参加 1961-62 赛季英国本土锦标赛，球队获得冠军；该赛事仅展示、不计分。'
+  },
+  {
+    competitionCode: BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE,
+    editionName: '1962年',
+    teamName: '苏格兰',
+    careerTeamName: '苏格兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表苏格兰参加 1962-63 赛季英国本土锦标赛，球队获得冠军；该赛事仅展示、不计分。'
+  },
+  {
+    competitionCode: BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE,
+    editionName: '1963年',
+    teamName: '苏格兰',
+    careerTeamName: '苏格兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表苏格兰参加 1963-64 赛季英国本土锦标赛，球队获得冠军；该赛事仅展示、不计分。'
+  },
+  {
+    competitionCode: BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE,
+    editionName: '1966年',
+    teamName: '苏格兰',
+    careerTeamName: '苏格兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表苏格兰参加 1966-67 赛季英国本土锦标赛，球队获得冠军；该赛事仅展示、不计分。'
+  },
+  {
+    competitionCode: BRITISH_HOME_CHAMPIONSHIP_COMPETITION_CODE,
+    editionName: '1971年',
+    teamName: '苏格兰',
+    careerTeamName: '苏格兰',
+    expectedPlacement: CompetitionStandingPlacement.CHAMPION,
+    remark:
+      '丹尼斯·劳代表苏格兰参加 1971-72 赛季英国本土锦标赛，球队获得冠军；该赛事仅展示、不计分。'
   }
 ];
 
@@ -2813,6 +2967,99 @@ const BREHME_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
   }
 ];
 
+const DENIS_LAW_ACHIEVEMENT_RESULTS: PlayerAchievementSeed[] = [
+  {
+    name: 'PFA功勋奖',
+    season: '1975',
+    score: 1,
+    isScoring: true,
+    externalUrl:
+      'https://web.archive.org/web/20180816194522/http://www.englandfootballonline.com/TeamHons/HonsPFAMerit.html',
+    remark: 'PFA Merit Award；PFA 对丹尼斯·劳职业生涯贡献的正式表彰。',
+    sortOrder: 1
+  },
+  {
+    name: '苏格兰黄金球员',
+    season: '2003',
+    score: 1,
+    isScoring: true,
+    externalUrl:
+      'https://web.archive.org/web/20040312203128/http://www.uefa.com/uefa/news/Kind%3D256/newsId%3D130150.html',
+    remark:
+      'UEFA Jubilee 周年活动中由苏格兰足协评选的过去 50 年最杰出球员；属于一次性历史地位荣誉。',
+    sortOrder: 2
+  },
+  {
+    name: '1963 年入选世界明星队',
+    season: '1963',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://www.rsssf.org/miscellaneous/fifa-xi.html',
+    remark: '入选参加英格兰足总百年纪念赛的 Rest of the World 代表队并攻入一球；仅展示，不计分。',
+    sortOrder: 10
+  },
+  {
+    name: '入选苏格兰足协国际荣誉名册',
+    season: '1988',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20140819195350/http://www.scottishfa.co.uk/football_player_profile.cfm?page=3128&playerID=113800',
+    remark:
+      'Scottish FA International Roll of Honour；达到 50 场国家队出场的里程碑名单；仅展示，不计分。',
+    sortOrder: 11
+  },
+  {
+    name: 'FWA致敬奖',
+    season: '1994',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20100819165726/http://www.footballwriters.co.uk/awards/',
+    remark: 'FWA Tribute Award；英格兰足球记者协会授予的职业生涯贡献荣誉；仅展示，不计分。',
+    sortOrder: 12
+  },
+  {
+    name: '入选英格兰足球联赛百大传奇',
+    season: '1998',
+    score: 1,
+    isScoring: false,
+    externalUrl: 'https://en.wikipedia.org/wiki/Football_League_100_Legends',
+    remark: 'Football League 100 Legends 历史回顾名单；仅展示，不计分。',
+    sortOrder: 13
+  },
+  {
+    name: '入选英格兰足球名人堂（首届）',
+    season: '2002',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20140425035408/http://www.nationalfootballmuseum.com/hall-of-fame/profiles/entry/denis-law/',
+    remark: '国家足球博物馆英格兰足球名人堂首届入选者；仅展示，不计分。',
+    sortOrder: 14
+  },
+  {
+    name: '入选苏格兰足球名人堂（首届）',
+    season: '2004',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20110928040649/http://www.scottishfootballmuseum.org.uk/hall-of-fame/2004.html',
+    remark: '苏格兰足球名人堂首届入选者；仅展示，不计分。',
+    sortOrder: 15
+  },
+  {
+    name: '入选PFA世纪最佳阵容（1907-1976）',
+    season: '2007',
+    score: 1,
+    isScoring: false,
+    externalUrl:
+      'https://web.archive.org/web/20081022110958/http://www.givemefootball.com/pfa-legends/teams-of-the-century/team-of-the-century-1907-1976',
+    remark: 'PFA Team of the Century 的 1907-1976 时段阵容；回顾性历史阵容，仅展示、不计分。',
+    sortOrder: 16
+  }
+];
+
 const GERRARD_LEGACY_ACHIEVEMENT_NAMES = [
   '利物浦队长纪录',
   '利物浦正式比赛出场 710 次、进球 186 个',
@@ -2951,6 +3198,19 @@ async function main() {
     throw new Error(`Player not found: ${BREHME_NAME_KEYWORD}`);
   }
 
+  const denisLaw = await prisma.player.findFirst({
+    where: {
+      chineseName: {
+        contains: DENIS_LAW_NAME_KEYWORD
+      }
+    },
+    select: { id: true, chineseName: true }
+  });
+
+  if (!denisLaw) {
+    throw new Error(`Player not found: ${DENIS_LAW_NAME_KEYWORD}`);
+  }
+
   const fifaWorldCup = await findCompetition('FIFA_WORLD_CUP');
   const copaAmerica = await findCompetition('COPA_AMERICA');
   const brazilSerieA = await findCompetition(BRAZIL_SERIE_A_COMPETITION_CODE);
@@ -3004,6 +3264,7 @@ async function main() {
   await seedBallonDor(lampard.id, lampard.chineseName, BALLON_DOR_LAMPARD_RESULTS);
   await seedBallonDor(facchetti.id, facchetti.chineseName, BALLON_DOR_FACCHETTI_RESULTS);
   await seedBallonDor(brehme.id, brehme.chineseName, BALLON_DOR_BREHME_RESULTS);
+  await seedBallonDor(denisLaw.id, denisLaw.chineseName, BALLON_DOR_DENIS_LAW_RESULTS);
   await seedFifaWorldPlayerOfTheYear(lampard.id, lampard.chineseName);
   await seedFifproWorld11(gerrard.id, gerrard.chineseName, FIFPRO_WORLD_11_GERRARD_RESULTS);
   await seedFifproWorld11(lampard.id, lampard.chineseName, FIFPRO_WORLD_11_LAMPARD_RESULTS);
@@ -3151,6 +3412,20 @@ async function main() {
   );
   await seedPlayerTeamHonors(maradona.id, maradona.chineseName, MARADONA_TEAM_HONOR_RESULTS);
   await seedPlayerTeamHonors(baresi.id, baresi.chineseName, BARESI_TEAM_HONOR_RESULTS);
+  await prisma.playerTeamHonor.deleteMany({
+    where: {
+      playerId: baresi.id,
+      sourceType: PlayerTeamHonorSourceType.IMPORT,
+      standing: {
+        placement: CompetitionStandingPlacement.THIRD_PLACE,
+        club: { name: 'AC米兰' },
+        edition: {
+          name: '1979-80',
+          competition: { code: ITALY_SERIE_A_COMPETITION_CODE }
+        }
+      }
+    }
+  });
   await seedPlayerTeamHonors(
     gerrard.id,
     gerrard.chineseName,
@@ -3179,6 +3454,8 @@ async function main() {
   );
   await seedPlayerTeamHonors(facchetti.id, facchetti.chineseName, FACCHETTI_TEAM_HONOR_RESULTS);
   await seedPlayerTeamHonors(brehme.id, brehme.chineseName, BREHME_TEAM_HONOR_RESULTS);
+  await seedPlayerTeamHonors(denisLaw.id, denisLaw.chineseName, DENIS_LAW_TEAM_HONOR_RESULTS);
+  await seedUefaChampionsLeagueTopScorer(denisLaw.id, denisLaw.chineseName, uefaChampionsLeague.id);
   await seedCampeonatoPaulistaTopScorer(pele.id, campeonatoPaulista.id);
   await seedTorneioRioSaoPauloTopScorer(pele.id, torneioRioSaoPaulo.id);
   await seedConmebolLibertadoresTopScorer(pele.id, conmebolLibertadores.id);
@@ -3196,6 +3473,7 @@ async function main() {
   await seedPlayerAchievements(lampard.id, lampard.chineseName, LAMPARD_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(facchetti.id, facchetti.chineseName, FACCHETTI_ACHIEVEMENT_RESULTS);
   await seedPlayerAchievements(brehme.id, brehme.chineseName, BREHME_ACHIEVEMENT_RESULTS);
+  await seedPlayerAchievements(denisLaw.id, denisLaw.chineseName, DENIS_LAW_ACHIEVEMENT_RESULTS);
 
   const awardRulesService = new AwardRulesService(prisma);
   const recalculation = await awardRulesService.recalculate();
@@ -6351,6 +6629,101 @@ async function seedConmebolLibertadoresTopScorer(peleId: string, competitionId: 
   console.log(
     `Seeded ${CONMEBOL_LIBERTADORES_TOP_SCORER_AWARD_CODE}: ${CONMEBOL_LIBERTADORES_TOP_SCORER_PELE_RESULTS.length} Pele recipients.`
   );
+}
+
+async function seedUefaChampionsLeagueTopScorer(
+  playerId: string,
+  playerLabel: string,
+  competitionId: string
+) {
+  const award = await prisma.award.upsert({
+    where: { code: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_AWARD_CODE },
+    create: {
+      code: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_AWARD_CODE,
+      name: '欧洲冠军联赛最佳射手',
+      englishName: 'UEFA Champions League Top Scorer',
+      shortName: '欧冠最佳射手',
+      externalUrl: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '洲联二级专项奖',
+      level: '二级',
+      description: '欧洲冠军杯/欧洲冠军联赛赛季最佳射手，系统按俱乐部洲际赛事专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 6300
+    },
+    update: {
+      name: '欧洲冠军联赛最佳射手',
+      englishName: 'UEFA Champions League Top Scorer',
+      shortName: '欧冠最佳射手',
+      externalUrl: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL,
+      targetType: AwardTargetType.PLAYER,
+      scopeType: AwardScopeType.CLUB,
+      category: '洲联二级专项奖',
+      level: '二级',
+      description: '欧洲冠军杯/欧洲冠军联赛赛季最佳射手，系统按俱乐部洲际赛事专项奖口径计入。',
+      competitionId,
+      lifecycleStatus: LifecycleStatus.CURRENT,
+      enabled: true,
+      sortOrder: 6300
+    }
+  });
+
+  const season = '1968-69';
+  const competitionEdition = await findCompetitionEdition(competitionId, `${season}赛季`);
+  const edition = await prisma.awardEdition.upsert({
+    where: {
+      awardId_name: {
+        awardId: award.id,
+        name: season
+      }
+    },
+    create: {
+      awardId: award.id,
+      competitionEditionId: competitionEdition.id,
+      name: season,
+      season,
+      year: 1969,
+      externalUrl: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL,
+      remark: '1968-69 赛季欧洲冠军杯最佳射手，丹尼斯·劳攻入 9 球。'
+    },
+    update: {
+      competitionEditionId: competitionEdition.id,
+      season,
+      year: 1969,
+      externalUrl: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL,
+      remark: '1968-69 赛季欧洲冠军杯最佳射手，丹尼斯·劳攻入 9 球。'
+    }
+  });
+
+  await prisma.awardRecipient.upsert({
+    where: {
+      editionId_targetType_playerId: {
+        editionId: edition.id,
+        targetType: AwardTargetType.PLAYER,
+        playerId
+      }
+    },
+    create: {
+      editionId: edition.id,
+      targetType: AwardTargetType.PLAYER,
+      playerId,
+      rank: 1,
+      placement: '最佳射手',
+      externalUrl: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL,
+      remark: '丹尼斯·劳以 9 球成为 1968-69 赛季欧洲冠军杯最佳射手。'
+    },
+    update: {
+      rank: 1,
+      placement: '最佳射手',
+      externalUrl: UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_EXTERNAL_URL,
+      remark: '丹尼斯·劳以 9 球成为 1968-69 赛季欧洲冠军杯最佳射手。'
+    }
+  });
+
+  console.log(`Seeded ${UEFA_CHAMPIONS_LEAGUE_TOP_SCORER_AWARD_CODE}: 1 ${playerLabel} recipient.`);
 }
 
 async function seedEuropeanSouthAmericanCupTopScorer(peleId: string, competitionId: string) {

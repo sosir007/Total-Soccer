@@ -9,6 +9,7 @@ import { getConfederationVariant } from '@/utils/tag-theme';
 type Career = NonNullable<PlayerDetail['careers']>[number];
 type CareerRow = Career & {
   periodText?: string;
+  isClubSummary?: boolean;
 };
 
 const props = withDefaults(
@@ -25,6 +26,28 @@ const props = withDefaults(
 const isGoalkeeperCareerTable = computed(
   () => props.careers?.some((career) => isGoalkeeperPosition(career.position)) ?? false
 );
+
+const displayCareers = computed(() => {
+  if (props.type !== 'mixed') {
+    return props.careers ?? [];
+  }
+
+  const careers = props.careers ?? [];
+  const clubCareers = careers.filter((career) => career.careerType === 'CLUB');
+
+  if (!clubCareers.length) {
+    return careers;
+  }
+
+  const firstCountryIndex = careers.findIndex((career) => career.careerType === 'COUNTRY');
+  const insertIndex = firstCountryIndex === -1 ? careers.length : firstCountryIndex;
+
+  return [
+    ...careers.slice(0, insertIndex),
+    buildClubSummaryCareer(clubCareers),
+    ...careers.slice(insertIndex)
+  ];
+});
 
 function formatCareerPeriod(career: {
   periodText?: string | null;
@@ -52,6 +75,76 @@ function formatCareerStat(value?: number | null) {
   return value === null || value === undefined ? '-' : value;
 }
 
+function buildClubSummaryCareer(clubCareers: CareerRow[]): CareerRow {
+  const [firstCareer] = clubCareers;
+  const positions = clubCareers.map((career) => (career.position ?? '').trim());
+  const [firstPosition] = positions;
+  const summaryPosition =
+    firstPosition && positions.every((position) => position === firstPosition)
+      ? firstPosition
+      : null;
+
+  return {
+    ...firstCareer,
+    id: '__club-summary__',
+    careerType: 'CLUB',
+    clubId: null,
+    countryId: null,
+    club: null,
+    country: null,
+    startYear: minNullable(clubCareers.map((career) => career.startYear)),
+    endYear: maxNullable(clubCareers.map((career) => career.endYear)),
+    startSeason: null,
+    endSeason: null,
+    periodText: buildClubSummaryPeriod(clubCareers),
+    appearances: sumNullable(clubCareers.map((career) => career.appearances)),
+    goals: sumNullable(clubCareers.map((career) => career.goals)),
+    assists: sumNullable(clubCareers.map((career) => career.assists)),
+    cleanSheets: sumNullable(clubCareers.map((career) => career.cleanSheets)),
+    goalsConceded: sumNullable(clubCareers.map((career) => career.goalsConceded)),
+    position: summaryPosition,
+    positionGroup: summaryPosition,
+    showInProfile: false,
+    isRepresentative: false,
+    isLegend: false,
+    sortOrder: Number.MAX_SAFE_INTEGER,
+    remark: null,
+    isClubSummary: true
+  };
+}
+
+function buildClubSummaryPeriod(clubCareers: CareerRow[]) {
+  const startYear = minNullable(clubCareers.map((career) => career.startYear));
+  const endYear = maxNullable(clubCareers.map((career) => career.endYear));
+
+  if (!startYear && !endYear) {
+    return '-';
+  }
+
+  return [startYear, endYear].filter(Boolean).join(' - ');
+}
+
+function minNullable(values: Array<number | null | undefined>) {
+  const validValues = values.filter(
+    (value): value is number => value !== null && value !== undefined
+  );
+  return validValues.length ? Math.min(...validValues) : null;
+}
+
+function maxNullable(values: Array<number | null | undefined>) {
+  const validValues = values.filter(
+    (value): value is number => value !== null && value !== undefined
+  );
+  return validValues.length ? Math.max(...validValues) : null;
+}
+
+function sumNullable(values: Array<number | null | undefined>) {
+  const validValues = values.filter(
+    (value): value is number => value !== null && value !== undefined
+  );
+  return validValues.length ? validValues.reduce((total, value) => total + value, 0) : null;
+}
+
 function getCareerTypeLabel(career: Career) {
   return career.careerType === 'CLUB' ? '俱乐部' : '国家队';
 }
@@ -67,6 +160,10 @@ function getCareerEntityId(career: Career) {
 }
 
 function getCareerEntityName(career: Career) {
+  if ('isClubSummary' in career && career.isClubSummary) {
+    return '-';
+  }
+
   return career.careerType === 'CLUB' ? career.club?.name : career.country?.name;
 }
 
@@ -115,7 +212,7 @@ function isGoalkeeperPosition(position?: string | null) {
 </script>
 
 <template>
-  <el-table :data="careers" border :span-method="getCareerTableCellSpan">
+  <el-table :data="displayCareers" border :span-method="getCareerTableCellSpan">
     <el-table-column type="index" label="序号" width="60" align="center" />
     <el-table-column v-if="type === 'mixed'" label="类型" width="90" align="center">
       <template #default="{ row }">
@@ -184,7 +281,7 @@ function isGoalkeeperPosition(position?: string | null) {
     <el-table-column v-if="isGoalkeeperCareerTable" label="失球" width="80" align="center">
       <template #default="{ row }">{{ formatCareerStat(row.goalsConceded) }}</template>
     </el-table-column>
-    <el-table-column label="标记" width="190" align="center">
+    <el-table-column label="标记" width="190">
       <template #default="{ row }">
         <div class="career-tags">
           <SemanticTag v-if="row.showInProfile" variant="status-enabled">展示</SemanticTag>
@@ -205,6 +302,5 @@ function isGoalkeeperPosition(position?: string | null) {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  justify-content: center;
 }
 </style>

@@ -690,8 +690,7 @@ export class CountriesService {
         },
         edition: {
           competition: {
-            targetType: CompetitionTargetType.COUNTRY,
-            includeInStats: true
+            targetType: CompetitionTargetType.COUNTRY
           }
         }
       },

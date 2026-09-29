@@ -135,6 +135,17 @@ export const COMPETITION_SEEDS: SeedRegistryItem[] = [
     scope: 'custom'
   },
   {
+    key: 'british-home-championship',
+    label: '英国本土锦标赛',
+    file: 'src/scripts/seeds/competitions/national-team/global/seed-british-home-championship.ts',
+    dataFiles: [
+      'src/scripts/data/competition-results/national-team/global/british-home-championship.ts'
+    ],
+    dataKind: 'competition-results',
+    target: 'national-team',
+    scope: 'custom'
+  },
+  {
     key: 'fifa-club-world-cup',
     label: '国际足联俱乐部世界杯',
     file: 'src/scripts/seeds/competitions/club/global/seed-fifa-club-world-cup.ts',
